@@ -38,7 +38,7 @@ export const apiUpload: AxiosInstance = axios.create({
       
       const academyDomainStorage = getDataStorage(ACADEMY_DOMAIN)
       const academyDomain = academyDomainStorage
-      const isLearningSpace = await getDataStorage(LEARNING_SPACE) === true
+      const isLearningSpace = !!(await getDataStorage(LEARNING_SPACE)) === true
 
       if((academyDomain && !isLearningSpace) && config.headers[AcademyHeaders] == undefined) config.headers[AcademyHeaders] = `${academyDomain}`
       if(isLearningSpace && config.headers[NoAcademyHeaders] == undefined) config.headers[NoAcademyHeaders] = `${isLearningSpace}`

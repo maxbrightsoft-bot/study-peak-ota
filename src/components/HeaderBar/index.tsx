@@ -35,8 +35,6 @@ const HeaderBar = ({
   titleStyle,
   left,
   center,
-  hideLogo,
-  onlyHaq,
 }: HeaderProps) => {
   const navigation = useNavigation();
 

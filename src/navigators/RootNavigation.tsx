@@ -1,37 +1,51 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NavigationContainer } from "@react-navigation/native";
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import NavigationHelpers from "./NavigationHelpers";
 import Routes from "./RouteName";
 import Authorized from "./Authorized";
-import { useTranslation } from "react-i18next";
+import UnAuthorized from "./UnAuthorized";
+import useAuthStore from "@/store/useAuthStore";
+import { useLanguage } from "@/hooks/useLanguage";
+import Loading from "@/components/Loading";
+import Toast from "react-native-toast-message";
+import LayoutApp from "@/layouts";
 
 const Stack = createNativeStackNavigator();
 
 const RootNavigation: React.FC = () => {
   let navigation: any = useRef();
-  const { i18n } = useTranslation();
-  useEffect(() => {
-    i18n.changeLanguage("en");
-  }, []);
+  const { user, isLoading } = useAuthStore();
+  useLanguage();
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer
-        ref={(navigatorRef) => {
-          if (navigatorRef) {
-            NavigationHelpers.setTopLevelNavigator(navigatorRef);
-            navigation = navigatorRef;
-          }
-        }}
-      >
-        <Stack.Navigator
-          screenOptions={{ headerShown: false, gestureEnabled: false }}
+      <Toast position="top" />
+      <LayoutApp>
+        <NavigationContainer
+          ref={(navigatorRef) => {
+            if (navigatorRef) {
+              NavigationHelpers.setTopLevelNavigator(navigatorRef);
+              navigation = navigatorRef;
+            }
+          }}
         >
-          <Stack.Screen name={Routes.AuthStack} component={Authorized} />
-        </Stack.Navigator>
-      </NavigationContainer>
+          {isLoading && <Loading />}
+          <Stack.Navigator
+            screenOptions={{ headerShown: false, gestureEnabled: false }}
+          >
+            {user ? (
+              <Stack.Screen name={Routes.AuthStack} component={Authorized} />
+            ) : (
+              <Stack.Screen
+                name={Routes.UnAuthStack}
+                component={UnAuthorized}
+              />
+            )}
+          </Stack.Navigator>
+        </NavigationContainer>
+      </LayoutApp>
     </SafeAreaProvider>
   );
 };

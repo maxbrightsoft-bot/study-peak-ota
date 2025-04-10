@@ -1,3 +1,4 @@
+import { palette } from '@/theme';
 import { ms,ScaledSheet } from 'react-native-size-matters';
 
 const styles = ScaledSheet.create({
@@ -20,10 +21,14 @@ const styles = ScaledSheet.create({
     paddingHorizontal: '16@ms',
     alignItems: 'center',
     overflow: 'hidden',
+  
   },
   textInput: {
     flex: 1,
-    minHeight: 40,
+    minHeight: '40@ms',
+    borderBottomWidth: 1,
+    borderColor: palette.grey[300],
+    padding: '12@ms'
   },
   error: {
     fontSize: '16@ms',

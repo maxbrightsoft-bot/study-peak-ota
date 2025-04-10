@@ -4,11 +4,11 @@ import { persist, createJSONStorage, StateStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Pusher, PusherChannel } from "@pusher/pusher-websocket-react-native";
 import { PUSHER_CONFIG } from "@/utils/constants";
-import { Academy } from "@/utils/types";
+import { Academy, UserResponse } from "@/utils/types";
 
 interface StoreState {
   isLoading: boolean;
-  user: any | null;
+  user: UserResponse | null;
   academy: Academy | null;
   pusher: Pusher | null;
   channel: PusherChannel | null;
@@ -16,7 +16,7 @@ interface StoreState {
 
 interface StoreActions {
   setAcademy: (academy: Academy) => void;
-  login: (userData: any) => void;
+  setUser: (userData: any) => void;
   logout: () => void;
   setLoading: (isLoading: boolean) => void;
   subscribeChannel: (
@@ -40,7 +40,7 @@ const useAuthStore = create<AuthStore>()(
       channel: null,
 
       // Actions
-      login: (userData: any) => {
+      setUser: (userData: any) => {
         set((state) => {
           state.user = userData;
         });

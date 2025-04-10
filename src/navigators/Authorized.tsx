@@ -1,21 +1,23 @@
 import React from "react";
 import Routes from "./RouteName";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import Login from "@/screens/Auth/Login";
-import HomePage from "@/screens/HomePage";
+import HomePage from "@/screens/Home";
+import OnboardingScreen from "@/screens/Onboarding";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import Footer from "@/layouts/Footer";
 
-const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
 const Authorized = ({ route }: { route: any }) => {
   return (
-    <Stack.Navigator
+    <Tab.Navigator
       screenOptions={{
         header: (props) => <></>,
       }}
       initialRouteName={Routes.Home}
+      tabBar={(props) => <Footer {...props} />}
     >
-      <Stack.Screen name={Routes.Home} component={HomePage} />
-      <Stack.Screen name={Routes.Login} component={Login} />
-    </Stack.Navigator>
+        <Tab.Screen name={Routes.Onboarding} component={OnboardingScreen} />
+        <Tab.Screen name={Routes.Home} component={HomePage} />
+    </Tab.Navigator>
   );
 };
 
