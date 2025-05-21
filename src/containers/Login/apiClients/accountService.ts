@@ -16,15 +16,17 @@ export const getInfo = (role: string, isLearningSpace: boolean) =>
   });
 
 export const apiLoginGoogle = (body: LoginRequest, isLearningSpace: boolean) =>
-  api.post(`${AUTH_URL}/login`, body, {
+  api.post(`${AUTH_URL}/login/mobile`,
+    body, {
     headers: {
-      [NoAcademyHeaders]: isLearningSpace,
-    },
-  });
+      [NoAcademyHeaders]: isLearningSpace
+    }
+  }
+  );
 
 export const apiLoginGoogleSuperAdmin = (body: LoginRequest) => api.post(
-    `${AUTH_SUPER_ADMIN_URL}/login`, 
-    body
+  `${AUTH_SUPER_ADMIN_URL}/login`,
+  body
 )
 
 export const apiLoginWithAccessToken = (
@@ -32,7 +34,7 @@ export const apiLoginWithAccessToken = (
   isLearningSpace?: boolean,
   domain?: string
 ) =>
-  api.post(`${AUTH_URL}/login/access-token`, body, {
+  api.post(`${AUTH_URL}/login/access-token/mobile`, body, {
     params: {
       isLearningSpace,
     },
@@ -43,3 +45,4 @@ export const apiLoginWithAccessToken = (
   });
 
 export const getSuperAdminInfoFromWeb = () => api.get(`${AUTH_SUPER_ADMIN_URL}/info`)
+

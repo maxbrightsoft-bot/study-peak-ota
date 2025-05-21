@@ -1,5 +1,5 @@
+import Login from "@/containers/Login/views/LoginGoogle";
 import React from "react";
-import Login from "@/containers/Login";
 
 const LoginScreen = () => {
   return <Login />;

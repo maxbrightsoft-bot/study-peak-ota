@@ -1,19 +1,20 @@
-import NavigationHelpers from "@/navigators/NavigationHelpers";
-import Routes from "@/navigators/RouteName";
+import { navigate, reset } from "@/navigators/NavigationHelpers";
 import React, { useEffect } from "react";
-import { View, StyleSheet, Image } from "react-native";
+import { View, StyleSheet } from "react-native";
 import LogoEN from "@/assets/icons/vertical_full-logo_eng.svg";
 import LogoKO from "@/assets/icons/vertical_full-logo_kor.svg";
 import { useLanguage } from "@/hooks/useLanguage";
 import { palette } from "@/theme";
+import { Routes } from "@/navigators/RouteName";
+import useAuthStore from "@/store/useAuthStore";
 
 const SplashScreen = () => {
-  const { navigate } = NavigationHelpers;
   const { isKorean } = useLanguage();
+  const { user } = useAuthStore()
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigate(Routes.Login);
+      navigate(Routes.UnAuth.Login);
     }, 3000);
 
     return () => clearTimeout(timer);

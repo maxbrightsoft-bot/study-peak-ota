@@ -1,4 +1,4 @@
-import LoginParentPhone from "@/containers/Login/components/LoginParentPhone"
+import LoginParentPhone from "@/containers/Login/views/LoginParentPhone"
 
 const LoginParentPhoneScreen = () => {
   return (

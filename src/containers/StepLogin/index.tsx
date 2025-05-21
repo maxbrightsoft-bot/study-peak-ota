@@ -11,7 +11,7 @@ const phoneRegExp =
 
 const schema = (t: any) =>
   yup.object().shape({
-    studentName: yup.string().required("StudentName is required!"),
+    fullName: yup.string().required("StudentName is required!"),
     phoneNumber: yup
       .string()
       .trim()
@@ -19,25 +19,23 @@ const schema = (t: any) =>
         message: "Phone number is not valid",
       })
       .required(),
-    currentGrade: yup.number(),
-    subject: yup.string(),
+    grade: yup.number(),
+    major: yup.string(),
     schoolName: yup.string().required(),
-    studySpace: yup.string().required(),
   });
 
 const StepLogin = () => {
   const { t, handleSubmit } = useStep();
   const initValues = {
-    studentName: "",
+    fullName: "",
     phoneNumber: "",
     schoolName: "",
-    currentGrade: 1,
-    subject: t("liberal_arts"),
-    studySpace: "",
+    grade: 1,
+    major: t("liberal_arts"),
   };
 
   return (
-    <View style={styles.container}>
+    <>
       <Formik
         initialValues={initValues}
         onSubmit={handleSubmit}
@@ -54,12 +52,8 @@ const StepLogin = () => {
           />
         )}
       </Formik>
-    </View>
+    </>
   );
 };
 
 export default StepLogin;
-
-const styles = StyleSheet.create({
-  container: { flex: 1, paddingBottom: 24 },
-});
