@@ -1,31 +1,42 @@
-import { LANGUAGE } from '@/utils/constants';
-import { LANGUAGES } from '@/utils/constants/language';
-import { Language } from '@/utils/types';
-import moment from 'moment';
-import { useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-
-
+import useAuthStore from "@/store/useAuthStore";
+import { LANGUAGES } from "@/utils/constants/language";
+import { Languages } from "@/utils/enums";
+import { Language } from "@/utils/types";
+import moment from "moment";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export const useLanguage = () => {
-  const { i18n } = useTranslation()
-  
-  const changeLanguage = (languageItem?: Language) => {
-    i18n.changeLanguage(languageItem?.code)
-    moment.locale(languageItem?.momentLangCode)
-    localStorage.setItem(LANGUAGE, languageItem?.code || '')
-  }
+  const { i18n } = useTranslation();
+  const { language, setLanguage } = useAuthStore()
+  const [isKorean, setIsKorean] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const language = localStorage.getItem(LANGUAGE)
-    const currentLang = LANGUAGES.find((i) => i.code === language)
+    const checkLang = async () => {
+      setIsKorean(language.code === Languages.ko);
+    };
+    checkLang();
+  }, [i18n]);
+
+  const changeLanguage = async(languageItem?: Language) => {
+    i18n.changeLanguage(languageItem?.code);
+    moment.locale(languageItem?.momentLangCode);
+    if(languageItem) setLanguage(languageItem)
+
+  };
+
+  const intiLanguage = async () => {
+    const currentLang = LANGUAGES.find((i) => i.code === language.code);
     if (!currentLang) {
-      changeLanguage(LANGUAGES[0])
+      await changeLanguage(LANGUAGES[0]);
     } else {
-      changeLanguage(currentLang)
+      await changeLanguage(currentLang);
     }
-  }, [])
+  };
 
+  useEffect(() => {
+    intiLanguage();
+  }, []);
 
-  return { changeLanguage };
+  return { isKorean, changeLanguage };
 };

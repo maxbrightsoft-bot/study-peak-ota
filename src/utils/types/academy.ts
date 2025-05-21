@@ -1,4 +1,4 @@
-export type Academy = {
+export type AcademyResponse = {
   id: number
   name: string
   image: string
