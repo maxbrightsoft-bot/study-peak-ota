@@ -2,7 +2,7 @@ import { palette, TYPO } from '@/theme';
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
-import Icon  from 'react-native-vector-icons/Ionicons';
+import Icon  from '@expo/vector-icons/Ionicons';
 
 type Props = {
   value: any
@@ -13,7 +13,7 @@ type Props = {
 
 const CustomSelect = ({ value, onValueChange, items, placeholder }: Props) => {
   return (
-    <View style={styles.wrapper}>
+    <View>
       <Dropdown
         data={items}
         labelField="label"
@@ -35,9 +35,8 @@ const CustomSelect = ({ value, onValueChange, items, placeholder }: Props) => {
 };
 
 const styles = StyleSheet.create({
-  wrapper: { marginBottom: 20 },
   dropdown: {
-    borderBottomWidth: 1,
+    borderBottomWidth: 0.5,
     borderColor: palette.grey[500],
     paddingRight: 15,
     height: 44,

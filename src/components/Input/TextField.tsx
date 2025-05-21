@@ -126,7 +126,7 @@ const TextField = ({
       <View style={[containerInputStyle]}>
         <TextInput
           ref={inputRef}
-          style={[styles.textInput, textInputStyle, textInputRightStyle]}
+          style={[styles.textInput, textInputStyle, textInputRightStyle, !!style && { borderBottomWidth: 0 }]}
           onFocus={onFocusClick}
           onBlur={onBlurClick}
           editable={editable}

@@ -1,5 +1,5 @@
-import { palette } from '@/theme';
-import { ms,ScaledSheet } from 'react-native-size-matters';
+import { palette, TYPO } from '@/theme';
+import { ScaledSheet } from 'react-native-size-matters';
 
 const styles = ScaledSheet.create({
   container: {},
@@ -7,9 +7,7 @@ const styles = ScaledSheet.create({
     flexDirection: 'row',
   },
   label: {
-    marginBottom:'4@ms',
-    fontSize: 15,
-    fontWeight: 'bold',
+    ...TYPO.caption
   },
   requiredText: {
     fontSize: 14,
@@ -24,16 +22,16 @@ const styles = ScaledSheet.create({
   
   },
   textInput: {
-    flex: 1,
     minHeight: '40@ms',
     borderBottomWidth: 1,
     borderColor: palette.grey[300],
     padding: '12@ms'
   },
   error: {
-    fontSize: '16@ms',
-    marginHorizontal: '16@ms',
+    ...TYPO.body3,
     marginBottom: '10@ms',
+    paddingTop: '10@ms',
+    color: 'red',
   },
   message: {
     fontSize: '12@ms',
