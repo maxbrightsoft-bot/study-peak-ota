@@ -3,6 +3,8 @@ import { initReactI18next } from 'react-i18next';
 
 import en from './lang_en.json';
 import ko from './lang_ko.json';
+import 'moment/locale/ko'
+import 'moment/locale/en-gb'
 
 const resources = {
   en: {
