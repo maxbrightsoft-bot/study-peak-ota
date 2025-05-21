@@ -1,7 +1,6 @@
-import { LANGUAGE } from "@/utils/constants";
+import useAuthStore from "@/store/useAuthStore";
 import { LANGUAGES } from "@/utils/constants/language";
 import { Languages } from "@/utils/enums";
-import { getDataStorage, setDataStorage } from "@/utils/storage";
 import { Language } from "@/utils/types";
 import moment from "moment";
 import { useEffect, useState } from "react";
@@ -9,29 +8,29 @@ import { useTranslation } from "react-i18next";
 
 export const useLanguage = () => {
   const { i18n } = useTranslation();
+  const { language, setLanguage } = useAuthStore()
   const [isKorean, setIsKorean] = useState<boolean | null>(null);
 
   useEffect(() => {
     const checkLang = async () => {
-      const lang = await getDataStorage(LANGUAGE);
-      setIsKorean(lang === Languages.ko);
+      setIsKorean(language.code === Languages.ko);
     };
     checkLang();
   }, [i18n]);
 
-  const changeLanguage = (languageItem?: Language) => {
+  const changeLanguage = async(languageItem?: Language) => {
     i18n.changeLanguage(languageItem?.code);
     moment.locale(languageItem?.momentLangCode);
-    setDataStorage(LANGUAGE, languageItem?.code || "");
+    if(languageItem) setLanguage(languageItem)
+
   };
 
   const intiLanguage = async () => {
-    const language = await getDataStorage(LANGUAGE);
-    const currentLang = LANGUAGES.find((i) => i.code === language);
+    const currentLang = LANGUAGES.find((i) => i.code === language.code);
     if (!currentLang) {
-      changeLanguage(LANGUAGES[0]);
+      await changeLanguage(LANGUAGES[0]);
     } else {
-      changeLanguage(currentLang);
+      await changeLanguage(currentLang);
     }
   };
 

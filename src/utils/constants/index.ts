@@ -1,3 +1,4 @@
+import { Platform, StatusBar } from "react-native"
 import { PagingResponse } from "../types"
 
 export const ACCESS_TOKEN = 'ACCESS_TOKEN'
@@ -8,6 +9,7 @@ export const AcademyHeaders = "Academy-Headers"
 export const AcceptNoAcademy = "AcceptNoAcademy"
 export const NoAcademyHeaders = "Accept-No-Academy"
 export const LANGUAGE = "LANGUAGE"
+export const REDIRECT_URL = "REDIRECT_URL"
 export const DefaultErrorMessage = 'an_unexpected_error_has_occurred'
 export const DEFAULT_PAGING_RESPONSE: PagingResponse = {
   page: 0,
@@ -15,6 +17,9 @@ export const DEFAULT_PAGING_RESPONSE: PagingResponse = {
   totalItems: 0,
   totalPages: 0,
 }
+export const STATUS_BAR_HEIGHT = Platform.OS === 'ios' ? 44 : StatusBar.currentHeight || 0;
+export const HEADER_HEIGHT = Platform.OS === 'ios' ? 100 : 90;
+export const TAB_BAR_HEIGHT = 60;
 
 export const DATE_MIN_VALUE = '0001-01-01T00:00:00+00:00'
 export const DATE_TIME_MIN_VALUE = '0001-01-01T00:00:00'
@@ -39,3 +44,4 @@ export const GOOGLE_RECAPTCHA_SECRET =
     process.env.EXPO_PUBLIC_GOOGLE_RECAPTCHA_SECRET || ""
   
 export * from './language'
+export * from './exam'
