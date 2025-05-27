@@ -141,7 +141,8 @@ const styles = ScaledSheet.create({
   questionsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: '24@ms'
+    paddingHorizontal: '24@ms',
+    backgroundColor: '#FFF'
   },
   questionText: {
     fontSize: 12,

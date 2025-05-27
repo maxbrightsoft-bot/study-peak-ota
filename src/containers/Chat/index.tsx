@@ -4,7 +4,6 @@ import { Ionicons } from '@expo/vector-icons'
 import { FlatList, Text, TouchableOpacity, View } from 'react-native'
 import { Avatar } from 'react-native-paper'
 import { ScaledSheet } from 'react-native-size-matters'
-import defaultImage from '@/assets/images/default.png'
 import useConversationList from './hooks/useConversationList'
 import SearchInput from '@/components/Input/SearchInput'
 import CreateConversationDialog from './components/CreateConversationDialog'
@@ -29,17 +28,14 @@ const Chat = ({ isVisible, onClose }: Props) => {
     setSelectedConversation,
     isVisibleCreateConversationDialog,
     handleCloseCreateConversationDialog,
-    handleVisibleCreateConversationDialog
   } = useConversationList()
 
   const {
     isLoadingMessages,
     chatListProps,
     inputProps,
-    isScrollToEnd,
-    handleToggleScrollToEnd,
     chatHeaderProps,
-    handleLoadMoreMessages
+    handleLoadMoreMessages,
   } = useChatContainer({
     conversation: selectedConversation
   })
@@ -70,7 +66,7 @@ const Chat = ({ isVisible, onClose }: Props) => {
               <Avatar.Image
                 size={24}
                 style={{ backgroundColor: '#fff' }}
-                source={user?.avatar ? { uri: user.avatar } : defaultImage}
+                source={{ uri: user?.avatar }}
               />
               <Text style={selectedConversation ? styles.textCommon : styles.nameText}>
                 {selectedConversation ? selectedConversation.teacherName : user?.fullName}

@@ -53,9 +53,9 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
         {({ handleChange, handleSubmit, values, setFieldValue }) => (
           <>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={80}>
-              <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24 }}>
+              <ScrollView>
                 <View style={{ marginBottom: 16 }}>
-                  <Text variant="labelLarge">{t('problem_number')}</Text>
+                  <Text variant="labelLarge" style={{ color: palette.grey[700]}}>{t('problem_number')}</Text>
                   {selectedNote || selectedQuestion ? (
                     <Text style={{ color: theme.colors.primary, fontWeight: 'bold' }}>
                       {t('number_question', {
@@ -74,7 +74,7 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
                 </View>
 
                 <View>
-                  <Text variant="labelLarge">{t('incorrect_answer_note_contents')}</Text>
+                  <Text variant="labelLarge" style={{ color: palette.grey[700]}}>{t('incorrect_answer_note_contents')}</Text>
                   <TextInput
                     multiline
                     numberOfLines={3}
@@ -133,7 +133,7 @@ const styles = ScaledSheet.create({
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: '16@ms',
+    paddingVertical: '16@ms',
     borderTopWidth: 1,
     borderTopColor: palette.grey[200]
   },

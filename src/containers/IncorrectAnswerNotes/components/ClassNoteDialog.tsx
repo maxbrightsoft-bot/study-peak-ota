@@ -53,13 +53,13 @@ const ClassNoteDialog: FC<ClassNoteDialogProps> = ({
         <ScrollView contentContainerStyle={{ paddingHorizontal: 24 }}>
           {(selectedNote || studentName) && (
             <View style={{ marginBottom: 12 }}>
-              <Text variant="labelLarge"> {t('incorrect_answer_note_contents')}</Text>
+              <Text variant="labelLarge" style={{ color: palette.grey[700]}}> {t('incorrect_answer_note_contents')}</Text>
               <Text style={{ fontWeight: 'bold', color: '#3DC674' }}>{selectedNote?.fullName || studentName}</Text>
             </View>
           )}
 
           <View style={{ marginBottom: 12 }}>
-            <Text variant="labelLarge">{t("incorrect_answer_note_contents")}</Text>
+            <Text variant="labelLarge" style={{ color: palette.grey[700]}}>{t("incorrect_answer_note_contents")}</Text>
             <TextInput
               mode="outlined"
               multiline

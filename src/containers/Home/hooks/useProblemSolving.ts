@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { apiJoinExam, getInfoAcademyApi } from "../apiClients/index";
 import { EVENT_DELETED_MEMBER, examEvents, ExamStatus, FormatDate, studentExamEvents } from "../configs/constants";
 import { InfoLesson } from "../configs/type";
@@ -12,6 +12,8 @@ import { ExamEvent } from "@/utils/enums/exam";
 import { PusherChannel } from "@pusher/pusher-websocket-react-native";
 import { EXAM_CHANNEL, EXAM_STUDENT_CHANNEL } from "@/utils/constants";
 import { Routes } from "@/navigators/RouteName";
+import { TextbookResponse } from "@/utils/types";
+import { useFocusEffect } from "@react-navigation/native";
 
 const useProblemSolving = () => {
   const { user, selectedAcademy: academy, setLoading, pusher, subscribeChannel, unsubscribeChannelSafe } = useAuthStore()
@@ -45,6 +47,8 @@ const useProblemSolving = () => {
     totalCheckedInLessons: 0,
     totalLessons: 0
   });
+  const [isOpenTextbookResult, setOpenTextbookResult] = useState(false)
+  const [selectedTextbook, setSelectedTextbook] = useState<TextbookResponse>()
 
   const attendanceChannel = useRef<PusherChannel>();
 
@@ -63,6 +67,15 @@ const useProblemSolving = () => {
   }) => {
     setSelectedDate({ startDate, endDate, currentDate, isTotalMonth });
   };
+
+  const handleOpenTextbookResult = (textbook?: TextbookResponse) => {
+    if (textbook) setSelectedTextbook(textbook)
+    setOpenTextbookResult(true)
+  }
+
+  const handleCloseTextbookResult = () => {
+    setOpenTextbookResult(false)
+  }
 
   const openCloseModal = () => {
     setCodeExam("");
@@ -199,6 +212,16 @@ const useProblemSolving = () => {
     studentChannel.current = await subscribeChannel(pusher, studentChannelName.current, Object.entries(studentExamHandlers).map(([eventName, handler]) => ({ eventName, handler })))
   }
 
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setSelectedTextbook(undefined)
+        handleCloseTextbookResult()
+      };
+    }, [])
+  );
+
   useEffect(() => {
     handleListenerEvent()
     return cleanupPusher;
@@ -235,6 +258,10 @@ const useProblemSolving = () => {
     handleSelectDate,
     setCodeExam,
     isCheckTeacherStart,
+    selectedTextbook,
+    isOpenTextbookResult,
+    handleCloseTextbookResult,
+    handleOpenTextbookResult,
     academyInfo: { academy, scheduleInfo: scheduleCount, infoLesson },
     isBelongAcademy,
     handleGetScheduleCount,

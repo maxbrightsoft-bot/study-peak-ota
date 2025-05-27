@@ -54,7 +54,9 @@ export interface IInputChatProps {
 
 export interface IChatListProps {
     messages?: IChatItemProps[]
+    isScrollToEnd: boolean
     onReTrySendMessage?: () => void
+    handleToggleScrollToEnd: () => void
     roles: Array<String>
     handleUpdateMessage: (conversationId: number, id: number, message: string, callback: any) => Promise<void>,
     handleDeleteMessage: (conversationId: number, id: number, callback: any) => Promise<void>,

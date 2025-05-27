@@ -1,5 +1,6 @@
-import useAuthStore from "@/store/useAuthStore"
-import { useState } from "react"
+import useAuthStore from '@/store/useAuthStore'
+import { useFocusEffect } from '@react-navigation/native'
+import { useCallback, useState } from 'react'
 
 const useProfile = () => {
   const { user } = useAuthStore()
@@ -12,6 +13,14 @@ const useProfile = () => {
   const handleCloseDrawer = () => {
     setVisibleDrawer(undefined)
   }
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        handleCloseDrawer()
+      }
+    }, [])
+  )
 
   return {
     user,

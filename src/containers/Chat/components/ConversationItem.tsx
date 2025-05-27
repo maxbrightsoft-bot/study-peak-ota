@@ -4,7 +4,6 @@ import moment from 'moment'
 import React from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { Avatar } from 'react-native-paper'
-import defaultImage from '@/assets/images/default.png'
 import { highlightText } from '@/utils/helpers'
 import useAuthStore from '@/store/useAuthStore'
 
@@ -19,7 +18,7 @@ const ConversationItem = ({ conversation, handleSelect, textSearch, t }: Props) 
   const { selectedAcademy } = useAuthStore()
   return (
     <TouchableOpacity style={[styles.container]} onPress={() => handleSelect(conversation)}>
-      <Avatar.Image size={40} style={{ backgroundColor: '#fff', borderWidth: 1, borderColor: palette.grey[300] }}      source={selectedAcademy?.image ? { uri: selectedAcademy.image } : defaultImage} />
+      <Avatar.Image size={40} style={{ backgroundColor: '#fff', borderWidth: 1, borderColor: palette.grey[300] }}      source={{ uri: selectedAcademy?.image }} />
       <View style={styles.contentContainer}>
         <View style={styles.firstLine}>
           <Text
