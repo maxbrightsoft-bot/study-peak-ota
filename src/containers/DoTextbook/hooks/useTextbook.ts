@@ -17,11 +17,13 @@ import { getErrorMessage, toast } from "@/utils/helpers";
 import { navigate } from "@/navigators/NavigationHelpers";
 import { Routes } from "@/navigators/RouteName";
 import { TextbookEditorType } from "@/utils/enums";
-import { findNodeHandle, ScrollView, UIManager, View } from "react-native";
+import { findNodeHandle, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView, UIManager, View } from "react-native";
+import { setDataStorage } from "@/utils/storage";
+import { useFocusEffect } from "@react-navigation/native";
 
 type Props = {
   textbookId: string
-  page: string
+  page?: string
 }
 const useTextbook = ({ textbookId, page }: Props) => {
   const { t } = useTranslation();
@@ -41,6 +43,51 @@ const useTextbook = ({ textbookId, page }: Props) => {
   const scrollViewRef = useRef<ScrollView>(null)
   const questionRefs = useRef<Array<View | null>>([])
   const [expandedId, setExpandedId] = useState<number | null>(null)
+  const sectionPositions = useRef<Record<number, number>>({}).current;
+  const [activePage, setActivePage] = useState(0);
+
+  const handleLayout = (index: number) => (event: LayoutChangeEvent) => {
+    const { y } = event.nativeEvent.layout;
+    sectionPositions[index] = y;
+  };
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+
+    const sortedSections = Object.entries(sectionPositions)
+      .map(([index, position]) => ({
+        index: parseInt(index),
+        position
+      }))
+      .sort((a, b) => a.position - b.position);
+
+    for (let i = 0; i < sortedSections.length; i++) {
+      const currentSection = sortedSections[i];
+      const nextSection = sortedSections[i + 1];
+
+      if (offsetY >= currentSection.position &&
+        (nextSection === undefined || offsetY < nextSection.position)) {
+        if (activePage !== currentSection.index) {
+          setActivePage(currentSection.index);
+        }
+        break;
+      }
+    }
+  };
+
+  const scrollToPage = (page: string) => {
+    if (scrollViewRef.current && sectionPositions[page as any] !== undefined) {
+      setActivePage(parseInt(page))
+      scrollViewRef.current.scrollTo({
+        y: sectionPositions[page as any],
+        animated: true
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (!!page) scrollToPage(page)
+  }, [page])
 
   const scrollToNextQuestion = (index: number) => {
     const nextRef = questionRefs.current[index + 1]
@@ -63,7 +110,7 @@ const useTextbook = ({ textbookId, page }: Props) => {
   }
 
 
-  const toggleExpand = (id: number) => {
+  const toggleExpand = (id: number | null) => {
     setExpandedId((prev) => (prev === id ? null : id))
   }
 
@@ -129,7 +176,7 @@ const useTextbook = ({ textbookId, page }: Props) => {
   const { stopTimeKey, updateQuestionAnswer, updateQuestionStar } =
     useTextbookSolving({
       startTime: new Date().toISOString(),
-      textbook: textbook,
+      textbook,
       textbookId: Number(textbookId),
       totalAnswersTime: elapsedTime,
       questionList,
@@ -162,9 +209,9 @@ const useTextbook = ({ textbookId, page }: Props) => {
         stopTime: nowTime
       };
 
-      if (stopTimeKey) localStorage.setItem(stopTimeKey, nowTime);
+      if (stopTimeKey) await setDataStorage(stopTimeKey, nowTime);
       if (textbookElapsedTimeKey) {
-        localStorage.setItem(
+        await setDataStorage(
           textbookElapsedTimeKey,
           currentElapsedTime.toString()
         );
@@ -179,10 +226,18 @@ const useTextbook = ({ textbookId, page }: Props) => {
     }
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setExpandedId(null);
+      };
+    }, []))
+
   const onFinishedTextbook = async () => {
     await handleApi();
     navigate(Routes.Auth.Home);
   };
+
 
   return {
     t,
@@ -194,6 +249,10 @@ const useTextbook = ({ textbookId, page }: Props) => {
     questionGroupList,
     questionPage,
     textbook,
+    handleLayout,
+    activePage,
+    handleScroll,
+    setCurrentIndex,
     scrollToNextQuestion,
     updateQuestionAnswer,
     updateQuestionStar,

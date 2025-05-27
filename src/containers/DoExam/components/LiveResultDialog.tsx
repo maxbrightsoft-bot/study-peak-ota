@@ -142,6 +142,7 @@ const styles = StyleSheet.create({
   },
   confirmText: {
     ...TYPO.button2,
+    color: '#FFF'
   },
   detailText: {
     ...TYPO.button,

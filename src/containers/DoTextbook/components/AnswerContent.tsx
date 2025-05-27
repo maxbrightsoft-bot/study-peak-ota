@@ -5,15 +5,15 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
-  StyleSheet,
   KeyboardAvoidingView,
   Platform
 } from 'react-native'
-import { Formik, FieldArray, Field } from 'formik'
-import { palette } from '@/theme'
+import { FieldArray, Field } from 'formik'
+import { palette, TYPO } from '@/theme'
 import { QuestionAnswerType } from '@/utils/enums'
 import { PreparedQuestionResponse } from '../config/types'
 import { Ionicons } from '@expo/vector-icons'
+import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   t: (key: string, params?: any) => string
@@ -35,11 +35,6 @@ const AnswerContent = ({ t, question, questionNumber, errors, values }: Props) =
       {({ push, remove }) => (
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={80}>
           <ScrollView style={styles.container}>
-            <View style={styles.questionHeader}>
-              <Text style={styles.problemNumberText}>{t('problem_number')}</Text>
-              <Text style={styles.questionNumberText}>{t('number_question', { number: questionNumber })}</Text>
-            </View>
-
             <View style={styles.answersContainer}>
               {values.textualAnswers?.map((_: string, index: number) => (
                 <View key={index} style={styles.answerItem}>
@@ -62,7 +57,7 @@ const AnswerContent = ({ t, question, questionNumber, errors, values }: Props) =
                       disabled={deletable}
                       onPress={() => remove(index)}
                     >
-                      <Ionicons name="trash" size={12} color="#fff" />
+                      <Ionicons name="trash-sharp" size={12} color={"#FFF"} />
                     </TouchableOpacity>
                   </View>
 
@@ -79,7 +74,7 @@ const AnswerContent = ({ t, question, questionNumber, errors, values }: Props) =
                 disabled={addable}
                 onPress={() => push('')}
               >
-                <Ionicons name="add" size={20} color="#fff" />
+                <Ionicons name="add-circle" size={24} color={palette.main[500]} />
               </TouchableOpacity>
             )}
           </ScrollView>
@@ -89,10 +84,8 @@ const AnswerContent = ({ t, question, questionNumber, errors, values }: Props) =
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
-    padding: 24,
-    maxHeight: '60%'
   },
   questionHeader: {
     marginBottom: 16
@@ -121,29 +114,26 @@ const styles = StyleSheet.create({
   },
   answerInputContainer: {
     flexDirection: 'row',
+    flex: 1,
     alignItems: 'center',
     gap: 8
   },
   textInput: {
-    flex: 1,
     borderWidth: 1,
     borderColor: '#e0e0e0',
     borderRadius: 4,
     padding: 12,
+    flex: 1,
     backgroundColor: '#fff'
   },
   deleteButton: {
     backgroundColor: '#dc3545',
     padding: 8,
-    borderRadius: 4
+    borderRadius: 255
   },
   addButton: {
-    backgroundColor: '#28a745',
-    padding: 8,
-    borderRadius: 4,
-    width: 40,
     alignItems: 'center',
-    marginTop: 8
+    paddingBottom: 24
   },
   disabledButton: {
     opacity: 0.5
@@ -153,7 +143,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#F34B4B',
     marginTop: 4
-  }
+  },
 })
 
 export default AnswerContent

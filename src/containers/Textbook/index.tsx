@@ -7,20 +7,32 @@ import useTextbook from './hooks/useTextbook'
 import { PreparedFilterType } from './configs/type'
 import TextbookItem from './components/TextbookItem'
 import FilterModal from './components/Dialog/FilterModal'
+import TextbookDrawer from './components/Dialog/TextbookDrawer'
 
 const Textbook = () => {
-  const { t, textbookList, handleDoTextbook, openFilterModal, handleCloseFilterModal, handleOpenFilterModal } =
-    useTextbook({
-      preparedFilterType: PreparedFilterType.recently_solved_questions
-    })
+  const {
+    t,
+    textbookList,
+    openFilterModal,
+    handleCloseFilterModal,
+    handleOpenFilterModal,
+    selectedTextbook,
+    isOpenDialog,
+    handleCloseDialog,
+    handleOpenDialog
+  } = useTextbook({
+    preparedFilterType: PreparedFilterType.recently_solved_questions
+  })
 
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView}>
-        {textbookList.map((textbook) => (
-          <TextbookItem textbook={textbook} t={t} />
-        ))}
-        {textbookList?.length === 0 && <Text style={styles.emptyText}>{t('no_data')}</Text>}
+        <View style={{ gap: 24 }}>
+          {textbookList.map((textbook) => (
+            <TextbookItem key={textbook.id} textbook={textbook} t={t} handleOpenDialog={handleOpenDialog} />
+          ))}
+          {textbookList?.length === 0 && <Text style={styles.emptyText}>{t('no_data')}</Text>}
+        </View>
       </ScrollView>
       <Button
         mode="contained"
@@ -33,6 +45,9 @@ const Textbook = () => {
           <Text style={styles.buttonText}>필터로 검색</Text>
         </View>
       </Button>
+      {isOpenDialog && (
+        <TextbookDrawer isOpen={isOpenDialog} onClose={handleCloseDialog} textbookId={selectedTextbook?.id} />
+      )}
       <FilterModal t={t} open={openFilterModal} onClose={handleCloseFilterModal} title="필터로 검색" />
     </View>
   )
@@ -47,8 +62,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     borderRadius: 6,
     margin: 24,
-    padding: 8,
-    gap: 8
+    gap: 24,
+    padding: 8
   },
   startButton: {
     paddingVertical: 6,
@@ -60,7 +75,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     position: 'fixed',
     bottom: 20,
-    left: 0, 
+    left: 0,
     marginHorizontal: 32,
     right: 0
   },

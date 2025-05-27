@@ -1,14 +1,15 @@
 import React from 'react'
-import { View, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, TouchableOpacity } from 'react-native'
 import { Text } from 'react-native-paper'
 import _ from 'lodash'
 import { QuestionAnswerType } from '../../../utils/enums'
-import { palette } from '@/theme'
+import { palette, TYPO } from '@/theme'
 import StarSwitch from '@/components/Switch/StarSwitch'
 import { PreparedQuestionResponse, TextbookQuestion } from '../config/types'
 import * as Yup from 'yup'
 import AnswerContent from './AnswerContent'
 import { Formik } from 'formik'
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   t: any
@@ -49,14 +50,25 @@ const TextbookAnswer = ({ t, question, updateQuestionAnswer, updateQuestionStar 
             }}
             enableReinitialize
           >
-            {({ values, errors }) => (
-              <AnswerContent
-                t={t}
-                question={question}
-                questionNumber={question.questionOrder + 1}
-                errors={errors}
-                values={values}
-              />
+            {({ values, errors, handleSubmit }) => (
+              <>
+                <AnswerContent
+                  t={t}
+                  question={question}
+                  questionNumber={question.questionOrder + 1}
+                  errors={errors}
+                  values={values}
+                />
+                <TouchableOpacity
+                  style={[styles.button, styles.confirmButton, !values.textualAnswers.length || values.textualAnswers.some((i: string) => !i.trim().length) && { opacity: 0.5}]}
+                  disabled={
+                    !values.textualAnswers.length || values.textualAnswers.some((i: string) => !i.trim().length)
+                  }
+                  onPress={() => handleSubmit(values)}
+                >
+                  <Text style={styles.confirmButtonText}>{t('registration')}</Text>
+                </TouchableOpacity>
+              </>
             )}
           </Formik>
         )
@@ -88,16 +100,16 @@ const TextbookAnswer = ({ t, question, updateQuestionAnswer, updateQuestionStar 
                 }
               >
                 <View
-                  style={{
-                    ...styles.optionWrap,
-                    borderColor: question?.selectedAnswers?.includes(indexAnswer + 1) ? '#FFF' : palette.grey[500]
-                  }}
+                  style={[
+                    styles.optionWrap,
+                    { borderColor: question?.selectedAnswers?.includes(indexAnswer + 1) ? '#FFF' : palette.grey[500] }
+                  ]}
                 >
                   <Text
-                    style={{
-                      ...styles.optionText,
-                      color: question?.selectedAnswers?.includes(indexAnswer + 1) ? '#FFF' : palette.grey[500]
-                    }}
+                    style={[
+                      styles.optionText,
+                      { color: question?.selectedAnswers?.includes(indexAnswer + 1) ? '#FFF' : palette.grey[500] }
+                    ]}
                   >
                     {indexAnswer + 1}
                   </Text>
@@ -113,20 +125,15 @@ const TextbookAnswer = ({ t, question, updateQuestionAnswer, updateQuestionStar 
   }
 
   return (
-    <View>
+    <View style={styles.container}>
       {renderAnswer(question, question.questionAnswerType)}
-      <StarSwitch isStar={question.isStar} onSwitch={() => updateQuestionStar(question.id, !question.isStar)} />
+      <StarSwitch isStar={question.isStar} onSwitch={async() => await updateQuestionStar(question.id, !question.isStar)} />
     </View>
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-    alignItems: 'stretch',
-    backgroundColor: '#f5f5f5'
   },
   question: {
     fontSize: 20,
@@ -205,6 +212,29 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center'
+  },
+  button: {
+    paddingVertical: '12@ms',
+    paddingHorizontal: '24@ms',
+    borderRadius: '8@ms',
+    minWidth: '120@ms',
+    alignItems: 'center'
+  },
+  cancelButton: {
+    backgroundColor: palette.grey[100],
+    paddingVertical: '12@ms'
+  },
+  confirmButton: {
+    backgroundColor: palette.main[500],
+    marginBottom: '12@ms'
+  },
+  cancelButtonText: {
+    ...TYPO.button2,
+    color: palette.grey[700]
+  },
+  confirmButtonText: {
+    ...TYPO.button2,
+    color: 'white'
   }
 })
 

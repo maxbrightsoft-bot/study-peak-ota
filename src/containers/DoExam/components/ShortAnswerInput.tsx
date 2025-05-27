@@ -31,21 +31,23 @@ const ShortAnswerInput = ({ initValue, question, updateQuestionAnswer }: Props) 
   return (
     <View>
       <TextField
-        style={{ marginVertical: 12, borderWidth: 1, borderColor: palette.grey[300], borderRadius: 6 }}
+        style={{ borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 4, padding: 12 }}
         value={value}
         onChangeText={onChange}
       />
-      {value !== initValue && <TouchableOpacity
-        style={[styles.button, styles.confirmButton]}
-        onPress={() =>
-          updateQuestionAnswer({
-            questionId: question.id,
-            value: value
-          })
-        }
-      >
-        <Text style={styles.confirmButtonText}>{t('registration')}</Text>
-      </TouchableOpacity>}
+      {value !== initValue && (
+        <TouchableOpacity
+          style={[styles.button, styles.confirmButton]}
+          onPress={() =>
+            updateQuestionAnswer({
+              questionId: question.id,
+              value: value
+            })
+          }
+        >
+          <Text style={styles.confirmButtonText}>{t('registration')}</Text>
+        </TouchableOpacity>
+      )}
     </View>
   )
 }
@@ -60,7 +62,7 @@ const styles = ScaledSheet.create({
   },
   cancelButton: {
     backgroundColor: palette.grey[100],
-    paddingVertical: '12@ms',
+    paddingVertical: '12@ms'
   },
   confirmButton: {
     backgroundColor: palette.main[500],

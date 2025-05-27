@@ -1,3 +1,4 @@
+import { ChapterResponse, Profile, Subject } from "@/utils/types";
 import { OrderBy } from "./constants";
 
 export type Task = {
@@ -155,3 +156,25 @@ export enum TextbookOrderBy {
   ASC = "ASC",
   DESC = "DESC"
 }
+
+export type Textbook = {
+  id: number;
+  name: string;
+  subjectId?: number;
+  coverImage: string;
+  chapters: ChapterResponse[];
+  preparedType: number;
+  isbn: string;
+  publicationDate: string;
+  progress?: number
+  publisher: string;
+  subject?: Subject
+  totalQuestions?: number
+  subjectName?: string
+  isShared?: boolean
+  isStudying?: boolean
+  totalUses: number
+  createdBy: Profile
+  createdAt: string
+  textbookOwners: Profile[]
+};

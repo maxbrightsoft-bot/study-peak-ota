@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useRef,
   useState
@@ -13,6 +14,7 @@ import { getErrorMessage, toast } from "@/utils/helpers";
 import moment from "moment";
 import { TextbookResponse } from "@/utils/types/textbook";
 import { getTextbookListApi, startPageApi } from "../apiClients/textbookService";
+import { useFocusEffect } from "@react-navigation/native";
 
 
 type Props = {
@@ -28,23 +30,35 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
   const [textbookFilter, setTextbookFilter] = useState<TextbookQuery>(
     { ...DefaultTextbookFilter, preparedType, preparedFilterType }
   );
+  const [selectedTextbook, setSelectedTextbook] = useState<TextbookResponse>()
   const [openFilterModal, setOpenFilterModal] = useState(false)
   const [openConfirmDialog, setOpenConfirmDialog] = useState<boolean>(false)
-    const handleCloseConfirmDialog = () => {
-      setOpenConfirmDialog(false)
-    }
+  const [isOpenDialog, setOpenDialog] = useState<boolean>(false);
 
-    const handleOpenConfirmDialog = () => {
-      setOpenConfirmDialog(true)
-    }
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
 
-    const handleCloseFilterModal = () => {
-      setOpenFilterModal(false)
-    }
+  const handleOpenDialog = (textbook: TextbookResponse) => {
+    if(textbook) setSelectedTextbook(textbook)
+    setOpenDialog(true);
+  };
 
-    const handleOpenFilterModal = () => {
-      setOpenFilterModal(true)
-    }
+  const handleCloseConfirmDialog = () => {
+    setOpenConfirmDialog(false)
+  }
+
+  const handleOpenConfirmDialog = () => {
+    setOpenConfirmDialog(true)
+  }
+
+  const handleCloseFilterModal = () => {
+    setOpenFilterModal(false)
+  }
+
+  const handleOpenFilterModal = () => {
+    setOpenFilterModal(true)
+  }
 
 
   const getTextbookList = async () => {
@@ -97,9 +111,22 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
     getTextbookList();
   }, [selectedAcademy?.id]);
 
+    useFocusEffect(
+      useCallback(() => {
+        return () => {
+          setSelectedTextbook(undefined);
+          handleCloseDialog()
+          getTextbookList()
+        };
+      }, [])
+    );
+
   return {
     t,
-    // isKor,
+    selectedTextbook,
+    isOpenDialog,
+    handleCloseDialog,
+    handleOpenDialog,
     openConfirmDialog,
     handleOpenConfirmDialog,
     handleCloseConfirmDialog,
