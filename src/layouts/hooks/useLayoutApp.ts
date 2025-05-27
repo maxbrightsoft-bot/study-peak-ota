@@ -40,6 +40,9 @@ const useLayoutApp = () => {
       await logout()
       return
     }
+
+    if(user?.id) return
+    
     setLoading(true)
     try {
       const isLearningSpace = await getLearningSpace()
@@ -83,7 +86,7 @@ const useLayoutApp = () => {
   }, [user, isNotEnoughStatements])
 
   useEffect(() => {
-    !user?.id && loadInfo()
+    loadInfo()
   }, [user?.id])
 
   const getAcademies = async (isLoading: boolean = true) => {
@@ -189,8 +192,6 @@ const useLayoutApp = () => {
   };
 
   useEffect(() => {
-
-    console.log({ pusher });
     if (pusher) return
     const setupPusher = async () => {
       const academyDomain = await getDataStorage(ACADEMY_DOMAIN) || user?.academyDomain || ""

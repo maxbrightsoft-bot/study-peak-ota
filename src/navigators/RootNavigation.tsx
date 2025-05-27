@@ -28,7 +28,6 @@ const RootNavigation: React.FC = () => {
     isLoading,
     currentScreen: currentScreen(),
     selectedAcademy,
-    state: JSON.stringify(state, null, 2)
   })
 
   return (

@@ -13,7 +13,6 @@ type Props = {
 }
 
 const StartArrowSelect = ({ value, onValueChange, items, placeholder }: Props) => {
-  console.log({ items, value })
   return (
     <View style={styles.container}>
       <Dropdown

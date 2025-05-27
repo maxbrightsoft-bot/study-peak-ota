@@ -102,7 +102,6 @@ const useAuthStore = create<AuthStore>()(
             onEvent: (event: PusherEvent) => {
               try {
                 const matched = eventHandlers.find(e => e.eventName === event.eventName);
-                console.log({ eventHandlers });
                 if (matched) {
                   if (event.data) {
                     const parsedData = JSON.parse(event.data);
@@ -220,9 +219,7 @@ const useAuthStore = create<AuthStore>()(
           state.pusher = null;
           state.channel = null;
         });
-        await removeDataStorage(ACCESS_TOKEN)
-        await removeDataStorage(LEARNING_SPACE)
-        await removeDataStorage(ACADEMY_DOMAIN)
+        await AsyncStorage.clear()
 
       },
     })),
