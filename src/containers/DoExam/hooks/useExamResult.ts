@@ -1,10 +1,11 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { getExamResult } from "../apiClients/index"
-import { AnswerResponseSignal, QuestionResponse, ResolveType } from "../config/types";
+import { QuestionResponse, ResolveType } from "../config/types";
 import useAuthStore from "@/store/useAuthStore";
 import { getErrorMessage, toast } from "@/utils/helpers";
 import { useTranslation } from "react-i18next";
+import { AnswerResponseSignal } from "@/utils/enums";
 
 
 type Props = {

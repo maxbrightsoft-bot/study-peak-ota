@@ -24,7 +24,6 @@ interface Props {
 }
 
 const ExamAnswer = ({ question, updateQuestionAnswer, updateQuestionStar }: Props) => {
-  const { selectedQuestion, handleCloseDialog } = useExamAnswer()
 
   const renderAnswer = (question: Question, type: QuestionAnswerType) => {
     switch (type) {

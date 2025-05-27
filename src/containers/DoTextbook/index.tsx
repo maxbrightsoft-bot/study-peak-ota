@@ -1,18 +1,16 @@
 import React from 'react'
-import { View, Text, ScrollView, TouchableOpacity, Platform, KeyboardAvoidingView } from 'react-native'
+import { View, Text, ScrollView, Platform, KeyboardAvoidingView } from 'react-native'
 import { palette } from '@/theme'
 import { Ionicons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
 import NotFoundExam from '@/components/NotFoundExam'
-import StarSwitch from '@/components/Switch/StarSwitch'
-import CustomDropDown from '@/components/DropDown/CustomDropDown'
 import useTextbook from './hooks/useTextbook'
-import { PreparedQuestionResponse } from './config/types'
-import TextbookAnswer from './components/TextbookAnswer'
+import { PreparedQuestionGroupResponse } from './config/types'
+import TextbookQuestionGroup from './components/TextbookQuestionGroup'
 
 type Props = {
   textbookId: string
-  page: string
+  page?: string
 }
 
 const DoTextbook = ({ textbookId, page }: Props) => {
@@ -21,9 +19,13 @@ const DoTextbook = ({ textbookId, page }: Props) => {
     textbook,
     toggleExpand,
     currentIndex,
-    questionList,
     questionRefs,
     expandedId,
+    questionList,
+    activePage,
+    handleLayout,
+    handleScroll,
+    questionGroupList,
     scrollViewRef,
     isNotFoundTextbook,
     updateQuestionAnswer,
@@ -36,7 +38,7 @@ const DoTextbook = ({ textbookId, page }: Props) => {
   } = useTextbook({ textbookId, page })
 
   if (isNotFoundTextbook) {
-    return <NotFoundExam title="text_book_not_found" />
+    return <NotFoundExam title={t('exam_not_found')} />
   }
   return (
     <View style={styles.container}>
@@ -45,114 +47,58 @@ const DoTextbook = ({ textbookId, page }: Props) => {
           <Text style={styles.title}>{textbook?.name}</Text>
           <View style={styles.titleContainer}>
             <Text style={styles.subtitle}>{t('title')}</Text>
-            <Text style={styles.subtitle}>Page #</Text>
+            <Text style={styles.subtitle}>{t('page_number', { number: activePage })}</Text>
           </View>
         </View>
         <Text style={styles.currentQuestion}>{`${t('question')} ${currentIndex + 1}`}</Text>
       </View>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={80}>
-        <ScrollView contentContainerStyle={styles.scrollContainer} ref={scrollViewRef} scrollEventThrottle={16}>
-          {questionList.map((question: PreparedQuestionResponse, indexGroup: number) => (
-            <View key={question.id} ref={(ref) => (questionRefs.current[indexGroup] = ref)} collapsable={false}>
-              <CustomDropDown
-                styleCard={styles.styleCard}
-                styleExpand={styles.styleExpand}
-                title={
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <Text style={{ fontSize: 14, fontWeight: 500 }}>{t('question')}</Text>
-                    <Text style={{ fontSize: 16, fontWeight: 700 }}>{question.questionOrder + 1}</Text>
-                  </View>
-                }
-                subHeader={
-                  <View
-                    style={{
-                      width: '100%'
-                    }}
-                  >
-                    {expandedId !== question.id && !!question.selectedAnswers?.length && (
-                      <View
-                        style={{
-                          width: '100%'
-                        }}
-                      >
-                        <TouchableOpacity
-                          style={{
-                            width: '100%',
-                            borderWidth: 1,
-                            borderRadius: 8,
-                            marginBottom: 10,
-                            paddingVertical: 8,
-                            alignItems: 'center',
-                            backgroundColor: question.isStar ? palette.warning.light : palette.main[500],
-                            borderColor: question.isStar ? palette.warning.light : palette.main[500]
-                          }}
-                        >
-                          <View
-                            style={{
-                              borderRadius: 255,
-                              borderWidth: question.textualAnswer ? 0 : 1,
-                              paddingHorizontal: 5,
-                              paddingVertical: question.isStar ? 5 : 0,
-                              alignItems: question.textualAnswer ? 'flex-start' : 'center',
-                              justifyContent: 'center',
-                              borderColor: '#FFF',
-                              backgroundColor: question.isStar ? '#FFF' : palette.main[500]
-                            }}
-                          >
-                            <Text
-                              style={{
-                                fontSize: 13,
-                                color: '#FFF'
-                              }}
-                            >
-                              {question.isStar ? (
-                                <Ionicons name="star" size={14} color={palette.warning.light} />
-                              ) : (
-                                question.textualAnswer || question?.selectedAnswers?.sort().join(', ') || '-'
-                              )}
-                            </Text>
-                          </View>
-                        </TouchableOpacity>
-                        <StarSwitch
-                          isStar={question.isStar}
-                          onSwitch={() => updateQuestionStar(question.id, !question.isStar)}
-                        />
-                      </View>
-                    )}
-                  </View>
-                }
-                expanded={expandedId === question.id}
-                onPress={() => toggleExpand(question.id)}
-              >
-                <TextbookAnswer
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={100}
+        style={{ flex: 1, position: 'relative' }}
+      >
+        <View style={{ height: '75%' }}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            onScroll={handleScroll}
+            ref={scrollViewRef}
+            scrollEventThrottle={16}
+          >
+            {questionGroupList.map((questionGroup: PreparedQuestionGroupResponse, groupIndex: number) => (
+              <React.Fragment key={`group-${questionGroup.id}`}>
+                <View onLayout={handleLayout(questionGroup.pageFrom || 1)} />
+                <TextbookQuestionGroup
                   t={t}
-                  question={question}
-                  updateQuestionAnswer={({ questionId, textualAnswers, answer }) => {
-                    updateQuestionAnswer({ questionId, answer, textualAnswers })
-                    scrollToNextQuestion(indexGroup)
-                  }}
+                  data={questionGroup}
+                  questionRefs={questionRefs}
+                  scrollToNextQuestion={scrollToNextQuestion}
                   updateQuestionStar={updateQuestionStar}
+                  updateQuestionAnswer={updateQuestionAnswer}
+                  groupIndex={groupIndex}
+                  expandedId={expandedId}
+                  questionList={questionList}
+                  toggleExpand={toggleExpand}
                 />
-              </CustomDropDown>
-            </View>
-          ))}
-        </ScrollView>
-      </KeyboardAvoidingView>
+              </React.Fragment>
+            ))}
+          </ScrollView>
+        </View>
 
-      <View style={styles.footer}>
-        <View style={styles.timeContainer}>
-          <Text style={styles.timeText}>
-            {t('time')}: {formattedTime}
-          </Text>
+        <View style={styles.footer}>
+          <View style={styles.timeContainer}>
+            <Text style={styles.timeText}>
+              {t('time')}: {formattedTime}
+            </Text>
+          </View>
+          <View style={styles.container}>
+            <Text style={styles.timeText}>
+              {completedTasks}/{totalTasks}
+            </Text>
+            <Text style={styles.timeText}>{totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}%</Text>
+          </View>
+          <Ionicons onPress={onFinishedTextbook} name="exit" size={18} color={palette.main[700]} />
         </View>
-        <View style={styles.container}>
-          <Text style={styles.timeText}>
-            {completedTasks}/{totalTasks}
-          </Text>
-          <Text style={styles.timeText}>{totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}%</Text>
-        </View>
-        <Ionicons onPress={onFinishedTextbook} name="exit" size={18} color={palette.main[700]} />
-      </View>
+      </KeyboardAvoidingView>
     </View>
   )
 }
@@ -194,9 +140,7 @@ const styles = ScaledSheet.create({
     fontWeight: 'bold',
     fontSize: 14
   },
-  scrollContainer: {
-    paddingBottom: 80
-  },
+  scrollContainer: {},
   accordionBox: {
     marginBottom: '16@ms'
   },

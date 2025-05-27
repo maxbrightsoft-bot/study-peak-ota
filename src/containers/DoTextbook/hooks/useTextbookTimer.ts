@@ -1,4 +1,5 @@
 import useAuthStore from "@/store/useAuthStore";
+import { getDataStorage } from "@/utils/storage";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -21,19 +22,26 @@ export const useTextbookTimer = (props: Props) => {
     return `textbookElapsedTime${academyDomain?.toLowerCase()}${textbookId}${userId}`;
   }, [academyDomain, textbookId, userId]);
 
-  useEffect(() => {
+  const getElecpsedTime = async () => {
     if (!textbookElapsedTimeKey) return;
 
-    const storedTime = parseInt(localStorage.getItem(textbookElapsedTimeKey) || "0", 10);
+    const storedTime = parseInt(await getDataStorage(textbookElapsedTimeKey) || "0", 10);
     const initialTime = Math.max(studyTime, storedTime || 0);
     setElapsedTime(initialTime);
+
+  }
+  useEffect(() => {
+      const fetchElapsedTime = async () => {
+    await getElecpsedTime();
+  };
+  
+  fetchElapsedTime();
 
     const timer = setInterval(() => {
       setElapsedTime((prev) => {
         return prev + 1000;
       });
     }, 1000);
-
     return () => clearInterval(timer);
   }, [studyTime, textbookElapsedTimeKey]);
 

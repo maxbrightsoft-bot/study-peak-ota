@@ -18,6 +18,8 @@ import { PusherChannel } from "@pusher/pusher-websocket-react-native";
 import { dialogConfirm } from "@/utils/helpers/dialog";
 import { Routes } from "@/navigators/RouteName";
 import { Question } from "@/utils/types";
+import { useFocusEffect } from "@react-navigation/native";
+import { findNodeHandle, ScrollView, UIManager, View } from "react-native";
 
 type Props = {
   examCode: string
@@ -36,6 +38,43 @@ const useExam = ({ examCode }: Props) => {
   const channelName = useRef<string>();
   const [liveResultDialog, setLiveResultDialog] = useState(false)
   const [openResultDialog, setOpenResultDialog] = useState(false)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const scrollViewRef = useRef<ScrollView>(null)
+  const questionRefs = useRef<Array<View | null>>([])
+
+  const scrollToNextQuestion = (index: number) => {
+    const nextRef = questionRefs.current[index + 1]
+    const scrollViewNode = scrollViewRef.current && findNodeHandle(scrollViewRef.current)
+
+    if (nextRef && scrollViewNode) {
+      toggleExpand(questionList[index + 1].id)
+      setCurrentIndex(questionList[index + 1].questionOrder)
+      UIManager.measureLayout(
+        findNodeHandle(nextRef)!,
+        scrollViewNode,
+        () => {
+          console.warn('MeasureLayout error')
+        },
+        (x, y) => {
+          scrollViewRef.current?.scrollTo({ y: y - 200, animated: true })
+        }
+      )
+    }
+  }
+
+  const [expandedId, setExpandedId] = useState<number | null>(null)
+
+  const toggleExpand = (id: number | null) => {
+    setExpandedId((prev) => (prev === id ? null : id))
+  }
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setExpandedId(null)
+      }
+    }, [])
+  )
 
   const handleCloseResultDialog = () => {
     setOpenResultDialog(false)
@@ -221,13 +260,15 @@ const useExam = ({ examCode }: Props) => {
     return cleanupPusher
   }, [exam?.code, academyDomain, pusher]);
 
-  // useEffect(() => {
-  //   !isNotFoundExam &&
-  //     window.addEventListener("beforeunload", handleBeforeUnload);
-  //   return () => {
-  //     window.removeEventListener("beforeunload", handleBeforeUnload);
-  //   };
-  // }, [isNotFoundExam]);
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setExam(undefined);
+        handleCloseLiveResultDialog()
+        handleCloseResultDialog()
+      };
+    }, [])
+  );
 
   const remainTime = useCountDownTimer({
     startTime: exam?.isLate ? exam.startTimeSession : exam?.startTime,
@@ -271,6 +312,12 @@ const useExam = ({ examCode }: Props) => {
     exam,
     examCode,
     endExam,
+    currentIndex,
+    expandedId,
+    toggleExpand,
+    scrollViewRef,
+    questionRefs,
+    scrollToNextQuestion,
     openResultDialog,
     questionList,
     liveResultDialog,

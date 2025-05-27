@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ExamResponse,
-  Question,
   StoredStudentAnswer,
 } from "../config/types";
 import { answerQuestionExam } from "../apiClients";
@@ -13,7 +12,7 @@ import { DATE_MIN_VALUE, DATE_TIME_MIN_VALUE } from "@/utils/constants";
 import { diffFromNow, getErrorMessage, toast } from "@/utils/helpers";
 import moment from "moment";
 import { getDataStorage, removeDataStorage, setDataStorage } from "@/utils/storage";
-import { StudentAnswerRequest } from "@/utils/types";
+import { Question, StudentAnswerRequest } from "@/utils/types";
 
 const rollBackQuestionList = "rb";
 const recoverQuestionList = "rc";
@@ -171,7 +170,7 @@ const useExamSolving = (props: Props) => {
       await updateAnswers(body, lastAnswerTime, callback);
     } else {
       apiTimeouts.current[rollbackKey] = setTimeout(
-        () => updateAnswers(body, lastAnswerTime),
+        async() => await updateAnswers(body, lastAnswerTime),
         500
       );
     }

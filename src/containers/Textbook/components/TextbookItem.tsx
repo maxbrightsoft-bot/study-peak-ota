@@ -8,9 +8,10 @@ import { Button, Divider, Title } from 'react-native-paper'
 type Props = {
   textbook: TextbookResponse
   t: any
+  handleOpenDialog: (textbook: TextbookResponse) => void
 }
 
-const TextbookItem = ({ textbook, t}: Props) => {
+const TextbookItem = ({ textbook, t, handleOpenDialog }: Props) => {
   return (
     <View style={styles.textbookItem}>
       <View style={styles.textbookContent}>
@@ -33,7 +34,7 @@ const TextbookItem = ({ textbook, t}: Props) => {
           </View>
         </View>
         <Divider />
-        <Button mode="contained" style={styles.startButton} buttonColor={palette.main[500]}>
+        <Button mode="contained" style={styles.startButton} buttonColor={palette.main[500]} onPress={() => handleOpenDialog(textbook)}>
           <View style={styles.buttonContent}>
             <Ionicons name="book" size={20} color="#FFF" />
             <Text style={styles.buttonText}>시험 시작하기</Text>
@@ -66,12 +67,13 @@ const styles = StyleSheet.create({
   coverImage: {
     width: 96,
     height: 121,
+    objectFit: 'contain',
     marginRight: 12
   },
   textbookInfo: {
     gap: 16,
     flex: 1,
-    width: "100%"
+    width: '100%'
   },
   textbookTitle: {
     ...TYPO.heading3,
