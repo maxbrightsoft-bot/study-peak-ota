@@ -15,7 +15,7 @@ const useExamResultNote = (
     examSessionId: number,
     handleSelectQuestion: (question?: QuestionData) => void,
     examCode?: string,
-    examResult?: ExamResult
+    examResult?: any
 ) => {
     const { t } = useTranslation()
     const { user, setLoading } = useAuthStore()

@@ -25,8 +25,10 @@ const ExamResultList = () => {
   } = useExamResultList()
   return (
     <View style={styles.container}>
-      <SearchInput value={search} onChangeText={onChangeSearch} placeholder={t('search_placeholder')} />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={80}>
+      <View style={styles.searchBox}>
+        <SearchInput value={search} onChangeText={onChangeSearch} placeholder={t('search_placeholder')} />
+      </View>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={80} style={{ height: "80%"}}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           {search.length
             ? listExam?.map((exam: ExamSession, index) => (
@@ -47,7 +49,7 @@ const ExamResultList = () => {
               ))
             : groupExams &&
               Object.entries(groupExams).map(([key, exams], examIndex) => (
-                <View key={examIndex}>
+                <View style={styles.groupExamContainer} key={examIndex}>
                   <CustomDropDown
                     title={
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -82,7 +84,7 @@ const ExamResultList = () => {
               ))}
         </ScrollView>
       </KeyboardAvoidingView>
-      <ExamResult onClose={handleBack} examCode={selectedExam?.code || ''} />
+      {!!selectedExam && <ExamResult onClose={handleBack} examCode={selectedExam?.code || ''} />}
     </View>
   )
 }
@@ -92,23 +94,18 @@ export default ExamResultList
 const styles = ScaledSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF',
-    paddingHorizontal: '24@ms',
-    gap: '24@ms',
-    paddingTop: '24@ms'
+    backgroundColor: palette.grey[50]
   },
   searchBox: {
-    flexDirection: 'row',
-    alignContent: 'center',
-    borderWidth: 1,
-    borderColor: palette.grey[100],
-    gap: 12,
-    borderRadius: '255@ms',
-    paddingHorizontal: '12@ms',
-    paddingVertical: '8@ms'
+    borderBottomWidth: 1,
+    paddingTop: '24@ms',
+    paddingHorizontal: '24@ms',
+    paddingBottom: '24@ms',
+    backgroundColor: '#FFF',
+    borderColor: palette.grey[100]
   },
   scrollContainer: {
-    gap: '8@ms'
+    gap: '8@ms',
   },
   titleText: {
     ...TYPO.button3,
@@ -117,6 +114,11 @@ const styles = ScaledSheet.create({
   scoreText: {
     ...TYPO.button3,
     color: palette.grey[900]
+  },
+  groupExamContainer: {
+    backgroundColor: '#FFF',
+    paddingHorizontal: '24@ms',
+    paddingVertical: '12@ms'
   },
   examItem: {
     flexDirection: 'row',
@@ -157,6 +159,7 @@ const styles = ScaledSheet.create({
   },
   examDate: {
     fontWeight: '500',
-    fontSize: '10@ms'
+    fontSize: '10@ms',
+    color: palette.grey[500]
   }
 })

@@ -1,7 +1,7 @@
 import useAuthStore from "@/store/useAuthStore"
 import { getErrorMessage, toast, utcToLocalTime } from "@/utils/helpers"
 import { CategoryResponse, EffectSize, ExamResult, LongTimeSpendQuestion, NoteResponse, Question, QuestionData, TextbookResult, TimelyOrderQuestion } from "@/utils/types"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ProblemKey } from "@/utils/enums"
 import { captureRef } from 'react-native-view-shot'
 import RNFS from 'react-native-fs';
@@ -12,10 +12,11 @@ import useExamResultNote from "../../ExamResultList/hooks/useExamResultNote"
 import useCreateQuestionDialog from "../../ExamResultList/hooks/useQADialog"
 import { getChapterResultsApi, getChapterResultsCategoriesApi, getChapterResultsEffectSizeApi, getChapterResultsLongTimeSpendApi, getChapterResultsTimeOrderQuestionApi, getResults, getResultsCategories, getResultsEffectSize, getResultsLongTimeSpend, getResultsTimeOrderQuestion } from "../apiClients"
 import { Platform, View } from "react-native"
+import { useFocusEffect } from "@react-navigation/native"
 
 type Props = {
   chapterId?: number
-  examCode: string
+  examCode?: string
   isPrint: boolean
 }
 const useExamResult = ({ chapterId, examCode, isPrint }: Props) => {
@@ -39,6 +40,14 @@ const useExamResult = ({ chapterId, examCode, isPrint }: Props) => {
   const [selectedQuestion, setSelectedQuestion] = useState<QuestionData>()
   const [errorMessage, setErrorMessage] = useState<string>()
   const [examStatusView, setExamStatusView] = useState(examStatusViewOptions(t)[0].value)
+
+    useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setExamStatusView(examStatusViewOptions(t)[0].value);
+      };
+    }, [])
+  );
 
   const handleChangeExamStatusView = (value: any) => {
     setExamStatusView(value)
@@ -103,15 +112,16 @@ const useExamResult = ({ chapterId, examCode, isPrint }: Props) => {
     setLoading(false)
   }
 
+  const getData = () => {
+    resetData()
+    if (!user?.email) return
+    if (chapterId)
+      getDataTextbookResult()
+    else
+      getStudentData(examCode || '')
+  }
+
   useEffect(() => {
-    const getData = () => {
-      resetData()
-      if (!user?.email) return
-      if (chapterId)
-        getDataTextbookResult()
-      else
-        getStudentData(examCode)
-    }
     getData()
   }, [examCode, user?.email]);
 
@@ -174,7 +184,6 @@ const useExamResult = ({ chapterId, examCode, isPrint }: Props) => {
   const handleOpenQuestionDialogFromNote = (
     note: NoteResponse
   ) => {
-    console.log({ note });
     if (!note.questionId || note.questionOrder === undefined)
       return
     const question: QuestionData = {
@@ -211,7 +220,7 @@ const useExamResult = ({ chapterId, examCode, isPrint }: Props) => {
         result: 'base64'
       })
 
-      const originalFileName  = `${fileName}.pdf`;
+      const originalFileName = `${fileName}.pdf`;
       const sanitizedFileName = originalFileName.replace(/[ \(\):]/g, '_')
       const filePath = `${RNFS.DocumentDirectoryPath}/${sanitizedFileName}`;
 
@@ -226,6 +235,13 @@ const useExamResult = ({ chapterId, examCode, isPrint }: Props) => {
       console.error('Print error:', err)
     }
   }
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        getData()
+      };
+    }, []))
 
 
   return {

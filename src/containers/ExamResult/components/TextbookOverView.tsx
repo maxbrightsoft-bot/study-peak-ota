@@ -13,12 +13,18 @@ type Props = {
 
 const TextbookOverView = ({ t, resultData }: Props) => {
   const examTime = useMemo(() => {
-    return `${utcToLocalTime(resultData?.startTime, 'HH:mm')} ~ ${utcToLocalTime(moment(resultData?.startTime).add(resultData?.totalTime).format('HH:mm'), 'HH:mm')}`
+    if (!resultData?.startTime) return ''
+
+    const startTime = moment(resultData.startTime)
+    if (!startTime.isValid()) return ''
+
+    const endTime = startTime.clone().add(resultData.totalTime, 'minutes')
+
+    return `${utcToLocalTime(startTime, 'HH:mm')} ~ ${utcToLocalTime(endTime, 'HH:mm')}`
   }, [resultData?.startTime, resultData?.totalTime])
 
   return (
     <ScrollView style={styles.overviewContainer}>
-      {/* Score */}
       <View style={styles.overviewItem}>
         <Text style={styles.overviewLabel}>시험 접수</Text>
         <Text style={{ ...TYPO.heading1, color: palette.main[500] }}>
@@ -61,7 +67,7 @@ const styles = ScaledSheet.create({
   overviewContainer: {
     padding: '24@ms',
     gap: '16@ms',
-    backgroundColor: "#FFF"
+    backgroundColor: '#FFF'
   },
   overviewItem: {
     marginBottom: 16

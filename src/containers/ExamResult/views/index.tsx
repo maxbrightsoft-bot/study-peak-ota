@@ -2,14 +2,16 @@ import SlideDrawer from '@/components/ModalBase/SlideDrawer'
 import StartArrowSelect from '@/components/Select/StartArrowSelect'
 import { palette, TYPO } from '@/theme'
 import { utcToLocalTime } from '@/utils/helpers'
-import { Action, ExamSession, NoteResponse, Question } from '@/utils/types'
+import { Action, NoteResponse, Question } from '@/utils/types'
 import { Ionicons } from '@expo/vector-icons'
 import { useState } from 'react'
 import { Text, TouchableOpacity, View } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 import { ExamStatusView } from '@/utils/enums'
-import MyAnswer from '@/containers/MyAnswer/views/ExamMyAnswer'
-import QuestionAnalysis from '@/containers/QuestionAnalysis/views/ExamQuestionAnalysis'
+import ExamMyAnswer from '@/containers/MyAnswer/views/ExamMyAnswer'
+import TextbookMyAnswer from '@/containers/MyAnswer/views/TextbookMyAnswer'
+import ExamQuestionAnalysis from '@/containers/QuestionAnalysis/views/ExamQuestionAnalysis'
+import TextbookQuestionAnalysis from '@/containers/QuestionAnalysis/views/TextbookQuestionAnalysis'
 import IncorrectAnswerNotes from '@/containers/IncorrectAnswerNotes'
 import { NotesContainerProps } from '@/containers/IncorrectAnswerNotes/configs/interfaces'
 import ExamNoteDialog from '@/containers/IncorrectAnswerNotes/components/ExamNoteDialog'
@@ -20,11 +22,12 @@ import ExamOverView from '../components/ExamOverView'
 import { examStatusViewOptions } from '../configs/constants'
 import useExamResult from '../hooks/useExamResult'
 import PrintExamResult from './PrintExamResult'
+import TextbookOverView from '../components/TextbookOverView'
 
 type Props = {
-  examCode: string
+  examCode?: string
   onClose: () => void
-  chapterId?: string
+  chapterId?: number
 }
 
 const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
@@ -37,7 +40,7 @@ const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
     examResultNotes,
     handleOpenQuestionDialogFromNote,
     handleOpenNoteDialogFromQuestion
-  } = useExamResult({ examCode, isPrint: false })
+  } = useExamResult({ examCode, chapterId, isPrint: false })
 
   const {
     examStatusView,
@@ -124,22 +127,22 @@ const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
     {
       label: t('ask_a_question'),
       textStyle: {
-        color: '#3dc674'
+        color: palette.success.main
       },
       onPress: handleOpenQuestionDialogFromNote
     },
     {
       label: t('edit_note'),
       textStyle: {
-        color: '#3dc674'
+        color: palette.warning.main
       },
       onPress: handleOpenEditNote
     },
     {
       label: t('delete_note'),
-      startIcon: <Ionicons name="trash" size={14} color="#db4d4d" />,
+      startIcon: <Ionicons name="trash" size={14} color={palette.error.main} />,
       textStyle: {
-        color: '#db4d4d'
+        color: palette.error.main
       },
       onPress: handleOpenDeleteNoteDialog
     }
@@ -157,32 +160,42 @@ const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
   }
 
   const renderBody = () => {
-    if (!resultData) return
     switch (examStatusView) {
       case ExamStatusView.ExamOverview:
-        return <ExamOverView t={t} resultData={resultData} />
+        return chapterId
+          ? textbookResult && <TextbookOverView t={t} resultData={textbookResult} />
+          : resultData && <ExamOverView t={t} resultData={resultData} />
       case ExamStatusView.MyAnswers:
         return (
-          <MyAnswer
-            questionIdContextMenu={questionIdContextMenu}
-            itemProps={questionItemProp}
-            data={resultData}
-            categories={categoryResponses}
-          />
+          chapterId
+          ? textbookResult && <TextbookMyAnswer data={textbookResult} />
+          : resultData && <ExamMyAnswer data={resultData} categories={categoryResponses} />
         )
       case ExamStatusView.QuestionAnalysis:
         return (
-          <QuestionAnalysis
-            longTimeSpend={longTimeSpend}
-            openProblem={openProblem}
-            setOpenProblem={setOpenProblem}
-            categoryResponses={categoryResponses}
-            resultData={resultData}
-          />
+          chapterId
+          ? textbookResult && (
+              <TextbookQuestionAnalysis
+                longTimeSpend={longTimeSpend}
+                openProblem={openProblem}
+                setOpenProblem={setOpenProblem}
+                categoryResponses={categoryResponses}
+                resultData={textbookResult}
+              />
+            )
+          : resultData && (
+              <ExamQuestionAnalysis
+                longTimeSpend={longTimeSpend}
+                openProblem={openProblem}
+                setOpenProblem={setOpenProblem}
+                categoryResponses={categoryResponses}
+                resultData={resultData}
+              />
+            )
         )
       case ExamStatusView.IncorrectAnswerNotes:
         return (
-          <>
+          chapterId ? null : <>
             <IncorrectAnswerNotes
               notesContainerProps={notesContainerProps}
               onCreateNote={handleOpenNoteDialogCreateNote}
@@ -215,7 +228,7 @@ const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
   }
 
   return (
-    <SlideDrawer visible={!!resultData}>
+    <SlideDrawer visible={!!resultData || !!textbookResult}>
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={onClose}>
@@ -229,14 +242,14 @@ const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
         </View>
 
         <View style={styles.titleContainer}>
-          <Text style={styles.examTitle}>{resultData?.title}</Text>
-          <Text style={styles.examDate}> {utcToLocalTime(resultData?.startTime, t('date_format'))}</Text>
+          <Text style={styles.examTitle}>{chapterId ? textbookResult?.chapterName : resultData?.title}</Text>
+          <Text style={styles.examDate}> {chapterId ? utcToLocalTime(textbookResult?.startTime, t('date_format')) :  utcToLocalTime(resultData?.startTime, t('date_format'))}</Text>
         </View>
 
         <View style={styles.section}>
           <View style={styles.dropdownContainer}>
             <StartArrowSelect
-              items={examStatusViewOptions(t)}
+              items={examStatusViewOptions(t, chapterId)}
               value={examStatusView}
               onValueChange={handleChangeExamStatusView}
             />
@@ -244,18 +257,18 @@ const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
         </View>
         <View style={styles.contentContainer}>{renderBody()}</View>
       </View>
-        <View style={{ opacity: 0, position: "absolute", top: -9999 }}>
-          <PrintExamResult
-            contentRef={contentRef}
-            categoryResponses={categoryResponses}
-            resultData={resultData}
-            chapterId={chapterId}
-            openProblem={openProblem}
-            setOpenProblem={setOpenProblem}
-            longTimeSpend={longTimeSpend}
-            textbookResult={textbookResult}
-          />
-        </View>
+      <View style={{ opacity: 0, position: 'absolute', top: -9999 }}>
+        <PrintExamResult
+          contentRef={contentRef}
+          categoryResponses={categoryResponses}
+          resultData={resultData}
+          chapterId={chapterId}
+          openProblem={openProblem}
+          setOpenProblem={setOpenProblem}
+          longTimeSpend={longTimeSpend}
+          textbookResult={textbookResult}
+        />
+      </View>
     </SlideDrawer>
   )
 }
