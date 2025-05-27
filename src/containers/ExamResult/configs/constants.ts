@@ -1,7 +1,20 @@
 import { ExamStatusView, NoteSortColumn, OrderBy } from "@/utils/enums";
 import { NoteSearchQuery } from "@/utils/types";
 
-export const examStatusViewOptions = (t: any) => [
+export const examStatusViewOptions = (t: any, chapterId?: number) => chapterId ? [
+    {
+        label: t('exam_overview'),
+        value: ExamStatusView.ExamOverview
+    },
+    {
+        label: t('my_answers'),
+        value: ExamStatusView.MyAnswers
+    },
+    {
+        label: t('question_analysis'),
+        value: ExamStatusView.QuestionAnalysis
+    },
+] : [
     {
         label: t('exam_overview'),
         value: ExamStatusView.ExamOverview

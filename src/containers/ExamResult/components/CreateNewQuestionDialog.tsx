@@ -45,12 +45,14 @@ const CreateNewQuestionDialog: React.FC<Props> = ({
     }
   })
 
+  console.log({ questionOptions });
+
   return (
     <CommonDialog isVisible={openCreateQuestionDialog} onClose={onCloseCreateQuestion} title={t('ask_a_question')}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={{ paddingHorizontal: 24 }}>
+        <ScrollView>
           <View style={{ marginBottom: 16 }}>
-            <Text variant="labelLarge"> {t('questions_to_ask')}</Text>
+            <Text variant="labelLarge" style={{ color: palette.grey[700]}}> {t('questions_to_ask')}</Text>
             <CustomSelect
               value={questionOptions.find((q) => q.value === formik.values.questionId)?.label || ''}
               onValueChange={({ value }: { value: string }) => formik.setFieldValue('questionId', value)}
@@ -58,7 +60,7 @@ const CreateNewQuestionDialog: React.FC<Props> = ({
             />
           </View>
           <View style={{ marginBottom: 16 }}>
-            <Text variant="labelLarge">{t('question_content')}</Text>
+            <Text variant="labelLarge" style={{ color: palette.grey[700]}}>{t('question_content')}</Text>
             <TextInput
               multiline
               style={{
@@ -125,7 +127,7 @@ const styles = ScaledSheet.create({
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: '16@ms',
+    paddingVertical: '16@ms',
     borderTopWidth: 1,
     borderTopColor: palette.grey[200]
   },

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import _ from "lodash";
 import { useTranslation } from "react-i18next";
 import useAuthStore from "@/store/useAuthStore";
@@ -7,6 +7,7 @@ import { ExamStatus } from "@/utils/enums";
 import { ExamSession } from "@/utils/types";
 import { groupMonth } from "../configs/helpers";
 import { GroupExamSession } from "../configs/types";
+import { useFocusEffect } from "@react-navigation/native";
 
 const useExamResultList = () => {
   const { setLoading } = useAuthStore()
@@ -17,6 +18,14 @@ const useExamResultList = () => {
   const [selectedExam, setSelectedExam] = useState<ExamSession>();
   const [expandedId, setExpandedId] = useState<number | null>(null)
 
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setSelectedExam(undefined);
+        setExpandedId(null)
+      };
+    }, [])
+  );
 
   const toggleExpand = (id: number) => {
     setExpandedId((prev) => (prev === id ? null : id))
@@ -100,7 +109,7 @@ const useExamResultList = () => {
   //     history.push(`?examCode=${listExam?.[0]?.code}`);
   //   }
   // }, [JSON.stringify(listExam)]);
-  
+
   // const { recoverExamCode, recoverKey } = useExamSolving({ examCode: listExam.length && examCodeActive ? examCodeActive : "", isProgressing: false });
 
   return {
