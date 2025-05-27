@@ -2,7 +2,6 @@ import React from 'react'
 import { View, Text, TouchableOpacity } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Avatar } from 'react-native-paper'
-import defaultImage from '@/assets/images/default.png'
 import { ScaledSheet } from 'react-native-size-matters'
 import { palette, TYPO } from '@/theme'
 import useProfile from './hooks/useProfile'
@@ -20,7 +19,7 @@ const Profile = () => {
         <Avatar.Image
           size={40}
           style={{ backgroundColor: '#fff', marginRight: 16 }}
-          source={user?.avatar ? { uri: user.avatar } : defaultImage}
+          source={{ uri: user?.avatar }}
         />
         <View style={styles.profileInfo}>
           <Text style={styles.nameText}>{user?.fullName}</Text>

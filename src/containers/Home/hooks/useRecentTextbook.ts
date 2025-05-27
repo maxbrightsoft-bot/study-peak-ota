@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useRef,
   useState
@@ -13,6 +14,7 @@ import { getErrorMessage, toast } from "@/utils/helpers";
 import moment from "moment";
 import { TextbookResponse } from "@/utils/types/textbook";
 import { getTextbookListApi, startPageApi } from "../apiClients/textbookService";
+import { useFocusEffect } from "@react-navigation/native";
 
 
 type Props = {
@@ -87,6 +89,14 @@ const useRecentTextbook = ({ preparedType, preparedFilterType }: Props) => {
   useEffect(() => {
     getTextbookList();
   }, [selectedAcademy?.id]);
+
+  useFocusEffect(
+      useCallback(() => {
+        return () => {
+          getTextbookList()
+        };
+      }, [])
+    );
 
   return {
     t,

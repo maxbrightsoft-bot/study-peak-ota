@@ -61,12 +61,11 @@ const ScheduleForm: FC<Props> = ({ open, formikProp, scheduleRequest, onClose })
         <ScrollView style={styles.container}>
           <View style={styles.formGroup}>
             <Text style={styles.label}>{t('title')}</Text>
-            <Field
-              name="title"
-              render={() => (
-                <TextField value={values.title} onChangeText={(value: string) => setFieldValue('title', value)} />
+            <Field name="title">
+              {({ field }: any) => (
+                <TextField value={field.value} onChangeText={(value: string) => setFieldValue('title', value)} />
               )}
-            />
+            </Field>
             {!!errors?.title && touched.title && <Text style={styles.errorText}>{errors?.title}</Text>}
           </View>
 

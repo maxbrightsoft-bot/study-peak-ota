@@ -57,7 +57,7 @@ const UpdateMessageDialog: React.FC<Props> = ({
         >
           {({ setFieldValue, handleSubmit }) => (
             <>
-              <Text variant="labelLarge">{t('questions_to_ask')}</Text>
+              <Text variant="labelLarge" style={{ color: palette.grey[700]}}>{t('questions_to_ask')}</Text>
               <Field
                 style={{ paddingRight: '40px' }}
                 name="content"

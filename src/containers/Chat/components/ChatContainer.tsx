@@ -1,7 +1,7 @@
 import TextField from '@/components/Input/TextField'
 import { palette, TYPO } from '@/theme'
 import { Ionicons } from '@expo/vector-icons'
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { View, Text, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 import { IChatHeaderProps, IChatListProps, IInputChatProps } from '../configs/types'
@@ -19,9 +19,17 @@ type Props = {
   chatHeaderProps: IChatHeaderProps
   handleLoadMoreMessages: () => Promise<true | undefined>
 }
-const ChatContainer = ({ t, chatListProps, inputProps, chatHeaderProps, handleLoadMoreMessages, isLoadingMessages }: Props) => {
-  const { messages, handleUpdateMessage, handleDeleteMessage, } = chatListProps
+const ChatContainer = ({
+  t,
+  chatListProps,
+  inputProps,
+  chatHeaderProps,
+  handleLoadMoreMessages,
+  isLoadingMessages
+}: Props) => {
+  const { messages, isScrollToEnd, handleUpdateMessage, handleDeleteMessage, handleToggleScrollToEnd } = chatListProps
   const { isCompleted, onChangeInput, onSubmit, handleUploadImage, text } = inputProps
+  const flatListRef = useRef<FlatList>(null)
 
   const filterMessage = useMemo(() => {
     let prevTime = 0
@@ -36,55 +44,61 @@ const ChatContainer = ({ t, chatListProps, inputProps, chatHeaderProps, handleLo
     })
   }, [JSON.stringify(messages)])
 
+  useEffect(() => {
+    if(isScrollToEnd) {
+      flatListRef.current?.scrollToOffset({ offset: 0, animated: true })
+      handleToggleScrollToEnd()
+    }
+  }, [isScrollToEnd])
+
   return (
     <View style={styles.container}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={90}>
-        <View style={styles.header}>
-          <Text style={styles.examTitle}>{chatHeaderProps.examTitle}</Text>
-          <Text style={styles.dateTitle}>{utcToLocalTime(chatHeaderProps.createdAt, t('date_format'))}</Text>
-        </View>
-        <View style={{ height: '80%'}}>
-          {isLoadingMessages && (
-            <ActivityIndicator style={{ paddingVertical: 12 }} animating={true} color={palette.primary.main} />
-          )}
-          {!isLoadingMessages && !filterMessage?.length ? (
-            <View style={{ height: '100%', alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={styles.dateTitle}>{t('no_message')}</Text>
-            </View>
-          ) : (
-            <FlatList
-              data={filterMessage}
-              renderItem={({item}) => (
-                <ChatItem
-                  t={t}
-                  handleUpdateMessage={handleUpdateMessage}
-                  handleDeleteMessage={handleDeleteMessage}
-                  item={item}
-                />
-              )}
-              removeClippedSubviews={true}
-              keyboardShouldPersistTaps="handled"
-              keyExtractor={(item) => `${item.id}${item.createdAt}`}
-              onEndReached={handleLoadMoreMessages}
-              inverted
-              initialNumToRender={20}
-              onEndReachedThreshold={0.1}
-            />
-          )}
-        </View>
-
-        <View style={styles.inputContainer}>
-          <TouchableOpacity onPress={handleUploadImage}>
-            <Ionicons name="add-circle" size={32} color={palette.grey[500]} />
-          </TouchableOpacity>
-          <View style={{ flexGrow: 1 }}>
-            <TextField value={text} style={styles.input} onChangeText={onChangeInput} />
+      <View style={styles.header}>
+        <Text style={styles.examTitle}>{chatHeaderProps.examTitle}</Text>
+        <Text style={styles.dateTitle}>{utcToLocalTime(chatHeaderProps.createdAt, t('date_format'))}</Text>
+      </View>
+      <View style={{ height: '80%' }}>
+        {isLoadingMessages && (
+          <ActivityIndicator style={{ paddingVertical: 12 }} animating={true} color={palette.primary.main} />
+        )}
+        {!isLoadingMessages && !filterMessage?.length ? (
+          <View style={{ height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={styles.dateTitle}>{t('no_message')}</Text>
           </View>
-          <TouchableOpacity onPress={onSubmit}>
-            <Ionicons name="send" disabled={isCompleted} size={25} color={palette.main[500]} />
-          </TouchableOpacity>
+        ) : (
+          <FlatList
+            ref={flatListRef}
+            data={filterMessage}
+            renderItem={({ item }) => (
+              <ChatItem
+                t={t}
+                handleUpdateMessage={handleUpdateMessage}
+                handleDeleteMessage={handleDeleteMessage}
+                item={item}
+              />
+            )}
+            removeClippedSubviews={true}
+            keyboardShouldPersistTaps="handled"
+            keyExtractor={(item) => `${item.id}${item.createdAt}`}
+            onEndReached={handleLoadMoreMessages}
+            inverted
+            initialNumToRender={20}
+            onEndReachedThreshold={0.1}
+          />
+        )}
+      </View>
+
+      <View style={styles.inputContainer}>
+        <TouchableOpacity onPress={handleUploadImage}>
+          <Ionicons name="add-circle" size={32} color={palette.grey[500]} />
+        </TouchableOpacity>
+        <View style={{ flexGrow: 1 }}>
+          <TextField value={text} style={styles.input} onChangeText={onChangeInput} />
         </View>
-      </KeyboardAvoidingView>
+        <TouchableOpacity onPress={onSubmit}>
+          <Ionicons name="send" disabled={isCompleted} size={25} color={palette.main[500]} />
+        </TouchableOpacity>
+      </View>
     </View>
   )
 }
@@ -131,7 +145,7 @@ const styles = ScaledSheet.create({
     borderColor: palette.grey[100]
   },
   inputContainer: {
-    position: 'fixed',
+    position: 'absolute',
     bottom: 0,
     flexDirection: 'row',
     gap: 8,

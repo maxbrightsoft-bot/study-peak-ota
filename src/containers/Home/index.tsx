@@ -11,17 +11,18 @@ import ModalExamCode from './components/Dialog/ModalExamCode'
 import useProblemSolving from './hooks/useProblemSolving'
 import useDrawer from './hooks/useDrawer'
 import NoticeDrawer from './components/NoticeDrawer'
+import TextbookDrawer from '../Textbook/components/Dialog/TextbookDrawer'
 
 const Home = () => {
   const { selectedAcademy } = useAuthStore()
-  const { t, open, codeExam, setCodeExam, openCloseModal, handleCodeExam, isCheckTeacherStart } = useProblemSolving()
+  const { t, open, codeExam, setCodeExam, openCloseModal, handleCodeExam, isCheckTeacherStart, isOpenTextbookResult, handleOpenTextbookResult, handleCloseTextbookResult, selectedTextbook } = useProblemSolving()
   const { isOpenDialog, handleCloseDialog, handleOpenDialog, notification } = useDrawer()
   return (
     <ScrollView style={{ flex: 1, backgroundColor: '#fff', paddingBottom: 40 }}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={80}>
         <ScrollView>
           {!!selectedAcademy && <Notice handleOpenDialog={handleOpenDialog} />}
-          <RecentTextbook />
+          <RecentTextbook handleOpenTextbookResult={handleOpenTextbookResult}/>
           <CalendarSchedule />
         </ScrollView>
       </KeyboardAvoidingView>
@@ -48,7 +49,8 @@ const Home = () => {
         handleCodeExam={handleCodeExam}
         isCheckTeacherStart={isCheckTeacherStart}
       />
-      <NoticeDrawer t={t} open={isOpenDialog} onClose={handleCloseDialog} notification={notification} />
+      <TextbookDrawer isOpen={isOpenTextbookResult} onClose={handleCloseTextbookResult} textbookId={selectedTextbook?.id}/>
+      <NoticeDrawer t={t} open={notification && isOpenDialog} onClose={handleCloseDialog} notification={notification} />
     </ScrollView>
   )
 }

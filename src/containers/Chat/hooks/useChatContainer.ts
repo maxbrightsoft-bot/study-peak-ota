@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useMemo } from "react";
+import { useRef, useState, useEffect, useMemo, useCallback } from "react";
 import useMessageList from "./useMessageList";
 import { useTranslation } from "react-i18next";
 import { ConversationsResponse, MessageRequest, MessageResponse, StudentsConversationResponse } from "@/utils/types";
@@ -9,6 +9,8 @@ import { IChatItemProps } from "../configs/types";
 import { COMPLETED_CONVERSATION_EVENT, DELETE_MESSAGE_EVENT, NEW_CONVERSATION_EVENT, NEW_MESSAGE_EVENT, UPDATE_MESSAGE_EVENT } from "../configs/constants";
 import { apiAddMessage, apiUploadImageFile, updateLastTimeReadConversation } from "../apiClient/conversationService";
 import { pick } from '@react-native-documents/picker'
+import { useFocusEffect } from "@react-navigation/native";
+import { Keyboard } from "react-native";
 
 interface Props {
   conversation?: ConversationsResponse;
@@ -200,6 +202,14 @@ const useChatContainer = (props: Props) => {
     user?.id,
   ]);
 
+    useFocusEffect(
+      useCallback(() => {
+        return () => {
+          setSelectedConversation(undefined)
+        };
+      }, [])
+    );
+
   useEffect(() => {
     getMessageConversation();
   }, [JSON.stringify(selectedConversation)]);
@@ -221,11 +231,13 @@ const useChatContainer = (props: Props) => {
       roles
     },
     chatListProps: {
+      isScrollToEnd,
       messages: messageList,
       onReTrySendMessage: handleAddMessage,
       roles,
       handleUpdateMessage,
-      handleDeleteMessage
+      handleDeleteMessage,
+      handleToggleScrollToEnd
     },
     inputProps: {
       text: message?.content || "",
@@ -234,12 +246,10 @@ const useChatContainer = (props: Props) => {
       handleUploadImage,
       isCompleted: selectedConversation?.isCompleted
     },
-    isScrollToEnd,
     isLoadingMessages,
     messageList,
     selectedConversation,
     messageFilter,
-    handleToggleScrollToEnd,
     handleLoadMoreMessages,
     getMessageList,
     setMessage,

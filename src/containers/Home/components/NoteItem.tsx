@@ -92,14 +92,14 @@ const NoteItem = ({
     const actions: Action<ScheduleResponse>[] = [
       {
         label: t('edit_schedule'),
-        onPress: () => handleOpenScheduleDialog(schedule),
+        onPress: () => handleOpenScheduleDialog(schedule)
       },
       {
         label: t('delete_schedule'),
         onPress: () => handleOpenConfirmDeleteDialog(schedule),
         textStyle: {
           color: '#db4d4d'
-        },
+        }
       }
     ]
     return (
@@ -117,7 +117,7 @@ const NoteItem = ({
         <Button onPress={handleCheckSchedule} disabled={!enableCheckSchedule}>
           {renderStatus(schedule)}
         </Button>
-        <View>
+        <View style={{ gap: 8 }}>
           <Text style={styles.title}>{schedule.title}</Text>
           <View style={{ flexDirection: 'row', gap: 4 }}>
             <Text style={styles.typeText}>{t(ScheduleType[schedule.type || 0].toString()?.toLocaleLowerCase())}</Text>

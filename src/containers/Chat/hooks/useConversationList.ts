@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { getListConversation } from "../apiClient/studentStatusService";
 import { CONVERSATION_DEFAULT_FILTER, NEW_MESSAGE_CONVERSATIONS_EVENT, UNREAD_MESSAGE_COUNT_EVENT } from "../configs/constants";
 import _ from "lodash"
@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { getErrorMessage, toast } from "@/utils/helpers";
 import { ConversationFilter, ConversationsResponse } from "@/utils/types";
 import { PusherChannel } from "@pusher/pusher-websocket-react-native";
+import { useFocusEffect } from "@react-navigation/native";
 
 const useConversationList = () => {
   const { user, setLoading, pusher, subscribeChannel, unsubscribeChannelSafe } = useAuthStore()
@@ -131,6 +132,15 @@ const useConversationList = () => {
 
     return cleanupPusher;
   }, [selectedConversation?.id, user?.id, academyDomain, pusher]);
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setSelectedConversation(undefined)
+        setTextSearch('')
+      };
+    }, [])
+  );
 
   useEffect(() => {
     getConversationList()

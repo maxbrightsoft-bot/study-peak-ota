@@ -220,6 +220,7 @@ const Calendar = (calendarProps: Props) => {
           hideExtraDays={false}
           renderHeader={false}
           hideArrows={true}
+          hideDayNames={true}
           dayComponent={({ date, state, marking }: { date?: DateData; state?: string; marking?: MarkingProps }) => {
             if (!date) return <View style={styles.dayContainer} />
 
@@ -384,7 +385,7 @@ const styles = ScaledSheet.create({
     borderRadius: 2,
     backgroundColor: palette.main[500],
     position: 'absolute',
-    bottom: '4@ms'
+    bottom: '2@ms'
   }
 })
 

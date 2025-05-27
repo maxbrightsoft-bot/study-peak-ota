@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { EVENT_DELETED_STUDENT_NOTE, EVENT_DELETED_STUDENT_NOTIFICATION, EVENT_NEW_STUDENT_NOTE, EVENT_NEW_STUDENT_NOTIFICATION, EVENT_UPDATED_STUDENT_NOTE, EVENT_UPDATED_STUDENT_NOTIFICATION, OrderBy, SortBy, studentNoteEvents, studentNotificationEvents, TabList, TypeNotificationEnum } from "../configs/constants"
 import { getListNoteApi, getListNotificationApi } from "../apiClients"
 import { Notification } from "@/utils/types"
@@ -8,6 +8,7 @@ import moment from "moment"
 import { PusherChannel } from "@pusher/pusher-websocket-react-native"
 import { useTranslation } from "react-i18next"
 import { NoteResponse } from "@/utils/types/note"
+import { useFocusEffect } from "@react-navigation/native"
 
 const filterDefault = {
   sortColumnDirection: OrderBy.DESC,
@@ -30,10 +31,8 @@ const useNotice = (setNew: any) => {
   const notificationChannelName = useRef<string>();
   const generalNotificationChannelName = useRef<string>();
 
-
   const handleGetListNotification = async (type: number[]) => {
     setLoading(true)
-    setNotifications([])
     try {
       const res = await getListNotificationApi({ ...filterDefault, type });
       let notices: Notification[] = res.data?.items ?? []
@@ -65,6 +64,14 @@ const useNotice = (setNew: any) => {
     setSelected(newValue);
     setTypeSelected(type)
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        handleChangeTab(TabList[0].value, TabList[0].type)
+      };
+    }, [])
+  );
 
   const handleNoteReceived = (data: string) => {
     try {
@@ -196,14 +203,14 @@ const useNotice = (setNew: any) => {
     handleListenerEvent()
     return () => {
       if (channelName.current) {
-          unsubscribeChannelSafe(pusher, channelName.current)
+        unsubscribeChannelSafe(pusher, channelName.current)
       }
       if (notificationChannelName.current) {
-          unsubscribeChannelSafe(pusher, notificationChannelName.current)
+        unsubscribeChannelSafe(pusher, notificationChannelName.current)
       }
 
       if (generalNotificationChannelName.current) {
-          unsubscribeChannelSafe(pusher, generalNotificationChannelName.current)
+        unsubscribeChannelSafe(pusher, generalNotificationChannelName.current)
       }
     }
   }, [userId, selectedAcademy?.domain, typeSelected, selected])

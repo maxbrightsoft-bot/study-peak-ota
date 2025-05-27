@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { getListNotificationByIdApi, getNoteByIdApi } from "../apiClients";
 import { Notification } from "../configs/type";
 import useAuthStore from "@/store/useAuthStore";
 import { useTranslation } from "react-i18next";
 import { getErrorMessage, toast } from "@/utils/helpers";
+import { useFocusEffect } from "@react-navigation/native";
 
 const useDrawer = () => {
   const [isOpenDialog, setOpenDialog] = useState<boolean>(false);
@@ -13,6 +14,7 @@ const useDrawer = () => {
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
+    setNotification(null)
   };
 
   const handleGetListNotification = async (data?: Notification) => {
@@ -43,6 +45,15 @@ const useDrawer = () => {
     setOpenDialog(true);
     handleGetListNotification(data)
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setNotification(null)
+        handleCloseDialog()
+      };
+    }, [])
+  );
 
   return {
     isOpenDialog,
