@@ -14,7 +14,6 @@ import useAuthStore from '@/store/useAuthStore'
 import DoTextbookScreen from '@/screens/DoTextbook'
 import ExamListScreen from '@/screens/ExamList'
 import ExamResultListScreen from '@/screens/ExamResultList'
-import Toast from 'react-native-toast-message'
 import StudyTrendScreen from '@/screens/StudyTrend'
 import ProfileScreen from '@/screens/Profile'
 

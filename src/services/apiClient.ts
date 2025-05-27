@@ -11,6 +11,7 @@ import {
   NoAcademyHeaders,
 } from '../utils/constants'
 import { getDataStorage, removeDataStorage } from '@/utils/storage';
+import useAuthStore from '@/store/useAuthStore';
 
 export const api: AxiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -31,41 +32,43 @@ export const apiUpload: AxiosInstance = axios.create({
   },
 })
 
-;[api, apiUpload].forEach((i) =>
-  i.interceptors.request.use(
-    async(config: any) => {
-      const token = await getDataStorage(ACCESS_TOKEN)
-      const language = await getDataStorage(LANGUAGE)
+  ;[api, apiUpload].forEach((i) =>
+    i.interceptors.request.use(
+      async (config: any) => {
+        const token = await getDataStorage(ACCESS_TOKEN)
+        const language = await getDataStorage(LANGUAGE)
 
-      if (token && !config.headers.noAuth) {
-        config.headers.Authorization = `Bearer ${token}`
-      }
-      
-      const academyDomainStorage = await getDataStorage(ACADEMY_DOMAIN)
-      const academyDomain = academyDomainStorage
-      const isLearningSpace = !!(await getDataStorage(LEARNING_SPACE)) === true
+        if (token && !config.headers.noAuth) {
+          config.headers.Authorization = `Bearer ${token}`
+        }
 
-      if((academyDomain && !isLearningSpace) && config.headers[AcademyHeaders] == undefined) config.headers[AcademyHeaders] = `${academyDomain}`
-      if(isLearningSpace && config.headers[NoAcademyHeaders] == undefined) config.headers[NoAcademyHeaders] = `${isLearningSpace}`
-      if(language) config.headers[LanguageHeaders] = `${language}`
+        const academyDomainStorage = await getDataStorage(ACADEMY_DOMAIN)
+        const academyDomain = academyDomainStorage
+        const isLearningSpace = !!(await getDataStorage(LEARNING_SPACE)) === true
 
-      return config
+        if ((academyDomain && !isLearningSpace) && config.headers[AcademyHeaders] == undefined) config.headers[AcademyHeaders] = `${academyDomain}`
+        if (isLearningSpace && config.headers[NoAcademyHeaders] == undefined) config.headers[NoAcademyHeaders] = `${isLearningSpace}`
+        if (language) config.headers[LanguageHeaders] = `${language}`
+        console.log({ body: config.data });
 
-    },
-    (error: any) => Promise.reject(error)
+        return config
+
+      },
+      (error: any) => Promise.reject(error)
+    )
   )
-)
-;[api, apiUpload].forEach((i) =>
-  i.interceptors.response.use(
-    (response: any) => {
-      return response
-    },
-    async(error: any) => {
-      if (error.response?.status === 401 || error.response?.status == 403) {
-        await removeDataStorage(ACCESS_TOKEN)
-      }
+  ;[api, apiUpload].forEach((i) =>
+    i.interceptors.response.use(
+      (response: any) => {
+        return response
+      },
+      async (error: any) => {
+        if (error.response?.status === 401 || error.response?.status == 403) {
+          const { logout } = (useAuthStore() as any).getState()
+          await logout()
+        }
 
-      return Promise.reject(error)
-    }
+        return Promise.reject(error)
+      }
+    )
   )
-)

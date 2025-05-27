@@ -75,15 +75,6 @@ export type ExamResult = {
   type: string
 };
 
-export type CategoryResponse = {
-  id: number
-  name: string
-  totalQuestions: number
-  totalCorrectQuestions: number
-  totalAnsweredQuestions: number
-  percentageAmongStudents: number
-}
-
 export type EffectSize = {
     id: number;
     questionOrder: number;

@@ -4,8 +4,6 @@ import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { View, Text, StatusBar, StyleSheet } from 'react-native'
 import { Appbar, Menu, Avatar, Button, TouchableRipple } from 'react-native-paper'
-import defaultImage from '@/assets/images/default.png'
-import { HEADER_HEIGHT } from '@/utils/constants'
 
 type Props = {
   headerProps: any
@@ -48,7 +46,7 @@ const Header = ({ headerProps }: Props) => {
                   <Avatar.Image
                     size={40}
                     style={{ backgroundColor: '#fff', marginLeft: 8 }}
-                    source={imageUrl ? { uri: imageUrl } : defaultImage}
+                    source={{ uri: imageUrl }}
                   />
                 </Button>
               }
@@ -84,7 +82,7 @@ const Header = ({ headerProps }: Props) => {
                   <Avatar.Image
                     size={36}
                     style={{ backgroundColor: '#fff', marginRight: 10 }}
-                    source={user.avatar ? { uri: user.avatar } : defaultImage}
+                    source={{ uri: user?.avatar }}
                   />
                   <Text style={{ color: !selectedAcademy?.domain ? '#FFF' : '#000', fontWeight: '600' }}>
                     {t('my_study_space')}
@@ -143,7 +141,7 @@ const Header = ({ headerProps }: Props) => {
                     <Avatar.Image
                       size={36}
                       style={{ backgroundColor: '#fff', marginRight: 10 }}
-                      source={academy?.image ? { uri: academy?.image } : defaultImage}
+                      source={{ uri: academy?.image }}
                     />
                     <Text style={{ color: selectedAcademy?.domain === academy.domain ? '#FFF' : '#000' }}>
                       {academy.name}
