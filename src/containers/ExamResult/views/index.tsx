@@ -159,6 +159,8 @@ const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
     isLoading: isLoadingNotes
   }
 
+  console.log({ resultData });
+
   const renderBody = () => {
     switch (examStatusView) {
       case ExamStatusView.ExamOverview:

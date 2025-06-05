@@ -24,6 +24,7 @@ const MyAnswer: FC<Props> = ({
 }) => {
   const formattedData = formatDataMyAnswer(data, categories);
   const { t } = useTranslation();
+  console.log({ data, formattedData });
 
   const renderAnswer = (item: Question, index: number, questions: Question[]) => {
     const nextItem: Question | undefined = index < questions.length - 1 ? questions[index + 1] : undefined;

@@ -10,7 +10,7 @@ import { GroupExamSession } from "../configs/types";
 import { useFocusEffect } from "@react-navigation/native";
 
 const useExamResultList = () => {
-  const { setLoading } = useAuthStore()
+  const { setLoading, selectedAcademy } = useAuthStore()
   const { t } = useTranslation();
   const [listExam, setListExam] = useState<ExamSession[]>([]);
   const [search, setSearch] = useState<string>("");
@@ -84,7 +84,7 @@ const useExamResultList = () => {
 
   useEffect(() => {
     getListExam();
-  }, []);
+  }, [selectedAcademy?.id]);
 
   const handleViewResult = (exam: ExamSession) => {
     setSelectedExam(exam)
