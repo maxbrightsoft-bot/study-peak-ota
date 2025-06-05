@@ -8,6 +8,7 @@ import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
 import CustomTooltip from '@/components/Tooltip/CustomTooltip'
 import { NoteResponse } from '@/utils/types'
+import MathRender from '@/components/MathRender'
 
 interface NoteItemProps extends TooltipProps<NoteResponse> {
   data: NoteResponse
@@ -59,9 +60,10 @@ const NoteItem: FC<NoteItemProps> = ({
             </Text>
             {data.examSessionId && <Text style={styles.textRight}>{data.categoryName}</Text>}
           </View>
-          <Text numberOfLines={1} ellipsizeMode="tail" style={styles.contentText}>
+          <MathRender content={data.content} textColor={palette.grey[700]}/>
+          {/* <Text numberOfLines={1} ellipsizeMode="tail" style={styles.contentText}>
             {data.content?.replace(/<[^>]+>/g, '') || ''}
-          </Text>
+          </Text> */}
         </View>
         {data.isOwned && (
           <CustomTooltip
@@ -93,7 +95,8 @@ const styles = ScaledSheet.create({
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'flex-start'
+    alignItems: 'flex-start',
+    marginBottom: 8
   },
   textContainer: {
     flex: 1,

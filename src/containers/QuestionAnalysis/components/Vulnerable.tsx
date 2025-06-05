@@ -193,7 +193,7 @@ const Vulnerable: FC<Props> = ({ data, keyOpen, openProblem, changeOpen, isMySto
         style={[styles.header, !isOpen && styles.closedHeader]}
         onPress={() => changeOpen?.(isOpen ? undefined : keyOpen)}
       >
-        <Text style={[styles.headerText, !isOpen && { color: '#97A1AF' }]}>{t('tricky_problems')}</Text>
+        <Text style={[styles.headerText, !isOpen && { color: '#97A1AF' }]}>{t('issues_vulnerable')}</Text>
         {isOpen ? (
           <Ionicons name="chevron-up" size={24} color="#E0E0E0" />
         ) : (

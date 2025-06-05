@@ -3,9 +3,9 @@ import { View, Text, FlatList } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import _ from 'lodash'
 import { formatTextbookDataMyAnswer } from '../configs/helpers'
-import { Category, StudentQuestionResult, TextbookResult } from '@/utils/types'
-import AnswerItem from '../components/AnswerItem'
-import { AnswerItemBaseProps } from '../configs/types'
+import { Category, TextbookResult } from '@/utils/types'
+import TextbookAnswerItem from '../components/AnswerItem'
+import { AnswerItemBaseProps, StudentQuestionResult } from '../configs/types'
 import { ScaledSheet } from 'react-native-size-matters'
 import { palette } from '@/theme'
 
@@ -28,7 +28,7 @@ const MyAnswer: FC<Props> = ({ data, itemProps }) => {
     const isFirst = index === 0
 
     return (
-      <AnswerItem
+      <TextbookAnswerItem
         key={item.id}
         {...itemProps}
         data={item}

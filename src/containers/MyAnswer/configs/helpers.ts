@@ -13,20 +13,12 @@ export const getOverallColorClassName = (
 }
 
 export const formatDataMyAnswer = (inputData: ExamResult, categories: CategoryResponse[]) => {
-  let uniqueCategories = new Set<string>();
-  const filterCategories = categories.filter((category: CategoryResponse) => {
-    if (!uniqueCategories.has(category.name)) {
-      uniqueCategories.add(category.name);
-      return true;
-    }
-    return false;
-  });
-  const questionsByCategory = filterCategories.map(
+  const questionsByCategory = categories.map(
     (category: CategoryResponse): FormatDataMyAnswer => {
       return {
         category,
         questions: inputData.questions.filter((question: Question) => {
-          return question.category.name === category.name;
+          return category.questionIds.includes(question.id);
         }),
       };
     }

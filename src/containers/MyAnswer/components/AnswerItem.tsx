@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { formatTimeDiff, formatTimeSecond } from '@/utils/helpers'
 import { palette, TYPO } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
+import { Question } from '@/utils/types'
 
 const IconStarQuestion = () => <Ionicons name="star" size={14} color="#FFD700" />
 const IconNoStarQuestion = () => <Ionicons name="star-outline" size={14} color="#C0C0C0" />
@@ -13,8 +14,8 @@ const IconInCorrectAnswer = () => <Ionicons name="close-circle" size={14} color=
 const IconNoGrass = () => <Ionicons name="remove-circle-sharp" size={14} color={palette.grey[300]} />
 
 interface AnswerItemProps {
-  data: any
-  nextData?: any
+  data: Question
+  nextData?: Question
   isFirst?: boolean
   isLast?: boolean
 }
@@ -22,7 +23,7 @@ interface AnswerItemProps {
 const AnswerItem: FC<AnswerItemProps> = ({ data, nextData, isFirst, isLast }) => {
   const { t } = useTranslation()
   const getBorderStyle = () => {
-    if (data?.article !== nextData?.article && !isFirst && !isLast) {
+    if (data?.questionGroupIndex !== nextData?.questionGroupIndex && !isFirst && !isLast) {
       return {
         borderBottomWidth: 1,
         borderBottomColor: '#E4E7EC'
@@ -30,6 +31,8 @@ const AnswerItem: FC<AnswerItemProps> = ({ data, nextData, isFirst, isLast }) =>
     }
     return {}
   }
+
+  console.log({ data });
 
   const getResponseColor = (signal: number) => {
     switch (signal) {
@@ -130,14 +133,14 @@ const AnswerItem: FC<AnswerItemProps> = ({ data, nextData, isFirst, isLast }) =>
 
 const styles = ScaledSheet.create({
   container: {
-    paddingVertical: 8,
-    paddingHorizontal: '24@ms'
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: 1,
+    paddingVertical: 12,
+    paddingHorizontal: '24@ms',
     borderColor: palette.grey[50]
   },
   cell: {
