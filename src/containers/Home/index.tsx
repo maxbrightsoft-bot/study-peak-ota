@@ -50,7 +50,7 @@ const Home = () => {
         isCheckTeacherStart={isCheckTeacherStart}
       />
       <TextbookDrawer isOpen={isOpenTextbookResult} onClose={handleCloseTextbookResult} textbookId={selectedTextbook?.id}/>
-      <NoticeDrawer t={t} open={notification && isOpenDialog} onClose={handleCloseDialog} notification={notification} />
+      <NoticeDrawer t={t} open={!!notification && isOpenDialog} onClose={handleCloseDialog} notification={notification} />
     </ScrollView>
   )
 }

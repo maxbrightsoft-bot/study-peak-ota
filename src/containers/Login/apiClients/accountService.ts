@@ -34,7 +34,7 @@ export const apiLoginWithAccessToken = (
   isLearningSpace?: boolean,
   domain?: string
 ) =>
-  api.post(`${AUTH_URL}/login/access-token/mobile`, body, {
+  api.post(`${AUTH_URL}/login/access-token`, body, {
     params: {
       isLearningSpace,
     },

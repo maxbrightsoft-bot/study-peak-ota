@@ -50,8 +50,6 @@ const useProblemSolving = () => {
   const [isOpenTextbookResult, setOpenTextbookResult] = useState(false)
   const [selectedTextbook, setSelectedTextbook] = useState<TextbookResponse>()
 
-  const attendanceChannel = useRef<PusherChannel>();
-
   const academyDomain = user?.academyDomain
 
   const handleSelectDate = ({
@@ -183,33 +181,39 @@ const useProblemSolving = () => {
   }, [user?.id, user?.academyDomain, user?.isLearningSpace]);
 
   const handleListenerEvent = async () => {
-    if (
-      !codeExam ||
-      !isCheckTeacherStart ||
-      !open ||
-      !academyDomain ||
-      !userId ||
-      !pusher
-    ) return
-    const examHandlers = {
-      [ExamEvent.StartExam]: handleTeacherStartExam,
-      [EVENT_DELETED_MEMBER]: handleMemberRemoved,
-    };
+    try {
+      if (
+        !codeExam ||
+        !isCheckTeacherStart ||
+        !open ||
+        !academyDomain ||
+        !userId ||
+        !pusher
+      ) return
+      cleanupPusher()
 
-    const studentExamHandlers = {
-      [ExamEvent.TeacherKickOutStudent]: handleTeacherKickStudent,
-    };
-    channelName.current = `${EXAM_CHANNEL}-${codeExam}-${academyDomain
-      .trim()
-      .toUpperCase()}`;
-    studentChannelName.current = EXAM_STUDENT_CHANNEL.replace(
-      "{examCode}",
-      `${codeExam}-${academyDomain.trim().toUpperCase()}`
-    ).replace("{studentId}", userId.toString());
+      const examHandlers = {
+        [ExamEvent.StartExam]: handleTeacherStartExam,
+        [EVENT_DELETED_MEMBER]: handleMemberRemoved,
+      };
 
-    channel.current = await subscribeChannel(pusher, channelName.current, Object.entries(examHandlers).map(([eventName, handler]) => ({ eventName, handler })))
+      const studentExamHandlers = {
+        [ExamEvent.TeacherKickOutStudent]: handleTeacherKickStudent,
+      };
+      channelName.current = `${EXAM_CHANNEL}-${codeExam}-${academyDomain
+        .trim()
+        .toUpperCase()}`;
+      studentChannelName.current = EXAM_STUDENT_CHANNEL.replace(
+        "{examCode}",
+        `${codeExam}-${academyDomain.trim().toUpperCase()}`
+      ).replace("{studentId}", userId.toString());
 
-    studentChannel.current = await subscribeChannel(pusher, studentChannelName.current, Object.entries(studentExamHandlers).map(([eventName, handler]) => ({ eventName, handler })))
+      channel.current = await subscribeChannel(pusher, channelName.current, Object.entries(examHandlers).map(([eventName, handler]) => ({ eventName, handler })))
+
+      studentChannel.current = await subscribeChannel(pusher, studentChannelName.current, Object.entries(studentExamHandlers).map(([eventName, handler]) => ({ eventName, handler })))
+    } catch (err) {
+      console.error("Pusher subscription failed", err);
+    }
   }
 
 
@@ -218,12 +222,18 @@ const useProblemSolving = () => {
       return () => {
         setSelectedTextbook(undefined)
         handleCloseTextbookResult()
+        setOpen(false)
       };
     }, [])
   );
 
   useEffect(() => {
-    handleListenerEvent()
+    const initPusher = async () => {
+      await handleListenerEvent();
+    };
+
+    initPusher()
+
     return cleanupPusher;
   }, [
     pusher,

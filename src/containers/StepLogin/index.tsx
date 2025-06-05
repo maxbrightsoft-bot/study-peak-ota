@@ -44,7 +44,7 @@ const StepLogin = () => {
       >
         {({ setFieldValue, values, errors, touched, setFieldTouched }) => (
           <StepItem
-          touched={touched}
+            touched={touched}
             setFieldTouched={setFieldTouched}
             values={values}
             errors={errors}
