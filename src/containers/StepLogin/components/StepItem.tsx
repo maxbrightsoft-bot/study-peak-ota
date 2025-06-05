@@ -158,7 +158,9 @@ const styles = StyleSheet.create({
   label: { ...TYPO.caption },
   input: {
     fontSize: 16,
-    paddingVertical: 4
+    paddingVertical: 4,
+    borderBottomWidth: 1,
+    borderColor: palette.grey[300]
   },
   error: { color: 'red', marginBottom: 12 },
   button: {

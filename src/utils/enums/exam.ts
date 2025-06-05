@@ -5,6 +5,11 @@ export enum ExamEvent {
   TeacherKickOutStudent = "teacher-kick-out-student"
 }
 
+export enum ExamEditorType {
+    Korea,
+    Math
+}
+
 export enum QuestionAnswerType {
   SingleChoice,
   MultipleChoice,

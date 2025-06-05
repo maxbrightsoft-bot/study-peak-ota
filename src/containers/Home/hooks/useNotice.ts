@@ -173,47 +173,59 @@ const useNotice = (setNew: any) => {
   }, [JSON.stringify(typeSelected), selectedAcademy?.id])
 
   const handleListenerEvent = async () => {
-    if (!selectedAcademy?.domain || !userId || !pusher) return
-    channelName.current = `NOTES-${selectedAcademy.domain.trim().toUpperCase()}-${userId}-CHANNEL`
-    notificationChannelName.current = `NOTIFICATIONS-${selectedAcademy.domain.trim().toUpperCase()}-${userId}-CHANNEL`
-    generalNotificationChannelName.current = `NOTIFICATIONS-${selectedAcademy.domain.trim().toUpperCase()}-GENERAL-CHANNEL`
+    try {
+      if (!selectedAcademy?.domain || !userId || !pusher) return
+      cleanupPusher()
 
-    const noteHandlers = {
-      [EVENT_NEW_STUDENT_NOTE]: handleNoteReceived,
-      [EVENT_UPDATED_STUDENT_NOTE]: handleNoteUpdated,
-      [EVENT_DELETED_STUDENT_NOTE]: handleNoteDeleted,
-    };
+      channelName.current = `NOTES-${selectedAcademy.domain.trim().toUpperCase()}-${userId}-CHANNEL`
+      notificationChannelName.current = `NOTIFICATIONS-${selectedAcademy.domain.trim().toUpperCase()}-${userId}-CHANNEL`
+      generalNotificationChannelName.current = `NOTIFICATIONS-${selectedAcademy.domain.trim().toUpperCase()}-GENERAL-CHANNEL`
 
-    const notificationHandlers = {
-      [EVENT_NEW_STUDENT_NOTIFICATION]: handleNotificationReceived,
-      [EVENT_UPDATED_STUDENT_NOTIFICATION]: handleNotificationUpdated,
-      [EVENT_DELETED_STUDENT_NOTIFICATION]: handleNotificationDeleted,
-    };
+      const noteHandlers = {
+        [EVENT_NEW_STUDENT_NOTE]: handleNoteReceived,
+        [EVENT_UPDATED_STUDENT_NOTE]: handleNoteUpdated,
+        [EVENT_DELETED_STUDENT_NOTE]: handleNoteDeleted,
+      };
 
-    channel.current = await subscribeChannel(pusher, channelName.current, Object.entries(noteHandlers).map(([eventName, handler]) => ({ eventName, handler })));
+      const notificationHandlers = {
+        [EVENT_NEW_STUDENT_NOTIFICATION]: handleNotificationReceived,
+        [EVENT_UPDATED_STUDENT_NOTIFICATION]: handleNotificationUpdated,
+        [EVENT_DELETED_STUDENT_NOTIFICATION]: handleNotificationDeleted,
+      };
 
-    notiChannel.current = await subscribeChannel(pusher, notificationChannelName.current, Object.entries(notificationHandlers).map(([eventName, handler]) => ({ eventName, handler })));
+      channel.current = await subscribeChannel(pusher, channelName.current, Object.entries(noteHandlers).map(([eventName, handler]) => ({ eventName, handler })));
 
-    generalNotiChannel.current = await subscribeChannel(pusher, generalNotificationChannelName.current, Object.entries(notificationHandlers).map(([eventName, handler]) => ({ eventName, handler })));
+      notiChannel.current = await subscribeChannel(pusher, notificationChannelName.current, Object.entries(notificationHandlers).map(([eventName, handler]) => ({ eventName, handler })));
 
+      generalNotiChannel.current = await subscribeChannel(pusher, generalNotificationChannelName.current, Object.entries(notificationHandlers).map(([eventName, handler]) => ({ eventName, handler })));
+    } catch (err) {
+      console.error("Pusher subscription failed", err);
+    }
+  }
+
+  const cleanupPusher = () => {
+    if (!pusher) return
+    if (channelName.current) {
+      unsubscribeChannelSafe(pusher, channelName.current)
+    }
+    if (notificationChannelName.current) {
+      unsubscribeChannelSafe(pusher, notificationChannelName.current)
+    }
+
+    if (generalNotificationChannelName.current) {
+      unsubscribeChannelSafe(pusher, generalNotificationChannelName.current)
+    }
   }
 
   useEffect(() => {
     if (!pusher) return
-    handleListenerEvent()
-    return () => {
-      if (channelName.current) {
-        unsubscribeChannelSafe(pusher, channelName.current)
-      }
-      if (notificationChannelName.current) {
-        unsubscribeChannelSafe(pusher, notificationChannelName.current)
-      }
+    const initPusher = async () => {
+      await handleListenerEvent();
+    };
 
-      if (generalNotificationChannelName.current) {
-        unsubscribeChannelSafe(pusher, generalNotificationChannelName.current)
-      }
-    }
-  }, [userId, selectedAcademy?.domain, typeSelected, selected])
+    initPusher()
+    return cleanupPusher
+  }, [userId, selectedAcademy?.domain, typeSelected, selected, pusher])
 
   return {
     t,

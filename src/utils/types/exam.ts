@@ -31,26 +31,25 @@ export type Category = {
 };
 
 export type Question = {
-  answerResponseSignal: AnswerResponseSignal | null;
-  answerTime: string;
-  article: number;
-  category: Category;
-  classAverageTime: any;
-  duration: any;
-  id: number;
-  score?: number
-  isCorrect: boolean;
-  answerCount: number
-  textualAnswer?: string
-  isStar: boolean;
-  overallCorrectRate: number;
+  answerResponseSignal: AnswerResponseSignal | null
+  answerTime: string
+  questionGroupIndex: number
+  category: Category
+  classAverageTime: any
+  duration: any
+  id: number
+  isCorrect: boolean
+  isStar: boolean
+  score: number
+  overallCorrectRate: number
   selectedAnswers?: number[] | string
   correctAnswers?: number[] | string
+  correctTextualAnswers?: string[]
+  textualAnswers?: string[]
   topDuration?: number | null
   questionOrder: number
-  questionAnswerType: QuestionAnswerType
-  textualAnswers?: string[]
-  correctTextualAnswers?: string[]
+  questionAnswerType?: QuestionAnswerType
+
 };
 
 export type ExamResult = {
@@ -76,39 +75,39 @@ export type ExamResult = {
 };
 
 export type EffectSize = {
-    id: number;
-    questionOrder: number;
-    article: number;
-    isCorrect: boolean;
-    selectedAnswers: string;
-    correctAnswers: string;
-    answerResponseSignal: number | null;
-    problemCategories: number[];
-    mostSelectedAnswers: string;
-    questionAnswerType?: QuestionAnswerType
+  id: number;
+  questionOrder: number;
+  article: number;
+  isCorrect: boolean;
+  selectedAnswers: string;
+  correctAnswers: string;
+  answerResponseSignal: number | null;
+  problemCategories: number[];
+  mostSelectedAnswers: string;
+  questionAnswerType?: QuestionAnswerType
 
 }
 
 export type OrderQuestion = {
-    questionId: number;
-    questionOrder: number;
-    answerOrder: number | null;
-    topAnswerOrder: number | null;
+  questionId: number;
+  questionOrder: number;
+  answerOrder: number | null;
+  topAnswerOrder: number | null;
 }
 
 export type TimelyOrderQuestion = {
-    categoryId: number;
-    categoryName: string;
-    article: number;
-    questions: OrderQuestion[]
+  categoryId: number;
+  categoryName: string;
+  article: number;
+  questions: OrderQuestion[]
 }
 
 export type LongTimeSpendQuestion = {
-    id: any;
-    questionOrder: any;
-    duration: any
-    topDuration?: any;
-    questionText?: string
+  id: any;
+  questionOrder: any;
+  duration: any
+  topDuration?: any;
+  questionText?: string
 }
 
 export type QuestionData = {
@@ -121,4 +120,9 @@ export interface AnswerItemBaseProps {
   isStudent?: boolean
   onOpenContextMenu?: (question: Question) => void
   onCloseContextMenu?: (question: Question) => void
+}
+
+export type CourseInfo = {
+  id: number
+  name: string
 }
