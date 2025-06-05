@@ -2,15 +2,16 @@ import { getInfo, getSuperAdminInfoFromWeb } from '@/containers/Login/apiClients
 import useAuthStore from '@/store/useAuthStore'
 import { Role } from '@/utils/enums'
 import { getAcademyDomain, getAccessToken, getErrorMessage, getLearningSpace, toast } from '@/utils/helpers'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getUserAcademies, switchAcademy } from '../apiClients/academyServices'
 import { AcademyResponse, LoginAccessTokenRequest } from '@/utils/types'
 import useLogin from '@/containers/Login/hooks/useLogin'
 import { MainRoutes, Routes } from '@/navigators/RouteName'
 import { getDataStorage, removeDataStorage } from '@/utils/storage'
-import { ACADEMY_DOMAIN, REDIRECT_URL } from '@/utils/constants'
+import { ACADEMY_DOMAIN, ACCESS_TOKEN, REDIRECT_URL } from '@/utils/constants'
 import { useNavigation } from '@react-navigation/native'
+import { useFocusEffect } from 'expo-router'
 const useLayoutApp = () => {
   const { t } = useTranslation()
   const navigation = useNavigation();
@@ -41,8 +42,8 @@ const useLayoutApp = () => {
       return
     }
 
-    if(user?.id) return
-    
+    if (user?.id) return
+
     setLoading(true)
     try {
       const isLearningSpace = await getLearningSpace()
@@ -165,7 +166,7 @@ const useLayoutApp = () => {
   }
 
   useEffect(() => {
-    if(academies.length) return
+    if (academies.length) return
     getAcademies()
   }, [user?.academyDomain, user?.email])
 
@@ -194,7 +195,9 @@ const useLayoutApp = () => {
   useEffect(() => {
     if (pusher) return
     const setupPusher = async () => {
-      const academyDomain = await getDataStorage(ACADEMY_DOMAIN) || user?.academyDomain || ""
+      const academyDomain = await getDataStorage(ACADEMY_DOMAIN) || user?.academyDomain
+      const token = await getDataStorage(ACCESS_TOKEN)
+      if(!token || !academyDomain) return
       const isLearningSpace = user?.isLearningSpace || false
       await initializePusher(academyDomain, isLearningSpace)
     };
@@ -204,7 +207,15 @@ const useLayoutApp = () => {
     return () => {
       cleanupPusherChannels();
     };
-  }, [pusher]);
+  }, [pusher, user?.academyDomain]);
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        cleanupPusherChannels()
+      }
+    }, [])
+  )
 
   return {
     headerProps: {

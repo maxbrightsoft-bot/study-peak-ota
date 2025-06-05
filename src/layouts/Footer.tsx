@@ -13,11 +13,11 @@ const Footer = ({ navigation }: BottomTabBarProps) => {
     { name: Routes.Auth.Home, icon: 'home', label: '홈' },
     { name: Routes.Auth.Textbook, icon: 'book', label: '시험' },
     { name: Routes.Auth.ExamResultList, icon: 'receipt', label: '시험 이력' },
-    {
-      name: Routes.Auth.StudyTrend,
-      label: '공부 추이',
-      iconJSX: (isFocused: boolean) => <GraphIcon color={isFocused ? palette.main[500] : palette.grey[500]} />
-    },
+    // {
+    //   name: Routes.Auth.StudyTrend,
+    //   label: '공부 추이',
+    //   iconJSX: (isFocused: boolean) => <GraphIcon color={isFocused ? palette.main[500] : palette.grey[500]} />
+    // },
     { name: Routes.Auth.Profile, icon: 'ellipsis-horizontal', label: '기타' }
   ]
 
@@ -28,8 +28,8 @@ const Footer = ({ navigation }: BottomTabBarProps) => {
 
         return (
           <TouchableOpacity key={item.name} style={styles.tabItem} onPress={() => navigation.navigate(item.name)}>
-            {item.iconJSX ? (
-              item.iconJSX(isFocused)
+            {item?.iconJSX ? (
+              item?.iconJSX(isFocused)
             ) : (
               <Ionicons name={item.icon as any} size={24} color={isFocused ? palette.main[500] : palette.grey[500]} />
             )}

@@ -10,7 +10,7 @@ import {
   LanguageHeaders,
   NoAcademyHeaders,
 } from '../utils/constants'
-import { getDataStorage, removeDataStorage } from '@/utils/storage';
+import { getDataStorage } from '@/utils/storage';
 import useAuthStore from '@/store/useAuthStore';
 
 export const api: AxiosInstance = axios.create({
@@ -50,6 +50,7 @@ export const apiUpload: AxiosInstance = axios.create({
         if (isLearningSpace && config.headers[NoAcademyHeaders] == undefined) config.headers[NoAcademyHeaders] = `${isLearningSpace}`
         if (language) config.headers[LanguageHeaders] = `${language}`
         console.log({ body: config.data });
+        console.log({ config });
 
         return config
 
@@ -64,8 +65,8 @@ export const apiUpload: AxiosInstance = axios.create({
       },
       async (error: any) => {
         if (error.response?.status === 401 || error.response?.status == 403) {
-          const { logout } = (useAuthStore() as any).getState()
-          await logout()
+          const logout = useAuthStore.getState().logout;
+          await logout();
         }
 
         return Promise.reject(error)
