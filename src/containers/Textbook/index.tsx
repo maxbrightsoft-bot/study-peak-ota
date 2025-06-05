@@ -20,21 +20,19 @@ const Textbook = () => {
     isOpenDialog,
     handleCloseDialog,
     handleOpenDialog
-  } = useTextbook({
-    preparedFilterType: PreparedFilterType.recently_solved_questions
-  })
+  } = useTextbook({})
 
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView}>
-        <View style={{ gap: 24 }}>
+        <View style={{ gap: 24, paddingBottom: 40 }}>
           {textbookList.map((textbook) => (
             <TextbookItem key={textbook.id} textbook={textbook} t={t} handleOpenDialog={handleOpenDialog} />
           ))}
           {textbookList?.length === 0 && <Text style={styles.emptyText}>{t('no_data')}</Text>}
         </View>
       </ScrollView>
-      <Button
+      {/* <Button
         mode="contained"
         style={styles.filterButton}
         buttonColor={palette.main[500]}
@@ -44,7 +42,7 @@ const Textbook = () => {
           <FontAwesome name="filter" size={24} color="#FFF" />
           <Text style={styles.buttonText}>필터로 검색</Text>
         </View>
-      </Button>
+      </Button> */}
       {isOpenDialog && (
         <TextbookDrawer isOpen={isOpenDialog} onClose={handleCloseDialog} textbookId={selectedTextbook?.id} />
       )}
@@ -63,7 +61,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     margin: 24,
     gap: 24,
-    padding: 8
+    padding: 8,
   },
   startButton: {
     paddingVertical: 6,

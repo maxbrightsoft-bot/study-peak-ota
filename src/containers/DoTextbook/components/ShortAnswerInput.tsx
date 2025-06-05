@@ -29,7 +29,7 @@ const ShortAnswerInput = ({ initValue, question, updateQuestionAnswer }: Props) 
   }
 
   return (
-    <View>
+    <View style={{ gap: 8 }}>
       <TextField
         style={{ marginVertical: 12, borderWidth: 1, borderColor: palette.grey[300], borderRadius: 6 }}
         value={value}

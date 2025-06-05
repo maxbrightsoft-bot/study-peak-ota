@@ -69,7 +69,7 @@ export const DataLink = [
 
 export const DefaultTextbookFilter: TextbookQuery = {
     currentPage: 1,
-    pageSize: 5,
+    pageSize: -1,
     sortColumnDirection: TextbookOrderBy.DESC,
     sortColumnName: TextbookSortBy.CreatedAt
 };
