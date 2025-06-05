@@ -10,9 +10,7 @@ const UnAuthorized = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false }}
-      initialRouteName={Routes.UnAuth.Splash}
     >
-      <Stack.Screen name={Routes.UnAuth.Splash} component={SplashScreen} />
       <Stack.Screen name={Routes.UnAuth.Login} component={Login} />
       <Stack.Screen name={Routes.UnAuth.LoginParentPhone} component={LoginParentPhoneScreen} />
     </Stack.Navigator>

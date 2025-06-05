@@ -11,6 +11,8 @@ import Loading from '@/components/Loading'
 import Toast from 'react-native-toast-message'
 import { PaperProvider } from 'react-native-paper'
 import { MainRoutes } from './RouteName'
+import RNBootSplash from "react-native-bootsplash";
+
 
 const Stack = createNativeStackNavigator()
 
@@ -27,13 +29,14 @@ const RootNavigation: React.FC = () => {
     user,
     isLoading,
     currentScreen: currentScreen(),
-    selectedAcademy,
+    selectedAcademy
   })
 
   return (
     <SafeAreaProvider>
       <PaperProvider>
         <NavigationContainer
+          onReady={() => RNBootSplash.hide()}
           ref={(navigatorRef) => {
             if (navigatorRef) {
               NavigationHelpers.setTopLevelNavigator(navigatorRef)

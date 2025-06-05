@@ -5,6 +5,7 @@ import { getRemainTime } from "@/utils/helpers";
 import { useState, useRef, useCallback, useEffect } from "react"
 
 interface Props {
+    isEnding: boolean
     startTime?: string
     code?: string;
     status?: ExamStatus;
@@ -17,6 +18,7 @@ const ONE_SECOND_IN_MILLISECONDS = 1000
 const useCountDownTimer = (props: Props) => {
     const { setLoading } = useAuthStore()
     const {
+        isEnding,
         startTime,
         status,
         code,
@@ -29,7 +31,7 @@ const useCountDownTimer = (props: Props) => {
 
     const checkLiveExamStatus = useCallback(async () => {
         !!checkStatusRef.current && clearTimeout(checkStatusRef.current)
-        if (!code || status === ExamStatus.Completed) {
+        if (isEnding || !code || status === ExamStatus.Completed) {
             return
         }
         let isOk = false;
@@ -51,16 +53,16 @@ const useCountDownTimer = (props: Props) => {
             console.log({ error })
         }
         finally {
-            if(!isOk)
+            if (!isOk)
                 checkStatusRef.current = setTimeout(
                     checkLiveExamStatus,
                     ONE_SECOND_IN_MILLISECONDS
                 )
         }
-    }, [code, status, onFinish])
+    }, [code, status, onFinish, isEnding])
 
     useEffect(() => {
-        if(status !== ExamStatus.InProgress) return
+        if (status !== ExamStatus.InProgress || isEnding) return
         const animate = () => {
             if (!startTime || !duration) return
             if (typeof remainTime === "number" && remainTime <= 0) {
@@ -71,7 +73,7 @@ const useCountDownTimer = (props: Props) => {
                 setRemainTime(undefined)
                 return
             }
-            setRemainTime(remain || 0)
+            setRemainTime(remain - 1 || 0)
             requestRef.current = requestAnimationFrame(animate)
         }
         requestRef.current = requestAnimationFrame(animate)
@@ -82,12 +84,13 @@ const useCountDownTimer = (props: Props) => {
         }
     }, [
         startTime,
-        duration
+        duration,
+        isEnding
     ])
 
     useEffect(() => {
-      if (typeof remainTime === "number" && remainTime <= 0) 
-        checkLiveExamStatus();
+        if (typeof remainTime === "number" && remainTime <= 0)
+            checkLiveExamStatus();
     }, [remainTime, checkLiveExamStatus])
 
     return remainTime

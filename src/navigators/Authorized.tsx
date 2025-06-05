@@ -29,7 +29,7 @@ const Authorized = ({ route }: { route: any }) => {
     <LayoutApp>
       <Tab.Navigator
         screenOptions={{
-          header: (props) => <></>
+          header: (props) => <></>,
         }}
         tabBar={(props) => !hiddenTabBar.some((i) => i === currentScreen()) && <Footer {...props} />}
       >

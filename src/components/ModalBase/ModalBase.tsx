@@ -34,7 +34,7 @@ function ModalBase(props: PropsModalClose) {
       onModalHide={() => setCanRenderContent(false)}
       style={[styles.modalContainer, style]}
     >
-      <Toast position="bottom" />
+      <Toast position="top" />
       <View style={[styles.viewContainer, styleContainer, { opacity: canRenderContent ? 1 : 0 }]}>
         {children}
         {isLoading && <Loading fullScreen={false} />}

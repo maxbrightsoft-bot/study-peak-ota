@@ -3,9 +3,8 @@ import { immer } from "zustand/middleware/immer";
 import { persist, createJSONStorage, StateStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Pusher, PusherChannel, PusherEvent } from "@pusher/pusher-websocket-react-native";
-import { ACADEMY_DOMAIN, AcademyHeaders, ACCESS_TOKEN, BASE_URL, LANGUAGES, LEARNING_SPACE, NoAcademyHeaders, PUSHER_CONFIG, SUPER_ADMIN_BASE_URL } from "@/utils/constants";
+import { AcademyHeaders, BASE_URL, LANGUAGES, NoAcademyHeaders, PUSHER_CONFIG, SUPER_ADMIN_BASE_URL } from "@/utils/constants";
 import { AcademyResponse, Language, UserResponse } from "@/utils/types";
-import { removeDataStorage } from "@/utils/storage";
 import { api } from "@/services/apiClient";
 import { autoReconnectPusher } from "@/utils/helpers/pusher";
 
@@ -14,8 +13,8 @@ interface StoreState {
   user: UserResponse | null;
   academies: AcademyResponse[] | [];
   selectedAcademy?: AcademyResponse | null,
-  pusher: Pusher | null;
-  channel: PusherChannel | null;
+  pusher?: Pusher;
+  channel?: PusherChannel;
 }
 
 interface StoreActions {
@@ -33,7 +32,7 @@ interface StoreActions {
   ) => Promise<PusherChannel>;
   unsubscribeChannelSafe: (pusher: Pusher,
     channelName: string,) => Promise<void>;
-  disconnectPusher: (pusher: Pusher, channel: PusherChannel) => void;
+  disconnectPusher: (pusher?: Pusher, channel?: PusherChannel) => void;
   initializePusher: (academyDomain: string, isLearningSpace: boolean) => Promise<Pusher>;
 }
 
@@ -52,8 +51,8 @@ const useAuthStore = create<AuthStore>()(
       user: null,
       academies: [],
       selectedAcademy: null,
-      pusher: null,
-      channel: null,
+      pusher: undefined,
+      channel: undefined,
       language: LANGUAGES[0],
 
       // Actions
@@ -94,7 +93,11 @@ const useAuthStore = create<AuthStore>()(
           throw new Error("[Pusher] Instance is not initialized");
         }
 
-        await get().unsubscribeChannelSafe(pusher, channelName);
+        // await get().unsubscribeChannelSafe(pusher, channelName);
+
+        const existingChannel = await pusher.getChannel(channelName);
+
+        if (existingChannel) throw new Error("[Pusher] Event has been initialized");
 
         try {
           const channel = await pusher.subscribe({
@@ -124,6 +127,7 @@ const useAuthStore = create<AuthStore>()(
           });
 
           return channel;
+
         } catch (err) {
           console.error(`[Pusher] Failed to subscribe to channel ${channelName}`, err);
           throw err;
@@ -136,27 +140,27 @@ const useAuthStore = create<AuthStore>()(
       ): Promise<void> => {
         try {
           await pusher.unsubscribe({ channelName });
-  
+
         } catch (err) {
           console.warn(`[Pusher] Failed to unsubscribe from ${channelName}:`, err);
         }
       },
 
-      disconnectPusher: (pusher: Pusher, channel: PusherChannel) => {
+      disconnectPusher: async(pusher?: Pusher, channel?: PusherChannel) => {
         if (channel) {
-          channel.unsubscribe();
+          await channel.unsubscribe();
         }
         if (pusher) {
-          pusher.disconnect();
+          await pusher.disconnect();
         }
 
         set((state) => {
-          state.pusher = null;
-          state.channel = null;
+          state.pusher = undefined;
+          state.channel = undefined;
         });
       },
 
-      initializePusher: async (academyDomain: string, isLearningSpace:  boolean) => {
+      initializePusher: async (academyDomain: string, isLearningSpace: boolean) => {
         const pusherInstance = Pusher.getInstance();
 
         await pusherInstance.init({
@@ -168,7 +172,7 @@ const useAuthStore = create<AuthStore>()(
               formData.append('socket_id', socketId);
               formData.append('channel_name', channelName);
 
-              const res = await api.post(`${academyDomain ? BASE_URL : SUPER_ADMIN_BASE_URL}/api/auth/pusher`, formData, {
+              const res = await api.post(`${BASE_URL}/api/auth/pusher`, formData, {
                 headers: {
                   'Content-Type': 'multipart/form-data',
                   [AcademyHeaders]: academyDomain,
@@ -208,16 +212,15 @@ const useAuthStore = create<AuthStore>()(
       },
       logout: async () => {
         const { pusher, channel, disconnectPusher } = get();
-        if (pusher && channel) {
-            disconnectPusher(pusher, channel)
-        }
+
+        await disconnectPusher(pusher, channel)
 
         set((state) => {
           state.user = null;
           state.selectedAcademy = null;
           state.academies = [];
-          state.pusher = null;
-          state.channel = null;
+          state.pusher = undefined;
+          state.channel = undefined;
         });
         await AsyncStorage.clear()
 
