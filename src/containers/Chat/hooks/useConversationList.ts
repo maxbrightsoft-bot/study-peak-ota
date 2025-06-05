@@ -12,7 +12,7 @@ import { PusherChannel } from "@pusher/pusher-websocket-react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
 const useConversationList = () => {
-  const { user, setLoading, pusher, subscribeChannel, unsubscribeChannelSafe } = useAuthStore()
+  const { user, setLoading, pusher, subscribeChannel, unsubscribeChannelSafe, selectedAcademy } = useAuthStore()
   const academyDomain = user?.academyDomain
   const channelName2 = useRef<string>();
   const channel2 = useRef<PusherChannel>();
@@ -112,23 +112,33 @@ const useConversationList = () => {
   }, [user?.id, user?.academyDomain])
 
   const handleListenerEvent = async () => {
-    if (
-      !pusher ||
-      !academyDomain ||
-      !selectedConversation?.id
-    ) return
-    channelName2.current = `conversations-channel-${user.id}-${academyDomain.trim().toUpperCase()}`;
+    try {
+      if (
+        !pusher ||
+        !academyDomain ||
+        !selectedConversation?.id
+      ) return
+      cleanupPusher()
 
-    const messageHandlers = {
-      [UNREAD_MESSAGE_COUNT_EVENT]: handleChangeUnreadMessagesConversationCount,
-      [NEW_MESSAGE_CONVERSATIONS_EVENT]: handleNewMessageCount
-    };
+      channelName2.current = `conversations-channel-${user.id}-${academyDomain.trim().toUpperCase()}`;
 
-    channel2.current = await subscribeChannel(pusher, channelName2.current, Object.entries(messageHandlers).map(([eventName, handler]) => ({ eventName, handler })));
+      const messageHandlers = {
+        [UNREAD_MESSAGE_COUNT_EVENT]: handleChangeUnreadMessagesConversationCount,
+        [NEW_MESSAGE_CONVERSATIONS_EVENT]: handleNewMessageCount
+      };
+
+      channel2.current = await subscribeChannel(pusher, channelName2.current, Object.entries(messageHandlers).map(([eventName, handler]) => ({ eventName, handler })));
+    } catch (err) {
+      console.error("Pusher subscription failed", err);
+    }
   }
 
   useEffect(() => {
-    handleListenerEvent()
+    const initPusher = async () => {
+      await handleListenerEvent();
+    };
+
+    initPusher();
 
     return cleanupPusher;
   }, [selectedConversation?.id, user?.id, academyDomain, pusher]);
@@ -144,7 +154,7 @@ const useConversationList = () => {
 
   useEffect(() => {
     getConversationList()
-  }, [JSON.stringify(conversationFilter)])
+  }, [JSON.stringify(conversationFilter), selectedAcademy?.id])
 
   return {
     t,

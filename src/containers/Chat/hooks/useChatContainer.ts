@@ -23,7 +23,6 @@ const useChatContainer = (props: Props) => {
 
   const channel = useRef<PusherChannel>();
   const channelName = useRef<string>();
-  const loadingRef = useRef<boolean>(false);
 
   const academyDomain: string | undefined = user?.academyDomain
   const roles = user?.roles || []
@@ -31,6 +30,7 @@ const useChatContainer = (props: Props) => {
   const [selectedConversation, setSelectedConversation] = useState<ConversationsResponse>();
   const [message, setMessage] = useState<MessageRequest>();
   const [isScrollToEnd, setScrollToEnd] = useState<boolean>(true)
+  const [loading, setLoading] = useState(false)
 
   const {
     isLoading: isLoadingMessages,
@@ -50,54 +50,79 @@ const useChatContainer = (props: Props) => {
     setScrollToEnd((state: boolean) => !state)
   }
 
-  const handleAddMessage = async ({ url }: { url?: string}) => {
-    if (loadingRef.current) return; //when loading not add 2 message
-    loadingRef.current = true;
+  const handleAddMessage = async ({ url }: { url?: string }) => {
+    setLoading(true);
     if (!selectedConversation?.id) return;
     setScrollToEnd(true)
 
     try {
+      let res;
       if (url) {
-        await apiAddMessage(selectedConversation?.id, {
+        res = await apiAddMessage(selectedConversation?.id, {
           content: url,
           contentType: 1
         });
+
+        const { data } = res?.data
+
+        setMessages((state: MessageResponse[]) => {
+          return [data, ...state]
+        });
       }
       if (message?.content?.trim().length) {
-        await apiAddMessage(selectedConversation?.id, {
+        handleChangeInput('')
+
+        Keyboard.dismiss()
+        res = await apiAddMessage(selectedConversation?.id, {
           ...message,
         });
       }
+      const { data } = res?.data
 
-      handleChangeInput('')
+      const isExits = messages.some(i => i.id == data.id)
+      if (isExits) return
+
+      setMessages((state: MessageResponse[]) => {
+        return [data, ...state]
+      });
+
     } catch (error) {
       setMessages((state: MessageResponse[]) => {
         return [...state.filter(i => i?.id !== 0)]
       })
       toast.error(getErrorMessage(t, error))
     }
-    loadingRef.current = false;
+    setLoading(false)
+    handleChangeInput('')
+
   };
 
   const handleUploadImage = async () => {
     try {
-
       const [result] = await pick({
         mode: 'open',
         allowVirtualFiles: true
       })
 
+      setLoading(true)
       const formData = new FormData();
       formData.append("upload", result as any);
       const res = await apiUploadImageFile(formData);
-      handleAddMessage({ url: res?.data?.url})
+      await handleAddMessage({ url: res?.data?.url })
     } catch (error) {
       setMessages((state: MessageResponse[]) => {
         return [...state.filter(i => i?.id !== 0)]
       })
       toast.error(getErrorMessage(t, error))
     }
+    setLoading(false);
   }
+
+  useEffect(() => {
+    if (!selectedConversation?.id) return
+    setLoading(false)
+
+  }, [selectedConversation?.id])
 
   const handleChangeInput = (text: string) => {
     setMessage({
@@ -108,6 +133,9 @@ const useChatContainer = (props: Props) => {
   const handleNewMessageSent = async (data: MessageResponse) => {
     if (!data) return
     setScrollToEnd(true)
+    console.log({ data: data.id });
+    const isExits = messages.some(i => i.id == data.id)
+    if (isExits) return
     setMessages((state: MessageResponse[]) => {
       return [data, ...state]
     });
@@ -145,25 +173,36 @@ const useChatContainer = (props: Props) => {
   };
 
   const handleListenerEvent = async () => {
-    if (
-      pusher &&
-      academyDomain &&
-      !!selectedConversation?.id
-    ) {
-      channelName.current = `presence-conversation-channel-${selectedConversation.id}-${academyDomain.trim().toUpperCase()}`;
-      const messageHandlers = {
-        [NEW_MESSAGE_EVENT]: handleNewMessageSent,
-        [COMPLETED_CONVERSATION_EVENT]: handleCompletedConversation,
-        [NEW_CONVERSATION_EVENT]: handleNewConversation,
-        [DELETE_MESSAGE_EVENT]: deleteMessageState,
-        [UPDATE_MESSAGE_EVENT]: updateMessageState
+    try {
+      if (
+        pusher &&
+        academyDomain &&
+        !!selectedConversation?.id
+      ) {
+        cleanupPusher()
+
+        channelName.current = `presence-conversation-channel-${selectedConversation.id}-${academyDomain.trim().toUpperCase()}`;
+        const messageHandlers = {
+          [NEW_MESSAGE_EVENT]: handleNewMessageSent,
+          [COMPLETED_CONVERSATION_EVENT]: handleCompletedConversation,
+          [NEW_CONVERSATION_EVENT]: handleNewConversation,
+          [DELETE_MESSAGE_EVENT]: deleteMessageState,
+          [UPDATE_MESSAGE_EVENT]: updateMessageState
+        }
+        console.log({ bang: channelName.current  });
+        channel.current = await subscribeChannel(pusher, channelName.current, Object.entries(messageHandlers).map(([eventName, handler]) => ({ eventName, handler })));
       }
-      channel.current = await subscribeChannel(pusher, channelName.current, Object.entries(messageHandlers).map(([eventName, handler]) => ({ eventName, handler })));
+    } catch (err) {
+      console.error("Pusher subscription failed", err);
     }
   }
 
   useEffect(() => {
-    handleListenerEvent()
+    const initPusher = async () => {
+      await handleListenerEvent();
+    };
+
+    initPusher();
     return cleanupPusher;
   }, [selectedConversation?.id, academyDomain, pusher]);
 
@@ -202,13 +241,13 @@ const useChatContainer = (props: Props) => {
     user?.id,
   ]);
 
-    useFocusEffect(
-      useCallback(() => {
-        return () => {
-          setSelectedConversation(undefined)
-        };
-      }, [])
-    );
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setSelectedConversation(undefined)
+      };
+    }, [])
+  );
 
   useEffect(() => {
     getMessageConversation();
@@ -246,7 +285,7 @@ const useChatContainer = (props: Props) => {
       handleUploadImage,
       isCompleted: selectedConversation?.isCompleted
     },
-    isLoadingMessages,
+    isLoadingMessages: isLoadingMessages || loading,
     messageList,
     selectedConversation,
     messageFilter,

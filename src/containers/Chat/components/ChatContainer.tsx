@@ -8,6 +8,9 @@ import { IChatHeaderProps, IChatListProps, IInputChatProps } from '../configs/ty
 import { ActivityIndicator } from 'react-native-paper'
 import ChatItem from './ChatItem'
 import { utcToLocalTime } from '@/utils/helpers'
+import { isHTMLContent } from '../configs/helpers'
+import useAuthStore from '@/store/useAuthStore'
+import _ from 'lodash'
 
 type prevSender = string | undefined
 
@@ -27,6 +30,7 @@ const ChatContainer = ({
   handleLoadMoreMessages,
   isLoadingMessages
 }: Props) => {
+  const { isLoading } = useAuthStore()
   const { messages, isScrollToEnd, handleUpdateMessage, handleDeleteMessage, handleToggleScrollToEnd } = chatListProps
   const { isCompleted, onChangeInput, onSubmit, handleUploadImage, text } = inputProps
   const flatListRef = useRef<FlatList>(null)
@@ -34,18 +38,18 @@ const ChatContainer = ({
   const filterMessage = useMemo(() => {
     let prevTime = 0
     let prevSender: prevSender
-    return messages?.map((message) => {
+    return _.uniqBy(messages, 'id')?.map((message) => {
       const currentTime = new Date(message.createdAt).getTime()
       const showTimestamp = !prevTime || prevTime - currentTime > 20 * 60 * 1000
       const showName = message.sender?.fullName !== prevSender
       prevSender = message.sender?.fullName
       prevTime = currentTime
-      return { ...message, showTimestamp, showName }
+      return { ...message, showTimestamp, showName, isHTMLContent: isHTMLContent(message.content || '') }
     })
   }, [JSON.stringify(messages)])
 
   useEffect(() => {
-    if(isScrollToEnd) {
+    if (isScrollToEnd) {
       flatListRef.current?.scrollToOffset({ offset: 0, animated: true })
       handleToggleScrollToEnd()
     }
@@ -58,10 +62,12 @@ const ChatContainer = ({
         <Text style={styles.dateTitle}>{utcToLocalTime(chatHeaderProps.createdAt, t('date_format'))}</Text>
       </View>
       <View style={{ height: '80%' }}>
-        {isLoadingMessages && (
-          <ActivityIndicator style={{ paddingVertical: 12 }} animating={true} color={palette.primary.main} />
+        {!isLoading && isLoadingMessages && (
+          <View style={[styles.overlay]}>
+            <ActivityIndicator style={{ paddingVertical: 12 }} animating={true} color={palette.primary.main} />
+          </View>
         )}
-        {!isLoadingMessages && !filterMessage?.length ? (
+        {!filterMessage?.length ? (
           <View style={{ height: '100%', alignItems: 'center', justifyContent: 'center' }}>
             <Text style={styles.dateTitle}>{t('no_message')}</Text>
           </View>
@@ -112,6 +118,31 @@ const styles = ScaledSheet.create({
     paddingVertical: '18@ms',
     alignItems: 'center',
     justifyContent: 'space-between'
+  },
+  overlay: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+    position: 'absolute',
+    height: '100%',
+    width: '100%',
+    textAlign: 'center',
+    backgroundColor: 'transparent'
+  },
+  center: {
+    alignItems: 'center'
+  },
+  inline: {
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    position: 'absolute',
+    zIndex: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   examTitle: {
     ...TYPO.button3,
