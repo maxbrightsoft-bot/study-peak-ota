@@ -1,42 +1,43 @@
 {
   "expo": {
-  "name": "touch-study-mobile",
-  "slug": "touch-study-mobile",
-  "jsEngine": "jsc",
-  "version": "1.0.0",
-  "orientation": "portrait",
-  "scheme": "myapp",
-  "userInterfaceStyle": "automatic",
-  "newArchEnabled": true,
-  "ios": {
-    "supportsTablet": true,
-    "bundleIdentifier": "com.max.britghtsoft.touchstudymobile"
-  },
-  "android": {
-    "adaptiveIcon": {
-      "foregroundImage": "./src/assets/images/logo.png",
-      "backgroundColor": "#3DC674"
+    "name": "touch-study-mobile",
+    "slug": "touch-study-mobile",
+    "jsEngine": "jsc",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "myapp",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.max.britghtsoft.touchstudymobile"
     },
-    "package": "com.max.britghtsoft.touchstudymobile"
-  },
-  "web": {
-    "bundler": "metro",
-    "output": "static"
-  },
-  "plugins": [
-    "expo-router"
-  ],
-  "experiments": {
-    "typedRoutes": true
-  },
-  "extra": {
-    "router": {
-      "origin": false
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/app-logo.png",
+        "backgroundColor": "#3DC674"
+      },
+      "package": "com.max.britghtsoft.touchstudymobile"
     },
-    "eas": {
-      "projectId": "ac361f0a-8b47-454e-a8db-4bf5588e4492"
-    }
-  },
-  "owner": "max.britghtsoft"
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      ["react-native-bootsplash", { "assetsDir": "assets/bootsplash" }]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "ac361f0a-8b47-454e-a8db-4bf5588e4492"
+      }
+    },
+    "owner": "max.britghtsoft"
   }
 }

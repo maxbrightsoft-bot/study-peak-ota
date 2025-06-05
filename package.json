@@ -9,7 +9,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "test": "jest --watchAll",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "generate-splash": "react-native generate-bootsplash assets/splash_logo.png --background=#3DC674"
   },
   "jest": {
     "preset": "jest-expo"
@@ -35,7 +36,6 @@
     "expo-font": "~13.0.4",
     "expo-linking": "~7.0.5",
     "expo-router": "~4.0.17",
-    "expo-splash-screen": "0.29.24",
     "expo-web-browser": "~14.0.2",
     "formik": "^2.4.6",
     "i18next": "^24.2.2",
@@ -47,6 +47,7 @@
     "react-dom": "18.3.1",
     "react-i18next": "^15.4.1",
     "react-native": "0.76.9",
+    "react-native-bootsplash": "^6.3.8",
     "react-native-calendars": "^1.1311.0",
     "react-native-element-dropdown": "^2.12.4",
     "react-native-fs": "^2.20.0",
