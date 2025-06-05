@@ -8,6 +8,7 @@ import useTooltip from '../hooks/useTooltip'
 import { Action } from '@/utils/types'
 import { palette, TYPO } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
+import MathRender from '@/components/MathRender'
 
 type Props = {
   t: any
@@ -53,9 +54,28 @@ const ChatItem = ({ t, handleUpdateMessage, handleDeleteMessage, item }: Props) 
         <Text style={styles.timestamp}>{utcToLocalTime(item?.createdAt, t('date_time_format'))}</Text>
       )}
 
-      <CustomTooltip isVisible={isOpenTooltip} actions={actions} onClose={handleCloseTooltip}>
-        <TouchableOpacity
-          onLongPress={() => handleOpenTooltip()}
+      {item.isMe ? (
+        <CustomTooltip isVisible={isOpenTooltip} actions={actions} onClose={handleCloseTooltip}>
+          <TouchableOpacity
+            onLongPress={() => handleOpenTooltip()}
+            style={[
+              styles.messageContainer,
+              item.isMe ? styles.myMessage : styles.otherMessage,
+              item.contentType ? styles.imageMessage : ''
+            ]}
+          >
+            {item.contentType ? (
+              <Image
+                source={{ uri: getSafeUrl(item.content || '') }}
+                style={{ width: 200, height: 200, position: 'relative', objectFit: 'contain' }}
+              />
+            ) : (
+              item?.isHTMLContent ? <MathRender content={item?.content || ''} style={{ backgroundColor: palette.main[500]}} textColor={palette.common.white}/> : <Text style={styles.myMessageText}>{item.content}</Text>
+            )}
+          </TouchableOpacity>
+        </CustomTooltip>
+      ) : (
+        <View
           style={[
             styles.messageContainer,
             item.isMe ? styles.myMessage : styles.otherMessage,
@@ -68,11 +88,14 @@ const ChatItem = ({ t, handleUpdateMessage, handleDeleteMessage, item }: Props) 
               style={{ width: 200, height: 200, position: 'relative', objectFit: 'contain' }}
             />
           ) : (
-            // <RenderHTML content={item?.content || ''} />
-            <Text style={item.isMe ? styles.myMessageText : styles.otherMessageText}>{item.content}</Text>
+            <MathRender
+              content={item?.content || ''}
+              style={{ backgroundColor: '#FFF' }}
+              textColor={palette.grey[700]}
+            />
           )}
-        </TouchableOpacity>
-      </CustomTooltip>
+        </View>
+      )}
       <ConfirmDialog
         open={openConfirmDialog}
         toggle={toggleConfirmDialog}
@@ -146,7 +169,7 @@ const styles = ScaledSheet.create({
     color: '#97A1AF',
     textAlign: 'center',
     marginBottom: 8,
-    paddingVertical: "8@ms"
+    paddingVertical: '8@ms'
   },
   input: {
     borderWidth: 1,

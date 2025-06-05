@@ -27,23 +27,33 @@ const usePusherConversation = (onNewMessageConversation?: (data: ConversationRes
     };
 
     const handleListenerEvent = async () => {
-        if (
-            pusher &&
-            academyDomain &&
-            !!userId
-        ) {
-            channelName.current = `presence-conversation-channel-userId-${userId}-${academyDomain.trim().toUpperCase()}`
+        try {
+            if (
+                pusher &&
+                academyDomain &&
+                !!userId
+            ) {
+                cleanupPusher()
 
-            const messageHandlers = {
-                [MESSAGE_CONVERSATION_EVENT]: handleNewMessageConversationCreated,
-                [MESSAGE_CONVERSATION_READ_EVENT]: handleReadMessageConversation
+                channelName.current = `presence-conversation-channel-userId-${userId}-${academyDomain.trim().toUpperCase()}`
+
+                const messageHandlers = {
+                    [MESSAGE_CONVERSATION_EVENT]: handleNewMessageConversationCreated,
+                    [MESSAGE_CONVERSATION_READ_EVENT]: handleReadMessageConversation
+                }
+                channel.current = await subscribeChannel(pusher, channelName.current, Object.entries(messageHandlers).map(([eventName, handler]) => ({ eventName, handler })))
             }
-            channel.current = await subscribeChannel(pusher, channelName.current, Object.entries(messageHandlers).map(([eventName, handler]) => ({ eventName, handler })))
+        } catch (err) {
+            console.error("Pusher subscription failed", err);
         }
     }
 
     useEffect(() => {
-        handleListenerEvent()
+        const initPusher = async () => {
+            await handleListenerEvent();
+        };
+
+        initPusher();
         return cleanupPusher
     }, [userId, academyDomain, pusher])
     return {}
