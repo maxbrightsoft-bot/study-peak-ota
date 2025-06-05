@@ -82,9 +82,8 @@ const TextbookAnswer = ({ t, question, updateQuestionAnswer, updateQuestionStar 
                 key={indexAnswer}
                 style={{
                   width: '100%',
-                  borderWidth: 1,
                   borderRadius: 8,
-                  marginBottom: 10,
+                  marginBottom: 4,
                   alignItems: 'center',
                   paddingVertical: 8,
                   backgroundColor: question?.selectedAnswers?.includes(indexAnswer + 1) ? palette.main[500] : 'white',
@@ -134,6 +133,7 @@ const TextbookAnswer = ({ t, question, updateQuestionAnswer, updateQuestionStar 
 
 const styles = ScaledSheet.create({
   container: {
+    gap: 8
   },
   question: {
     fontSize: 20,

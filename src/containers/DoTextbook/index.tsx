@@ -57,7 +57,7 @@ const DoTextbook = ({ textbookId, page }: Props) => {
         keyboardVerticalOffset={100}
         style={{ flex: 1, position: 'relative' }}
       >
-        <View style={{ height: '75%' }}>
+        <View style={{ height: '85%' }}>
           <ScrollView
             contentContainerStyle={styles.scrollContainer}
             onScroll={handleScroll}
@@ -107,14 +107,14 @@ const styles = ScaledSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF',
-    paddingHorizontal: 24
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: '16@ms',
     alignItems: 'center',
-    marginBottom: '28@ms'
+    marginBottom: '28@ms',
+    paddingHorizontal: 24,
   },
   titleContainer: {
     flexDirection: 'row',
@@ -140,7 +140,9 @@ const styles = ScaledSheet.create({
     fontWeight: 'bold',
     fontSize: 14
   },
-  scrollContainer: {},
+  scrollContainer: {
+    paddingHorizontal: 24,
+  },
   accordionBox: {
     marginBottom: '16@ms'
   },
@@ -174,7 +176,8 @@ const styles = ScaledSheet.create({
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
     borderTopWidth: 1,
     borderColor: '#eee',
     position: 'absolute',

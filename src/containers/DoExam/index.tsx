@@ -1,14 +1,5 @@
-import React, { useCallback, useRef, useState } from 'react'
-import {
-  View,
-  Text,
-  ScrollView,
-  findNodeHandle,
-  UIManager,
-  TouchableOpacity,
-  Platform,
-  KeyboardAvoidingView
-} from 'react-native'
+import React from 'react'
+import { View, Text, ScrollView, Platform, KeyboardAvoidingView } from 'react-native'
 import { palette } from '@/theme'
 import { Ionicons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -16,14 +7,12 @@ import useExam from './hooks/useExam'
 import NotFoundExam from '@/components/NotFoundExam'
 import Loading from '@/components/Loading'
 import HangOnDialog from './components/HangOnDialog'
-import ExamAnswer from './components/ExamAnswer'
-import StarSwitch from '@/components/Switch/StarSwitch'
-import CustomDropDown from '@/components/DropDown/CustomDropDown'
 import LiveResultDialog from './components/LiveResultDialog'
-import { Question } from '@/utils/types'
-import { QuestionAnswerType } from '@/utils/enums'
 import ExamResult from '../ExamResult/views'
-import { useFocusEffect } from '@react-navigation/native'
+import { QuestionGroupResponse } from './config/types'
+import ExamQuestionGroup from './components/ExamQuestionGroup'
+import { navigate } from '@/navigators/NavigationHelpers'
+import { Routes } from '@/navigators/RouteName'
 
 type Props = {
   examCode: string
@@ -33,7 +22,9 @@ const DoExam = ({ examCode }: Props) => {
   const {
     t,
     exam,
+    isEnding,
     endExam,
+    questionListMapped,
     questionList,
     remainTime,
     remainTimeString,
@@ -56,111 +47,43 @@ const DoExam = ({ examCode }: Props) => {
     onFishedExam
   } = useExam({ examCode })
 
-
   if (isNotFoundExam) return <NotFoundExam title={'the_exam_code_you_are_looking_for_was_not_found'} />
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>{exam?.title}</Text>
-          <View style={styles.titleContainer}>
-            <Text style={styles.subtitle}>{t('title')}</Text>
-            {/* <Text style={styles.subtitle}>Page #</Text> */}
+      {!openResultDialog && (
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.title}>{exam?.title}</Text>
+            <View style={styles.titleContainer}>
+              <Text style={styles.subtitle}>{t('title')}</Text>
+              {/* <Text style={styles.subtitle}>Page #</Text> */}
+            </View>
           </View>
+          <Text style={styles.currentQuestion}>{`${t('question')} ${currentIndex + 1}`}</Text>
         </View>
-        <Text style={styles.currentQuestion}>{`${t('question')} ${currentIndex + 1}`}</Text>
-      </View>
+      )}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={80}
-        style={{ flex: 1 }}
+        style={{ flex: 1, position: 'relative' }}
       >
-        <View style={{ height: '75%' }}>
+        <View style={{ height: '85%', paddingBottom: 40 }}>
           <ScrollView contentContainerStyle={styles.scrollContainer} ref={scrollViewRef} scrollEventThrottle={16}>
-            {questionList.map((question: Question, indexGroup: number) => (
-              <View key={question.id} ref={(ref) => (questionRefs.current[indexGroup] = ref)} collapsable={false}>
-                <CustomDropDown
-                  styleCard={styles.styleCard}
-                  styleExpand={styles.styleExpand}
-                  title={
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                      <Text style={{ fontSize: 14, fontWeight: 500 }}>{t('question')}</Text>
-                      <Text style={{ fontSize: 16, fontWeight: 700 }}>{question.questionOrder + 1}</Text>
-                    </View>
-                  }
-                  subHeader={
-                    <View
-                      style={{
-                        width: '100%'
-                      }}
-                    >
-                      {expandedId !== question.id && (question.textualAnswer || !!question.selectedAnswers?.length) && (
-                        <View
-                          style={{
-                            width: '100%'
-                          }}
-                        >
-                          <TouchableOpacity
-                            style={{
-                              width: '100%',
-                              borderWidth: 1,
-                              borderRadius: 8,
-                              marginBottom: 10,
-                              paddingVertical: 8,
-                              alignItems: 'center',
-                              backgroundColor: question.isStar ? palette.warning.light : palette.main[500],
-                              borderColor: question.isStar ? palette.warning.light : palette.main[500]
-                            }}
-                          >
-                            <View
-                              style={{
-                                borderRadius: 255,
-                                borderWidth: question.textualAnswer ? 0 : 1,
-                                paddingHorizontal: 5,
-                                paddingVertical: question.isStar ? 5 : 0,
-                                alignItems: question.textualAnswer ? 'flex-start' : 'center',
-                                justifyContent: 'center',
-                                borderColor: '#FFF',
-                                backgroundColor: question.isStar ? '#FFF' : palette.main[500]
-                              }}
-                            >
-                              <Text
-                                style={{
-                                  fontSize: 13,
-                                  color: '#FFF'
-                                }}
-                              >
-                                {question.isStar ? (
-                                  <Ionicons name="star" size={14} color={palette.warning.light} />
-                                ) : (
-                                  question.textualAnswer || question?.selectedAnswers?.sort().join(', ') || '-'
-                                )}
-                              </Text>
-                            </View>
-                          </TouchableOpacity>
-                          <StarSwitch
-                            isStar={question.isStar}
-                            onSwitch={() => updateQuestionStar(question.id, !question.isStar)}
-                          />
-                        </View>
-                      )}
-                    </View>
-                  }
-                  expanded={expandedId === question.id}
-                  onPress={() => toggleExpand(question.id)}
-                >
-                  <ExamAnswer
-                    question={question}
-                    updateQuestionAnswer={({ questionId, value }) => {
-                      updateQuestionAnswer({ questionId, value })
-                      question.questionAnswerType !== QuestionAnswerType.MultipleChoice &&
-                        scrollToNextQuestion(indexGroup)
-                      indexGroup === questionList.length - 1 && toggleExpand(null)
-                    }}
-                    updateQuestionStar={updateQuestionStar}
-                  />
-                </CustomDropDown>
-              </View>
+            {questionListMapped.map((questionGroup: QuestionGroupResponse, groupIndex: number) => (
+              <React.Fragment key={`group-${questionGroup.id}`}>
+                <ExamQuestionGroup
+                  t={t}
+                  data={questionGroup}
+                  questionRefs={questionRefs}
+                  scrollToNextQuestion={scrollToNextQuestion}
+                  updateQuestionStar={updateQuestionStar}
+                  updateQuestionAnswer={updateQuestionAnswer}
+                  groupIndex={groupIndex}
+                  expandedId={expandedId}
+                  questionList={questionList}
+                  toggleExpand={toggleExpand}
+                />
+              </React.Fragment>
             ))}
           </ScrollView>
         </View>
@@ -172,17 +95,22 @@ const DoExam = ({ examCode }: Props) => {
           </View>
           <Ionicons onPress={onFishedExam} name="exit" size={18} color={palette.main[700]} />
         </View>
-        <HangOnDialog
-          title={t('notification')}
-          content={t('waiting_for_all_students_to_complete_the_exam')}
-          open={!!endExam && !!exam && !exam.isLate}
-        />
-        {liveResultDialog && (
+        {!isEnding && (
+          <HangOnDialog
+            title={t('notification')}
+            content={t('waiting_for_all_students_to_complete_the_exam')}
+            open={!!endExam && !!exam && !exam.isLate}
+          />
+        )}
+        {isEnding && liveResultDialog && (
           <LiveResultDialog
             title={t('exam_end')}
             open={liveResultDialog}
             examCode={examCode}
-            onClose={handleCloseLiveResultDialog}
+            onClose={() => {
+              handleCloseLiveResultDialog()
+              navigate(Routes.Auth.Home)
+            }}
             handleExamEnd={handleExamEnd}
             handleDetailExamResult={handleDetailExamResult}
           />
@@ -197,15 +125,14 @@ const DoExam = ({ examCode }: Props) => {
 const styles = ScaledSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF',
-    paddingHorizontal: 24,
-    paddingBottom: '40@ms'
+    backgroundColor: '#FFF'
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: '16@ms',
-    alignItems: 'center'
+    alignItems: 'center',
+    paddingHorizontal: 24
   },
   titleContainer: {
     flexDirection: 'row',
@@ -233,7 +160,9 @@ const styles = ScaledSheet.create({
   styleExpand: {
     marginTop: 10
   },
-  scrollContainer: {},
+  scrollContainer: {
+    paddingHorizontal: 24
+  },
   accordionBox: {
     marginBottom: '16@ms'
   },
@@ -267,7 +196,8 @@ const styles = ScaledSheet.create({
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
     borderTopWidth: 1,
     borderColor: '#eee',
     position: 'absolute',

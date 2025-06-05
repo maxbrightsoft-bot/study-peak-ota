@@ -3,7 +3,7 @@ import {
   getQuestionExam,
   finishExam
 } from "../apiClients/index";
-import { ExamResponse, QuestionResponse } from "../config/types";
+import { ExamResponse, Question, QuestionGroupResponse, QuestionResponse } from "../config/types";
 import _ from "lodash";
 import useExamSolving from "./useExamSolving";
 import { useTranslation } from "react-i18next";
@@ -12,12 +12,11 @@ import { DATE_MIN_VALUE, DATE_TIME_MIN_VALUE, EXAM_CHANNEL } from "@/utils/const
 import moment from "moment";
 import { ExamEvent, ExamStatus, QuestionAnswerType } from "@/utils/enums";
 import { getErrorMessage, toast } from "@/utils/helpers";
-import { navigate } from "@/navigators/NavigationHelpers";
+import { currentScreen, navigate } from "@/navigators/NavigationHelpers";
 import useCountDownTimer from "@/hooks/useCountDownTimer";
 import { PusherChannel } from "@pusher/pusher-websocket-react-native";
 import { dialogConfirm } from "@/utils/helpers/dialog";
 import { Routes } from "@/navigators/RouteName";
-import { Question } from "@/utils/types";
 import { useFocusEffect } from "@react-navigation/native";
 import { findNodeHandle, ScrollView, UIManager, View } from "react-native";
 
@@ -40,6 +39,7 @@ const useExam = ({ examCode }: Props) => {
   const [openResultDialog, setOpenResultDialog] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
   const scrollViewRef = useRef<ScrollView>(null)
+  const [questionListMapped, setQuestionListMapped] = useState<QuestionGroupResponse[]>([]);
   const questionRefs = useRef<Array<View | null>>([])
 
   const scrollToNextQuestion = (index: number) => {
@@ -72,6 +72,7 @@ const useExam = ({ examCode }: Props) => {
     useCallback(() => {
       return () => {
         setExpandedId(null)
+        getQuestionExams()
       }
     }, [])
   )
@@ -88,14 +89,20 @@ const useExam = ({ examCode }: Props) => {
     setLiveResultDialog(false)
   }
 
+    const handleOpenLiveResultDialog = () => {
+    setLiveResultDialog(true)
+  }
+
   const handleExamEnd = () => {
-    navigate(Routes.Auth.Home)
+    setQuestionList([])
     handleCloseLiveResultDialog()
+    handleCloseResultDialog()
+    navigate(Routes.Auth.Home)
   }
 
   const handleDetailExamResult = () => {
-    handleOpenResultDialog()
     handleCloseLiveResultDialog()
+    handleOpenResultDialog()
   }
 
   const academyDomain: string | undefined = user?.academyDomain;
@@ -103,6 +110,7 @@ const useExam = ({ examCode }: Props) => {
 
   const nav1 = useRef<any>(null);
   const nav2 = useRef<any>(null);
+  console.log({ isEnding });
 
   const getQuestionExams = async (showErrorMessage: boolean = false) => {
     if (!examCode || !academyDomain || !userId) return;
@@ -118,26 +126,25 @@ const useExam = ({ examCode }: Props) => {
       setExam(data);
       if (isCompleted) {
         handleTeacherFinishExam();
+        setLoading(false)
         return;
       }
 
-      const responseQuestions: QuestionResponse[] = data?.questions ?? [];
+      const questionGroupsResponse: QuestionGroupResponse[] = data?.questionGroups || []
+      const responseQuestions: QuestionResponse[] = questionGroupsResponse.reduce((acc: QuestionResponse[], item: QuestionGroupResponse) => {
+        const selected = item.questions;
+        return acc.concat(selected);
+      }, []);;
       const questions = responseQuestions.map((i) => ({
         ...i,
         answerTime:
           i.answerTime !== DATE_MIN_VALUE && i.answerTime
             ? moment.utc(i.answerTime).valueOf()
             : 0,
-        questionOrder: i.questionOrder,
-        textualAnswer: i.questionAnswerType === QuestionAnswerType.ShortAnswer ? i.selectedAnswers : undefined,
-        selectedAnswers: i.questionAnswerType === QuestionAnswerType.ShortAnswer ? [] :
-          i.selectedAnswers
-            ?.split("|")
-            .map((i: string) => parseInt(i?.trim()))
-            .filter((i: number) => !isNaN(i)) || []
       }));
 
       setQuestionList(questions);
+      setQuestionListMapped(questionGroupsResponse)
       setEndExam(
         !!data?.finishTime && data?.finishTime !== DATE_TIME_MIN_VALUE
       );
@@ -152,10 +159,11 @@ const useExam = ({ examCode }: Props) => {
 
   const getCheckStatus = useCallback(() => {
     setEnding(true);
-  }, []);
-
-  const handleRedirectResult = useCallback(() => {
-    setLiveResultDialog(true)
+    setExam((state) => !state ? state : ({
+      ...state,
+      lateStatus: state.isLate ? ExamStatus.Completed : state.lateStatus,
+      status: !state.isLate ? ExamStatus.Completed : state.status,
+    }))
   }, []);
 
   const callFinishExam = useCallback(async () => {
@@ -195,6 +203,7 @@ const useExam = ({ examCode }: Props) => {
 
   const handleTeacherFinishExam = (data?: any) => {
     if (data?.isDelete) {
+      handleCloseLiveResultDialog()
       toast.info(t("exam_has_been_cancelled"));
       navigate(Routes.Auth.Home);
     } else getCheckStatus();
@@ -203,6 +212,10 @@ const useExam = ({ examCode }: Props) => {
   const handleUpdateQuestionList = (questions: Question[]) => {
     setQuestionList(questions);
   };
+
+    const handleRedirectResult = useCallback(() => {
+      currentScreen() === Routes.Auth.DoExam && isEnding && setLiveResultDialog(true)
+  }, [isEnding, currentScreen]);
 
   const handleExamExamLastAnswerTime = (answerTime: string) => {
     setExam((state?: ExamResponse) => {
@@ -229,21 +242,26 @@ const useExam = ({ examCode }: Props) => {
   }, [examCode, academyDomain, userId]);
 
   const handleListenerEvent = async () => {
-    if (
-      !pusher ||
-      !exam ||
-      !academyDomain
-    ) return
+    try {
+      if (
+        !pusher ||
+        !exam ||
+        !academyDomain
+      ) return
+      cleanupPusher()
 
-    channelName.current = `${EXAM_CHANNEL}-${exam.code}-${academyDomain
-      .trim()
-      .toUpperCase()}`;
-    const examHandlers = {
-      [ExamEvent.AddExtraDuration]: handleTeacherAddDurationExam,
-      [ExamEvent.TerminateExam]: handleTeacherFinishExam
+      channelName.current = `${EXAM_CHANNEL}-${exam.code}-${academyDomain
+        .trim()
+        .toUpperCase()}`;
+      const examHandlers = {
+        [ExamEvent.AddExtraDuration]: handleTeacherAddDurationExam,
+        [ExamEvent.TerminateExam]: handleTeacherFinishExam
+      }
+
+      channel.current = await subscribeChannel(pusher, channelName.current, Object.entries(examHandlers).map(([eventName, handler]) => ({ eventName, handler })))
+    } catch (err) {
+      console.error("Pusher subscription failed", err);
     }
-
-    channel.current = await subscribeChannel(pusher, channelName.current, Object.entries(examHandlers).map(([eventName, handler]) => ({ eventName, handler })))
   }
 
   const cleanupPusher = () => {
@@ -256,21 +274,30 @@ const useExam = ({ examCode }: Props) => {
   };
 
   useEffect(() => {
-    handleListenerEvent()
+    const initPusher = async () => {
+      await handleListenerEvent();
+    };
+
+    initPusher();
+
     return cleanupPusher
   }, [exam?.code, academyDomain, pusher]);
 
   useFocusEffect(
     useCallback(() => {
+      isEnding && handleCloseLiveResultDialog()
+      setExam(undefined);
       return () => {
         setExam(undefined);
+        setQuestionList([])
         handleCloseLiveResultDialog()
         handleCloseResultDialog()
       };
     }, [])
   );
-
+  
   const remainTime = useCountDownTimer({
+    isEnding,
     startTime: exam?.isLate ? exam.startTimeSession : exam?.startTime,
     status: exam?.isLate ? exam.lateStatus : exam?.status,
     code: exam?.code,
@@ -310,10 +337,12 @@ const useExam = ({ examCode }: Props) => {
     nav2,
     nav1,
     exam,
+    isEnding,
     examCode,
     endExam,
     currentIndex,
     expandedId,
+    questionListMapped,
     toggleExpand,
     scrollViewRef,
     questionRefs,

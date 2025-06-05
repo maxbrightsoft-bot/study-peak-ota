@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  ExamQuestion,
   ExamResponse,
+  Question,
   StoredStudentAnswer,
 } from "../config/types";
 import { answerQuestionExam } from "../apiClients";
@@ -9,10 +11,11 @@ import { QuestionAnswerType } from "../../../utils/enums";
 import useAuthStore from "@/store/useAuthStore";
 import { useTranslation } from "react-i18next";
 import { DATE_MIN_VALUE, DATE_TIME_MIN_VALUE } from "@/utils/constants";
-import { diffFromNow, getErrorMessage, toast } from "@/utils/helpers";
+import { diffFromNow, getErrorMessage, toast, toISOString } from "@/utils/helpers";
 import moment from "moment";
 import { getDataStorage, removeDataStorage, setDataStorage } from "@/utils/storage";
-import { Question, StudentAnswerRequest } from "@/utils/types";
+import { StudentAnswerRequest } from "@/utils/types";
+import { isTextType } from "@/utils/helpers/textbook";
 
 const rollBackQuestionList = "rb";
 const recoverQuestionList = "rc";
@@ -108,7 +111,7 @@ const useExamSolving = (props: Props) => {
       if(res?.status === 0)
         await removeDataStorage(`${recoverKey}`);
       await removeDataStorage(`${rollbackKey}`);
-      callback?.();
+      await callback?.();
     }
   };
 
@@ -158,7 +161,7 @@ const useExamSolving = (props: Props) => {
         duration: i.duration,
         isStar: i.isStar,
         answerTime: i.answerTime,
-        textualAnswer: i.textualAnswer
+        textualAnswers: i.textualAnswers
       }))
     };
     const prevApiCall = apiTimeouts.current[rollbackKey];
@@ -194,33 +197,41 @@ const useExamSolving = (props: Props) => {
       return null;
     }
   };
-  const updateQuestionAnswer = ({ questionId, value} :  { questionId: number, value: any }) => {
+  const updateQuestionAnswer = ({ questionId, textualAnswers = [], answer } :  ExamQuestion) => {
     try {
       if (!exam) return;
       const time = moment().format("YYYY-MM-DDTHH:mm:ss.SSSZ");
-      const now = moment(time).toISOString();
+      const now = toISOString(time);
       const nowTime = moment(now).utc().valueOf();
       
       const listQuestionNews = _.cloneDeep(questionList);
       const arrQuestionNew = listQuestionNews.map((item: Question) => {
+        const isTextAnswerType = isTextType(item.questionAnswerType)
+        if (item.textualAnswers !== undefined && !isTextAnswerType) {
+          delete item.textualAnswers
+        }
+        if(item.selectedAnswers !== undefined && isTextAnswerType) {
+          delete item.selectedAnswers
+        }
         if (item.id === questionId) {
-            if(item.questionAnswerType === QuestionAnswerType.ShortAnswer)
-            {
-              item.textualAnswer = value
-              item.selectedAnswers = []
-            }
-            else if (item.questionAnswerType === QuestionAnswerType.MultipleChoice)  {
-              item.selectedAnswers = item.selectedAnswers.includes(value)
-              ? item.selectedAnswers.filter((i: any) => i != value)
-              : [...item.selectedAnswers, value];
-              delete item.textualAnswer
-            }
-            else {
-              item.selectedAnswers = item.selectedAnswers.includes(value)
-              ? item.selectedAnswers.filter((i: any) => i != value)
-              : [value];
-              delete item.textualAnswer
-            }
+          switch (item.questionAnswerType) {
+            case QuestionAnswerType.SingleChoice:
+              if(answer === undefined) break;
+              item.selectedAnswers = item.selectedAnswers?.includes(answer)
+                ? item.selectedAnswers.filter((i: number) => i != answer)
+                : [answer];
+              break;
+            case QuestionAnswerType.MultipleChoice:
+              if(answer === undefined) break;
+              item.selectedAnswers = item.selectedAnswers?.includes(answer)
+                ? item.selectedAnswers.filter((i: number) => i != answer)
+                : [...(item.selectedAnswers ?? []), answer];
+              break;
+            default:
+              item.textualAnswers = textualAnswers
+              break;
+          }
+          
           const diff = getDiffTime(exam, now);
           item.duration = (item.duration || 0) + +diff;
           item.answerTime =
@@ -228,18 +239,7 @@ const useExamSolving = (props: Props) => {
               ? item.answerTime
               : nowTime;
         }
-        else {
-          if (item.questionAnswerType === QuestionAnswerType.ShortAnswer)  {
-            item.selectedAnswers = []
-          }
-
-          else if  (item.questionAnswerType === QuestionAnswerType.SingleChoice) {
-            delete item.textualAnswer
-          }
-          else {
-            delete item.textualAnswer
-          }
-        }
+        
         return item;
       });
 
@@ -307,7 +307,7 @@ const useExamSolving = (props: Props) => {
         callback
       );
     } else {
-      callback?.();
+      await callback?.();
     }
   };
 

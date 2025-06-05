@@ -109,7 +109,6 @@ const useTextbook = ({ textbookId, page }: Props) => {
     }
   }
 
-
   const toggleExpand = (id: number | null) => {
     setExpandedId((prev) => (prev === id ? null : id))
   }
@@ -235,9 +234,8 @@ const useTextbook = ({ textbookId, page }: Props) => {
 
   const onFinishedTextbook = async () => {
     await handleApi();
-    navigate(Routes.Auth.Home);
+    navigate(Routes.Auth.Textbook);
   };
-
 
   return {
     t,

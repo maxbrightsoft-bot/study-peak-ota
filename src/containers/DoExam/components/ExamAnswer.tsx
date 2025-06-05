@@ -3,78 +3,119 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native'
 import { Text } from 'react-native-paper'
 import _ from 'lodash'
 import { QuestionAnswerType } from '../../../utils/enums'
-import { palette } from '@/theme'
-import useExamAnswer from '../hooks/useExamAnswer'
+import { palette, TYPO } from '@/theme'
 import StarSwitch from '@/components/Switch/StarSwitch'
-import { Question } from '@/utils/types'
-import ShortAnswerInput from './ShortAnswerInput'
+import { ExamQuestion, Question } from '../config/types'
+import { Formik } from 'formik'
+import * as Yup from 'yup'
+import AnswerContent from './AnswerContent'
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
+  t: any
   question: Question
-  updateQuestionAnswer: ({
-    questionId,
-    value,
-    questionAnswerType
-  }: {
-    questionId: number
-    value: any
-    questionAnswerType?: QuestionAnswerType
-  }) => void
+  updateQuestionAnswer: ({ questionId, textualAnswers, answer }: ExamQuestion) => void
   updateQuestionStar: any
 }
 
-const ExamAnswer = ({ question, updateQuestionAnswer, updateQuestionStar }: Props) => {
+const schema = (t: any) => {
+  return Yup.object().shape({
+    textualAnswers: Yup.array()
+      .of(Yup.string().trim().required(t('correct_answer_is_required')))
+      .min(1, t('correct_answer_is_required'))
+      .required(t('correct_answer_is_required'))
+  })
+}
 
+const ExamAnswer = ({ t, question, updateQuestionAnswer, updateQuestionStar }: Props) => {
+  const answers = question.textualAnswers?.length ? question.textualAnswers : ['']
+  
   const renderAnswer = (question: Question, type: QuestionAnswerType) => {
     switch (type) {
       case QuestionAnswerType.ShortAnswer:
+      case QuestionAnswerType.OrderMatters:
+      case QuestionAnswerType.OrderDoesNotMatters:
+      case QuestionAnswerType.SynonymProcessing:
         return (
-          <View>
-            <ShortAnswerInput
-              updateQuestionAnswer={updateQuestionAnswer}
-              initValue={question.textualAnswer || question.selectedAnswers}
-              question={question}
-            />
-          </View>
+          <Formik
+            initialValues={{
+              textualAnswers: answers
+            }}
+            validationSchema={schema(t)}
+            onSubmit={(values: any) => {
+              updateQuestionAnswer({
+                questionId: question.id,
+                textualAnswers: values.textualAnswers
+              })
+            }}
+            enableReinitialize
+          >
+            {({ values, errors, handleSubmit }) => (
+              <>
+                <AnswerContent
+                  t={t}
+                  question={question}
+                  questionNumber={question.questionOrder + 1}
+                  errors={errors}
+                  values={values}
+                />
+                <TouchableOpacity
+                  style={[
+                    styles.button,
+                    styles.confirmButton,
+                    !values.textualAnswers.length ||
+                      (values.textualAnswers.some((i: string) => !i.trim().length) && { opacity: 0.5 })
+                  ]}
+                  disabled={
+                    !values.textualAnswers.length || values.textualAnswers.some((i: string) => !i.trim().length)
+                  }
+                  onPress={() => handleSubmit(values)}
+                >
+                  <Text style={styles.confirmButtonText}>{t('registration')}</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </Formik>
         )
 
       case QuestionAnswerType.MultipleChoice:
       case QuestionAnswerType.SingleChoice:
         return (
-          <View style={{ gap: 8, width: '100%' }}>
+          <View style={{ gap: 4, width: '100%' }}>
             {Array.from({ length: question.answerCount }, (_, indexAnswer) => (
               <TouchableOpacity
                 key={indexAnswer}
                 style={{
                   width: '100%',
-                  borderWidth: 1,
                   borderRadius: 8,
-                  marginBottom: 10,
+                  marginBottom: 4,
                   alignItems: 'center',
                   paddingVertical: 8,
-                  backgroundColor: question.selectedAnswers.includes(indexAnswer + 1) ? palette.main[500] : 'white',
-                  borderColor: question.selectedAnswers.includes(indexAnswer + 1)
+                  backgroundColor: question.selectedAnswers?.includes(indexAnswer + 1) ? palette.main[500] : 'white',
+                  borderColor: question.selectedAnswers?.includes(indexAnswer + 1)
                     ? palette.main[500]
                     : palette.grey[300]
                 }}
                 onPress={() =>
                   updateQuestionAnswer({
                     questionId: question.id,
-                    value: indexAnswer + 1
+                    answer: indexAnswer + 1
                   })
                 }
               >
                 <View
-                  style={{
-                    ...styles.optionWrap,
-                    borderColor: question.selectedAnswers.includes(indexAnswer + 1) ? '#FFF' : palette.grey[500]
-                  }}
+                  style={[
+                    styles.optionWrap,
+                    { borderColor: question.selectedAnswers?.includes(indexAnswer + 1) ? '#FFF' : palette.grey[500] }
+                  ]}
                 >
                   <Text
-                    style={{
-                      ...styles.optionText,
-                      color: question.selectedAnswers.includes(indexAnswer + 1) ? '#FFF' : palette.grey[500]
-                    }}
+                    style={[
+                      styles.optionText,
+                      {
+                        color: question.selectedAnswers?.includes(indexAnswer + 1) ? '#FFF' : palette.grey[500]
+                      }
+                    ]}
                   >
                     {indexAnswer + 1}
                   </Text>
@@ -90,14 +131,14 @@ const ExamAnswer = ({ question, updateQuestionAnswer, updateQuestionStar }: Prop
   }
 
   return (
-    <View>
+    <View style={{ gap: 8 }}>
       {renderAnswer(question, question.questionAnswerType)}
       <StarSwitch isStar={question.isStar} onSwitch={() => updateQuestionStar(question.id, !question.isStar)} />
     </View>
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     flex: 1,
     padding: 20,
@@ -182,6 +223,29 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center'
+  },
+  button: {
+    paddingVertical: '12@ms',
+    paddingHorizontal: '24@ms',
+    borderRadius: '8@ms',
+    minWidth: '120@ms',
+    alignItems: 'center'
+  },
+  cancelButton: {
+    backgroundColor: palette.grey[100],
+    paddingVertical: '12@ms'
+  },
+  confirmButton: {
+    backgroundColor: palette.main[500],
+    marginBottom: '12@ms'
+  },
+  cancelButtonText: {
+    ...TYPO.button2,
+    color: palette.grey[700]
+  },
+  confirmButtonText: {
+    ...TYPO.button2,
+    color: 'white'
   }
 })
 

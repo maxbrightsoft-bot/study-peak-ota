@@ -3,22 +3,13 @@ import { Text, TouchableOpacity, View } from 'react-native'
 import { palette, TYPO } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
 import TextField from '@/components/Input/TextField'
-import { Question } from '@/utils/types'
-import { QuestionAnswerType } from '@/utils/enums'
 import { useTranslation } from 'react-i18next'
+import { ExamQuestion, Question } from '../config/types'
 
 type Props = {
   initValue: any
   question: Question
-  updateQuestionAnswer: ({
-    questionId,
-    value,
-    questionAnswerType
-  }: {
-    questionId: number
-    value: any
-    questionAnswerType?: QuestionAnswerType
-  }) => void
+  updateQuestionAnswer: ({ questionId, textualAnswers, answer }: ExamQuestion) => void
 }
 
 const ShortAnswerInput = ({ initValue, question, updateQuestionAnswer }: Props) => {
@@ -29,9 +20,9 @@ const ShortAnswerInput = ({ initValue, question, updateQuestionAnswer }: Props) 
   }
 
   return (
-    <View>
+    <View style={{ gap: 8 }}>
       <TextField
-        style={{ borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 4, padding: 12 }}
+        style={{ borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 4, paddingHorizontal: 12 }}
         value={value}
         onChangeText={onChange}
       />
@@ -41,7 +32,7 @@ const ShortAnswerInput = ({ initValue, question, updateQuestionAnswer }: Props) 
           onPress={() =>
             updateQuestionAnswer({
               questionId: question.id,
-              value: value
+              textualAnswers: value
             })
           }
         >
