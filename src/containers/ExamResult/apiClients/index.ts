@@ -41,4 +41,12 @@ export const getChapterResultsCategoriesApi = (chapterId: number, studentId?: nu
             studentId
         }
     })
+
+export const getOverallResultsApi = (code: string) => api.get(`${EXAM_SESSION_URL}/${code}/results/overall`)
+export const getOverallResultsTeacherApi = (id: number, studentId: number) => api.get(`${EXAM_SESSION_URL}/${id}/results/overall/${studentId}`)
+export const getOverallCategoriesResultsApi = (code: string) => api.get(`${EXAM_SESSION_URL}/${code}/results/overall-categories`)
+export const getOverallCategoriesResultsTeacherApi = (id: number, studentId: number) => api.get(`${EXAM_SESSION_URL}/${id}/results/overall-categories/${studentId}`)
+export const getQuestionTimeCategoriesResultsApi = (code: string) => api.get(`${EXAM_SESSION_URL}/${code}/results/question-times`)
+export const getQuestionTimeCategoriesResultsTeacherApi = (id: number, studentId: number) => api.get(`${EXAM_SESSION_URL}/${id}/results/question-times/${studentId}`)
+
     

@@ -28,6 +28,7 @@ export enum ExamStatus {
 
 export enum ExamStatusView {
   ExamOverview,
+  MyOverall,
   MyAnswers,
   QuestionAnalysis,
   IncorrectAnswerNotes

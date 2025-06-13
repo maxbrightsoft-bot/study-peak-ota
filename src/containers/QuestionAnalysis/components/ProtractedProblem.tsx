@@ -64,10 +64,10 @@ const ProtractedProblem: FC<Props> = ({ keyOpen, data, openProblem, changeOpen, 
   return (
     <View style={styles.wrapper}>
       <TouchableOpacity
-        style={[styles.header, !isOpen && styles.closedHeader]}
+        style={[styles.header, !isOpen ? styles.closedHeader: { borderBottomWidth: 1, borderColor: palette.grey[100] }]}
         onPress={() => changeOpen?.(isOpen ? undefined : keyOpen)}
       >
-        <Text style={[styles.headerText, !isOpen && { color: '#97A1AF' }]}>{t('problems_that_took_a_long_time')}</Text>
+        <Text style={[styles.headerText, !isOpen && { color: palette.grey[500] }]}>{t('problems_that_took_a_long_time')}</Text>
         {isOpen ? (
           <Ionicons name="chevron-up" size={24} color="#E0E0E0" />
         ) : (
@@ -114,7 +114,7 @@ const styles = ScaledSheet.create({
   headerText: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: palette.grey[500]
+    color: palette.grey[700]
   },
   itemContainer: {
     flexDirection: 'row',

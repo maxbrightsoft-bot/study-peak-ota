@@ -23,6 +23,10 @@ import { examStatusViewOptions } from '../configs/constants'
 import useExamResult from '../hooks/useExamResult'
 import PrintExamResult from './PrintExamResult'
 import TextbookOverView from '../components/TextbookOverView'
+import useCategoriesOverallChartContainer from '../hooks/useCategoriesOverallChartContainer'
+import useOverallChartContainer from '../hooks/useOverallChartContainer'
+import useOverallTimeChartContainer from '../hooks/useOverallTimeChartContainer'
+import MyOverall from '@/containers/MyOverall'
 
 type Props = {
   examCode?: string
@@ -123,6 +127,20 @@ const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
     setSetlectedNoteView(undefined)
   }
 
+  const overallChartContainer = useOverallChartContainer(examCode ?? '', resultData?.examSessionId ?? 0, chapterId ?? 0)
+
+  const categoriesOverallChartContainer = useCategoriesOverallChartContainer(
+    examCode ?? '',
+    resultData?.examSessionId ?? 0,
+    chapterId ?? 0
+  )
+
+  const overallTimeChartContainer = useOverallTimeChartContainer(
+    examCode ?? '',
+    resultData?.examSessionId ?? 0,
+    chapterId ?? 0
+  )
+
   const noteItemActions: Action<NoteResponse>[] = [
     {
       label: t('ask_a_question'),
@@ -159,23 +177,28 @@ const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
     isLoading: isLoadingNotes
   }
 
-  console.log({ resultData });
-
   const renderBody = () => {
     switch (examStatusView) {
       case ExamStatusView.ExamOverview:
         return chapterId
           ? textbookResult && <TextbookOverView t={t} resultData={textbookResult} />
           : resultData && <ExamOverView t={t} resultData={resultData} />
+      case ExamStatusView.MyOverall:
+        return chapterId
+          ? null
+          : resultData && (
+              <MyOverall
+                overallChartContainerProps={overallChartContainer}
+                categoriesOverallChartContainerProps={categoriesOverallChartContainer}
+                overallTimeChartContainerProps={overallTimeChartContainer}
+              />
+            )
       case ExamStatusView.MyAnswers:
-        return (
-          chapterId
+        return chapterId
           ? textbookResult && <TextbookMyAnswer data={textbookResult} />
           : resultData && <ExamMyAnswer data={resultData} categories={categoryResponses} />
-        )
       case ExamStatusView.QuestionAnalysis:
-        return (
-          chapterId
+        return chapterId
           ? textbookResult && (
               <TextbookQuestionAnalysis
                 longTimeSpend={longTimeSpend}
@@ -194,10 +217,9 @@ const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
                 resultData={resultData}
               />
             )
-        )
       case ExamStatusView.IncorrectAnswerNotes:
-        return (
-          chapterId ? null : <>
+        return chapterId ? null : (
+          <>
             <IncorrectAnswerNotes
               notesContainerProps={notesContainerProps}
               onCreateNote={handleOpenNoteDialogCreateNote}
@@ -245,7 +267,12 @@ const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
 
         <View style={styles.titleContainer}>
           <Text style={styles.examTitle}>{chapterId ? textbookResult?.chapterName : resultData?.title}</Text>
-          <Text style={styles.examDate}> {chapterId ? utcToLocalTime(textbookResult?.startTime, t('date_format')) :  utcToLocalTime(resultData?.startTime, t('date_format'))}</Text>
+          <Text style={styles.examDate}>
+            {' '}
+            {chapterId
+              ? utcToLocalTime(textbookResult?.startTime, t('date_format'))
+              : utcToLocalTime(resultData?.startTime, t('date_format'))}
+          </Text>
         </View>
 
         <View style={styles.section}>
@@ -264,7 +291,10 @@ const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
           contentRef={contentRef}
           categoryResponses={categoryResponses}
           resultData={resultData}
-          chapterId={chapterId}
+          overallChartContainer={overallChartContainer}
+          categoriesOverallChartContainer={categoriesOverallChartContainer}
+          overallTimeChartContainer={overallTimeChartContainer}
+          chapterId={chapterId ?? 0}
           openProblem={openProblem}
           setOpenProblem={setOpenProblem}
           longTimeSpend={longTimeSpend}
@@ -298,7 +328,7 @@ const styles = ScaledSheet.create({
     color: palette.main[500]
   },
   printButton: {
-    padding: 8
+    paddingVertical: 8
   },
   printText: {
     ...TYPO.button2,

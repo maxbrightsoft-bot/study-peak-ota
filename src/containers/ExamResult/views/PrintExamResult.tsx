@@ -4,20 +4,47 @@ import { Text, View } from 'react-native'
 import ExamOverView from '../components/ExamOverView'
 import ExamMyAnswer from '@/containers/MyAnswer/views/ExamMyAnswer'
 import TextbookMyAnswer from '@/containers/MyAnswer/views/TextbookMyAnswer'
-import { CategoryResponse, ExamResult, LongTimeSpendQuestion, TextbookResult } from '@/utils/types'
+import {
+  CategoryResponse,
+  ExamResult,
+  LongTimeSpendQuestion,
+  QuestionTimeCategoryData,
+  TextbookResult
+} from '@/utils/types'
 import { ScaledSheet } from 'react-native-size-matters'
 import ExamQuestionAnalysis from '@/containers/QuestionAnalysis/views/ExamQuestionAnalysis'
 import TextbookQuestionAnalysis from '@/containers/QuestionAnalysis/views/TextbookQuestionAnalysis'
 import { ProblemKey } from '@/utils/enums'
 import TextbookOverView from '../components/TextbookOverView'
 import { palette, TYPO } from '@/theme'
+import MyOverall from '@/containers/MyOverall'
 
 interface Props {
   contentRef: RefObject<View>
   resultData?: ExamResult
   textbookResult?: TextbookResult
   categoryResponses: CategoryResponse[]
-  chapterId?: string
+  chapterId?: number
+  overallChartContainer: {
+    isLoading: boolean
+    myData: number[]
+    avgData: number[]
+    categories: string[]
+    xAxisLabelFormatter: (_: string, data: any) => string | string[][]
+    formatTooltip: (dataProps: any) => string
+  }
+  categoriesOverallChartContainer: {
+    isLoading: boolean
+    myData: number[]
+    avgData: number[]
+    categories: string[]
+    xAxisLabelFormatter: (_: string, { dataPointIndex }: any) => string | string[][]
+    formatTooltip: (dataProps: any) => string
+  }
+  overallTimeChartContainer: {
+    isLoading: boolean
+    categories: QuestionTimeCategoryData[]
+  }
   openProblem: ProblemKey | undefined
   longTimeSpend: LongTimeSpendQuestion[]
   setOpenProblem: Dispatch<SetStateAction<ProblemKey | undefined>>
@@ -27,6 +54,9 @@ const PrintExamResult: FC<Props> = ({
   resultData,
   textbookResult,
   chapterId,
+  overallTimeChartContainer,
+  overallChartContainer,
+  categoriesOverallChartContainer,
   categoryResponses,
   contentRef,
   openProblem,
@@ -46,6 +76,16 @@ const PrintExamResult: FC<Props> = ({
         {chapterId
           ? textbookResult && <TextbookOverView t={t} resultData={textbookResult} />
           : resultData && <ExamOverView t={t} resultData={resultData} />}
+        {chapterId
+          ? null
+          : resultData && (
+              <MyOverall
+                isPrint={true}
+                overallChartContainerProps={overallChartContainer}
+                categoriesOverallChartContainerProps={categoriesOverallChartContainer}
+                overallTimeChartContainerProps={overallTimeChartContainer}
+              />
+            )}
         {chapterId
           ? textbookResult && <TextbookMyAnswer data={textbookResult} />
           : resultData && <ExamMyAnswer data={resultData} categories={categoryResponses} />}
@@ -87,8 +127,8 @@ const styles = ScaledSheet.create({
   overviewItem: {
     paddingTop: '24@ms',
     paddingHorizontal: '24@ms',
-    flexDirection: "row",
-    justifyContent: "space-between"
+    flexDirection: 'row',
+    justifyContent: 'space-between'
   }
 })
 

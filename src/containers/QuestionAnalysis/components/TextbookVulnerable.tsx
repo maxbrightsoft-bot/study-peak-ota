@@ -12,6 +12,7 @@ interface Props {
   keyOpen: ProblemKey
   data: TextbookResult
   openProblem?: ProblemKey
+  isPrint: boolean
   changeOpen?: (key?: ProblemKey) => void
   isMyStoryStudent?: boolean
 }
@@ -19,9 +20,9 @@ interface Props {
 const limitQuestions = 5
 const correctRateThreshHold = 70
 
-const Vulnerable: FC<Props> = ({ data, keyOpen, openProblem, changeOpen, isMyStoryStudent }) => {
+const Vulnerable: FC<Props> = ({ data, keyOpen, openProblem, isPrint, changeOpen, isMyStoryStudent }) => {
   const { t } = useTranslation()
-  const isOpen = openProblem === keyOpen
+  const isOpen = openProblem === keyOpen || isPrint
 
   const incorrectQuestions = useMemo(() => {
     return data.studentQuestionResults
@@ -49,7 +50,7 @@ const Vulnerable: FC<Props> = ({ data, keyOpen, openProblem, changeOpen, isMySto
     switch (type) {
       case QuestionAnswerType.ShortAnswer:
       case QuestionAnswerType.SynonymProcessing:
-        return isCorrect ? textualAnswers?.join(' | ') : textualAnswers?.[0] ?? ''
+        return isCorrect ? textualAnswers?.join(' | ') : (textualAnswers?.[0] ?? '')
       case QuestionAnswerType.SingleChoice:
       case QuestionAnswerType.MultipleChoice:
         if (!answers?.length) return ''
@@ -101,9 +102,7 @@ const Vulnerable: FC<Props> = ({ data, keyOpen, openProblem, changeOpen, isMySto
         </Text>
       </View>
       <View style={styles.tdColumnCenter}>
-        <Text style={styles.normalText}>{item.categories
-                        ? item.categories.map(i => i.name).join(", ")
-                        : ""}</Text>
+        <Text style={styles.normalText}>{item.categories ? item.categories.map((i) => i.name).join(', ') : ''}</Text>
       </View>
     </View>
   )
@@ -191,10 +190,13 @@ const Vulnerable: FC<Props> = ({ data, keyOpen, openProblem, changeOpen, isMySto
   return (
     <View style={styles.wrapper}>
       <TouchableOpacity
-        style={[styles.header, !isOpen && styles.closedHeader]}
+        style={[
+          styles.header,
+          !isOpen ? styles.closedHeader : { borderBottomWidth: 1, borderColor: palette.grey[100] }
+        ]}
         onPress={() => changeOpen?.(isOpen ? undefined : keyOpen)}
       >
-        <Text style={[styles.headerText, !isOpen && { color: '#97A1AF' }]}>{t('issues_vulnerable')}</Text>
+        <Text style={[styles.headerText, !isOpen && { color: palette.grey[500] }]}>{t('issues_vulnerable')}</Text>
         {isOpen ? (
           <Ionicons name="chevron-up" size={24} color="#E0E0E0" />
         ) : (
@@ -226,7 +228,7 @@ const styles = ScaledSheet.create({
   headerText: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: palette.grey[500]
+    color: palette.grey[700]
   },
   content: {
     maxHeight: 300

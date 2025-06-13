@@ -27,16 +27,10 @@ const Chat = ({ isVisible, onClose }: Props) => {
     handleChangeTextSearch,
     setSelectedConversation,
     isVisibleCreateConversationDialog,
-    handleCloseCreateConversationDialog,
+    handleCloseCreateConversationDialog
   } = useConversationList()
 
-  const {
-    isLoadingMessages,
-    chatListProps,
-    inputProps,
-    chatHeaderProps,
-    handleLoadMoreMessages,
-  } = useChatContainer({
+  const { isLoadingMessages, chatListProps, inputProps, chatHeaderProps, handleLoadMoreMessages } = useChatContainer({
     conversation: selectedConversation
   })
   usePusherConversation()
@@ -63,11 +57,7 @@ const Chat = ({ isVisible, onClose }: Props) => {
           </TouchableOpacity>
           <View style={styles.profileHeader}>
             <View style={[styles.profileInfo, { gap: selectedConversation ? 4 : 12 }]}>
-              <Avatar.Image
-                size={24}
-                style={{ backgroundColor: '#fff' }}
-                source={{ uri: user?.avatar }}
-              />
+              <Avatar.Image size={24} style={{ backgroundColor: '#fff' }} source={{ uri: user?.avatar }} />
               <Text style={selectedConversation ? styles.textCommon : styles.nameText}>
                 {selectedConversation ? selectedConversation.teacherName : user?.fullName}
               </Text>
@@ -136,7 +126,7 @@ const styles = ScaledSheet.create({
   },
   profileInfo: {
     flexDirection: 'row',
-    alignItems: "center",
+    alignItems: 'center'
   },
   nameText: {
     fontSize: 20,

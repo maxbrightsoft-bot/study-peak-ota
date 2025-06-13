@@ -73,9 +73,9 @@ const useConversationList = () => {
     if (!!inputSearch.current) {
       clearTimeout(inputSearch.current);
     }
-    inputSearch.current = setTimeout(() => {
-      getConversationList(value)
-    }, 800);
+    inputSearch.current = setTimeout(async() => {
+      await getConversationList(value)
+    }, 500);
   };
 
   const getListCourseByStudent = async () => {
@@ -145,6 +145,7 @@ const useConversationList = () => {
 
   useFocusEffect(
     useCallback(() => {
+      getConversationList()
       return () => {
         setSelectedConversation(undefined)
         setTextSearch('')

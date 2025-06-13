@@ -64,6 +64,7 @@ const useMessageList = () => {
     if (isLoading) return
     try {
       await deleteMessage(conversationId, id)
+      
     } catch (error) {
       toast.error(getErrorMessage(t, error))
       return 

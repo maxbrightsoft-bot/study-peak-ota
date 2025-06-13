@@ -11,6 +11,7 @@ import { apiAddMessage, apiUploadImageFile, updateLastTimeReadConversation } fro
 import { pick } from '@react-native-documents/picker'
 import { useFocusEffect } from "@react-navigation/native";
 import { Keyboard } from "react-native";
+import RNFS from 'react-native-fs';
 
 interface Props {
   conversation?: ConversationsResponse;
@@ -31,6 +32,15 @@ const useChatContainer = (props: Props) => {
   const [message, setMessage] = useState<MessageRequest>();
   const [isScrollToEnd, setScrollToEnd] = useState<boolean>(true)
   const [loading, setLoading] = useState(false)
+  const [openSketchCanvasDialog, setOpenSketchCanvasDialog] = useState(false)
+
+  const handleOpenSketchCanvasDialog = () => {
+    setOpenSketchCanvasDialog(true)
+  }
+
+  const handleCloseSketchCanvasDialog = () => {
+    setOpenSketchCanvasDialog(false)
+  }
 
   const {
     isLoading: isLoadingMessages,
@@ -50,7 +60,7 @@ const useChatContainer = (props: Props) => {
     setScrollToEnd((state: boolean) => !state)
   }
 
-  const handleAddMessage = async ({ url }: { url?: string }) => {
+  const handleAddMessage = async (url?: string) => {
     setLoading(true);
     if (!selectedConversation?.id) return;
     setScrollToEnd(true)
@@ -108,7 +118,40 @@ const useChatContainer = (props: Props) => {
       const formData = new FormData();
       formData.append("upload", result as any);
       const res = await apiUploadImageFile(formData);
-      await handleAddMessage({ url: res?.data?.url })
+      await handleAddMessage(res?.data?.url)
+    } catch (error) {
+      setMessages((state: MessageResponse[]) => {
+        return [...state.filter(i => i?.id !== 0)]
+      })
+      toast.error(getErrorMessage(t, error))
+    }
+    setLoading(false);
+  }
+
+  const saveBase64ToFile = async (base64Data: string, fileName = 'signature.png') => {
+    const path = `${RNFS.DocumentDirectoryPath}/${fileName}`;
+
+    const cleanedBase64 = base64Data.replace(/^data:image\/\w+;base64,/, '');
+
+    await RNFS.writeFile(path, cleanedBase64, 'base64');
+    return path;
+  }
+
+  const handleUploadImageCanvas = async (data: string, callback: any) => {
+    try {
+      setLoading(true)
+      const fileName = `signature_${new Date().getTime()}.png`
+      // const filePath = await saveBase64ToFile(data, fileName);
+
+      const formData = new FormData() as any;
+      formData?.append('upload', {
+        uri: data,
+        type: 'image/png',
+        name: fileName,
+      });
+      const res = await apiUploadImageFile(formData);
+      await handleAddMessage(res?.data?.url)
+      callback()
     } catch (error) {
       setMessages((state: MessageResponse[]) => {
         return [...state.filter(i => i?.id !== 0)]
@@ -133,7 +176,6 @@ const useChatContainer = (props: Props) => {
   const handleNewMessageSent = async (data: MessageResponse) => {
     if (!data) return
     setScrollToEnd(true)
-    console.log({ data: data.id });
     const isExits = messages.some(i => i.id == data.id)
     if (isExits) return
     setMessages((state: MessageResponse[]) => {
@@ -189,7 +231,6 @@ const useChatContainer = (props: Props) => {
           [DELETE_MESSAGE_EVENT]: deleteMessageState,
           [UPDATE_MESSAGE_EVENT]: updateMessageState
         }
-        console.log({ bang: channelName.current  });
         channel.current = await subscribeChannel(pusher, channelName.current, Object.entries(messageHandlers).map(([eventName, handler]) => ({ eventName, handler })));
       }
     } catch (err) {
@@ -243,6 +284,7 @@ const useChatContainer = (props: Props) => {
 
   useFocusEffect(
     useCallback(() => {
+      getMessageConversation()
       return () => {
         setSelectedConversation(undefined)
       };
@@ -283,7 +325,11 @@ const useChatContainer = (props: Props) => {
       onChangeInput: handleChangeInput,
       onSubmit: handleAddMessage,
       handleUploadImage,
-      isCompleted: selectedConversation?.isCompleted
+      isCompleted: selectedConversation?.isCompleted,
+      handleUploadImageCanvas,
+      openSketchCanvasDialog,
+      handleOpenSketchCanvasDialog,
+      handleCloseSketchCanvasDialog
     },
     isLoadingMessages: isLoadingMessages || loading,
     messageList,

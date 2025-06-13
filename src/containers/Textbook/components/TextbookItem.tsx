@@ -22,7 +22,7 @@ const TextbookItem = ({ textbook, t, handleOpenDialog }: Props) => {
             onError={(e) => console.log('Error:', e.nativeEvent.error)}
           />
           <View style={styles.textbookInfo}>
-            <Title numberOfLines={2} ellipsizeMode="tail" style={styles.textbookTitle}>
+            <Title numberOfLines={1} ellipsizeMode="tail" style={styles.textbookTitle}>
               {textbook.name}
             </Title>
             <View style={styles.metaInfo}>

@@ -20,9 +20,11 @@ const useExamResultList = () => {
 
   useFocusEffect(
     useCallback(() => {
+      getListExam()
       return () => {
         setSelectedExam(undefined);
         setExpandedId(null)
+        setSearch("")
       };
     }, [])
   );
@@ -62,10 +64,6 @@ const useExamResultList = () => {
     }
   };
 
-  // const onViewResultExam = (examCode: string) => {
-  //   history.push(`?examCode=${examCode}`);
-  // };
-
   const onChangeSearch = (value: string) => {
     setSearch(value);
 
@@ -74,7 +72,7 @@ const useExamResultList = () => {
     }
     inputSearch.current = setTimeout(() => {
       getResultExamSearch(value);
-    }, 800);
+    }, 500);
   };
 
   const groupExams: GroupExamSession | undefined = useMemo(
@@ -93,22 +91,6 @@ const useExamResultList = () => {
   const handleBack = () => {
     setSelectedExam(undefined)
   }
-
-  // const clearQueryParam = () => {
-  //   if (searchParams.has("examCode")) {
-  //     searchParams.delete("examCode");
-  //   }
-  //   history.replace({
-  //     search: searchParams.toString()
-  //   });
-  // };
-
-  // useEffect(() => {
-  //   clearQueryParam();
-  //   if (!!listExam?.[0]?.id) {
-  //     history.push(`?examCode=${listExam?.[0]?.code}`);
-  //   }
-  // }, [JSON.stringify(listExam)]);
 
   // const { recoverExamCode, recoverKey } = useExamSolving({ examCode: listExam.length && examCodeActive ? examCodeActive : "", isProgressing: false });
 

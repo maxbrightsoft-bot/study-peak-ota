@@ -3,7 +3,7 @@ import RenderHtml from 'react-native-render-html'
 import { Notification } from '@/utils/types'
 import { Ionicons } from '@expo/vector-icons'
 import * as React from 'react'
-import { Text, TouchableOpacity, useWindowDimensions, View } from 'react-native'
+import { ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native'
 import { Divider } from 'react-native-paper'
 import { ScaledSheet } from 'react-native-size-matters'
 import { utcToLocalTime } from '@/utils/helpers'
@@ -29,31 +29,47 @@ const NoticeDrawer = ({ t, open, onClose, notification }: Props) => {
         <Divider />
         <View style={style.contentContainer}>
           <View
-            style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: 8,
+              gap: 8
+            }}
           >
-            <Text style={{ ...TYPO.heading1, color: palette.grey[900], width: '60%' }}>{notification?.name}</Text>
+            <Text
+              numberOfLines={2}
+              ellipsizeMode="tail"
+              style={{ ...TYPO.heading1, color: palette.grey[900], width: '60%' }}
+            >
+              {notification?.name}
+            </Text>
             <Text style={{ ...TYPO.button3, color: palette.grey[700] }}>
-              {notification?.type !== undefined
-                ? t(`${TypeNotificationEnum[notification.type].toLocaleLowerCase()}`)
-                : notification?.name}
+              {t(`${TypeNotificationEnum[notification?.type || 0]?.toLocaleLowerCase()}`)}
             </Text>
           </View>
           <View
-            style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: 16,
+              gap: 8
+            }}
           >
             <Text style={{ ...TYPO.button3, color: palette.grey[500] }}></Text>
-            <Text style={{ ...TYPO.button3, color: palette.grey[500] }}>
+            <Text numberOfLines={2} ellipsizeMode="tail" style={{ ...TYPO.button3, color: palette.grey[500] }}>
               {utcToLocalTime(notification?.createdAt, t('date_format'))}
             </Text>
           </View>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <ScrollView>
             <RenderHtml
               contentWidth={width}
               source={{
                 html: `<div style=${{ ...TYPO.button3, color: palette.grey[700] }}>${notification?.content || ''}</div>`
               }}
             />
-          </View>
+          </ScrollView>
         </View>
       </View>
     )

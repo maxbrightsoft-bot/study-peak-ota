@@ -110,7 +110,6 @@ const useExam = ({ examCode }: Props) => {
 
   const nav1 = useRef<any>(null);
   const nav2 = useRef<any>(null);
-  console.log({ isEnding });
 
   const getQuestionExams = async (showErrorMessage: boolean = false) => {
     if (!examCode || !academyDomain || !userId) return;

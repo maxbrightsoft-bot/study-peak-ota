@@ -17,3 +17,7 @@ export type GroupExamSession = {
   [key: string]: ExamSession[]
 }
 
+export const getPercentage = (current: number, max: number) => {
+  if(!max) return 0;
+  return (current * 100) / max 
+}

@@ -31,7 +31,7 @@ const CalendarSchedule = () => {
     isOpenConfirmDeleteDialog,
     handleCloseConfirmDeleteDialog,
     handleOpenConfirmDeleteDialog,
-    handleEditSchedule,
+    handleSubmitSchedule,
     handleDeleteSchedule,
     scheduleRequest,
     handleChangeScheduleRequest,
@@ -74,7 +74,7 @@ const CalendarSchedule = () => {
         handleCloseScheduleDialog={handleCloseScheduleDialog}
         handleCloseConfirmDeleteDialog={handleCloseConfirmDeleteDialog}
         handleOpenConfirmDeleteDialog={handleOpenConfirmDeleteDialog}
-        handleEditSchedule={handleEditSchedule}
+        handleSubmitSchedule={handleSubmitSchedule}
         handleDeleteSchedule={handleDeleteSchedule}
         handleUpdateScheduleStatus={handleUpdateScheduleStatus}
       />

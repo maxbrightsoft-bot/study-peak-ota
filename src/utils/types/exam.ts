@@ -126,3 +126,41 @@ export type CourseInfo = {
   id: number
   name: string
 }
+
+
+export type OverallExamResultResponse = {
+    data: OverallExamResultData[]
+    maxData: OverallExamResultData
+}
+
+export type OverallExamResultData = {
+    correctRate: number
+    highLevelQuestions: number
+    lowLevelQuestions: number
+    totalAsteriskQuestions: number
+    problemSolvingTime: number
+    questionLongestTime: number
+}
+
+export type OverallCategoryData = {
+    categoryId: number
+    categoryName: string
+    path: string
+    totalCorrectQuestions: number
+    avgCorrectQuestions: number
+    totalQuestions: number
+}
+
+export type QuestionTimeCategoryData = {
+    categoryId: number
+    categoryName: string
+    path: string
+    questions: QuestionTime[]
+}
+
+export type QuestionTime = {
+    questionId: number
+    questionOrder: number
+    time: number
+    avgTime: number
+}
