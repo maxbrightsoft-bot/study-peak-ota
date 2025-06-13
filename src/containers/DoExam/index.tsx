@@ -68,7 +68,7 @@ const DoExam = ({ examCode }: Props) => {
         style={{ flex: 1, position: 'relative' }}
       >
         <View style={{ height: '85%', paddingBottom: 40 }}>
-          <ScrollView contentContainerStyle={styles.scrollContainer} ref={scrollViewRef} scrollEventThrottle={16}>
+          <ScrollView  contentContainerStyle={styles.scrollContainer} ref={scrollViewRef} scrollEventThrottle={16}>
             {questionListMapped.map((questionGroup: QuestionGroupResponse, groupIndex: number) => (
               <React.Fragment key={`group-${questionGroup.id}`}>
                 <ExamQuestionGroup

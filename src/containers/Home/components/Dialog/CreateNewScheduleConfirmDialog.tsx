@@ -75,6 +75,7 @@ const styles = ScaledSheet.create({
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: "8@ms",
     padding: '16@ms',
     borderTopWidth: 1,
     borderTopColor: palette.grey[200]

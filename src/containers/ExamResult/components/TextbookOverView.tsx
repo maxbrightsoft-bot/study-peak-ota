@@ -79,6 +79,7 @@ const styles = ScaledSheet.create({
   },
   overviewValue: {
     ...TYPO.button3,
+    fontWeight: 700,
     color: palette.grey[900]
   },
   doubleColumn: {

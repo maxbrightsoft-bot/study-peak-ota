@@ -67,6 +67,7 @@ const useNotice = (setNew: any) => {
 
   useFocusEffect(
     useCallback(() => {
+      handleGetListNotification(typeSelected)
       return () => {
         handleChangeTab(TabList[0].value, TabList[0].type)
       };

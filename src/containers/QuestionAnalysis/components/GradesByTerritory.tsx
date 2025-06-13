@@ -32,14 +32,8 @@ const GradesByTerritory = ({ data, keyOpen, openProblem, changeOpen, resultData,
           <Text style={[styles.cellText, styles.boldText]}>{item.name}</Text>
         </DataTable.Cell>
         <DataTable.Cell numeric>
-          <Text style={[styles.cellText, styles.boldText]}>{item.percentageAmongStudents.toFixed(2)}%</Text>
+          <Text style={[styles.cellText, styles.boldText]}>{item?.percentageAmongStudents?.toFixed(2)}%</Text>
         </DataTable.Cell>
-        {/* <DataTable.Cell numeric>
-          <Text style={styles.cellText}>{item.totalCorrectQuestions}</Text>
-        </DataTable.Cell>
-        <DataTable.Cell numeric>
-          <Text style={styles.cellText}>{item.totalQuestions}</Text>
-        </DataTable.Cell> */}
         <DataTable.Cell numeric>
           <Text style={styles.cellText}>{formatDuration(t, item.totalSolveTime)}</Text>
         </DataTable.Cell>
@@ -50,10 +44,10 @@ const GradesByTerritory = ({ data, keyOpen, openProblem, changeOpen, resultData,
   return (
     <View style={styles.wrapper}>
       <TouchableOpacity
-        style={[styles.header, !isOpen && styles.closedHeader]}
+        style={[styles.header, !isOpen ? styles.closedHeader: { borderBottomWidth: 1, borderColor: palette.grey[100] }]}
         onPress={() => changeOpen?.(isOpen ? undefined : keyOpen)}
       >
-        <Text style={[styles.headerText, !isOpen && { color: '#97A1AF' }]}>{t('grades_by_area')}</Text>
+        <Text style={[styles.headerText, !isOpen && { color: palette.grey[500] }]}>{t('grades_by_area')}</Text>
         {isOpen ? (
           <Ionicons name="chevron-up" size={24} color="#E0E0E0" />
         ) : (

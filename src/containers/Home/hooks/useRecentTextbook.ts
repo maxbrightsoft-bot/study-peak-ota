@@ -32,13 +32,13 @@ const useRecentTextbook = ({ preparedType, preparedFilterType }: Props) => {
     { ...DefaultTextbookFilter, preparedType, preparedFilterType }
   );
   const [openConfirmDialog, setOpenConfirmDialog] = useState<boolean>(false)
-    const handleCloseConfirmDialog = () => {
-      setOpenConfirmDialog(false)
-    }
+  const handleCloseConfirmDialog = () => {
+    setOpenConfirmDialog(false)
+  }
 
-    const handleOpenConfirmDialog = () => {
-      setOpenConfirmDialog(true)
-    }
+  const handleOpenConfirmDialog = () => {
+    setOpenConfirmDialog(true)
+  }
 
   const getTextbookList = async () => {
     setLoading(true)
@@ -91,12 +91,10 @@ const useRecentTextbook = ({ preparedType, preparedFilterType }: Props) => {
   }, [selectedAcademy?.id]);
 
   useFocusEffect(
-      useCallback(() => {
-        return () => {
-          getTextbookList()
-        };
-      }, [])
-    );
+    useCallback(() => {
+      getTextbookList()
+    }, [])
+  );
 
   return {
     t,

@@ -28,17 +28,17 @@ const FilterModal = ({ t, title, open, onClose = () => {} }: Props) => {
               <ScrollView style={styles.scrollContainer}>
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>내가 생성한 시험</Text>
-                  <StartArrowSelect />
+                  {/* <StartArrowSelect /> */}
                 </View>
 
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>시험 카테고리</Text>
-                  <StartArrowSelect />
+                  {/* <StartArrowSelect /> */}
                 </View>
 
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>기존 시험 이력</Text>
-                  <StartArrowSelect />
+                  {/* <StartArrowSelect /> */}
                 </View>
 
                 <View style={styles.section}>

@@ -10,6 +10,7 @@ import _ from "lodash"
 import { NoteResponse, NoteSearchQuery } from "@/utils/types"
 import { getErrorMessage, toast } from "@/utils/helpers"
 import { getNotesApi } from "../apiClients/noteService"
+import { useFocusEffect } from "@react-navigation/native"
 
 const useNotes = (
     setFilter: Dispatch<SetStateAction<NoteSearchQuery | undefined>>,
@@ -22,11 +23,6 @@ const useNotes = (
 
     const getNotes = async () => {
         if (isLoadingNotes) return
-        if (!filter || !filter.currentPage) {
-
-            setNotes([])
-            return
-        }
         setLoadingNotes(true)
         try {
             const res = await getNotesApi(filter)
@@ -59,7 +55,7 @@ const useNotes = (
     }, [filter?.currentPage, totalPages])
 
     const handleNoteAdded = (note: NoteResponse) => {
-    const newNotes: NoteResponse[] = [..._.uniqBy([note, ...notes], "id")] as NoteResponse[]
+        const newNotes: NoteResponse[] = [..._.uniqBy([note, ...notes], "id")] as NoteResponse[]
         setNotes(newNotes)
     }
 
@@ -77,12 +73,19 @@ const useNotes = (
         getNotes()
     }, [JSON.stringify(filter)])
 
+    useFocusEffect(
+        useCallback(() => {
+            getNotes()
+        }, [])
+    );
+
+    console.log({ notes });
+
     return {
         t,
         notes,
         isLoadingNotes,
         handleLoadMore,
-        getNotes,
         handleNoteAdded,
         handleNoteRemoved,
         handleNoteUpdated

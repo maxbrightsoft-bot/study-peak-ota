@@ -49,8 +49,6 @@ export const apiUpload: AxiosInstance = axios.create({
         if ((academyDomain && !isLearningSpace) && config.headers[AcademyHeaders] == undefined) config.headers[AcademyHeaders] = `${academyDomain}`
         if (isLearningSpace && config.headers[NoAcademyHeaders] == undefined) config.headers[NoAcademyHeaders] = `${isLearningSpace}`
         if (language) config.headers[LanguageHeaders] = `${language}`
-        console.log({ body: config.data });
-        console.log({ config });
 
         return config
 

@@ -113,10 +113,10 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
 
     useFocusEffect(
       useCallback(() => {
+        getTextbookList()
         return () => {
           setSelectedTextbook(undefined);
           handleCloseDialog()
-          getTextbookList()
         };
       }, [])
     );

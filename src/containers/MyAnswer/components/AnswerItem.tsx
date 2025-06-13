@@ -32,8 +32,6 @@ const AnswerItem: FC<AnswerItemProps> = ({ data, nextData, isFirst, isLast }) =>
     return {}
   }
 
-  console.log({ data });
-
   const getResponseColor = (signal: number) => {
     switch (signal) {
       case 0:

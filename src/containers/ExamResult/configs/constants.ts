@@ -20,6 +20,10 @@ export const examStatusViewOptions = (t: any, chapterId?: number) => chapterId ?
         value: ExamStatusView.ExamOverview
     },
     {
+        label: t('my_overall'),
+        value: ExamStatusView.MyOverall
+    },
+    {
         label: t('my_answers'),
         value: ExamStatusView.MyAnswers
     },

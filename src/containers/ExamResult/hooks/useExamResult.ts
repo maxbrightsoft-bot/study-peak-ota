@@ -4,7 +4,6 @@ import { CategoryResponse, EffectSize, ExamResult, LongTimeSpendQuestion, NoteRe
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ProblemKey } from "@/utils/enums"
 import { captureRef } from 'react-native-view-shot'
-import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
 import { useTranslation } from "react-i18next"
 import { examStatusViewOptions } from "../../ExamResultList/configs/constants"
@@ -12,6 +11,7 @@ import useExamResultNote from "../../ExamResultList/hooks/useExamResultNote"
 import useCreateQuestionDialog from "../../ExamResultList/hooks/useQADialog"
 import { getChapterResultsApi, getChapterResultsCategoriesApi, getChapterResultsEffectSizeApi, getChapterResultsLongTimeSpendApi, getChapterResultsTimeOrderQuestionApi, getResults, getResultsCategories, getResultsEffectSize, getResultsLongTimeSpend, getResultsTimeOrderQuestion } from "../apiClients"
 import { Platform, View } from "react-native"
+import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import { useFocusEffect } from "@react-navigation/native"
 
 type Props = {
@@ -40,9 +40,12 @@ const useExamResult = ({ chapterId, examCode, isPrint }: Props) => {
   const [selectedQuestion, setSelectedQuestion] = useState<QuestionData>()
   const [errorMessage, setErrorMessage] = useState<string>()
   const [examStatusView, setExamStatusView] = useState(examStatusViewOptions(t)[0].value)
+  const [contentSize, setContentSize] = useState({ width: 0, height: 0 });
 
-    useFocusEffect(
+
+  useFocusEffect(
     useCallback(() => {
+      getData()
       return () => {
         setExamStatusView(examStatusViewOptions(t)[0].value);
       };
@@ -211,38 +214,62 @@ const useExamResult = ({ chapterId, examCode, isPrint }: Props) => {
     , [resultData?.startTime, resultData?.finishTime])
 
   const handlePrint = async () => {
-    if (!contentRef.current) return
-    console.log({ contentRef: contentRef.current });
+    if (!contentRef.current) return;
+
     try {
-      const uri = await captureRef(contentRef.current, {
+      const uri = await captureRef(contentRef, {
         format: 'png',
         quality: 1,
-        result: 'base64'
-      })
-
-      const originalFileName = `${fileName}.pdf`;
-      const sanitizedFileName = originalFileName.replace(/[ \(\):]/g, '_')
-      const filePath = `${RNFS.DocumentDirectoryPath}/${sanitizedFileName}`;
-
-      await RNFS.writeFile(filePath, uri, 'base64');
-
-      await Share.open({
-        url: Platform.OS === 'android' ? `file://${filePath}` : filePath,
-        type: 'application/pdf',
-        failOnCancel: false,
+        result: 'base64',
       });
-    } catch (err) {
-      console.error('Print error:', err)
-    }
-  }
 
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        getData()
+      const sanitizedFileName = fileName.replace(/[ \(\):]/g, '_');
+
+      const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Document</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              margin: 0;
+            }
+          </style>
+        </head>
+        <body>
+            <img src="data:image/png;base64,${uri}" alt="Content" />
+        </body>
+      </html>
+    `;
+
+      const options = {
+        html: htmlContent,
+        fileName: sanitizedFileName,
+        width: 595,
+        height: 842,
+        bgColor: '#FFFFFF'
       };
-    }, []))
 
+      const file = await RNHTMLtoPDF.convert(options);
+
+      if (file.filePath) {
+        await Share.open({
+          url: Platform.OS === 'android' ? `file://${file.filePath}` : file.filePath,
+          type: 'application/pdf',
+        });
+      }
+
+    } catch (err) {
+      console.error('Print error:', err);
+    }
+  };
+
+  const onContentLayout = (event: any) => {
+    const { width, height } = event.nativeEvent.layout;
+    setContentSize({ width, height });
+  };
 
   return {
     t,
@@ -268,6 +295,7 @@ const useExamResult = ({ chapterId, examCode, isPrint }: Props) => {
       handleChangeExamStatusView,
       setOpenProblem,
     },
+    onContentLayout,
     examResultNotes,
     handleOpenNoteDialogFromQuestion,
     handleOpenQuestionDialogFromNote

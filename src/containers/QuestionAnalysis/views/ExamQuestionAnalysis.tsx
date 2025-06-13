@@ -27,6 +27,7 @@ const QuestionAnalysis = ({ resultData, openProblem, setOpenProblem, categoryRes
       />
       <Vulnerable
         keyOpen={ProblemKey.Vulnerable}
+        isPrint={isPrint}
         data={resultData}
         openProblem={openProblem}
         changeOpen={setOpenProblem}

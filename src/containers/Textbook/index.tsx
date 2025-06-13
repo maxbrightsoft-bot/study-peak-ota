@@ -1,10 +1,8 @@
 import { palette, TYPO } from '@/theme'
 import React from 'react'
-import { View, ScrollView, StyleSheet } from 'react-native'
-import { Text, Button } from 'react-native-paper'
-import { FontAwesome } from '@expo/vector-icons'
+import { View, StyleSheet, FlatList } from 'react-native'
+import { Text } from 'react-native-paper'
 import useTextbook from './hooks/useTextbook'
-import { PreparedFilterType } from './configs/type'
 import TextbookItem from './components/TextbookItem'
 import FilterModal from './components/Dialog/FilterModal'
 import TextbookDrawer from './components/Dialog/TextbookDrawer'
@@ -24,14 +22,14 @@ const Textbook = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView}>
-        <View style={{ gap: 24, paddingBottom: 40 }}>
-          {textbookList.map((textbook) => (
-            <TextbookItem key={textbook.id} textbook={textbook} t={t} handleOpenDialog={handleOpenDialog} />
-          ))}
-          {textbookList?.length === 0 && <Text style={styles.emptyText}>{t('no_data')}</Text>}
-        </View>
-      </ScrollView>
+      <FlatList
+        data={textbookList}
+        renderItem={({ item }) => <TextbookItem textbook={item} t={t} handleOpenDialog={handleOpenDialog} />}
+        keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={[styles.scrollView, { gap: 24, paddingBottom: 40 }]}
+        ListEmptyComponent={<Text style={styles.emptyText}>{t('no_data')}</Text>}
+        showsVerticalScrollIndicator={false}
+      />
       {/* <Button
         mode="contained"
         style={styles.filterButton}

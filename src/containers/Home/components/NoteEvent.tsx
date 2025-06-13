@@ -1,10 +1,12 @@
-import { Text, View } from 'react-native'
+import { Text, TouchableOpacity, View } from 'react-native'
 import NoteItem from './NoteItem'
-import { palette, TYPO } from '@/theme'
+import { palette } from '@/theme'
 import { ScheduleFormData, ScheduleResponse } from '../configs/type'
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
 import CreateNewScheduleConfirmDialog from './Dialog/CreateNewScheduleConfirmDialog'
 import CreateNewScheduleDialog from './Dialog/CreateNewScheduleDialog'
+import { Ionicons } from '@expo/vector-icons'
+import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   t: any
@@ -24,7 +26,7 @@ type Props = {
   handleCloseScheduleDialog: () => void
   handleCloseConfirmDeleteDialog: () => void
   handleOpenConfirmDeleteDialog: (schedule?: ScheduleResponse | undefined) => void
-  handleEditSchedule: () => Promise<void>
+  handleSubmitSchedule: () => Promise<void>
   handleDeleteSchedule: () => void
   handleSetSchedule: (values?: ScheduleFormData | undefined) => void
   handleUpdateScheduleStatus: (schedule: ScheduleResponse) => Promise<void>
@@ -49,7 +51,7 @@ const NoteEvent = (noteProps: Props) => {
     isOpenConfirmDeleteDialog,
     handleCloseScheduleDialog,
     handleOpenConfirmDeleteDialog,
-    handleEditSchedule,
+    handleSubmitSchedule,
     handleDeleteSchedule,
     scheduleRequest,
     handleUpdateScheduleStatus
@@ -72,7 +74,22 @@ const NoteEvent = (noteProps: Props) => {
           />
         ))}
         {!schedules?.length && (
-          <Text style={{ ...TYPO.caption, color: palette.grey[500], textAlign: 'center' }}>{t('no_data')}</Text>
+          <View style={styles.container}>
+            <Text style={[styles.noScheduleText, { color: palette.grey[500] }]}>{t('there_is_no_schedule')}</Text>
+
+            <TouchableOpacity
+              style={[
+                styles.button,
+                {
+                  borderColor: palette.main[300]
+                }
+              ]}
+              onPress={() => handleOpenScheduleDialog()}
+            >
+              <Ionicons name="add-circle" size={20} color={palette.main[500]} />
+              <Text style={[styles.buttonText, { color: palette.main[500] }]}>{t('new_schedule')}</Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
       <CreateNewScheduleDialog
@@ -105,10 +122,41 @@ const NoteEvent = (noteProps: Props) => {
         t={t}
         isUpdate={true}
         newSchedule={scheduleRequest}
-        onSubmit={handleEditSchedule}
+        onSubmit={handleSubmitSchedule}
       />
     </View>
   )
 }
+
+const styles = ScaledSheet.create({
+  container: {
+    minHeight: 120,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  noScheduleText: {
+    fontWeight: '600',
+    fontSize: '13@ms',
+    lineHeight: '14@ms',
+    marginBottom: '12@vs'
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingVertical: '8@vs',
+    paddingHorizontal: '12@s'
+  },
+  buttonText: {
+    fontWeight: '700',
+    fontSize: '13@ms',
+    lineHeight: '14@ms',
+    marginLeft: '8@s'
+  },
+  icon: {
+    marginRight: '8@s'
+  }
+})
 
 export default NoteEvent

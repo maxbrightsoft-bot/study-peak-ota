@@ -2,12 +2,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ScheduleFormData,
   ScheduleQuery,
+  ScheduleRequest,
   ScheduleResponse,
   ScheduleStatus,
   ScheduleStatusRequest,
   ScheduleType
 } from "../configs/type";
 import {
+  createScheduleApi,
   deleteScheduleApi,
   getScheduleCountApi,
   getSchedulesApi,
@@ -21,6 +23,7 @@ import { useTranslation } from "react-i18next";
 import moment from "moment";
 import { getErrorMessage, timeSpanToLocalMoment, toast } from "@/utils/helpers";
 import _ from "lodash";
+import { convertScheduleFormToRequest } from "../configs/helpers";
 
 const useSchedule = () => {
   const { user, setLoading } = useAuthStore()
@@ -148,6 +151,10 @@ const useSchedule = () => {
   }, [user?.id, user?.academyDomain, user?.isLearningSpace]);
 
   const getScheduleList = async () => {
+    if(!user?.academyDomain && !user?.isLearningSpace) {
+      setSchedules([])
+      return
+    }
     setLoading(true)
     try {
       const { data } = await getSchedulesApi({
@@ -179,6 +186,10 @@ const useSchedule = () => {
   };
 
   const getScheduleListForNoteEvent = async () => {
+    if(!user?.academyDomain && !user?.isLearningSpace) {
+      setScheduleList([])
+      return
+    }
     try {
       const { data } = await getSchedulesApi({
         ...filter,
@@ -197,9 +208,18 @@ const useSchedule = () => {
     setLoading(false)
   };
 
-  const handleEditSchedule = async () => {
+
+  const clearData = () => {
+    setSelectedSchedule(undefined);
+    setScheduleRequest(undefined);
+    setOpenDialog(false);
+    setOpenConfirmDialog(false)
+    setOpenConfirmDeleteDialog(false)
+  };
+  
+  const handleSubmitSchedule = async () => {
     if (
-      !scheduleRequest?.id ||
+      !scheduleRequest ||
       !scheduleRequest.date ||
       !scheduleRequest.startTime ||
       !scheduleRequest.endTime ||
@@ -208,26 +228,20 @@ const useSchedule = () => {
       return;
     setLoading(true)
     try {
-      const schedule: any = _.clone(scheduleRequest)
-      const date = schedule?.date?.isUTC()
-        ? schedule.date?.format("YYYY-MM-DDTHH:mm:ss")
-        : schedule?.date
-            ?.startOf("day")
-            .utc()
-            .format("YYYY-MM-DDTHH:mm:ss");
-      await updateScheduleApi(schedule?.id, {
-        ...schedule,
-        date,
-        startTime: schedule?.startTime?.utc().format("HH:mm:ss"),
-        endTime: schedule?.endTime?.utc().format("HH:mm:ss")
-      });
-      getScheduleList();
-      toast.success(t("update_schedule_successfully"));
+      const schedule: ScheduleRequest = convertScheduleFormToRequest(scheduleRequest)
+      if(scheduleRequest.id)
+        await updateScheduleApi(scheduleRequest.id, schedule);
+      else
+        await createScheduleApi(schedule);
+      await getScheduleList();
+      await getScheduleListForNoteEvent();
+      handleGetScheduleCount();
+      toast.success(t(scheduleRequest.id ? "update_schedule_successfully" : "create_schedule_successfully"));
     } catch (error: any) {
       toast.error(getErrorMessage(t, error));
     }
     setLoading(false)
-    handleCloseConfirmDialog();
+    clearData()
   };
 
   const handleUpdateScheduleStatus = async (schedule: ScheduleResponse) => {
@@ -269,22 +283,15 @@ const useSchedule = () => {
 
     try {
       await deleteScheduleApi(selectedSchedule?.id);
-      getScheduleList();
-      getScheduleListForNoteEvent();
+      await getScheduleList();
+      await getScheduleListForNoteEvent();
       handleGetScheduleCount();
       toast.success(t("delete_schedule_successfully"));
     } catch (error: any) {
       toast.error(getErrorMessage(t, error));
     }
     setLoading(false)
-    handleCloseConfirmDeleteDialog();
-  };
-
-  const handleChangeScheduleRequest = (val?: ScheduleFormData) => {
-    setScheduleRequest(val);
-  };
-  const handleSetSchedule = (values?: ScheduleResponse) => {
-    setSelectedSchedule(values);
+    clearData()
   };
 
   const handleCheckInLesson = async (schedule: ScheduleResponse) => {
@@ -292,13 +299,13 @@ const useSchedule = () => {
     setLoading(true)
     try {
       await getCheckInLessonsApi(schedule?.lessonId);
-      getScheduleList();
+      await getScheduleList();
       toast.success(t("check_in_lesson_successfully"));
     } catch (error: any) {
       toast.error(getErrorMessage(t, error));
     }
     setLoading(false)
-    handleCloseDialog();
+    clearData()
   };
 
   useEffect(() => {
@@ -332,6 +339,13 @@ const useSchedule = () => {
     );
   }, [JSON.stringify(scheduleList)]);
 
+  const handleChangeScheduleRequest = (val?: ScheduleFormData) => {
+    setScheduleRequest(val);
+  };
+  const handleSetSchedule = (values?: ScheduleResponse) => {
+    setSelectedSchedule(values);
+  };
+
   return {
     t,
     date,
@@ -358,7 +372,7 @@ const useSchedule = () => {
     handleCloseConfirmDeleteDialog,
     handleOpenConfirmDeleteDialog,
     handleSetSchedule,
-    handleEditSchedule,
+    handleSubmitSchedule,
     handleDeleteSchedule,
     handleChangeScheduleRequest,
     handleUpdateScheduleStatus,

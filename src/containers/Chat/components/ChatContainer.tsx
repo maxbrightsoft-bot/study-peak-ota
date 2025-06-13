@@ -1,8 +1,8 @@
 import TextField from '@/components/Input/TextField'
 import { palette, TYPO } from '@/theme'
-import { Ionicons } from '@expo/vector-icons'
+import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import React, { useEffect, useMemo, useRef } from 'react'
-import { View, Text, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native'
+import { View, Text, FlatList, TouchableOpacity } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 import { IChatHeaderProps, IChatListProps, IInputChatProps } from '../configs/types'
 import { ActivityIndicator } from 'react-native-paper'
@@ -11,6 +11,7 @@ import { utcToLocalTime } from '@/utils/helpers'
 import { isHTMLContent } from '../configs/helpers'
 import useAuthStore from '@/store/useAuthStore'
 import _ from 'lodash'
+import SketchCanvas from './dialog/SketchCanvas'
 
 type prevSender = string | undefined
 
@@ -32,9 +33,18 @@ const ChatContainer = ({
 }: Props) => {
   const { isLoading } = useAuthStore()
   const { messages, isScrollToEnd, handleUpdateMessage, handleDeleteMessage, handleToggleScrollToEnd } = chatListProps
-  const { isCompleted, onChangeInput, onSubmit, handleUploadImage, text } = inputProps
+  const {
+    isCompleted,
+    onChangeInput,
+    onSubmit,
+    handleUploadImage,
+    text,
+    handleUploadImageCanvas,
+    openSketchCanvasDialog,
+    handleOpenSketchCanvasDialog,
+    handleCloseSketchCanvasDialog
+  } = inputProps
   const flatListRef = useRef<FlatList>(null)
-
   const filterMessage = useMemo(() => {
     let prevTime = 0
     let prevSender: prevSender
@@ -61,7 +71,7 @@ const ChatContainer = ({
         <Text style={styles.examTitle}>{chatHeaderProps.examTitle}</Text>
         <Text style={styles.dateTitle}>{utcToLocalTime(chatHeaderProps.createdAt, t('date_format'))}</Text>
       </View>
-      <View style={{ height: '80%' }}>
+      <View style={{ height: "75%"}}>
         {!isLoading && isLoadingMessages && (
           <View style={[styles.overlay]}>
             <ActivityIndicator style={{ paddingVertical: 12 }} animating={true} color={palette.primary.main} />
@@ -95,16 +105,37 @@ const ChatContainer = ({
       </View>
 
       <View style={styles.inputContainer}>
-        <TouchableOpacity onPress={handleUploadImage}>
-          <Ionicons name="add-circle" size={32} color={palette.grey[500]} />
-        </TouchableOpacity>
+        <View style={{ justifyContent: 'center', alignItems: 'center', gap: 4 }}>
+          <TouchableOpacity onPress={handleUploadImage}>
+            <Ionicons name="add-circle" size={32} color={palette.grey[500]} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              backgroundColor: palette.main[500],
+              borderRadius: 255,
+              paddingVertical: 5,
+              paddingHorizontal: 12
+            }}
+            onPress={handleOpenSketchCanvasDialog}
+          >
+            <MaterialIcons name="draw" disabled={isCompleted} size={25} color="#FFF" />
+          </TouchableOpacity>
+        </View>
         <View style={{ flexGrow: 1 }}>
           <TextField value={text} style={styles.input} onChangeText={onChangeInput} />
         </View>
-        <TouchableOpacity onPress={onSubmit}>
+        <TouchableOpacity onPress={() => onSubmit()}>
           <Ionicons name="send" disabled={isCompleted} size={25} color={palette.main[500]} />
         </TouchableOpacity>
       </View>
+      {openSketchCanvasDialog && (
+        <SketchCanvas
+          t={t}
+          open={openSketchCanvasDialog}
+          onClose={handleCloseSketchCanvasDialog}
+          onSubmit={handleUploadImageCanvas}
+        />
+      )}
     </View>
   )
 }

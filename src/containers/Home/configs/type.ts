@@ -42,6 +42,14 @@ export enum StudentAttendanceStatus {
   Late
 }
 
+
+export type SelectedDateInfo = {
+  startDate: string
+  endDate: string
+  currentDate: string
+  isTotalMonth: boolean
+}
+
 export type InfoLesson = {
   totalLessons: number;
   totalCheckedInLessons: number;

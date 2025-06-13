@@ -46,16 +46,21 @@ export interface IChatHeaderProps {
 
 export interface IInputChatProps {
     text: string
-    onSubmit: () => void
+    onSubmit: (url?: string) => Promise<void>
     onChangeInput: (text: string) => void
     isCompleted?: boolean
     handleUploadImage: () => void
+    handleUploadImageCanvas: (data: string, callback: any) => void,
+    openSketchCanvasDialog: boolean,
+    handleOpenSketchCanvasDialog: () => void,
+    handleCloseSketchCanvasDialog: () => void
 }
 
 export interface IChatListProps {
     messages?: IChatItemProps[]
     isScrollToEnd: boolean
-    onReTrySendMessage?: () => void
+    onReTrySendMessage?: (
+        url?: string) => Promise<void>
     handleToggleScrollToEnd: () => void
     roles: Array<String>
     handleUpdateMessage: (conversationId: number, id: number, message: string, callback: any) => Promise<void>,

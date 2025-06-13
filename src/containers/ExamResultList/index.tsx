@@ -1,5 +1,5 @@
 import CustomDropDown from '@/components/DropDown/CustomDropDown'
-import { KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { KeyboardAvoidingView, Platform, FlatList, Text, TouchableOpacity, View } from 'react-native'
 import useExamResultList from './hooks/useExamResultList'
 import { ExamSession } from '@/utils/types'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -14,7 +14,6 @@ const ExamResultList = () => {
     t,
     listExam,
     groupExams,
-    // examCodeActive,
     search,
     expandedId,
     handleBack,
@@ -23,66 +22,84 @@ const ExamResultList = () => {
     selectedExam,
     onChangeSearch
   } = useExamResultList()
+
+  // Render item for search results
+  const renderSearchItem = ({ item }: { item: ExamSession }) => (
+    <TouchableOpacity onPress={() => handleViewResult(item)} activeOpacity={0.8}>
+      <View style={styles.examItem}>
+        <View style={styles.examContent}>
+          <View style={styles.examHeader}>
+            <Text style={styles.examTitle}>{highlightText(item?.title || '', search)}</Text>
+            <Text style={styles.examScore}>{t('score_format', { score: item?.score })}</Text>
+          </View>
+          <View style={styles.examFooter}>
+            <Text style={styles.examDate}>{utcToLocalTime(item.startTime, t('date_format'))}</Text>
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  )
+
+  // Render item for grouped exams
+  const renderGroupItem = ({ item, index }: { item: [string, ExamSession[]]; index: number }) => {
+    const [key, exams] = item
+    return (
+      <View style={styles.groupExamContainer}>
+        <CustomDropDown
+          title={
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Text style={styles.titleText}>{moment(key).format(t('date_format_exam'))}</Text>
+              <Text style={styles.scoreText}>{t('cases', { number: exams.length })}</Text>
+            </View>
+          }
+          expanded={expandedId === index}
+          onPress={() => toggleExpand(index)}
+        >
+          {exams.map((exam: ExamSession, index) => (
+            <TouchableOpacity key={`${key}_${index}`} onPress={() => handleViewResult(exam)} activeOpacity={0.8}>
+              <View style={styles.examItem}>
+                <View style={styles.examContent}>
+                  <View style={styles.examHeader}>
+                    <Text style={styles.examTitle}>{exam?.title || ''}</Text>
+                    <Text style={styles.examScore}>{t('score_format', { score: exam?.score })}</Text>
+                  </View>
+                  <View style={styles.examFooter}>
+                    <Text style={styles.examDate}>{utcToLocalTime(exam.startTime, t('date_format'))}</Text>
+                  </View>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </CustomDropDown>
+      </View>
+    )
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.searchBox}>
         <SearchInput value={search} onChangeText={onChangeSearch} placeholder={t('search_placeholder')} />
       </View>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={80} style={{ height: "80%"}}>
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
-          {search.length
-            ? listExam?.map((exam: ExamSession, index) => (
-                <TouchableOpacity key={index} onPress={() => handleViewResult(exam)} activeOpacity={0.8}>
-                  <View style={[styles.examItem]}>
-                    <View style={styles.examContent}>
-                      <View style={styles.examHeader}>
-                        <Text style={[styles.examTitle]}>{highlightText(exam?.title || '', search)}</Text>
-                        <Text style={[styles.examScore]}>{t('score_format', { score: exam?.score })}</Text>
-                      </View>
-
-                      <View style={styles.examFooter}>
-                        <Text style={[styles.examDate]}>{utcToLocalTime(exam.startTime, t('date_format'))}</Text>
-                      </View>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              ))
-            : groupExams &&
-              Object.entries(groupExams).map(([key, exams], examIndex) => (
-                <View style={styles.groupExamContainer} key={examIndex}>
-                  <CustomDropDown
-                    title={
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                        <Text style={styles.titleText}> {moment(key).format(t('date_format_exam'))}</Text>
-                        <Text style={styles.scoreText}> {t('cases', { number: exams.length })}</Text>
-                      </View>
-                    }
-                    expanded={expandedId === examIndex}
-                    onPress={() => toggleExpand(examIndex)}
-                  >
-                    {exams?.map((exam: ExamSession, index) => (
-                      <TouchableOpacity
-                        key={`${examIndex}_${index}`}
-                        onPress={() => handleViewResult(exam)}
-                        activeOpacity={0.8}
-                      >
-                        <View style={[styles.examItem]}>
-                          <View style={styles.examContent}>
-                            <View style={styles.examHeader}>
-                              <Text style={[styles.examTitle]}>{exam?.title || ''}</Text>
-                              <Text style={[styles.examScore]}>{t('score_format', { score: exam?.score })}</Text>
-                            </View>
-                            <View style={styles.examFooter}>
-                              <Text style={[styles.examDate]}>{utcToLocalTime(exam.startTime, t('date_format'))}</Text>
-                            </View>
-                          </View>
-                        </View>
-                      </TouchableOpacity>
-                    ))}
-                  </CustomDropDown>
-                </View>
-              ))}
-        </ScrollView>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={80}
+        style={{ flex: 1 }}
+      >
+        {search.length ? (
+          <FlatList
+            data={listExam}
+            renderItem={renderSearchItem}
+            keyExtractor={(item, index) => `search_${index}`}
+            contentContainerStyle={styles.scrollContainer}
+          />
+        ) : (
+          <FlatList
+            data={Object.entries(groupExams || {})}
+            renderItem={renderGroupItem}
+            keyExtractor={(item) => item[0]}
+            contentContainerStyle={styles.scrollContainer}
+          />
+        )}
       </KeyboardAvoidingView>
       {!!selectedExam && <ExamResult onClose={handleBack} examCode={selectedExam?.code || ''} />}
     </View>
@@ -106,6 +123,7 @@ const styles = ScaledSheet.create({
   },
   scrollContainer: {
     gap: '8@ms',
+    paddingBottom: '20@vs'
   },
   titleText: {
     ...TYPO.button3,
@@ -123,7 +141,8 @@ const styles = ScaledSheet.create({
   examItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    padding: '12@ms',
+    paddingHorizontal: '24@ms',
+    paddingVertical: '12@ms',
     gap: '8@ms',
     borderRadius: '4@ms',
     marginBottom: '8@vs'

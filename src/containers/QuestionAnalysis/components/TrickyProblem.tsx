@@ -40,7 +40,6 @@ const TrickyProblem: FC<Props> = ({ keyOpen, data, openProblem, changeOpen, isPr
             <Ionicons name="close" size={20} color={palette.grey[700]} />
             <Text style={styles.sectionTitle}>{t('incorrect_problem_among_the_starred_problems')}</Text>
           </View>
-
           <View style={styles.questionsContainer}>
             {inCorrectQuestions?.length ? (
               inCorrectQuestions.map((question: Question) => (
@@ -82,7 +81,7 @@ const TrickyProblem: FC<Props> = ({ keyOpen, data, openProblem, changeOpen, isPr
         style={[styles.header, !isOpen && styles.closedHeader]}
         onPress={() => changeOpen?.(isOpen ? undefined : keyOpen)}
       >
-        <Text style={[styles.headerText, !isOpen && { color: '#97A1AF' }]}>{t('tricky_problems')}</Text>
+        <Text style={[styles.headerText, !isOpen && { color: palette.grey[500] }]}>{t('tricky_problems')}</Text>
         {isOpen ? (
           <Ionicons name="chevron-up" size={24} color="#E0E0E0" />
         ) : (
@@ -114,7 +113,7 @@ const styles = ScaledSheet.create({
   headerText: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: palette.grey[500]
+    color: palette.grey[700]
   },
   content: {
     maxHeight: 300

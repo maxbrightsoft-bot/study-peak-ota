@@ -4,6 +4,7 @@ import * as Google from "expo-auth-session/providers/google";
 import { useEffect } from "react";
 import { LoginAccessTokenRequest, LoginRequest, LoginResponse } from "@/utils/types";
 import { Role } from "@/utils/enums";
+import { makeRedirectUri } from 'expo-auth-session';
 import {
   ACADEMY_DOMAIN,
   ACCESS_TOKEN,
@@ -28,6 +29,9 @@ const useLogin = () => {
     androidClientId: process.env.EXPO_PUBLIC_ANDROID_GOOGLE_CLIENT_ID,
     webClientId: process.env.EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID,
     clientId: process.env.EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID,
+    redirectUri: makeRedirectUri({
+      scheme: 'com.max.britghtsoft.touchstudymobile',
+    }),
     scopes: ["profile", "email"],
   });
   const { setLoading, logout, setUser } = useAuthStore();
@@ -64,7 +68,7 @@ const useLogin = () => {
       const isAcademy = !!user?.academyDomain || !!user?.isLearningSpace;
       const needToRegister = isFirstLogin && isAcademy;
       let redirectUrl;
-      
+
       if (needToRegister) {
         redirectUrl = Routes.Auth.Onboarding;
       } else if (redirectUrlProp != null) {

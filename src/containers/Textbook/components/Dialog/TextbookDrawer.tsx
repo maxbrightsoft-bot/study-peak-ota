@@ -39,7 +39,7 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose }: Props) => {
 
   return (
     <SlideDrawer visible={isOpen}>
-      <View style={styles.drawerContainer}>
+      <ScrollView style={styles.drawerContainer}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={onClose}>
             <Ionicons name="chevron-back-outline" size={24} color={palette.main[500]} />
@@ -64,122 +64,126 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose }: Props) => {
           </View>
         </View>
 
-          <View style={styles.bookInfoContainer}>
-            <View style={styles.bookCover}>
-              <Image
-                source={{ uri: getSafeUrl(textbook?.coverImage || '') }}
-                style={styles.coverImage}
-                onError={(e) => console.log('Error:', e.nativeEvent.error)}
-              />
-            </View>
-            <View style={styles.bookDetails}>
-              <View>
-                <Text style={{ fontSize: 16, fontWeight: '700', color: '#101828' }}>{textbook?.name}</Text>
-              </View>
-              <View style={styles.divider} />
-              <View style={{ gap: 8 }}>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{t('subject')}</Text>
-                  <Text style={styles.detailValue}>{textbook?.subjectName}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{t('publication_date')}</Text>
-                  <Text style={styles.detailValue}>{utcToLocalTime(textbook?.publicationDate, t('date_format'))}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{t('publisher')}</Text>
-                  <Text style={styles.detailValue}>{textbook?.publisher}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{t('number_of_questions')}</Text>
-                  <Text style={styles.detailValue}>{`${textbook?.totalQuestions} ${t('questions')}`}</Text>
-                </View>
-              </View>
-            </View>
+        <View style={styles.bookInfoContainer}>
+          <View style={styles.bookCover}>
+            <Image
+              source={{ uri: getSafeUrl(textbook?.coverImage || '') }}
+              style={styles.coverImage}
+              onError={(e) => console.log('Error:', e.nativeEvent.error)}
+            />
           </View>
-
-          <View style={styles.progressContainer}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: palette.main[500], minWidth: 50 }}>
-              {t('progress')}
-            </Text>
-            <View style={styles.progressBar}>
-              <View style={[styles.progressFill, { width: `${textbook?.progress || 0}%` }]} />
-              <View
-                style={[
-                  styles.progressText,
-                  {
-                    left: `${
-                      textbook?.progress && textbook?.progress > 20
-                        ? textbook?.progress - 20
-                        : (textbook?.progress || 0) + 3
-                    }%`
-                  }
-                ]}
-              >
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: '500',
-                    color: textbook?.progress === 0 ? 'black' : 'white'
-                  }}
-                >
-                  {`${(textbook?.progress || 0).toFixed(2)}%`}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {!!textbook?.chapters?.length && (
+          <View style={styles.bookDetails}>
             <View>
-              <View style={styles.tabContainer}>
-                <View style={styles.tabRow}>
-                  {TextbookTabList.map(({ label, value }, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={[styles.tabButton, value === selected ? styles.activeTab : styles.inactiveTab]}
-                      onPress={() => handleChangeTab(value)}
+              <Text
+                numberOfLines={2}
+                ellipsizeMode="tail"
+                style={{ fontSize: 16, fontWeight: '700', color: '#101828' }}
+              >
+                {textbook?.name}
+              </Text>
+            </View>
+            <View style={styles.divider} />
+            <View style={{ gap: 8 }}>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>{t('subject')}</Text>
+                <Text style={styles.detailValue}>{textbook?.subjectName}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>{t('publication_date')}</Text>
+                <Text style={styles.detailValue}>{utcToLocalTime(textbook?.publicationDate, t('date_format'))}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>{t('publisher')}</Text>
+                <Text style={styles.detailValue}>{textbook?.publisher}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>{t('number_of_questions')}</Text>
+                <Text style={styles.detailValue}>{`${textbook?.totalQuestions} ${t('questions')}`}</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.progressContainer}>
+          <Text style={{ fontSize: 13, fontWeight: '600', color: palette.main[500], minWidth: 50 }}>
+            {t('progress')}
+          </Text>
+          <View style={styles.progressBar}>
+            <View style={[styles.progressFill, { width: `${textbook?.progress || 0}%` }]} />
+            <View
+              style={[
+                styles.progressText,
+                {
+                  left: `${
+                    textbook?.progress && textbook?.progress > 20
+                      ? textbook?.progress - 20
+                      : (textbook?.progress || 0) + 3
+                  }%`
+                }
+              ]}
+            >
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '500',
+                  color: textbook?.progress === 0 ? 'black' : 'white'
+                }}
+              >
+                {`${(textbook?.progress || 0).toFixed(2)}%`}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {!!textbook?.chapters?.length && (
+          <View>
+            <View style={styles.tabContainer}>
+              <View style={styles.tabRow}>
+                {TextbookTabList.map(({ label, value }, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[styles.tabButton, value === selected ? styles.activeTab : styles.inactiveTab]}
+                    onPress={() => handleChangeTab(value)}
+                  >
+                    <Text
+                      style={{
+                        fontWeight: '700',
+                        color: value === selected ? palette.main[500] : '#667085'
+                      }}
                     >
-                      <Text
-                        style={{
-                          fontWeight: '700',
-                          color: value === selected ? palette.main[500] : '#667085'
-                        }}
-                      >
-                        {t(label)}
-                      </Text>
-                    </TouchableOpacity>
+                      {t(label)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {selected === 0 && (
+              <View style={styles.chapterListContainer}>
+                <View style={{ gap: 16 }}>
+                  {textbook?.chapters?.map((chapter, index) => (
+                    <ChapterDetail
+                      key={index}
+                      t={t}
+                      isEnglish={isEnglish}
+                      chapter={chapter}
+                      isStudying={!!textbook?.isStudying}
+                      handleOpenChapterDialog={handleOpenChapterDialog}
+                    />
                   ))}
                 </View>
               </View>
+            )}
 
-              {selected === 0 && (
-                <View style={styles.chapterListContainer}>
-                  <View style={{ gap: 16 }}>
-                    {textbook?.chapters?.map((chapter, index) => (
-                      <ChapterDetail
-                        key={index}
-                        t={t}
-                        isEnglish={isEnglish}
-                        chapter={chapter}
-                        isStudying={!!textbook?.isStudying}
-                        handleOpenChapterDialog={handleOpenChapterDialog}
-                      />
-                    ))}
-                  </View>
-                </View>
-              )}
-
-              {selected === 1 && (
-                <View style={styles.chapterListContainer}>
-                  {textbook?.chapters?.map((chapter, index) => (
-                    <Statistic key={index} t={t} isEnglish={isEnglish} chapter={chapter} />
-                  ))}
-                </View>
-              )}
-            </View>
-          )}
-
-        {isOpenChapterDialog && <ExamResult chapterId={chapterSelected?.id} onClose={handleCloseChapterDialog} />}
+            {selected === 1 && (
+              <View style={styles.chapterListContainer}>
+                {textbook?.chapters?.map((chapter, index) => (
+                  <Statistic key={index} t={t} isEnglish={isEnglish} chapter={chapter} />
+                ))}
+              </View>
+            )}
+          </View>
+        )}
 
         <StartPageDialog
           options={startPageOptions}
@@ -188,7 +192,8 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose }: Props) => {
           onClose={handleCloseStartPageDialog}
           onSubmit={handleStartFromPage}
         />
-      </View>
+      </ScrollView>
+      {isOpenChapterDialog && <ExamResult chapterId={chapterSelected?.id} onClose={handleCloseChapterDialog} />}
     </SlideDrawer>
   )
 }
