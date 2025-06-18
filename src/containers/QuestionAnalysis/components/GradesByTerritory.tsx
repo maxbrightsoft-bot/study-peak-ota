@@ -44,7 +44,10 @@ const GradesByTerritory = ({ data, keyOpen, openProblem, changeOpen, resultData,
   return (
     <View style={styles.wrapper}>
       <TouchableOpacity
-        style={[styles.header, !isOpen ? styles.closedHeader: { borderBottomWidth: 1, borderColor: palette.grey[100] }]}
+        style={[
+          styles.header,
+          !isOpen ? styles.closedHeader : { borderBottomWidth: 1, borderColor: palette.grey[100] }
+        ]}
         onPress={() => changeOpen?.(isOpen ? undefined : keyOpen)}
       >
         <Text style={[styles.headerText, !isOpen && { color: palette.grey[500] }]}>{t('grades_by_area')}</Text>
@@ -59,7 +62,7 @@ const GradesByTerritory = ({ data, keyOpen, openProblem, changeOpen, resultData,
         <View style={styles.contentContainer}>
           {formattedData.length ? (
             <DataTable>
-              <DataTable.Header style={{  backgroundColor: palette.grey[50] }}>
+              <DataTable.Header style={{ backgroundColor: palette.grey[50] }}>
                 <DataTable.Title style={{ borderRightWidth: 1, borderColor: palette.grey[300] }}>
                   <Text style={styles.cellText}>{t('categories')}</Text>
                 </DataTable.Title>
@@ -79,7 +82,9 @@ const GradesByTerritory = ({ data, keyOpen, openProblem, changeOpen, resultData,
               {renderTableRows(formattedData)}
             </DataTable>
           ) : (
-            <Text>{t('no_data')}</Text>
+            <View style={styles.noDataContainer}>
+              <Text style={styles.noDataText}>{t('no_data')}</Text>
+            </View>
           )}
         </View>
       )}
@@ -117,8 +122,7 @@ const styles = ScaledSheet.create({
     fontSize: 14,
     fontWeight: '700'
   },
-  contentContainer: {
-  },
+  contentContainer: {},
   column1: {
     borderRightWidth: 1,
     borderColor: palette.grey[100]
@@ -155,6 +159,16 @@ const styles = ScaledSheet.create({
     height: 6,
     backgroundColor: '#FFF',
     borderRadius: 3
+  },
+  noDataContainer: {
+    paddingVertical: '12@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF'
+  },
+  noDataText: {
+    color: palette.grey[500],
+    textAlign: 'center'
   }
 })
 

@@ -6,6 +6,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "com.max.britghtsoft.touchstudymobile",
+    "platforms": ["ios", "android"],
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -17,7 +18,18 @@
         "foregroundImage": "./assets/app-logo.png",
         "backgroundColor": "#3DC674"
       },
-      "package": "com.max.britghtsoft.touchstudymobile"
+      "package": "com.max.britghtsoft.touchstudymobile",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "com.max.britghtsoft.touchstudymobile"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "bundler": "metro",

@@ -6,7 +6,7 @@ import StarSwitch from '@/components/Switch/StarSwitch'
 import { ScaledSheet } from 'react-native-size-matters'
 import { QuestionAnswerType } from '@/utils/enums'
 import ExamAnswer from './ExamAnswer'
-import { ExamQuestion, Question, QuestionGroupResponse, QuestionResponse } from '../config/types'
+import { ExamQuestion, Question, QuestionGroupResponse } from '../config/types'
 
 type Props = {
   t: any
@@ -34,13 +34,11 @@ const ExamQuestionGroup = ({
 }: Props) => {
   const questions = questionList.filter((q) => q.questionGroupId === data.id)
 
-  return questions.map((question: Question, questionIndex: number) => {
-    const absoluteIndex = groupIndex * questions.length + questionIndex
-
+  return questions.map((question: Question) => {
     return (
       <View
         key={`question-${question.id}`}
-        ref={(ref) => (questionRefs.current[absoluteIndex] = ref)}
+        ref={(ref) => (questionRefs.current[question.questionIndex || 0] = ref)}
         collapsable={false}
       >
         <CustomDropDown
@@ -105,8 +103,8 @@ const ExamQuestionGroup = ({
             question={question}
             updateQuestionAnswer={({ questionId, answer, textualAnswers }) => {
               updateQuestionAnswer({ questionId, answer, textualAnswers })
-              question.questionAnswerType !== QuestionAnswerType.MultipleChoice && scrollToNextQuestion(groupIndex)
-              groupIndex === questionList.length - 1 && toggleExpand(null)
+              question.questionAnswerType !== QuestionAnswerType.MultipleChoice && scrollToNextQuestion(question.questionIndex || 0);
+              (question.questionIndex || 0) === questionList.length - 1 && toggleExpand(null)
             }}
             updateQuestionStar={updateQuestionStar}
           />

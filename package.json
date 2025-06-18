@@ -10,7 +10,7 @@
     "web": "expo start --web",
     "test": "jest --watchAll",
     "lint": "expo lint",
-    "generate-splash": "react-native generate-bootsplash assets/splash_logo.png --background=#3DC674"
+    "generate-splash": "react-native generate-bootsplash assets/splash_logo.png --background=3DC674 --assets-output=assets/bootsplash"
   },
   "jest": {
     "preset": "jest-expo"

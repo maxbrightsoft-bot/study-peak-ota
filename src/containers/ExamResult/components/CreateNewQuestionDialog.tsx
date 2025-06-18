@@ -45,8 +45,6 @@ const CreateNewQuestionDialog: React.FC<Props> = ({
     }
   })
 
-  console.log({ questionOptions });
-
   return (
     <CommonDialog isVisible={openCreateQuestionDialog} onClose={onCloseCreateQuestion} title={t('ask_a_question')}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -54,8 +52,8 @@ const CreateNewQuestionDialog: React.FC<Props> = ({
           <View style={{ marginBottom: 16 }}>
             <Text variant="labelLarge" style={{ color: palette.grey[700]}}> {t('questions_to_ask')}</Text>
             <CustomSelect
-              value={questionOptions.find((q) => q.value === formik.values.questionId)?.label || ''}
-              onValueChange={({ value }: { value: string }) => formik.setFieldValue('questionId', value)}
+              value={questionOptions.find((q) => q.value === formik.values.questionId) || ''}
+              onValueChange={(value) => formik.setFieldValue('questionId', value)}
               items={questionOptions}
             />
           </View>

@@ -66,13 +66,15 @@ const PrintExamResult: FC<Props> = ({
   return (
     <View ref={contentRef} collapsable={false}>
       <View style={styles.contentWrapper}>
-        <View style={styles.overviewItem}>
-          <View>
-            <Text style={{ ...TYPO.heading1, color: palette.grey[700] }}>{resultData?.student.fullName}</Text>
-            <Text style={{ ...TYPO.body1, color: palette.grey[500] }}>{resultData?.student.email}</Text>
+        {chapterId ? null : (
+          <View style={styles.overviewItem}>
+            <View>
+              <Text style={{ ...TYPO.heading1, color: palette.grey[700] }}>{resultData?.student.fullName}</Text>
+              <Text style={{ ...TYPO.body1, color: palette.grey[500] }}>{resultData?.student.email}</Text>
+            </View>
+            <Text style={{ ...TYPO.body1, color: palette.grey[500] }}>{resultData?.title}</Text>
           </View>
-          <Text style={{ ...TYPO.body1, color: palette.grey[500] }}>{resultData?.title}</Text>
-        </View>
+        )}
         {chapterId
           ? textbookResult && <TextbookOverView t={t} resultData={textbookResult} />
           : resultData && <ExamOverView t={t} resultData={resultData} />}
@@ -125,7 +127,6 @@ const styles = ScaledSheet.create({
     backgroundColor: '#FFF'
   },
   overviewItem: {
-    paddingTop: '24@ms',
     paddingHorizontal: '24@ms',
     flexDirection: 'row',
     justifyContent: 'space-between'

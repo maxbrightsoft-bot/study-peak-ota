@@ -61,9 +61,12 @@ const ChatContainer = ({
   useEffect(() => {
     if (isScrollToEnd) {
       flatListRef.current?.scrollToOffset({ offset: 0, animated: true })
+
       handleToggleScrollToEnd()
     }
   }, [isScrollToEnd])
+
+  console.log({ isScrollToEnd });
 
   return (
     <View style={styles.container}>

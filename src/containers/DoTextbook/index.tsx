@@ -62,7 +62,6 @@ const DoTextbook = ({ textbookId, page }: Props) => {
             contentContainerStyle={styles.scrollContainer}
             onScroll={handleScroll}
             ref={scrollViewRef}
-            scrollEventThrottle={16}
           >
             {questionGroupList.map((questionGroup: PreparedQuestionGroupResponse, groupIndex: number) => (
               <React.Fragment key={`group-${questionGroup.id}`}>

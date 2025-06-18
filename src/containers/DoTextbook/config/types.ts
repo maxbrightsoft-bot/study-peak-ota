@@ -98,6 +98,7 @@ export interface PreparedQuestionResponse {
   questionOrder: number;
   score: number;
   textualAnswer: string
+  questionIndex?: number
   questionAnswerType: QuestionAnswerType
 }
 

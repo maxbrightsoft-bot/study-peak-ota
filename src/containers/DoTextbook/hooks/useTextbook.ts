@@ -90,11 +90,13 @@ const useTextbook = ({ textbookId, page }: Props) => {
   }, [page])
 
   const scrollToNextQuestion = (index: number) => {
+
     const nextRef = questionRefs.current[index + 1]
     const scrollViewNode = scrollViewRef.current && findNodeHandle(scrollViewRef.current)
 
     if (nextRef && scrollViewNode) {
       toggleExpand(questionList[index + 1].id)
+
       setCurrentIndex(questionList[index + 1].questionOrder)
       UIManager.measureLayout(
         findNodeHandle(nextRef)!,
@@ -102,8 +104,8 @@ const useTextbook = ({ textbookId, page }: Props) => {
         () => {
           console.warn('MeasureLayout error')
         },
-        (x, y) => {
-          scrollViewRef.current?.scrollTo({ y: y - 200, animated: true })
+        (left, top, width, height) => {
+          scrollViewRef.current?.scrollTo({ y: top - height, animated: true })
         }
       )
     }
@@ -133,7 +135,8 @@ const useTextbook = ({ textbookId, page }: Props) => {
         type: data?.type ?? TextbookEditorType.Default
       };
       setTextbook(responseTextbook);
-      const questions = _.flatMap(data?.questionGroups || [], "questions");
+      const questions = _.flatMap(data?.questionGroups || [], "questions").map((i, index) => ({ ...i, questionIndex: index }));
+
       setQuestionGroupList(data?.questionGroups || []);
       setQuestionList(questions);
     } catch (err) {

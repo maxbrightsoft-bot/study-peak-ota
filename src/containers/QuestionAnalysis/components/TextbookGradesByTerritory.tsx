@@ -50,7 +50,10 @@ const GradesByTerritory = ({ data, keyOpen, openProblem, changeOpen, resultData,
   return (
     <View style={styles.wrapper}>
       <TouchableOpacity
-        style={[styles.header, !isOpen ? styles.closedHeader: { borderBottomWidth: 1, borderColor: palette.grey[100]}]}
+        style={[
+          styles.header,
+          !isOpen ? styles.closedHeader : { borderBottomWidth: 1, borderColor: palette.grey[100] }
+        ]}
         onPress={() => changeOpen?.(isOpen ? undefined : keyOpen)}
       >
         <Text style={[styles.headerText, !isOpen && { color: palette.grey[500] }]}>{t('grades_by_area')}</Text>
@@ -79,7 +82,9 @@ const GradesByTerritory = ({ data, keyOpen, openProblem, changeOpen, resultData,
               {renderTableRows(formattedData)}
             </DataTable>
           ) : (
-            <Text>{t('no_data')}</Text>
+            <View style={styles.noDataContainer}>
+              <Text style={styles.noDataText}>{t('no_data')}</Text>
+            </View>
           )}
         </View>
       )}
@@ -154,6 +159,16 @@ const styles = ScaledSheet.create({
     height: 6,
     backgroundColor: '#FFF',
     borderRadius: 3
+  },
+  noDataContainer: {
+    paddingVertical: '12@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF'
+  },
+  noDataText: {
+    color: palette.grey[500],
+    textAlign: 'center'
   }
 })
 
