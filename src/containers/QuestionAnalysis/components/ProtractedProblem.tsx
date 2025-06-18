@@ -64,10 +64,15 @@ const ProtractedProblem: FC<Props> = ({ keyOpen, data, openProblem, changeOpen, 
   return (
     <View style={styles.wrapper}>
       <TouchableOpacity
-        style={[styles.header, !isOpen ? styles.closedHeader: { borderBottomWidth: 1, borderColor: palette.grey[100] }]}
+        style={[
+          styles.header,
+          !isOpen ? styles.closedHeader : { borderBottomWidth: 1, borderColor: palette.grey[100] }
+        ]}
         onPress={() => changeOpen?.(isOpen ? undefined : keyOpen)}
       >
-        <Text style={[styles.headerText, !isOpen && { color: palette.grey[500] }]}>{t('problems_that_took_a_long_time')}</Text>
+        <Text style={[styles.headerText, !isOpen && { color: palette.grey[500] }]}>
+          {t('problems_that_took_a_long_time')}
+        </Text>
         {isOpen ? (
           <Ionicons name="chevron-up" size={24} color="#E0E0E0" />
         ) : (
@@ -85,7 +90,9 @@ const ProtractedProblem: FC<Props> = ({ keyOpen, data, openProblem, changeOpen, 
               contentContainerStyle={{ paddingBottom: 120 }}
             />
           ) : (
-            <Text style={styles.noDataText}>{t('no_data')}</Text>
+            <View style={styles.noDataContainer}>
+              <Text style={styles.noDataText}>{t('no_data')}</Text>
+            </View>
           )}
         </>
       )}
@@ -99,14 +106,14 @@ const styles = ScaledSheet.create({
   wrapper: {
     borderWidth: 1,
     borderColor: palette.grey[100],
-    paddingHorizontal: '24@ms',
-    paddingVertical: '12@ms',
     backgroundColor: palette.grey[50]
   },
   header: {
     flexDirection: 'row',
+    paddingHorizontal: '24@ms',
+    paddingVertical: '12@ms',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'center'
   },
   closedHeader: {
     backgroundColor: '#FAFAFA'
@@ -155,10 +162,14 @@ const styles = ScaledSheet.create({
     fontSize: 13,
     fontWeight: '600'
   },
+  noDataContainer: {
+    paddingVertical: '12@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF'
+  },
   noDataText: {
-    padding: 16,
-    fontSize: 14,
-    color: '#97A1AF',
+    color: palette.grey[500],
     textAlign: 'center'
   }
 })

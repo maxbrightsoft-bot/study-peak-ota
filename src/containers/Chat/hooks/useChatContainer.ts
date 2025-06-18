@@ -30,7 +30,7 @@ const useChatContainer = (props: Props) => {
 
   const [selectedConversation, setSelectedConversation] = useState<ConversationsResponse>();
   const [message, setMessage] = useState<MessageRequest>();
-  const [isScrollToEnd, setScrollToEnd] = useState<boolean>(true)
+  const [isScrollToEnd, setScrollToEnd] = useState<boolean>(false)
   const [loading, setLoading] = useState(false)
   const [openSketchCanvasDialog, setOpenSketchCanvasDialog] = useState(false)
 
@@ -250,7 +250,6 @@ const useChatContainer = (props: Props) => {
   useEffect(() => {
     const getConversation = async () => {
       resetMessages()
-      setScrollToEnd(true)
       if (!conversation?.id) setSelectedConversation(undefined)
       else setSelectedConversation(conversation);
     };
@@ -286,6 +285,7 @@ const useChatContainer = (props: Props) => {
     useCallback(() => {
       getMessageConversation()
       return () => {
+        setScrollToEnd(false)
         setSelectedConversation(undefined)
       };
     }, [])

@@ -33,6 +33,7 @@ const TextbookQuestionGroup = ({
   updateQuestionAnswer
 }: Props) => {
   const questions = questionList.filter((q) => q.questionGroupId === data.id)
+
   const afterAnswer = (questionAnswerType: QuestionAnswerType, absoluteIndex: number) => {
     switch (questionAnswerType) {
       case QuestionAnswerType.MultipleChoice:
@@ -41,13 +42,11 @@ const TextbookQuestionGroup = ({
         return scrollToNextQuestion(absoluteIndex)
     }
   }
-  return questions.map((question: PreparedQuestionResponse, questionIndex: number) => {
-    const absoluteIndex = groupIndex * questions.length + questionIndex
-
+  return questions.map((question: PreparedQuestionResponse) => {
     return (
       <View
         key={`question-${question.id}`}
-        ref={(ref) => (questionRefs.current[absoluteIndex] = ref)}
+        ref={(ref) => (questionRefs.current[question.questionIndex || 0] = ref)}
         collapsable={false}
       >
         <CustomDropDown
@@ -104,7 +103,7 @@ const TextbookQuestionGroup = ({
               )}
             </View>
           }
-          expanded={expandedId === question.id}
+          expanded={question.id === expandedId}
           onPress={() => toggleExpand(question.id)}
         >
           <TextbookAnswer
@@ -112,8 +111,8 @@ const TextbookQuestionGroup = ({
             question={question}
             updateQuestionAnswer={async ({ questionId, textualAnswers, answer }) => {
               await updateQuestionAnswer({ questionId, answer, textualAnswers })
-              afterAnswer(question.questionAnswerType, absoluteIndex)
-              absoluteIndex === questionList.length - 1 && toggleExpand(null)
+              afterAnswer(question.questionAnswerType, question?.questionIndex || 0);
+              (question.questionIndex || 0) === questionList.length - 1 && toggleExpand(null)
             }}
             updateQuestionStar={updateQuestionStar}
           />

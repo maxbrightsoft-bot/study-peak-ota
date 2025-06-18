@@ -65,6 +65,7 @@ export type Question = {
     duration: number
     answerTime: number
     questionOrder: number
+    questionIndex?: number
     questionAnswerType: QuestionAnswerType
     questionGroupId: number
 }

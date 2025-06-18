@@ -382,13 +382,13 @@ const styles = ScaledSheet.create({
     flexShrink: 1
   },
   noDataContainer: {
-    padding: 16,
+    paddingVertical: '12@ms',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    backgroundColor: '#FFF'
   },
   noDataText: {
-    fontSize: 14,
-    color: '#667085'
+    color: palette.grey[500]
   }
 })
 

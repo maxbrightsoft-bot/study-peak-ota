@@ -40,7 +40,7 @@ const CustomTooltip = ({ isVisible, onClose, children, data, actions }: Props) =
       onClose={onClose}
       placement="top"
     >
-      {children}
+      <View>{children}</View>
     </Tooltip>
   )
 }

@@ -149,9 +149,8 @@ const styles = ScaledSheet.create({
     padding: 8
   },
   noDataText: {
-    fontSize: 13,
     width: "100%",
-    color: '#9E9E9E',
+    color: palette.grey[500],
     textAlign: "center",
     paddingVertical: '12@ms',
   }

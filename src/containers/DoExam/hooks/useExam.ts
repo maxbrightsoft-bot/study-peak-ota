@@ -55,8 +55,8 @@ const useExam = ({ examCode }: Props) => {
         () => {
           console.warn('MeasureLayout error')
         },
-        (x, y) => {
-          scrollViewRef.current?.scrollTo({ y: y - 200, animated: true })
+        (left, top, width, height) => {
+          scrollViewRef.current?.scrollTo({ y: top - height, animated: true })
         }
       )
     }
@@ -134,8 +134,9 @@ const useExam = ({ examCode }: Props) => {
         const selected = item.questions;
         return acc.concat(selected);
       }, []);;
-      const questions = responseQuestions.map((i) => ({
+      const questions = responseQuestions.map((i, index) => ({
         ...i,
+        questionIndex: index,
         answerTime:
           i.answerTime !== DATE_MIN_VALUE && i.answerTime
             ? moment.utc(i.answerTime).valueOf()

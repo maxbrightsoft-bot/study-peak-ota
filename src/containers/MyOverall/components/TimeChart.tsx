@@ -42,7 +42,7 @@ const TimeChartGifted: React.FC<Props> = ({ myTimes, avgTimes, categories }) => 
         xAxisColor={palette.grey[300]}
         animateOnDataChange
         areaChart2
-        maxValue={maxTime + 50}
+        maxValue={maxTime}
         stepValue={50}
         thickness={1}
         textShiftY={-5}
