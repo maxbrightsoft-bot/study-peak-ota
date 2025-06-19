@@ -50,7 +50,8 @@ const useSelectAcademy = () => {
       const requestBody: LoginAccessTokenRequest = {
         accessToken: data.accessToken,
         email: user?.email || "",
-        role: Role.Student
+        role: Role.Student,
+        isMobile: true
       }
       
       await handleLoginAccessToken(

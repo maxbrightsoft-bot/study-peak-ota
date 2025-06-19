@@ -39,6 +39,7 @@ export type PhoneLoginRequest = {
     phoneNumber: string;
     password: string;
     role?: string;
+    isMobile: boolean
 }
 
 export interface QRCodeConfirmationProps {

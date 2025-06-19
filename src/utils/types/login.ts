@@ -14,10 +14,12 @@ export type LoginRequest = {
   token: string;
   googleId: string;
   role: string;
+  isMobile: boolean
 }
 
 export type LoginAccessTokenRequest = {
   accessToken: string
   email: string
   role: string
+  isMobile: boolean
 }

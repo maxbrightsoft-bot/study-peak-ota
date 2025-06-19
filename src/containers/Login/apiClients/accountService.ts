@@ -16,7 +16,7 @@ export const getInfo = (role: string, isLearningSpace: boolean) =>
   });
 
 export const apiLoginGoogle = (body: LoginRequest, isLearningSpace: boolean) =>
-  api.post(`${AUTH_URL}/login/mobile`,
+  api.post(`${AUTH_URL}/login`,
     body, {
     headers: {
       [NoAcademyHeaders]: isLearningSpace
