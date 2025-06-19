@@ -45,7 +45,7 @@ const useStepItem = ({ values, errors, setFieldTouched }: Props) => {
   const handleUpdateInfo = async () => {
     setLoading(true)
     try {
-      const res = await updateInfoLogin(values);
+      const res = await updateInfoLogin({ ...values, isMobile: true });
       setUser(res.data)
       navigate(user?.academyDomain ? Routes.Auth.Home : Routes.Auth.SelectAcademy)
     } catch (error: any) {

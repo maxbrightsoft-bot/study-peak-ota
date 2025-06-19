@@ -41,6 +41,7 @@ const useLoginPhoneNumber = () => {
         try {
             const data: PhoneLoginRequest = {
                 role: Role.Student,
+                isMobile: true,
                 ...values
             }
             if (!academyDomain) await setDataStorage(LEARNING_SPACE, "true")

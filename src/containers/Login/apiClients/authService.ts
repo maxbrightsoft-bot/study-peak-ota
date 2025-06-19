@@ -9,7 +9,7 @@ export const superLoginPhone = (req: PhoneLoginRequest) =>
     api.post(`${SUPER_AUTH_LOGIN_URL}/login/phone`, req)
 
 export const loginPhone = (domain: string, req: PhoneLoginRequest) =>
-    api.post(`${AUTH_LOGIN_URL}/login/mobile-phone`, req, {
+    api.post(`${AUTH_LOGIN_URL}/login/phone`, req, {
         headers: {
             [AcademyHeaders]: domain
         }

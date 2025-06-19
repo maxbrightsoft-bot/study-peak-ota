@@ -153,6 +153,7 @@ const useLogin = () => {
         token,
         googleId: user?.sub,
         role: Role.Student,
+        isMobile: true
       };
 
       await handleLoginGoogle(infoLogin);
