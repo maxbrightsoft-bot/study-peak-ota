@@ -12,6 +12,7 @@ import useProblemSolving from './hooks/useProblemSolving'
 import useDrawer from './hooks/useDrawer'
 import NoticeDrawer from './components/NoticeDrawer'
 import TextbookDrawer from '../Textbook/components/Dialog/TextbookDrawer'
+import AudioGuideModal from '@/layouts/components/AudioGuideModal'
 
 const Home = () => {
   const { selectedAcademy } = useAuthStore()
@@ -21,7 +22,12 @@ const Home = () => {
     codeExam,
     setCodeExam,
     openCloseModal,
+    isLoadingCodeExam,
     handleCodeExam,
+    isOpenAudioGuide,
+    handleOpenAudioGuide,
+    handleStartTextbookFromGuideModal,
+    handleCloseAudioGuide,
     isCheckTeacherStart,
     isOpenTextbookResult,
     handleOpenTextbookResult,
@@ -37,10 +43,7 @@ const Home = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={80}
       >
-        <ScrollView
-          style={styles.scrollContainer}
-          keyboardShouldPersistTaps="handled"
-        >
+        <ScrollView style={styles.scrollContainer} keyboardShouldPersistTaps="handled">
           {!!selectedAcademy && <Notice handleOpenDialog={handleOpenDialog} />}
           <RecentTextbook handleOpenTextbookResult={handleOpenTextbookResult} />
           <CalendarSchedule />
@@ -58,6 +61,7 @@ const Home = () => {
             codeExam={codeExam}
             setCodeExam={setCodeExam}
             open={open}
+            loading={isLoadingCodeExam}
             onClose={openCloseModal}
             handleCodeExam={handleCodeExam}
             isCheckTeacherStart={isCheckTeacherStart}
@@ -65,6 +69,7 @@ const Home = () => {
         </ScrollView>
       </KeyboardAvoidingView>
       <TextbookDrawer
+        onOpenAudioGuide={handleOpenAudioGuide}
         isOpen={isOpenTextbookResult}
         onClose={handleCloseTextbookResult}
         textbookId={selectedTextbook?.id}
@@ -75,6 +80,14 @@ const Home = () => {
         onClose={handleCloseDialog}
         notification={notification}
       />
+      {isOpenAudioGuide && (
+        <AudioGuideModal
+          open={isOpenAudioGuide}
+          audioUrls={selectedTextbook?.subject?.audioUrls ?? []}
+          onClose={handleCloseAudioGuide}
+          onStart={handleStartTextbookFromGuideModal}
+        />
+      )}
     </View>
   )
 }

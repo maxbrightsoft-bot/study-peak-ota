@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiJoinExam, getInfoAcademyApi } from "../apiClients/index";
-import { EVENT_DELETED_MEMBER, examEvents, ExamStatus, FormatDate, studentExamEvents } from "../configs/constants";
+import { EVENT_DELETED_MEMBER, ExamStatus, FormatDate } from "../configs/constants";
 import { InfoLesson } from "../configs/type";
 import { getScheduleCountApi } from "../apiClients/scheduleService";
 import useAuthStore from "@/store/useAuthStore";
@@ -12,8 +12,11 @@ import { ExamEvent } from "@/utils/enums/exam";
 import { PusherChannel } from "@pusher/pusher-websocket-react-native";
 import { EXAM_CHANNEL, EXAM_STUDENT_CHANNEL } from "@/utils/constants";
 import { Routes } from "@/navigators/RouteName";
-import { TextbookResponse } from "@/utils/types";
+import { Textbook } from "@/utils/types";
 import { useFocusEffect } from "@react-navigation/native";
+import { startTextbook } from "@/containers/Textbook/apiClients/textbookService";
+import { AlarmType } from "@/utils/enums";
+import useAlarm from "@/layouts/hooks/useAlarm";
 
 const useProblemSolving = () => {
   const { user, selectedAcademy: academy, setLoading, pusher, subscribeChannel, unsubscribeChannelSafe } = useAuthStore()
@@ -27,6 +30,7 @@ const useProblemSolving = () => {
   const channelName = useRef<string>()
   const studentChannel = useRef<PusherChannel>();
   const studentChannelName = useRef<string>();
+  const [isLoadingCodeExam, setLoadingCodeExam] = useState(false)
   const isBelongAcademy = !!user && user.academyDomain && !user.isLearningSpace;
   const [selectedDate, setSelectedDate] = useState<{
     startDate: string;
@@ -48,7 +52,10 @@ const useProblemSolving = () => {
     totalLessons: 0
   });
   const [isOpenTextbookResult, setOpenTextbookResult] = useState(false)
-  const [selectedTextbook, setSelectedTextbook] = useState<TextbookResponse>()
+  const [selectedTextbook, setSelectedTextbook] = useState<Textbook>()
+  const [isOpenAudioGuide, setOpenAudioGuide] =
+    useState<boolean>(false);
+  const { alarmClockProps: { panelProps: { onStart } } } = useAlarm(false, [], true)
 
   const academyDomain = user?.academyDomain
 
@@ -66,13 +73,21 @@ const useProblemSolving = () => {
     setSelectedDate({ startDate, endDate, currentDate, isTotalMonth });
   };
 
-  const handleOpenTextbookResult = (textbook?: TextbookResponse) => {
+  const handleOpenTextbookResult = (textbook?: Textbook) => {
     if (textbook) setSelectedTextbook(textbook)
     setOpenTextbookResult(true)
   }
 
   const handleCloseTextbookResult = () => {
     setOpenTextbookResult(false)
+  }
+
+  const handleOpenAudioGuide = () => {
+    handleCloseTextbookResult()
+    setOpenAudioGuide(true)
+  }
+  const handleCloseAudioGuide = () => {
+    setOpenAudioGuide(false)
   }
 
   const openCloseModal = () => {
@@ -99,13 +114,13 @@ const useProblemSolving = () => {
   };
 
   const handleCodeExam = async (code: string) => {
-    setLoading(true)
+    setLoadingCodeExam(true)
     try {
       await callApiCheckExam(code);
     } catch (error: any) {
       toast.error(getErrorMessage(t, error));
     }
-    setLoading(false)
+    setLoadingCodeExam(false)
   };
 
   const handleGetInfoLesson = async (isLoading: boolean = true) => {
@@ -150,19 +165,19 @@ const useProblemSolving = () => {
     }
   };
 
-  const cleanupPusher = () => {
-    if (!academyDomain || !userId || !pusher) return
-    if (studentChannelName.current) {
-      unsubscribeChannelSafe(pusher, studentChannelName.current)
-    }
-    if (channelName.current) {
-      unsubscribeChannelSafe(pusher, channelName.current)
-    }
+  // const cleanupPusher = () => {
+  //   if (!academyDomain || !userId || !pusher) return
+  //   if (studentChannelName.current) {
+  //     unsubscribeChannelSafe(pusher, studentChannelName.current)
+  //   }
+  //   if (channelName.current) {
+  //     unsubscribeChannelSafe(pusher, channelName.current)
+  //   }
 
-    // isCheckTeacherStart &&
-    //   codeExam &&
-    //   window.removeEventListener("beforeunload", handleUnload);
-  };
+  //   // isCheckTeacherStart &&
+  //   //   codeExam &&
+  //   //   window.removeEventListener("beforeunload", handleUnload);
+  // };
 
   const handleGetScheduleCount = async () => {
     try {
@@ -190,7 +205,7 @@ const useProblemSolving = () => {
         !userId ||
         !pusher
       ) return
-      cleanupPusher()
+      // cleanupPusher()
 
       const examHandlers = {
         [ExamEvent.StartExam]: handleTeacherStartExam,
@@ -216,6 +231,31 @@ const useProblemSolving = () => {
     }
   }
 
+  const handleStartAudio = async (textbook: Textbook) => {
+    onStart(AlarmType.Subject, textbook.limitedTimeInMinutes, textbook.subject as any, true)
+  }
+
+  const handleStartTextbook = async (enable: boolean, textbook: Textbook) => {
+    try {
+      setLoading(true)
+      await startTextbook(textbook.id)
+      if (enable)
+        await handleStartAudio(textbook)
+      handleCloseAudioGuide()
+    } catch (error) {
+      toast.error(getErrorMessage(t, error));
+    }
+    finally {
+      navigate(Routes.Auth.DoTextbook, { textbookId: selectedTextbook?.id, restart: true })
+      setLoading(false)
+    }
+  }
+
+
+  const handleStartTextbookFromGuideModal = (enable: boolean) => {
+    if (!selectedTextbook) return
+    handleStartTextbook(enable, selectedTextbook)
+  }
 
   useFocusEffect(
     useCallback(() => {
@@ -234,7 +274,7 @@ const useProblemSolving = () => {
 
     initPusher()
 
-    return cleanupPusher;
+    // return cleanupPusher;
   }, [
     pusher,
     open,
@@ -261,6 +301,7 @@ const useProblemSolving = () => {
   return {
     t,
     open,
+    isLoadingCodeExam,
     openCloseModal,
     handleCodeExam,
     codeExam,
@@ -269,13 +310,17 @@ const useProblemSolving = () => {
     setCodeExam,
     isCheckTeacherStart,
     selectedTextbook,
+    isOpenAudioGuide,
+    handleOpenAudioGuide,
+    handleCloseAudioGuide,
     isOpenTextbookResult,
     handleCloseTextbookResult,
     handleOpenTextbookResult,
     academyInfo: { academy, scheduleInfo: scheduleCount, infoLesson },
     isBelongAcademy,
     handleGetScheduleCount,
-    handleUpdateAttendance
+    handleUpdateAttendance,
+    handleStartTextbookFromGuideModal
   };
 };
 

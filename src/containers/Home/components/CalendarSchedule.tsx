@@ -18,6 +18,7 @@ const CalendarSchedule = () => {
     selectedSchedule,
     highlightedDays,
     getScheduleList,
+    loadingConfirmDialog,
     getScheduleListForNoteEvent,
     handleCheckInLesson,
     isOpenDialog: isOpenScheduleDialog,
@@ -51,12 +52,14 @@ const CalendarSchedule = () => {
         selectedDate={selectedDate}
         handleSelectDate={handleSelectDate}
         getScheduleList={getScheduleList}
+        loading={loadingConfirmDialog}
         getScheduleListForNoteEvent={getScheduleListForNoteEvent}
         onScheduleCountChange={handleGetScheduleCount}
       />
       {/* Schedule List */}
       <NoteEvent
         t={t}
+        loading={loadingConfirmDialog}
         schedules={schedules}
         scheduleRequest={scheduleRequest}
         openTooltipList={openTooltipList}

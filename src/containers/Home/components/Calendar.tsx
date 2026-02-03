@@ -24,6 +24,7 @@ type Props = {
     currentDate: string
     isTotalMonth?: boolean
   }) => void
+  loading: boolean
   getScheduleList: () => void
   getScheduleListForNoteEvent: () => void
   selectedDate?: SelectedDateInfo
@@ -36,6 +37,7 @@ const Calendar = (calendarProps: Props) => {
     selectedDate,
     handleSelectDate,
     getScheduleList,
+    loading,
     getScheduleListForNoteEvent,
     highlightedDays,
     onScheduleCountChange
@@ -50,6 +52,7 @@ const Calendar = (calendarProps: Props) => {
     onVisibleMonthsChange,
     currentCalendarMonth,
     isOpenDialog,
+    loadingConfirmDialog,
     selectedSchedule,
     handleCloseDialog,
     handleOpenDialog,
@@ -158,6 +161,7 @@ const Calendar = (calendarProps: Props) => {
           handleOpenDialog()
         }}
         t={t}
+        loading={loadingConfirmDialog || loading}
         newSchedule={scheduleRequest}
         onSubmit={handleCreateSchedule}
       />

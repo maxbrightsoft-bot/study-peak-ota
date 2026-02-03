@@ -137,7 +137,9 @@ const styles = ScaledSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: '12@ms'
+    padding: '12@ms',
+    backgroundColor: "#FFF",
+    borderRadius: 5
   },
   content: {
     flexDirection: 'row',

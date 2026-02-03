@@ -4,6 +4,7 @@ import { Text, TouchableOpacity, View } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 import { palette, TYPO } from '@/theme'
 import moment from 'moment'
+import Loading from '@/components/Loading'
 
 interface Props {
   open: boolean
@@ -11,16 +12,18 @@ interface Props {
   t: any
   isUpdate?: boolean
   onSubmit: () => void
+  loading: boolean
   newSchedule?: ScheduleFormData
 }
 
-const CreateNewScheduleConfirmDialog = ({ t, onClose, open, isUpdate, onSubmit, newSchedule }: Props) => {
+const CreateNewScheduleConfirmDialog = ({ t, onClose, open, loading, isUpdate, onSubmit, newSchedule }: Props) => {
   return (
     <CommonDialog
       isVisible={open}
       onClose={onClose}
       title={isUpdate ? t('update_schedule') : t('create_a_new_schedule')}
     >
+      {loading && <Loading isOverlay={false} />}
       <View style={styles.container}>
         <View style={styles.formGroup}>
           <Text style={styles.labelText}>{t('schedule_name')}</Text>
@@ -75,10 +78,7 @@ const styles = ScaledSheet.create({
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: "8@ms",
-    padding: '16@ms',
-    borderTopWidth: 1,
-    borderTopColor: palette.grey[200]
+    gap: "8@ms"
   },
   button: {
     paddingVertical: '12@ms',

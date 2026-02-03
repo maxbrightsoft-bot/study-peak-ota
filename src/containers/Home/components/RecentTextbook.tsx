@@ -1,7 +1,7 @@
 import { palette, TYPO } from '@/theme'
 import React from 'react'
 import { View, ScrollView, Image, TouchableOpacity, StyleSheet } from 'react-native'
-import { Text, Button, Card, Title } from 'react-native-paper'
+import { Text, Button, Title } from 'react-native-paper'
 import { Ionicons } from '@expo/vector-icons'
 import useRecentTextbook from '../hooks/useRecentTextbook'
 import { PreparedFilterType } from '../configs/type'
@@ -9,10 +9,10 @@ import { getSafeUrl, utcToLocalTime } from '@/utils/helpers'
 import moment from 'moment'
 import { navigate } from '@/navigators/NavigationHelpers'
 import { Routes } from '@/navigators/RouteName'
-import { TextbookResponse } from '@/utils/types'
+import { Textbook } from '@/utils/types'
 
 type Props = {
-  handleOpenTextbookResult: (textbook?: TextbookResponse) => void
+  handleOpenTextbookResult: (textbook?: Textbook) => void
 }
 
 const styles = StyleSheet.create({
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
 })
 
 const RecentTextbook = ({ handleOpenTextbookResult }: Props) => {
-  const { t, textbookList, handleDoTextbook } = useRecentTextbook({
+  const { t, textbookList } = useRecentTextbook({
     preparedFilterType: PreparedFilterType.recently_solved_questions
   })
 
@@ -134,39 +134,28 @@ const RecentTextbook = ({ handleOpenTextbookResult }: Props) => {
               style={styles.textbookItem}
             >
               <View style={styles.textbookContent}>
-                <Image
-                  source={{ uri: getSafeUrl(textbook?.coverImage || '') }}
-                  style={styles.textbookImage}
-                />
+                <Image source={{ uri: getSafeUrl(textbook?.coverImage || '') }} style={styles.textbookImage} />
                 <View style={styles.textbookInfo}>
-                  <Title
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                    style={styles.textbookName}
-                  >
+                  <Title numberOfLines={1} ellipsizeMode="tail" style={styles.textbookName}>
                     {textbook.name}
                   </Title>
                   <View style={styles.textbookMeta}>
                     <Text style={styles.textbookMetaText}>
                       {moment().subtract(textbook.createdAt, 'hours').fromNow()}
                     </Text>
-                    <Text style={styles.textbookMetaText}>
-                      {utcToLocalTime(textbook.createdAt, t('date_format'))}
-                    </Text>
+                    <Text style={styles.textbookMetaText}>{utcToLocalTime(textbook.createdAt, t('date_format'))}</Text>
                   </View>
                   <View style={styles.progressContainer}>
                     <Text style={styles.progressText}>진행도</Text>
                     <Text style={styles.progressPercent}>
-                      {Math.round((textbook.completedQuestions / textbook.totalQuestions) * 100)}%
+                      {Math.round((textbook.completedQuestions / (textbook?.totalQuestions || 1)) * 100)}%
                     </Text>
                   </View>
                 </View>
               </View>
             </TouchableOpacity>
           ))}
-          {textbookList?.length === 0 && (
-            <Text style={styles.emptyText}>{t('no_data')}</Text>
-          )}
+          {textbookList?.length === 0 && <Text style={styles.emptyText}>{t('no_data')}</Text>}
         </View>
       </ScrollView>
     </View>

@@ -17,7 +17,7 @@ const filterDefault = {
   currentPage: 1,
 }
 const useNotice = (setNew: any) => {
-  const { selectedAcademy, user, pusher, subscribeChannel, unsubscribeChannelSafe } = useAuthStore()
+  const { selectedAcademy, user, pusher, subscribeChannel } = useAuthStore()
   const [isLoading, setLoading] = useState<boolean>(false)
   const [selected, setSelected] = useState(TabList[0].value)
   const [typeSelected, setTypeSelected] = useState(TabList[0].type)
@@ -176,7 +176,6 @@ const useNotice = (setNew: any) => {
   const handleListenerEvent = async () => {
     try {
       if (!selectedAcademy?.domain || !userId || !pusher) return
-      cleanupPusher()
 
       channelName.current = `NOTES-${selectedAcademy.domain.trim().toUpperCase()}-${userId}-CHANNEL`
       notificationChannelName.current = `NOTIFICATIONS-${selectedAcademy.domain.trim().toUpperCase()}-${userId}-CHANNEL`
@@ -204,20 +203,6 @@ const useNotice = (setNew: any) => {
     }
   }
 
-  const cleanupPusher = () => {
-    if (!pusher) return
-    if (channelName.current) {
-      unsubscribeChannelSafe(pusher, channelName.current)
-    }
-    if (notificationChannelName.current) {
-      unsubscribeChannelSafe(pusher, notificationChannelName.current)
-    }
-
-    if (generalNotificationChannelName.current) {
-      unsubscribeChannelSafe(pusher, generalNotificationChannelName.current)
-    }
-  }
-
   useEffect(() => {
     if (!pusher) return
     const initPusher = async () => {
@@ -225,7 +210,6 @@ const useNotice = (setNew: any) => {
     };
 
     initPusher()
-    return cleanupPusher
   }, [userId, selectedAcademy?.domain, typeSelected, selected, pusher])
 
   return {

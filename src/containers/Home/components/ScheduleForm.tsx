@@ -173,8 +173,6 @@ const styles = ScaledSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: '8@ms',
-    borderTopWidth: 1,
-    borderTopColor: palette.grey[200]
   },
   button: {
     paddingVertical: '12@ms',

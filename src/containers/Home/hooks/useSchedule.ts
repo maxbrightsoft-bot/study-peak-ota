@@ -31,10 +31,10 @@ const useSchedule = () => {
   const [isOpenConfirmDialog, setOpenConfirmDialog] = useState<boolean>(false);
   const [isOpenConfirmDeleteDialog, setOpenConfirmDeleteDialog] =
     useState<boolean>(false);
-    const [scheduleCount, setScheduleCount] = useState<{
-      totalSchedules: number;
-      totalCompletedSchedules: number;
-    }>();
+  const [scheduleCount, setScheduleCount] = useState<{
+    totalSchedules: number;
+    totalCompletedSchedules: number;
+  }>();
   const [openTooltipList, setOpenTooltipList] = useState<number | boolean>(
     false
   );
@@ -57,6 +57,7 @@ const useSchedule = () => {
     currentDate: moment().toISOString(),
     isTotalMonth: false
   });
+  const [loadingConfirmDialog, setLoadingConfirmDialog] = useState(false)
 
   const handleSelectDate = ({
     startDate,
@@ -150,12 +151,13 @@ const useSchedule = () => {
     handleGetScheduleCount();
   }, [user?.id, user?.academyDomain, user?.isLearningSpace]);
 
-  const getScheduleList = async () => {
-    if(!user?.academyDomain && !user?.isLearningSpace) {
+  const getScheduleList = async (isLoading = true) => {
+    if (!user?.academyDomain && !user?.isLearningSpace) {
       setSchedules([])
       return
     }
-    setLoading(true)
+
+    isLoading && setLoading(true)
     try {
       const { data } = await getSchedulesApi({
         ...filter,
@@ -186,7 +188,7 @@ const useSchedule = () => {
   };
 
   const getScheduleListForNoteEvent = async () => {
-    if(!user?.academyDomain && !user?.isLearningSpace) {
+    if (!user?.academyDomain && !user?.isLearningSpace) {
       setScheduleList([])
       return
     }
@@ -205,7 +207,6 @@ const useSchedule = () => {
       setScheduleList([]);
       toast.error(getErrorMessage(t, error));
     }
-    setLoading(false)
   };
 
 
@@ -216,7 +217,7 @@ const useSchedule = () => {
     setOpenConfirmDialog(false)
     setOpenConfirmDeleteDialog(false)
   };
-  
+
   const handleSubmitSchedule = async () => {
     if (
       !scheduleRequest ||
@@ -226,22 +227,23 @@ const useSchedule = () => {
       !scheduleRequest.title
     )
       return;
-    setLoading(true)
+    setLoadingConfirmDialog(true)
     try {
       const schedule: ScheduleRequest = convertScheduleFormToRequest(scheduleRequest)
-      if(scheduleRequest.id)
+      if (scheduleRequest.id)
         await updateScheduleApi(scheduleRequest.id, schedule);
       else
         await createScheduleApi(schedule);
-      await getScheduleList();
+      await getScheduleList(false);
       await getScheduleListForNoteEvent();
       handleGetScheduleCount();
       toast.success(t(scheduleRequest.id ? "update_schedule_successfully" : "create_schedule_successfully"));
     } catch (error: any) {
       toast.error(getErrorMessage(t, error));
+    } finally {
+      setLoadingConfirmDialog(false)
+      clearData()
     }
-    setLoading(false)
-    clearData()
   };
 
   const handleUpdateScheduleStatus = async (schedule: ScheduleResponse) => {
@@ -259,14 +261,14 @@ const useSchedule = () => {
         schedules?.map((s) =>
           s.id === schedule.id
             ? {
-                ...s,
-                status:
-                  status === ScheduleStatusRequest.Default
-                    ? endTime?.isBefore(now)
-                      ? ScheduleStatus.Missed
-                      : ScheduleStatus.Default
-                    : ScheduleStatus.Completed
-              }
+              ...s,
+              status:
+                status === ScheduleStatusRequest.Default
+                  ? endTime?.isBefore(now)
+                    ? ScheduleStatus.Missed
+                    : ScheduleStatus.Default
+                  : ScheduleStatus.Completed
+            }
             : s
         )
       );
@@ -352,6 +354,7 @@ const useSchedule = () => {
     setDate,
     selectedDate,
     schedules,
+    loadingConfirmDialog,
     highlightedDays,
     selectedSchedule,
     isOpenDialog,

@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 import useAuthStore from "@/store/useAuthStore";
 import { getErrorMessage, toast } from "@/utils/helpers";
 import moment from "moment";
-import { TextbookResponse } from "@/utils/types/textbook";
+import { Textbook } from "@/utils/types";
 import { getTextbookListApi, startPageApi } from "../apiClients/textbookService";
 import { useFocusEffect } from "@react-navigation/native";
 
@@ -25,13 +25,13 @@ type Props = {
 const useRecentTextbook = ({ preparedType, preparedFilterType }: Props) => {
   const { selectedAcademy, setLoading } = useAuthStore()
   const { t } = useTranslation();
-  // const isKor = language === Language.ko;
   const textSearchRef = useRef<HTMLInputElement>(null);
-  const [textbookList, setTextbookList] = useState<TextbookResponse[]>([]);
+  const [textbookList, setTextbookList] = useState<Textbook[]>([]);
   const [textbookFilter, setTextbookFilter] = useState<TextbookQuery>(
     { ...DefaultTextbookFilter, preparedType, preparedFilterType }
   );
   const [openConfirmDialog, setOpenConfirmDialog] = useState<boolean>(false)
+
   const handleCloseConfirmDialog = () => {
     setOpenConfirmDialog(false)
   }
@@ -106,7 +106,7 @@ const useRecentTextbook = ({ preparedType, preparedFilterType }: Props) => {
     textbookList,
     numberToMonth,
     textSearchRef,
-    handleDoTextbook
+    handleDoTextbook,
   };
 };
 

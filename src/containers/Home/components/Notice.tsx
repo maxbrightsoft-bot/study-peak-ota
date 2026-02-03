@@ -16,8 +16,7 @@ const Notice = ({ handleOpenDialog }: Props) => {
   const { t, isLoading, selected, handleChangeTab, notifications } = useNotice(setNew)
 
   return (
-    <View style={{ paddingTop: 40, paddingHorizontal: 24 }}>
-      {/* Tabs */}
+    <View style={{ paddingTop: 24, paddingHorizontal: 24 }}>
       <View style={{ flexDirection: 'row', marginBottom: 4 }}>
         {TabList.map(({ label, value, type }, index) => (
           <Button
@@ -26,15 +25,15 @@ const Notice = ({ handleOpenDialog }: Props) => {
             style={{
               marginRight: 4,
               backgroundColor: selected === value ? '#FFF' : palette.grey[100],
+              
               borderRadius: 6
             }}
           >
-            <Text style={{ color: palette.grey[500] }}>{t(label)}</Text>
+            <Text style={{ fontSize: 14, fontWeight: 600, color: selected === value ? palette.grey[900] : palette.grey[500], }}>{t(label)}</Text>
           </Button>
         ))}
       </View>
 
-      {/* Notifications */}
       <ScrollView
         style={{
           backgroundColor: palette.grey[50],
@@ -46,15 +45,13 @@ const Notice = ({ handleOpenDialog }: Props) => {
       >
         <View
           style={{
-            minHeight: 50,
-            maxHeight: 200,
             alignItems: 'center',
             justifyContent: 'center'
           }}
         >
           {isLoading && <Loading fullScreen={false} />}
 
-          <View style={{ gap: 8 }}>
+          <View style={{ gap: 8, minHeight: 40, alignItems: "center", justifyContent: "center" }}>
             {notifications?.map((item) => (
               <TouchableOpacity key={item.id} onPress={() => handleOpenDialog(item)}>
                 <View
