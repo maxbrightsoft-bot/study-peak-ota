@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "touch-study-mobile",
+    "name": "Study Peak",
     "slug": "touch-study-mobile",
     "jsEngine": "jsc",
     "version": "1.0.0",
@@ -14,10 +14,6 @@
       "bundleIdentifier": "com.max.britghtsoft.touchstudymobile"
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/app-logo.png",
-        "backgroundColor": "#3DC674"
-      },
       "package": "com.max.britghtsoft.touchstudymobile",
       "intentFilters": [
         {

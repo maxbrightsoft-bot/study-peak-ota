@@ -1,7 +1,7 @@
 import useAuthStore from "@/store/useAuthStore";
 import { LANGUAGES } from "@/utils/constants/language";
-import { Languages } from "@/utils/enums";
-import { Language } from "@/utils/types";
+import { Language } from "@/utils/enums";
+import { LanguageResponse } from "@/utils/types";
 import moment from "moment";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -13,12 +13,12 @@ export const useLanguage = () => {
 
   useEffect(() => {
     const checkLang = async () => {
-      setIsKorean(language.code === Languages.ko);
+      setIsKorean(language.code === Language.ko);
     };
     checkLang();
   }, [i18n]);
 
-  const changeLanguage = async(languageItem?: Language) => {
+  const changeLanguage = async(languageItem?: LanguageResponse) => {
     i18n.changeLanguage(languageItem?.code);
     moment.locale(languageItem?.momentLangCode);
     if(languageItem) setLanguage(languageItem)
