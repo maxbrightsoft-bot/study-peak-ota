@@ -7,8 +7,9 @@ import { TouchableRipple } from 'react-native-paper'
 type Props = {
   onSwitch: () => void
   isStar: boolean
+  isDisable: boolean
 }
-const StarSwitch = ({ onSwitch, isStar }: Props) => {
+const StarSwitch = ({ onSwitch, isStar, isDisable }: Props) => {
   const [isOn, setIsOn] = React.useState(isStar)
   const translateX = React.useRef(new Animated.Value(isStar ? 30 : 0)).current
 
@@ -24,7 +25,7 @@ const StarSwitch = ({ onSwitch, isStar }: Props) => {
   }
 
   return (
-    <TouchableRipple onPress={toggleSwitch} style={styles.switchContainer} borderless>
+    <TouchableRipple onPress={isDisable ? undefined : toggleSwitch} style={styles.switchContainer} borderless>
       <View
         style={{
           ...styles.track,

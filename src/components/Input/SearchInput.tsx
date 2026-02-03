@@ -14,10 +14,28 @@ const SearchInput = ({ ref, value, placeholder, onChangeText }: Props) => {
   return (
     <View style={styles.searchBox}>
       <View style={styles.container}>
-        <Ionicons name="search-outline" size={24} color={palette.grey[700]} />
+        <View
+          style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: 40,
+            height: 40
+          }}
+        >
+          <Ionicons name="search-outline" size={24} color={palette.grey[700]} />
+        </View>
         <TextInput ref={ref} value={value} onChangeText={onChangeText} placeholder={placeholder} />
       </View>
-      {value?.length > 0 && <Ionicons onPress={() => onChangeText('')} name="close-circle" size={24} color={palette.grey[700]} />}
+      {value?.length > 0 && (
+        <View
+          style={{
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}
+        >
+          <Ionicons onPress={() => onChangeText('')} name="close-circle" size={24} color={palette.grey[700]} />
+        </View>
+      )}
     </View>
   )
 }
@@ -36,9 +54,9 @@ const styles = ScaledSheet.create({
     justifyContent: 'space-between'
   },
   container: {
+    display: 'flex',
     flexDirection: 'row',
-    alignContent: 'center',
-    gap: "12@ms",
+    alignContent: 'center'
   },
   titleText: {
     ...TYPO.button3,

@@ -20,7 +20,7 @@ const CommonDialog: React.FC<CommonDialogProps> = ({
   onClose,
   title = '',
   children,
-  positionTitle= PositionFlex.Left,
+  positionTitle= PositionFlex.Center,
   isVisibleHeader = true
 }) => {
 
