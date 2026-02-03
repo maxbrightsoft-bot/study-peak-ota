@@ -27,8 +27,8 @@ const useMessageList = () => {
     setLoading(false)
   }
 
-  const handleLoadMore = async(conversationId: number) => {
-    if (isLoading || messageFilter.currentPage === messageFilter.totalPages ) return
+  const handleLoadMore = async (conversationId: number) => {
+    if (isLoading || messageFilter.currentPage === messageFilter.totalPages) return
 
     const filter = {
       ...messageFilter,
@@ -39,7 +39,7 @@ const useMessageList = () => {
     try {
       const res = await getMessagesByConversation(conversationId, filter)
       await updateLastTimeReadConversation(conversationId)
-      if(res.data.items.length){
+      if (res.data.items.length) {
         setMessages((prev) => {
           const data = [...prev, ...res.data.items]
           const dataFilter = new Set(data)
@@ -49,7 +49,7 @@ const useMessageList = () => {
       }
     } catch (error) {
       toast.error(getErrorMessage(t, error))
-      return 
+      return
     }
     setLoading(false)
     return true
@@ -60,43 +60,46 @@ const useMessageList = () => {
     setMessages([])
   }
 
-  const handleDeleteMessage = async(conversationId: number, id: number, callback: any) => {
+  const handleDeleteMessage = async (conversationId: number, id: number, callback: any) => {
     if (isLoading) return
     try {
       await deleteMessage(conversationId, id)
-      
+
     } catch (error) {
       toast.error(getErrorMessage(t, error))
-      return 
+      return
     }
     callback()
   }
 
-  const deleteMessageState = (data: MessageResponse) => {
-    if(!data) return
-    
+  const deleteMessageState = (data: string) => {
+    if (!data) return
+    const item = JSON.parse(data)
+
     setMessages((prev) => {
-      return prev.filter((message) => message.id !== data.id)
+      return prev.filter((message) => message.id !== item.id)
     })
   }
 
-  const updateMessageState = (data: MessageResponse) => {
-    if(!data) return
-    
+  const updateMessageState = (data: string) => {
+    if (!data) return
+    const item = JSON.parse(data)
+
     setMessages((prev) => {
       return prev.map((message) => {
-        if(message.id === data.id) return data
+        if (message.id === item.id) return item
         return message
       })
     })
   }
 
-  const handleUpdateMessage = async(conversationId: number, id: number, message: string,  callback: any) => {
+
+  const handleUpdateMessage = async (conversationId: number, id: number, message: string, callback: any) => {
     try {
       await updateMessage(conversationId, id, message)
     } catch (error) {
       toast.error(getErrorMessage(t, error))
-      return 
+      return
     }
     setLoading(false)
     callback()

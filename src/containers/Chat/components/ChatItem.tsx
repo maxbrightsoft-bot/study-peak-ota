@@ -9,6 +9,8 @@ import { Action } from '@/utils/types'
 import { palette, TYPO } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
 import MathRender from '@/components/MathRender'
+import { Menu } from 'react-native-paper'
+import { Ionicons } from '@expo/vector-icons'
 
 type Props = {
   t: any
@@ -25,6 +27,7 @@ const ChatItem = ({ t, handleUpdateMessage, handleDeleteMessage, item }: Props) 
     handleUploadImage
   } = useDialog()
   const { isOpenTooltip, handleCloseTooltip, handleOpenTooltip } = useTooltip()
+  
   const { openDialog: openConfirmDialog, toggleDialog: toggleConfirmDialog } = useDialog()
   const { content, contentType, conversationId, id } = item
 
@@ -55,26 +58,64 @@ const ChatItem = ({ t, handleUpdateMessage, handleDeleteMessage, item }: Props) 
       )}
 
       {item.isMe ? (
-        <CustomTooltip isVisible={isOpenTooltip} actions={actions} onClose={handleCloseTooltip}>
-          <TouchableOpacity
-            onLongPress={() => handleOpenTooltip()}
-            style={[
-              styles.messageContainer,
-              item.isMe ? styles.myMessage : styles.otherMessage,
-              item.contentType ? styles.imageMessage : ''
-            ]}
-          >
-            {item.contentType ? (
-              <Image
-                source={{ uri: getSafeUrl(item.content || '') }}
-                style={{ width: 200, height: 200, position: 'relative', objectFit: 'contain' }}
-              />
-            ) : (
-              item?.isHTMLContent ? <MathRender content={item?.content || ''} style={{ backgroundColor: palette.main[500]}} textColor={palette.common.white}/> : <Text style={styles.myMessageText}>{item.content}</Text>
-            )}
-          </TouchableOpacity>
-        </CustomTooltip>
+  <View style={{ alignSelf: 'flex-end', maxWidth: '80%', flexDirection: "row", alignItems: "center" }}>
+    <Menu
+      visible={isOpenTooltip}
+      onDismiss={handleCloseTooltip}
+      anchorPosition='top'
+      style={{ backgroundColor: "#FFF"}}
+      contentStyle={{ backgroundColor: "#FFF"}}
+      anchor={
+        <TouchableOpacity
+          onPress={handleOpenTooltip}
+          hitSlop={8}
+        >
+          <Ionicons name="ellipsis-vertical-sharp" size={18} color={palette.grey[500]} />
+        </TouchableOpacity>
+      }
+    >
+      <Menu.Item
+        onPress={() => {
+          handleCloseTooltip()
+          toggleUpdateDialog()
+        }}
+        titleStyle={{ color: palette.yellow[900] }}
+        title={t('edit')}
+      />
+      <Menu.Item
+        onPress={() => {
+          handleCloseTooltip()
+          toggleConfirmDialog()
+        }}
+        title={t('delete')}
+        titleStyle={{ color: palette.red[900] }}
+      />
+    </Menu>
+
+    <View
+      style={[
+        styles.messageContainer,
+        styles.myMessage,
+        item.contentType ? styles.imageMessage : null
+      ]}
+    >
+      {item.contentType ? (
+        <Image
+          source={{ uri: getSafeUrl(item.content || '') }}
+          style={{ width: 200, height: 200, objectFit: 'contain' }}
+        />
+      ) : item?.isHTMLContent ? (
+        <MathRender
+          content={item?.content || ''}
+          style={{ backgroundColor: palette.main[500] }}
+          textColor={palette.common.white}
+        />
       ) : (
+        <Text style={styles.myMessageText}>{item.content}</Text>
+      )}
+    </View>
+  </View>
+) : (
         <View
           style={[
             styles.messageContainer,
