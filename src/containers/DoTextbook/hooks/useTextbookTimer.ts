@@ -1,49 +1,27 @@
-import useAuthStore from "@/store/useAuthStore";
-import { getDataStorage } from "@/utils/storage";
-import { useEffect, useMemo, useState } from "react";
+import moment from "moment";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 interface Props {
+  startTime?: moment.Moment;
   studyTime: number;
   textbookId: number;
 }
 
 export const useTextbookTimer = (props: Props) => {
-  const { user } = useAuthStore()
   const [elapsedTime, setElapsedTime] = useState(0);
   const { t } = useTranslation()
-  const academyDomain: string | undefined = user?.academyDomain;
-  const userId: number | undefined = user?.id;
-  const { studyTime, textbookId } = props;
-
-
-  const textbookElapsedTimeKey = useMemo(() => {
-    if (!userId || !textbookId) return undefined;
-    return `textbookElapsedTime${academyDomain?.toLowerCase()}${textbookId}${userId}`;
-  }, [academyDomain, textbookId, userId]);
-
-  const getElecpsedTime = async () => {
-    if (!textbookElapsedTimeKey) return;
-
-    const storedTime = parseInt(await getDataStorage(textbookElapsedTimeKey) || "0", 10);
-    const initialTime = Math.max(studyTime, storedTime || 0);
-    setElapsedTime(initialTime);
-
-  }
+  const { studyTime, textbookId, startTime } = props;
   useEffect(() => {
-      const fetchElapsedTime = async () => {
-    await getElecpsedTime();
-  };
-  
-  fetchElapsedTime();
-
+    if (!textbookId || !startTime) return;
+    setElapsedTime(studyTime);
     const timer = setInterval(() => {
-      setElapsedTime((prev) => {
-        return prev + 1000;
-      });
+      const time = studyTime + moment().diff(startTime, "milliseconds")
+      setElapsedTime(time);
     }, 1000);
+
     return () => clearInterval(timer);
-  }, [studyTime, textbookElapsedTimeKey]);
+  }, [studyTime, startTime, textbookId]);
 
   const formatTime = (timeInMilliseconds: number) => {
     const hours = Math.floor(timeInMilliseconds / 3600000);
@@ -57,7 +35,6 @@ export const useTextbookTimer = (props: Props) => {
   };
 
   return {
-    textbookElapsedTimeKey,
     elapsedTime,
     formattedTime: formatTime(elapsedTime),
   };

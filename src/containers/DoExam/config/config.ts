@@ -778,6 +778,7 @@ export const CATEGORY_RESPONSES = [
     {
         "id": 7,
         "name": "New category",
+        "totalSolvedTime": 6,
         "totalQuestions": 5,
         "totalCorrectQuestions": 1,
         "totalAnsweredQuestions": 5,
@@ -786,6 +787,7 @@ export const CATEGORY_RESPONSES = [
     {
         "id": 1008,
         "name": "123458868",
+        "totalSolvedTime": 5,
         "totalQuestions": 6,
         "totalCorrectQuestions": 2,
         "totalAnsweredQuestions": 4,
@@ -795,6 +797,7 @@ export const CATEGORY_RESPONSES = [
         "id": 4,
         "name": "The first category a",
         "totalQuestions": 5,
+        "totalSolvedTime": 3,
         "totalCorrectQuestions": 2,
         "totalAnsweredQuestions": 5,
         "percentageAmongStudents": 40

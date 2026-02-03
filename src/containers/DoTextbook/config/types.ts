@@ -1,14 +1,31 @@
-import { QuestionAnswerType, TextbookEditorType } from "../../../utils/enums";
+import { AnswerRequest } from "@/utils/types";
+import { ExamStatus, QuestionAnswerType, SubjectType, TextbookEditorType } from "../../../utils/enums";
 
 export interface SimplePreparedTextbookResponse {
   id: number;
   studentTextbookId: number;
   name: string;
   lastAnswerTime: string;
+  lastPausedAt: string;
+  lastResumedAt: string;
+  lastPausedTime: string;
+  lastResumedTime: string;
+  totalPausedTime: number
   startTime: string;
   totalAnswerTime: number;
   stopTime: string;
-  type: TextbookEditorType;
+  type: SubjectType;
+  status: ExamStatus
+  isMock: boolean
+  duration: number
+  subject: any
+  rowVersion: string
+  timestamp?: number
+}
+
+export type StudentTextbookAnswerRequest = {
+    lastAnswerTime: number
+    questions: AnswerRequest[]
 }
 
 export interface PreparedTextbookResponse {
@@ -27,6 +44,7 @@ export interface PreparedTextbookResponse {
   questions: PreparedQuestionResponse[];
   lastAnswerTime: string;
   startTime: string;
+  rowVersion: string
 }
 
 export interface SubjectResponse {
@@ -108,7 +126,6 @@ export type StoredStudentTextbookAnswer = {
 }
 
 export type ChangeAnswerTimeRequest = {
-  totalAnswersTime: number,
   stopTime: string
 }
 

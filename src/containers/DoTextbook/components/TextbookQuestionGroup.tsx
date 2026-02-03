@@ -6,28 +6,35 @@ import { Ionicons } from '@expo/vector-icons'
 import StarSwitch from '@/components/Switch/StarSwitch'
 import TextbookAnswer from './TextbookAnswer'
 import { ScaledSheet } from 'react-native-size-matters'
-import { QuestionAnswerType } from '@/utils/enums'
+import { ExamStatus, QuestionAnswerType } from '@/utils/enums'
 
 type Props = {
   t: any
   data: PreparedQuestionGroupResponse
   expandedId: number | null
   groupIndex: number
+  isEnd: boolean
+  status?: ExamStatus
+  isMock?: boolean
   toggleExpand: (id: number | null) => void
   questionRefs: React.MutableRefObject<(View | null)[]>
   questionList: PreparedQuestionResponse[]
+  handleQuestionLayout: (index: number) => void
   scrollToNextQuestion: (index: number) => void
-  updateQuestionStar: (questionId: number, isStar: boolean) => Promise<void>
-  updateQuestionAnswer: ({ questionId, textualAnswers, answer }: TextbookQuestion) => Promise<void>
+  updateQuestionStar: (questionId: number, isStar: boolean) => void
+  updateQuestionAnswer: ({ questionId, textualAnswers, answer }: TextbookQuestion) => void
 }
 const TextbookQuestionGroup = ({
   t,
   data,
-  groupIndex,
+  isEnd,
+  status,
+  isMock,
   expandedId,
   toggleExpand,
   questionRefs,
   questionList,
+  handleQuestionLayout,
   scrollToNextQuestion,
   updateQuestionStar,
   updateQuestionAnswer
@@ -48,6 +55,7 @@ const TextbookQuestionGroup = ({
         key={`question-${question.id}`}
         ref={(ref) => (questionRefs.current[question.questionIndex || 0] = ref)}
         collapsable={false}
+        onLayout={() => handleQuestionLayout(question.questionIndex || 0)}
       >
         <CustomDropDown
           styleCard={styles.styleCard}
@@ -97,6 +105,7 @@ const TextbookQuestionGroup = ({
                   </TouchableOpacity>
                   <StarSwitch
                     isStar={question.isStar}
+                    isDisable={isEnd || (!!isMock && status === ExamStatus.Paused)}
                     onSwitch={() => updateQuestionStar(question.id, !question.isStar)}
                   />
                 </View>
@@ -111,10 +120,11 @@ const TextbookQuestionGroup = ({
             question={question}
             updateQuestionAnswer={async ({ questionId, textualAnswers, answer }) => {
               await updateQuestionAnswer({ questionId, answer, textualAnswers })
-              afterAnswer(question.questionAnswerType, question?.questionIndex || 0);
-              (question.questionIndex || 0) === questionList.length - 1 && toggleExpand(null)
+              afterAnswer(question.questionAnswerType, question?.questionIndex || 0)
+              ;(question.questionIndex || 0) === questionList.length - 1 && toggleExpand(null)
             }}
-            updateQuestionStar={updateQuestionStar}
+            isDisable={isEnd || (!!isMock && status === ExamStatus.Paused)}
+            updateQuestionStar={isEnd || (isMock && status === ExamStatus.Paused) ? () => {} : updateQuestionStar}
           />
         </CustomDropDown>
       </View>
