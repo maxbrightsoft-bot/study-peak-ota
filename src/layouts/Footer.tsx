@@ -6,18 +6,18 @@ import { palette, TYPO } from '@/theme'
 import { TAB_BAR_HEIGHT } from '@/utils/constants'
 import { Routes } from '@/navigators/RouteName'
 import { currentScreen } from '@/navigators/NavigationHelpers'
-import GraphIcon from '@/assets/icons/graph_fill'
+import GraphIcon from '@/assets/iconJSX/graph_fill'
 
 const Footer = ({ navigation }: BottomTabBarProps) => {
   const tabItems = [
     { name: Routes.Auth.Home, icon: 'home', label: '홈' },
     { name: Routes.Auth.Textbook, icon: 'book', label: '시험' },
     { name: Routes.Auth.ExamResultList, icon: 'receipt', label: '시험 이력' },
-    // {
-    //   name: Routes.Auth.StudyTrend,
-    //   label: '공부 추이',
-    //   iconJSX: (isFocused: boolean) => <GraphIcon color={isFocused ? palette.main[500] : palette.grey[500]} />
-    // },
+    {
+      name: Routes.Auth.StudyPerformance,
+      label: '공부 추이',
+      iconJSX: (isFocused: boolean) => <GraphIcon color={isFocused ? palette.main[500] : palette.grey[500]} />
+    },
     { name: Routes.Auth.Profile, icon: 'ellipsis-horizontal', label: '기타' }
   ]
 

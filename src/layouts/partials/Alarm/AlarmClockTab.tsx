@@ -1,0 +1,52 @@
+import React, { FC } from 'react'
+import { View, StyleSheet, ScrollView } from 'react-native'
+import { ActivityIndicator } from 'react-native-paper'
+
+import AlarmClockPanel, { AlarmClockPanelProps } from './AlarmClockPanel'
+import AlarmClock, { AlarmClockProps } from './AlarmClock'
+import AlarmClockNote from './AlarmClockNote'
+import AlarmClockPanelNote from './AlarmClockPanelNote'
+import { palette } from '@/theme/colors'
+
+export interface AlarmClockTabProps {
+  isLoading: boolean
+  isPlaying: boolean
+  panelProps: AlarmClockPanelProps
+  alarmProps: AlarmClockProps
+}
+
+const AlarmClockTab: FC<AlarmClockTabProps> = ({ isLoading, isPlaying, panelProps, alarmProps }) => {
+  return (
+    <View style={{ ...styles.container, maxHeight: isLoading ? "auto" : 400 }}>
+      <ScrollView>
+        {isLoading && (
+          <View style={styles.loading}>
+            <ActivityIndicator size="small" color={palette.main[500]} />
+          </View>
+        )}
+
+        {!isLoading && <>{!isPlaying ? <AlarmClockPanel {...panelProps} /> : <AlarmClock {...alarmProps} />}</>}
+
+        {!isLoading && <View style={styles.note}>{!isPlaying ? <AlarmClockPanelNote /> : <AlarmClockNote />}</View>}
+      </ScrollView>
+    </View>
+  )
+}
+
+export default AlarmClockTab
+
+const styles = StyleSheet.create({
+  container: {
+    gap: 16,
+    maxWidth: 200,
+  },
+  loading: {
+    width: '100%',
+    paddingVertical: 16,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  note: {
+    marginTop: 4
+  }
+})

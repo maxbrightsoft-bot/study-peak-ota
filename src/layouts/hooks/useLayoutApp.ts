@@ -4,7 +4,7 @@ import { Role } from '@/utils/enums'
 import { getAcademyDomain, getAccessToken, getErrorMessage, getLearningSpace, toast } from '@/utils/helpers'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { getUserAcademies, switchAcademy } from '../apiClients/academyServices'
+import { switchAcademy } from '../apiClients/academyServices'
 import { AcademyResponse, LoginAccessTokenRequest } from '@/utils/types'
 import useLogin from '@/containers/Login/hooks/useLogin'
 import { MainRoutes, Routes } from '@/navigators/RouteName'
@@ -12,16 +12,24 @@ import { getDataStorage, removeDataStorage } from '@/utils/storage'
 import { ACADEMY_DOMAIN, ACCESS_TOKEN, REDIRECT_URL } from '@/utils/constants'
 import { useNavigation } from '@react-navigation/native'
 import { useFocusEffect } from 'expo-router'
+import useTimers from './useTimer'
+import useAlarm from './useAlarm'
+import { getSocket, initSocket } from '@/services'
+
 const useLayoutApp = () => {
   const { t } = useTranslation()
   const navigation = useNavigation();
-  const { user, academies, setUser, setLoading, logout, setAcademies, setSelectAcademy, initializePusher, pusher, disconnectPusher } = useAuthStore()
+  const { user, academies, setUser, setLoading, logout, setSelectAcademy, initializePusher, pusher, disconnectPusher } = useAuthStore()
   const { handleLoginAccessToken } = useLogin()
 
   const isNotEnoughStatements = useMemo(() => user?.email && user?.isNotEnoughStatements, [user?.email, user?.isNotEnoughStatements])
 
   const [academyMenuVisible, setAcademyMenuVisible] = useState(false)
   const [userMenuVisible, setUserMenuVisible] = useState(false)
+  const [openTimerDialog, setOpenTimerDialog] = useState<boolean>(false)
+  const handleTimerDialogToggle = () => {
+    setOpenTimerDialog(state => !state)
+  }
 
   const openAcademyMenu = () => setAcademyMenuVisible(true)
   const closeAcademyMenu = () => setAcademyMenuVisible(false)
@@ -63,12 +71,12 @@ const useLayoutApp = () => {
   const needRedirect = async () => {
     const urlRedirect = await getDataStorage(REDIRECT_URL)
     if (!urlRedirect) {
-      if (user?.id && isNotEnoughStatements) navigation.navigate(MainRoutes.AuthStack, {
-        screen: Routes.Auth.Onboarding
-      });
-      else navigation.navigate(MainRoutes.AuthStack, {
-        screen: !!user?.academyDomain ? Routes.Auth.Home : Routes.Auth.SelectAcademy
-      });
+      // if (user?.id && isNotEnoughStatements) navigation.navigate(MainRoutes.AuthStack, {
+      //   screen: Routes.Auth.Onboarding
+      // });
+      // else navigation.navigate(MainRoutes.AuthStack, {
+      //   screen: !!user?.academyDomain ? Routes.Auth.Home : Routes.Auth.SelectAcademy
+      // });
     }
     else {
       if (urlRedirect === Routes.UnAuth.Login)
@@ -89,19 +97,6 @@ const useLayoutApp = () => {
   useEffect(() => {
     loadInfo()
   }, [user?.id])
-
-  const getAcademies = async (isLoading: boolean = true) => {
-    if (!user) return
-    isLoading && setLoading(true)
-    try {
-      const res = await getUserAcademies(Role.Student, user.isLearningSpace)
-      const items: AcademyResponse[] = res.data.items || []
-      setAcademies(items)
-    } catch (error) {
-      toast.error(getErrorMessage(t, error))
-    }
-    isLoading && setLoading(false)
-  }
 
   const handleSwitchAcademy = async (
     isLearningSpace: boolean,
@@ -167,11 +162,6 @@ const useLayoutApp = () => {
     callback()
   }
 
-  useEffect(() => {
-    if (academies.length) return
-    getAcademies()
-  }, [user?.academyDomain, user?.email])
-
   const handleGetSelectedAcademy = () => {
     const academy = academies.find(
       i =>
@@ -199,7 +189,7 @@ const useLayoutApp = () => {
     const setupPusher = async () => {
       const academyDomain = await getDataStorage(ACADEMY_DOMAIN) || user?.academyDomain
       const token = await getDataStorage(ACCESS_TOKEN)
-      if(!token || !academyDomain) return
+      if (!token || !academyDomain) return
       const isLearningSpace = user?.isLearningSpace || false
       await initializePusher(academyDomain, isLearningSpace)
     };
@@ -219,8 +209,81 @@ const useLayoutApp = () => {
     }, [])
   )
 
+  const {
+    timers,
+    studyTimerProps,
+    timeUpdateDialogProps,
+    isTimerRunning,
+    handlePauseCurrentTimer,
+    getTimers
+  } = useTimers(openTimerDialog, handleTimerDialogToggle)
+
+  const {
+    audioGuideModalProps,
+    isAlarmRunning,
+    speaker,
+    disabledSpeaker,
+    handleToggleSpeaker,
+    getAlarm,
+    audioPopupProps,
+    alarmClockProps,
+  } = useAlarm(openTimerDialog, timers)
+
+  useEffect(() => {
+    getTimers()
+    getAlarm()
+  }, [])
+  useEffect(() => {
+    const startSocket = async () => {
+      const socket = await initSocket()
+
+      const token = await getAccessToken()
+      const academyDomain = await getAcademyDomain()
+      const isLearningSpace = await getLearningSpace()
+
+      socket.auth = {
+        token,
+        academyDomain,
+        super: `${!isLearningSpace && !academyDomain}`
+      }
+
+      socket.connect()
+
+      socket.on('connect', () => {
+        console.log('✅ SOCKET CONNECTED', socket.id)
+      })
+
+      socket.on('connect_error', err => {
+        console.log('❌ CONNECT ERROR', err.message)
+      })
+    }
+
+    startSocket()
+
+    return () => {
+      const socket = getSocket()
+      socket?.disconnect()
+    }
+  }, [])
+
   return {
     headerProps: {
+      timers,
+      studyTimerProps,
+      timeUpdateDialogProps,
+      isTimerRunning,
+      handlePauseCurrentTimer,
+      getTimers,
+      audioGuideModalProps,
+      audioPopupProps,
+      alarmClockProps,
+      isAlarmRunning,
+      speaker,
+      disabledSpeaker,
+      openTimerDialog,
+      handleTimerDialogToggle,
+      handleToggleSpeaker,
+      getAlarm,
       academyMenuVisible,
       userMenuVisible,
       closeUserMenu,
