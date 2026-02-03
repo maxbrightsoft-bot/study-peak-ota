@@ -1,51 +1,52 @@
 import useAuthStore from '@/store/useAuthStore'
 import { palette, TYPO } from '@/theme'
-import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
-import { View, Text, StatusBar, StyleSheet } from 'react-native'
-import { Appbar, Menu, Avatar, Button, TouchableRipple } from 'react-native-paper'
+import { View, Text, StatusBar } from 'react-native'
+import { Menu, Avatar, Button, TouchableRipple } from 'react-native-paper'
+import TimerDropdown from './components/TimerDropDown'
+import { ScaledSheet } from 'react-native-size-matters'
+import { Ionicons } from '@expo/vector-icons'
 
 type Props = {
   headerProps: any
 }
+
 const Header = ({ headerProps }: Props) => {
   const { t } = useTranslation()
   const { user, academies, selectedAcademy, logout } = useAuthStore()
   const {
+    speaker,
+    disabledSpeaker,
+    openTimerDialog,
     academyMenuVisible,
-    userMenuVisible,
+    alarmClockProps,
+    audioGuideModalProps,
+    isAlarmRunning,
+    isTimerRunning,
+    studyTimerProps,
+    timeUpdateDialogProps,
+    handleToggleSpeaker,
+    handleTimerDialogToggle,
     closeAcademyMenu,
-    closeUserMenu,
-    openUserMenu,
     openAcademyMenu,
-    handleSignOut,
     handleSwitchAcademy
   } = headerProps
-  const isCustomHeader = !!user && !user.isNotEnoughStatements
 
   const imageUrl = selectedAcademy?.image || user?.avatar
   return (
     <View style={{ backgroundColor: '#FFF' }}>
-      <StatusBar backgroundColor={palette.main[500]} barStyle="light-content" />
-      <View
-        style={{
-          ...styles.header,
-          borderBottomRightRadius: isCustomHeader ? 24 : 0,
-          borderBottomLeftRadius: isCustomHeader ? 24 : 0,
-          paddingBottom: isCustomHeader ? 0 : 24
-        }}
-      >
-        {isCustomHeader && (
+      <StatusBar barStyle="dark-content" backgroundColor={'#FFF'} />
+      <View style={styles.header}>
           <>
             <Menu
               visible={academyMenuVisible}
               onDismiss={closeAcademyMenu}
               anchorPosition="bottom"
               anchor={
-                <Button onPress={openAcademyMenu} style={{ padding: 0 }}>
+                <Button onPress={openAcademyMenu} style={{ padding: 0, margin: 0 }}>
                   <Avatar.Image
                     size={40}
-                    style={{ backgroundColor: '#fff', marginLeft: 8 }}
+                    style={{ backgroundColor: '#fff' }}
                     source={{ uri: imageUrl }}
                   />
                 </Button>
@@ -54,15 +55,14 @@ const Header = ({ headerProps }: Props) => {
                 borderRadius: 12,
                 backgroundColor: '#F9F9F9',
                 paddingVertical: 4,
-                elevation: 4, // shadow
+                elevation: 4,
                 minWidth: 250
               }}
             >
-              {/* My Study Space */}
               <TouchableRipple
                 onPress={() => handleSwitchAcademy(true, undefined, false)}
                 style={{
-                  width: "100%",
+                  width: '100%',
                   flexDirection: 'row',
                   alignItems: 'center',
                   borderColor: '#E0E0E0',
@@ -89,39 +89,12 @@ const Header = ({ headerProps }: Props) => {
                   </Text>
                 </View>
               </TouchableRipple>
-              {/* <Menu.Item
-                onPress={() => handleSwitchAcademy(true, undefined, false)}
-                style={{
-                  backgroundColor: !selectedAcademy?.domain ? palette.main[500] : '#FFF'
-                }}
-                title={
-                  <View
-                    style={{
-                      width: '100%',
-                      padding: 10,
-                      flexDirection: 'row',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <Avatar.Image
-                      size={36}
-                      style={{ backgroundColor: '#fff', marginRight: 10 }}
-                      source={user.avatar ? { uri: user.avatar } : defaultImage}
-                    />
-                    <Text style={{ color: !selectedAcademy?.domain ? '#FFF' : '#000', fontWeight: '600' }}>
-                      {t('my_study_space')}
-                    </Text>
-                  </View>
-                }
-              /> */}
-
-              {/* List of Academies */}
               {academies.map((academy, index) => (
                 <TouchableRipple
                   key={index}
                   onPress={() => handleSwitchAcademy(false, academy)}
                   style={{
-                    width: "100%",
+                    width: '100%',
                     flexDirection: 'row',
                     alignItems: 'center'
                   }}
@@ -150,35 +123,50 @@ const Header = ({ headerProps }: Props) => {
                 </TouchableRipple>
               ))}
 
-              {/* Divider */}
-
               <TouchableRipple
                 onPress={logout}
                 style={{
+                  width: '100%',
                   flexDirection: 'row',
                   alignItems: 'center',
-                  paddingHorizontal: 16,
-                  paddingVertical: 12
+                  borderColor: '#E0E0E0',
                 }}
-                rippleColor="rgba(0, 0, 0, .32)"
               >
-                <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: "center" }}>
-                  <Ionicons name="close-circle" size={24} color={palette.grey[500]} />
+                <View
+                  style={{
+                    flex: 1,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: "center",
+                    paddingVertical: 12,
+                    paddingHorizontal: 10,
+                    gap: 8
+                  }}
+                >
+                  <Ionicons name="close-circle" size={17} color={palette.grey[700]} />
+                  <Text style={{ color: palette.grey[900], fontWeight: '600' }}>
+                    {t('logout')}
+                  </Text>
                 </View>
-              </TouchableRipple>
+                </TouchableRipple>
+
             </Menu>
             <Text style={styles.headerTitle}>{selectedAcademy?.name}</Text>
-            <Menu
-              visible={userMenuVisible}
-              onDismiss={closeUserMenu}
-              anchorPosition="bottom"
-              anchor={<Appbar.Action size={40} icon="account-circle" color="#fff" onPress={openUserMenu} />}
-            >
-              <Menu.Item title={user?.fullName} disabled />
-              <Menu.Item onPress={handleSignOut} title="로그아웃"></Menu.Item>
-            </Menu>
+
+            <TimerDropdown
+              speaker={speaker}
+              disabledSpeaker={disabledSpeaker}
+              openTimerDialog={openTimerDialog}
+              alarmClockProps={alarmClockProps}
+              audioGuideModalProps={audioGuideModalProps}
+              isAlarmRunning={isAlarmRunning}
+              isTimerRunning={isTimerRunning}
+              studyTimerProps={studyTimerProps}
+              timeUpdateDialogProps={timeUpdateDialogProps}
+              onToggleSpeaker={handleToggleSpeaker}
+              onToggleTimerDialog={handleTimerDialogToggle}
+            />
           </>
-        )}
       </View>
     </View>
   )
@@ -186,50 +174,26 @@ const Header = ({ headerProps }: Props) => {
 
 export default Header
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   header: {
-    backgroundColor: palette.main[500],
-    paddingTop: 16,
-    paddingHorizontal: 16,
+    backgroundColor: '#FFF',
+    paddingVertical: '8@ms',
+    paddingHorizontal: '16@ms',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderColor: palette.grey[50],
     alignItems: 'center'
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center'
   },
-  logoCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 17.5,
-    backgroundColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
   logoText: {
     ...TYPO.heading2
   },
   headerTitle: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold'
+    ...TYPO.heading2,
+    color: palette.grey[900]
   },
-  profileCircle: {
-    width: 35,
-    height: 35,
-    borderRadius: 17.5,
-    backgroundColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  welcomeCard: {
-    backgroundColor: 'white',
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2
-  }
 })
