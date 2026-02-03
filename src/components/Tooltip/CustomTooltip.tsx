@@ -16,11 +16,14 @@ const CustomTooltip = ({ isVisible, onClose, children, data, actions }: Props) =
   return (
     <Tooltip
       isVisible={isVisible}
+      backgroundColor="transparent"
+      tooltipStyle={styles.tooltip}
       content={
         <View style={styles.container}>
           {actions.map((action, index) => (
             <>
               <TouchableOpacity
+                key={action.label}
                 onPress={() => {
                   action?.onPress?.(data)
                   onClose()
@@ -54,6 +57,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 35,
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  tooltip: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8
   },
   containerButton: {
     flexDirection: 'row',

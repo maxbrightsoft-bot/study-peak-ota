@@ -1,27 +1,30 @@
 import { palette, TYPO } from '@/theme';
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, StyleProp } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import Icon  from '@expo/vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   value: any
-  onValueChange: (value: any) => void
-  items: any
+  onValueChange?: (value: any) => void
+  options: any
+  style?: any
   placeholder?: string
 }
 
-const CustomSelect = ({ value, onValueChange, items, placeholder }: Props) => {
+const CustomSelect = ({ value, onValueChange, style, options, placeholder }: Props) => {
+  const { t } = useTranslation()
   return (
     <View>
       <Dropdown
-        data={items}
+        data={options}
         labelField="label"
         valueField="value"
         value={value} 
-        onChange={(item) => onValueChange(item.value)}
-        placeholder={placeholder}
-        style={styles.dropdown}
+        onChange={(item) => onValueChange?.(item.value)}
+        placeholder={placeholder ?? t('select_placeholder')}
+        style={[styles.dropdown, style]}
         selectedTextStyle={styles.selectedText}
         iconStyle={styles.iconStyle}
         containerStyle={styles.dropdownContainer}

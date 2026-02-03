@@ -1,8 +1,6 @@
 import { palette } from '@/theme'
-import { STATUS_BAR_HEIGHT } from '@/utils/constants'
 import React, { useEffect, useRef } from 'react'
 import { View, Animated, TouchableOpacity, StyleSheet, Dimensions, Modal, Platform } from 'react-native'
-import Toast from 'react-native-toast-message'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 
@@ -83,6 +81,7 @@ const styles = StyleSheet.create({
     left: 0,
     backgroundColor: 'white',
     flex: 1,
+    zIndex: 99
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,

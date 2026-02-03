@@ -36,6 +36,7 @@ type TextFieldProps = {
   onFocus?: any;
   onBlur?: any;
   small?: any;
+  disabled?: boolean
   onChangeText?: any;
   keyboardType?: KeyboardTypeOptions;
   inputRef?: any;
@@ -64,6 +65,7 @@ const TextField = ({
   onFocus,
   onBlur,
   small,
+  disabled,
   onChangeText,
   keyboardType,
   inputRef,
@@ -119,7 +121,7 @@ const TextField = ({
   return (
     <TouchableOpacity
       style={[styles.container, style]}
-      disabled={!onPress}
+      disabled={!onPress || disabled}
       onPress={onPress}
     >
       {renderLabel()}

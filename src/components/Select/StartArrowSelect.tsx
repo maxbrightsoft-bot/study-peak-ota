@@ -2,6 +2,7 @@ import { palette, TYPO } from '@/theme'
 import { Option } from '@/utils/types'
 import { MaterialIcons } from '@expo/vector-icons'
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { View, Text, StyleSheet } from 'react-native'
 import { Dropdown } from 'react-native-element-dropdown'
 
@@ -13,6 +14,7 @@ type Props = {
 }
 
 const StartArrowSelect = ({ value, onValueChange, items, placeholder }: Props) => {
+  const { t } = useTranslation()
   return (
     <View style={styles.container}>
       <Dropdown
@@ -21,7 +23,7 @@ const StartArrowSelect = ({ value, onValueChange, items, placeholder }: Props) =
         valueField="value"
         value={value}
         onChange={(item) => onValueChange(item.value)}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t('select_placeholder')}
         style={styles.dropdown}
         selectedTextStyle={styles.selectedText}
         iconStyle={styles.iconStyle}
@@ -44,6 +46,7 @@ const StartArrowSelect = ({ value, onValueChange, items, placeholder }: Props) =
 const styles = StyleSheet.create({
   container: {
     backgroundColor: 'white',
+    borderRadius: 8
   },
   dropdown: {
     minWidth: 100,

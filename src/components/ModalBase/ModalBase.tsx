@@ -2,7 +2,6 @@ import { StyleProp, View, ViewStyle } from 'react-native'
 import Modal from 'react-native-modal/dist/modal'
 import { ReactNode, useEffect, useState } from 'react'
 import { ScaledSheet } from 'react-native-size-matters'
-import Toast from 'react-native-toast-message'
 import Loading from '../Loading'
 import useAuthStore from '@/store/useAuthStore'
 
@@ -34,7 +33,6 @@ function ModalBase(props: PropsModalClose) {
       onModalHide={() => setCanRenderContent(false)}
       style={[styles.modalContainer, style]}
     >
-      <Toast position="top" />
       <View style={[styles.viewContainer, styleContainer, { opacity: canRenderContent ? 1 : 0 }]}>
         {children}
         {isLoading && <Loading fullScreen={false} />}
