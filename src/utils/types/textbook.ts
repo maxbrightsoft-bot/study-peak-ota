@@ -1,5 +1,5 @@
-import { QuestionAnswerType } from "../enums"
-import { Category } from "./exam"
+import { ExamStatus, QuestionAnswerType } from "../enums"
+import { Category, Question } from "./exam"
 import { UserResponse } from "./user"
 
 export type TextbookResponse = {
@@ -18,20 +18,32 @@ export type TextbookResponse = {
 }
 
 export type Textbook = {
-  id?: number;
+  id: number;
   name: string;
-  subjectId?: number | string;
+  subjectId?: number;
   coverImage: string;
-  chapters?: ChapterResponse[];
+  chapters: ChapterResponse[];
   preparedType: number;
   isbn: string;
   publicationDate: string;
+  progress?: number
   publisher: string;
-  isPublic: boolean
-  isShared?: boolean
-  grade: string;
   subject?: Subject
-  textbookOwners?: TextbookOwner[]
+  totalQuestions?: number
+  subjectName?: string
+  isShared?: boolean
+  duration: number
+  isStudying?: boolean
+  totalUses: number
+  createdBy: Profile
+  createdAt: string
+  completedQuestions: number
+  textbookOwners: Profile[]
+  limitedTimeInMinutes: number
+  limitedQuestionCount: number
+  rowVersion: string
+  status: ExamStatus
+  isMock: boolean
 };
 
 export type TextbookOwner = {
@@ -46,6 +58,7 @@ export type Subject = {
   totalCategories: number
   createdAt: string,
   superId: number
+  audioUrls: string[]
 }
 
 export type TextbookResult = {
@@ -61,26 +74,9 @@ export type TextbookResult = {
   studentQuestionResults: StudentQuestionResult[]
 }
 
-export type StudentQuestionResult = {
-  id: number
-  questionGroupId: number
-  selectedAnswers?: number[] | string
-  correctAnswers?: number[] | string
-  textualAnswers?: string[]
-  correctTextualAnswers?: string[]
-  isStar: boolean
-  duration: number
-  classAverageTime: number
-  topDuration: number | null
-  answerResponseSignal: number
-  isCorrect: boolean
-  answerTime: string
-  article: number
-  score: number
-  questionAnswerType: QuestionAnswerType
-  categories: Category[]
-  overallCorrectRate: number
-  questionOrder: number
+export type StudentQuestionResult = Question & {
+    categories: Category[]
+    questionGroupId: number
 }
 
 export type SubjectResponse = {
@@ -94,8 +90,8 @@ export type TextbookDetailResponse = {
   id?: number;
   name: string;
   subject?: SubjectResponse;
-  chapters: ChapterResponse[];
-  isCreatedByAdmin?: boolean;
+  chapters: ChapterResponse[]
+  isCreatedByAdmin?: boolean
   // createdAt?: string
   createdBy?: UserResponse
   isPrepared?: boolean
@@ -108,9 +104,16 @@ export type ChapterResponse = {
   pageFrom: number;
   pageTo: number;
   createdAt: string;
-  subChapters: SubChapterResponse[];
+  subChapters: ChapterResponse[];
   articles: ArticleResponse[];
+  questionGroups?: QuestionGroupResponse[];
 };
+
+export type QuestionGroupResponse = {
+  id: number
+  pageFrom?: number
+  pageTo?: number
+}
 
 export type ArticleResponse = {
   id?: number;
@@ -124,17 +127,14 @@ export type ArticleResponse = {
 
 
 export type CategoryResponse = {
-  parentCategoryId?: null;
-  name?: string;
-  path?: null;
-  numberOfQuestions?: number;
-  numberOfChildren?: number;
-  id: number;
-  subjectId?: number;
-  totalQuestions?: number
-  totalCorrectQuestions?: number
-  totalAnsweredQuestions?: number
-  percentageAmongStudents?: number
+  id: number
+  name: string
+  totalQuestions: number
+  totalCorrectQuestions: number
+  totalAnsweredQuestions: number
+  percentageAmongStudents: number
+  questionIds: number[]
+  totalSolvedTime: number
 };
 
 export type QuestionResponse = {
@@ -181,4 +181,16 @@ export type Profile = {
   classes: string[]
   roles: string[],
   isLearningSpace: boolean
+}
+
+export type PauseOrResumeExamRequest = {
+  rowVersion: string
+  status: ExamStatus
+  pauseTime: number
+}
+
+export type RestartTextbookRequest = {
+  rowVersion?: string
+  startPage?: number
+  endPage?: number
 }

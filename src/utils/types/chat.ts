@@ -10,31 +10,41 @@ export type ConversationResponse = {
 }
 
 export type ConversationsResponse = {
-  id: number
-  studentExamSessionId?: number
-  courseId: number | null
-  courseTitle: string | null
-  score?: number | null
-  totalScore?: number | null
-  studentId: number
-  category?: string | null
-  question: ConversationQuestion
-  isCompleted: boolean
-  completedAt: string
-  totalUnReadMessage: number
-  lastMessage: string | null
-  examTitle: string
-  examId: number
-  examSessionId?: number
-  studentTextbookSessionId?: number
-  duration: string
-  startTime: string
-  examCreatedAt: string
-  createdAt: string
-  teacherName: string
-  textbookId: number
-  textbookName: string
-}
+    id: number;
+    studentExamSessionId?: number;
+    courseId: number | null;
+    courseName: string | null;
+    score?: number | null;
+    totalScore?: number | null;
+    studentId: number;
+    category?: string | null;
+    question: ConversationQuestion;
+    isCompleted: boolean;
+    completedAt: string;
+    totalUnReadMessage: number;
+    lastMessage: string | null;
+    examTitle: string;
+    examId: number;
+    examSessionId?: number;
+    mainTeacherCourseName?: string;
+    mainTeacherCourseEmail?: string;
+    studentCreatedId?: number;
+    studentCreatedName?: string;
+    studentTextbookSessionId?: number;
+    duration: string;
+    startTime: string;
+    examCreatedAt: string;
+    createdAt: string;
+    teacherId: number;
+    teacherName: string;
+    textbookId: number;
+    textbookName: string;
+    isSelected: boolean;
+    attemptNumber: number;
+    studentAttemptNumber: number;
+    studentTotalAttemptTime: number;
+    totalAttemptTime: number;
+};
 
 export type ConversationQuestion = {
   id: number

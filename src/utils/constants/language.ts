@@ -1,6 +1,6 @@
-import { Language } from "../types";
+import { LanguageResponse } from "../types";
 
-export const LANGUAGES: Language[] = [
+export const LANGUAGES: LanguageResponse[] = [
   {
       code: "ko",
       fullName: "Korean",
@@ -18,5 +18,14 @@ export const LANGUAGES: Language[] = [
       name: "English",
       image: "/images/usa.png",
       momentLangCode: "en-au"
-  }
+  },
+  {
+      code: "vi",
+      fullName: "Vietnamese",
+      shortName: "Vietnamese",
+      nativeName: "Vietnamese",
+      name: "Vietnamese",
+      image: "/images/vietnam.png",
+      momentLangCode: "vi"
+  },
 ]

@@ -9,7 +9,7 @@ export const Routes = {
         ExamList: "EXAM_LIST",
         ExamResult: "EXAM_RESULT",
         ExamResultList: "EXAM_RESULT_LIST",
-        StudyTrend: "STUDY_TREND",
+        StudyPerformance: "STUDY_PERFORMANCE",
         Profile: "PROFILE"
     },
     UnAuth: {
