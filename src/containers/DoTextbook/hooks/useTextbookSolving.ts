@@ -1,41 +1,41 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { PreparedQuestionResponse, SimplePreparedTextbookResponse, StoredStudentTextbookAnswer, TextbookQuestion } from "../config/types";
+import NetInfo from '@react-native-community/netinfo';
+import { useEffect, useMemo, useRef } from "react";
+import { PreparedQuestionResponse, SimplePreparedTextbookResponse, StoredStudentTextbookAnswer, StudentTextbookAnswerRequest, TextbookQuestion } from "../config/types";
 import { answerQuestionTextbook } from "../apiClients";
 import _ from "lodash";
-import { QuestionAnswerType } from "../../../utils/enums";
-import useAuthStore from "@/store/useAuthStore";
 import { useTranslation } from "react-i18next";
-import { DATE_MIN_VALUE, DATE_TIME_MIN_VALUE } from "@/utils/constants";
+import useAuthStore from "@/store/useAuthStore";
 import moment from "moment";
 import { diffFromNow, getErrorMessage, toast, toISOString } from "@/utils/helpers";
-import { StudentAnswerRequest } from "@/utils/types";
+import { DATE_TIME_MIN_VALUE } from "@/utils/constants";
 import { isTextType } from "@/utils/helpers/textbook";
+import { QuestionAnswerType } from "@/utils/enums";
 import { getDataStorage, removeDataStorage, setDataStorage } from "@/utils/storage";
 
-const rollBackQuestionList = "rb";
-const recoverQuestionList = "rc";
+const DATE_TIME_FORMAT = "YYYY-MM-DDTHH:mm:ss.SSSZ"
+const rollBackQuestionList = "trb";
+const recoverQuestionList = "trc";
 interface Props {
-  startTime: string;
+  startTime?: moment.Moment
   textbook?: SimplePreparedTextbookResponse;
   textbookId: number;
-  totalAnswersTime: number;
+  updateTextbook: React.Dispatch<React.SetStateAction<SimplePreparedTextbookResponse | undefined>>
   questionList?: PreparedQuestionResponse[];
   updateQuestionList?: (questions: PreparedQuestionResponse[]) => void;
-  updateTextbookLastTimeAnswer?: (lastTimeAnswer: string) => void;
   handleUpdateSlider?: (questionId: number) => void;
 }
 const useTextbookSolving = (props: Props) => {
-  const { user } = useAuthStore()
   const {
     startTime,
-    totalAnswersTime,
     textbook,
     textbookId,
+    updateTextbook,
     questionList = [],
-    updateTextbookLastTimeAnswer,
     updateQuestionList,
     handleUpdateSlider
   } = props;
+  const { user, selectedAcademy } = useAuthStore()
+  const academyId = selectedAcademy?.id
   const academyDomain: string | undefined = user?.academyDomain;
   const userId: number | undefined = user?.id;
 
@@ -43,91 +43,60 @@ const useTextbookSolving = (props: Props) => {
 
   const apiTimeouts = useRef<any>({});
 
-  const [ltAnswerTime, setLtAnswerTime] = useState<string>();
+  const ltAnswerTime = useRef<moment.Moment>();
+  const totalAnsweredTimeRef = useRef<number>();
 
   const recoverKey = useMemo(() => {
-    if (!userId || !textbookId) return undefined;
-    return `${recoverQuestionList}${academyDomain?.toLowerCase()}${textbookId}${userId}`;
-  }, [academyDomain, textbookId, userId]);
+    if (!userId || !textbookId || !academyId) return undefined;
+    return `${recoverQuestionList}.${academyId}.${textbookId}.${userId}`;
+  }, [academyDomain, academyId, textbookId, userId]);
 
   const rollbackKey = useMemo(() => {
-    if (!userId || !textbookId) return undefined;
-    return `${rollBackQuestionList}${academyDomain?.toLowerCase()}${textbookId}${userId}`;
-  }, [academyDomain, textbookId, userId]);
+    if (!userId || !textbookId || !academyId) return undefined;
+    return `${rollBackQuestionList}.${academyId}.${textbookId}.${userId}`;
+  }, [academyDomain, academyId, textbookId, userId]);
 
-  const stopTimeKey = useMemo(() => {
-    if (!userId || !textbookId) return undefined;
-    return `stopTime${academyDomain?.toLowerCase()}${textbookId}${userId}`;
-  }, [academyDomain, textbookId, userId]);
+  const getDiffTime = (nowMoment: moment.Moment) => {
+    if (!textbook) return 0
+    const time = moment(nowMoment).format(DATE_TIME_FORMAT);
+    const now = toISOString(time);
+    let lastAnswerTime = textbook.isMock ?
+      (ltAnswerTime.current || (textbook.lastAnswerTime === DATE_TIME_MIN_VALUE ? textbook.startTime : textbook.lastAnswerTime)) :
+      ltAnswerTime.current && ltAnswerTime.current.isAfter(startTime) ? ltAnswerTime.current : startTime;
+    let diff = 0
 
-  const getDiffTime = async (
-    textbook: SimplePreparedTextbookResponse,
-    now: string
-  ) => {
-    let lastAnswerTime = ltAnswerTime || textbook.lastAnswerTime
+    const totalRunningTime = +diffFromNow(textbook?.startTime || "", "milliseconds", now)
+    if (!textbook?.isMock)
+      diff = +diffFromNow(moment(lastAnswerTime).format(DATE_TIME_FORMAT), "milliseconds", now)
+    else
+      diff = totalRunningTime - (totalAnsweredTimeRef.current ?? textbook.totalAnswerTime) - textbook.totalPausedTime;
+    diff = Math.max(0, diff)
+    ltAnswerTime.current = nowMoment;
+    if (!totalAnsweredTimeRef.current) totalAnsweredTimeRef.current = textbook.totalAnswerTime
+    totalAnsweredTimeRef.current += diff
 
-    const localStopTime = stopTimeKey ? await getDataStorage(stopTimeKey) : null;
-    const stopTime = localStopTime;
-    // localStopTime && textbook.stopTime &&
-    // moment(localStopTime).isValid() &&
-    // moment(localStopTime).isAfter(moment(lastAnswerTime)) &&
-    // moment(textbook.stopTime).isAfter(moment(lastAnswerTime))
-    //   ? moment(localStopTime).isAfter(moment(textbook.stopTime))
-    //     ? localStopTime
-    //     : textbook.stopTime
-    //   : null;
-
-    if (
-      !lastAnswerTime ||
-      lastAnswerTime === DATE_TIME_MIN_VALUE ||
-      lastAnswerTime === DATE_MIN_VALUE
-    ) {
-      lastAnswerTime = textbook.startTime;
-    }
-
-    if (
-      stopTime &&
-      moment(stopTime).isAfter(moment(lastAnswerTime)) &&
-      moment(startTime).isAfter(moment(stopTime))
-    ) {
-      const diffBeforeStop = diffFromNow(
-        lastAnswerTime,
-        "milliseconds",
-        stopTime
-      );
-      const diffAfterStop = diffFromNow(startTime, "milliseconds", now);
-      console.log({
-        lastAnswerTime: lastAnswerTime,
-        stopTime: stopTime,
-        startTime: startTime,
-        newLastAnswerTime: lastAnswerTime,
-      });
-      await removeDataStorage(stopTimeKey || "");
-      return (
-        (diffBeforeStop === "" ? 0 : diffBeforeStop) +
-        (diffAfterStop === "" ? 0 : diffAfterStop)
-      );
-    }
-
-    return diffFromNow(lastAnswerTime, "milliseconds", now);
+    return diff;
   };
 
   const updateAnswers = async (
-    body: StudentAnswerRequest,
-    lastAnswerTime: string,
+    body: StudentTextbookAnswerRequest,
     callback?: Function
   ) => {
     let res: any = null;
     let error: any = null;
     try {
       res = await answerQuestionTextbook(textbookId, body);
-      res = res.data;
+      res = res.data.data;
+      if (res && !res.message) {
+        if (!totalAnsweredTimeRef.current || (res.totalAnswerTime && res.totalAnswerTime > totalAnsweredTimeRef.current))
+          totalAnsweredTimeRef.current = res.totalAnswerTime;
+        updateTextbook?.((prev: any) => {
+          return ({ ...prev, questions: res.questions, lastAnswerTime: res.lastAnswerTime, totalAnswerTime: res.totalAnswerTime, totalPausedTime: res.totalPausedTime })
+        })
+      }
     } catch (err: any) {
       error = err;
     } finally {
-      if (res && res?.status === 1) {
-        updateTextbookLastTimeAnswer?.(lastAnswerTime);
-      }
       if (
         (error && error.code !== "ERR_NETWORK") ||
         (res && res?.status === 0)
@@ -135,7 +104,11 @@ const useTextbookSolving = (props: Props) => {
         const rollBackQuestions = await getRollBackQuestionList();
         if (rollBackQuestions) {
           updateQuestionList?.(rollBackQuestions.questions);
-          setLtAnswerTime(rollBackQuestions.lastAnswerTime);
+          const rollBackLastAnswerTime = rollBackQuestions.lastAnswerTime
+          const isValid = moment.invalid(rollBackLastAnswerTime)
+
+          if (ltAnswerTime.current && isValid && moment(rollBackLastAnswerTime).isAfter(startTime) && moment(rollBackLastAnswerTime).isAfter(ltAnswerTime.current))
+            ltAnswerTime.current = moment(rollBackLastAnswerTime)
         }
 
         const errorMessage = error?.response?.data?.title || res?.message;
@@ -184,12 +157,10 @@ const useTextbookSolving = (props: Props) => {
         questions: questionList
       })
     );
-    setLtAnswerTime(lastAnswerTime);
     updateQuestionList?.(arrQuestionNew);
 
-    const body: StudentAnswerRequest = {
+    const body: StudentTextbookAnswerRequest = {
       lastAnswerTime: lastAnswerTimeNum,
-      totalAnswerTime: totalAnswersTime,
       questions: arrQuestionNew.map((i) => ({
         questionId: i.id,
         selectedAnswers: i.selectedAnswers,
@@ -205,10 +176,10 @@ const useTextbookSolving = (props: Props) => {
       delete apiTimeouts.current[rollbackKey];
     }
     if (!!callback) {
-      await updateAnswers(body, lastAnswerTime, callback);
+      await updateAnswers(body, callback);
     } else {
       apiTimeouts.current[rollbackKey] = setTimeout(
-        async() => await updateAnswers(body, lastAnswerTime),
+        () => updateAnswers(body),
         500
       );
     }
@@ -233,84 +204,88 @@ const useTextbookSolving = (props: Props) => {
     }
   };
 
-  const updateQuestionAnswer = async ({ questionId, textualAnswers = [], answer }: TextbookQuestion) => {
+  const updateQuestionAnswer = ({ questionId, textualAnswers = [], answer }: TextbookQuestion) => {
     try {
       if (!textbook) return;
-      const time = moment().format("YYYY-MM-DDTHH:mm:ss.SSSZ");
+      const nowMoment = moment()
+      const time = nowMoment.format(DATE_TIME_FORMAT);
       const now = toISOString(time);
       const nowTime = moment(now).utc().valueOf();
 
       const listQuestionNews = _.cloneDeep(questionList);
-      const arrQuestionNew: PreparedQuestionResponse[] = [];
-      for (const item of listQuestionNews) {
-        const isTextAnswerType = isTextType(item.questionAnswerType);
-
+      const arrQuestionNew = listQuestionNews.map((item: PreparedQuestionResponse) => {
+        const isTextAnswerType = isTextType(item.questionAnswerType)
         if (item.textualAnswers !== undefined && !isTextAnswerType) {
-          delete item.textualAnswers;
+          delete item.textualAnswers
         }
         if (item.selectedAnswers !== undefined && isTextAnswerType) {
-          delete item.selectedAnswers;
+          delete item.selectedAnswers
         }
-
         if (item.id === questionId) {
           switch (item.questionAnswerType) {
             case QuestionAnswerType.SingleChoice:
-              if (answer !== undefined) {
-                item.selectedAnswers = item.selectedAnswers?.includes(answer)
-                  ? item.selectedAnswers.filter((i: number) => i !== answer)
-                  : [answer];
-              }
+              if (answer === undefined) break;
+              item.selectedAnswers = item.selectedAnswers?.includes(answer)
+                ? item.selectedAnswers.filter((i: number) => i != answer)
+                : [answer];
               break;
             case QuestionAnswerType.MultipleChoice:
-              if (answer !== undefined) {
-                item.selectedAnswers = item.selectedAnswers?.includes(answer)
-                  ? item.selectedAnswers.filter((i: number) => i !== answer)
-                  : [...(item.selectedAnswers ?? []), answer];
-              }
+              if (answer === undefined) break;
+              item.selectedAnswers = item.selectedAnswers?.includes(answer)
+                ? item.selectedAnswers.filter((i: number) => i != answer)
+                : [...(item.selectedAnswers ?? []), answer];
               break;
             default:
-              item.textualAnswers = textualAnswers;
+              item.textualAnswers = textualAnswers
               break;
           }
 
-          const diff = await getDiffTime(textbook, now);
-          item.duration = (item.duration || 0) + Number(diff);
-          item.answerTime = item.answerTime && item.answerTime !== 0
-            ? item.answerTime
-            : nowTime;
+          const diff = getDiffTime(nowMoment);
+          item.duration = (item.duration || 0) + +diff;
+          item.answerTime =
+            item.answerTime && item.answerTime !== 0
+              ? item.answerTime
+              : nowTime;
         }
+        return item;
+      });
 
-        arrQuestionNew.push(item);
-      }
-
-      await handleUpdateAnswer(arrQuestionNew, now, nowTime, questionId);
+      handleUpdateAnswer(arrQuestionNew, now, nowTime, questionId);
     } catch (error) {
       console.log({ error });
     }
   };
 
 
-  const updateQuestionStar = async (questionId: number, isStar: boolean) => {
+  const updateQuestionStar = (questionId: number, isStar: boolean) => {
     try {
       if (!textbook) return;
-      const time = moment().format("YYYY-MM-DDTHH:mm:ss.SSSZ");
+      const nowMoment = moment();
+      const time = nowMoment.format(DATE_TIME_FORMAT);
       const now = toISOString(time);
       const nowTime = moment(now).utc().valueOf();
       const listQuestionNews = _.cloneDeep(questionList);
-      const arrQuestionNew = [];
-      for (const item of listQuestionNews) {
+      const arrQuestionNew = listQuestionNews.map((item: PreparedQuestionResponse) => {
+        const isTextAnswerType = isTextType(item.questionAnswerType)
+        if (item.textualAnswers !== undefined && !isTextAnswerType) {
+          delete item.textualAnswers
+        }
+        if (item.selectedAnswers !== undefined && isTextAnswerType) {
+          delete item.selectedAnswers
+        }
         if (item.id === questionId) {
           item.isStar = isStar;
-          const diff = await getDiffTime(textbook, now);
-          item.duration = (item.duration || 0) + Number(diff);
-          item.answerTime = item.answerTime && item.answerTime !== 0
-            ? item.answerTime
-            : nowTime;
+          const diff = getDiffTime(nowMoment);
+          item.duration = (item.duration || 0) + +diff;
+          item.answerTime =
+            item.answerTime && item.answerTime !== 0
+              ? item.answerTime
+              : nowTime;
         }
-        arrQuestionNew.push(item);
-      }
+        return item;
+      });
 
-      await handleUpdateAnswer(arrQuestionNew, now, nowTime, questionId);
+      handleUpdateAnswer(arrQuestionNew, now, nowTime, questionId);
     } catch (error) {
       console.log({ error });
     }
@@ -326,7 +301,6 @@ const useTextbookSolving = (props: Props) => {
       data = JSON.parse(recoverJsonQuestions || "");
     } catch (error) {
       await removeDataStorage(recoverKey);
-      console.log({ error });
     }
     const currentLastAnswerTime = textbook?.lastAnswerTime
       ? moment.utc(textbook?.lastAnswerTime).valueOf()
@@ -357,13 +331,42 @@ const useTextbookSolving = (props: Props) => {
     rollbackKey && await removeDataStorage(rollbackKey);
   };
 
+  const recoverAnswers = async () => {
+    if (!recoverKey)
+      return;
+    try {
+      await handleRecoverExamAnswer(recoverKey, () => {
+        handleClearStorage()
+      })
+    } catch (e: any) {
+      console.log({ error: e.message });
+    }
+  }
+
+  useEffect(() => {
+    let unsubscribe: any;
+
+    unsubscribe = NetInfo.addEventListener(state => {
+      if (state.isConnected && state.isInternetReachable) {
+        recoverAnswers();
+      }
+    });
+
+    return () => {
+      unsubscribe?.();
+    };
+  }, [recoverKey]);
+
+  useEffect(() => {
+    ltAnswerTime.current = undefined
+    totalAnsweredTimeRef.current = undefined
+  }, [textbook?.timestamp])
+
   return {
-    stopTimeKey,
     recoverKey,
     updateQuestionAnswer,
     updateQuestionStar,
-    handleClearStorage,
-    handleRecoverExamAnswer
+    recoverAnswers
   };
 };
 

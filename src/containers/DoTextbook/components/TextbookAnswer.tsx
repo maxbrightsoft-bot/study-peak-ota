@@ -13,6 +13,7 @@ import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   t: any
+  isDisable: boolean
   question: PreparedQuestionResponse
   updateQuestionAnswer: ({ questionId, textualAnswers, answer }: TextbookQuestion) => void
   updateQuestionStar: any
@@ -27,7 +28,7 @@ const schema = (t: any) => {
   })
 }
 
-const TextbookAnswer = ({ t, question, updateQuestionAnswer, updateQuestionStar }: Props) => {
+const TextbookAnswer = ({ t, question, isDisable, updateQuestionAnswer, updateQuestionStar }: Props) => {
   const answers = question.textualAnswers?.length ? question.textualAnswers : ['']
 
   const renderAnswer = (question: PreparedQuestionResponse, type: QuestionAnswerType) => {
@@ -60,11 +61,16 @@ const TextbookAnswer = ({ t, question, updateQuestionAnswer, updateQuestionStar 
                   values={values}
                 />
                 <TouchableOpacity
-                  style={[styles.button, styles.confirmButton, !values.textualAnswers.length || values.textualAnswers.some((i: string) => !i.trim().length) && { opacity: 0.5}]}
+                  style={[
+                    styles.button,
+                    styles.confirmButton,
+                    !values.textualAnswers.length ||
+                      (values.textualAnswers.some((i: string) => !i.trim().length) && { opacity: 0.5 })
+                  ]}
                   disabled={
                     !values.textualAnswers.length || values.textualAnswers.some((i: string) => !i.trim().length)
                   }
-                  onPress={() => handleSubmit(values)}
+                  onPress={isDisable ? undefined : () => handleSubmit(values)}
                 >
                   <Text style={styles.confirmButtonText}>{t('registration')}</Text>
                 </TouchableOpacity>
@@ -91,6 +97,7 @@ const TextbookAnswer = ({ t, question, updateQuestionAnswer, updateQuestionStar 
                     ? palette.main[500]
                     : palette.grey[300]
                 }}
+                disabled={isDisable}
                 onPress={() =>
                   updateQuestionAnswer({
                     questionId: question.id,
@@ -126,7 +133,11 @@ const TextbookAnswer = ({ t, question, updateQuestionAnswer, updateQuestionStar 
   return (
     <View style={styles.container}>
       {renderAnswer(question, question.questionAnswerType)}
-      <StarSwitch isStar={question.isStar} onSwitch={async() => await updateQuestionStar(question.id, !question.isStar)} />
+      <StarSwitch
+        isStar={question.isStar}
+        isDisable={isDisable}
+        onSwitch={async () => await updateQuestionStar(question.id, !question.isStar)}
+      />
     </View>
   )
 }

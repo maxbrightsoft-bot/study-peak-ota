@@ -16,6 +16,7 @@ export type ExamResponse = {
     isLate: boolean
     startTimeSession: string
     lastAnswerTime: string
+    rowVersion: string
 }
 
 export type AnswerRequest = {
@@ -27,10 +28,25 @@ export type AnswerRequest = {
     textualAnswers?: string[]
 }
 
+export type StudentExamResult = {
+    title: string
+    durationInMinutes: number
+    startTime: string
+    endTime: string
+    score: number
+    totalQuestions: number
+    studentExamSessionId: number
+    percentageAmongStudents: number
+    questionSolvingOrderEfficiency?: number
+    courses: CourseInfo[]
+    code: string
+}
+
 export type StudentAnswerRequest = {
     lastAnswerTime: number
     questions: AnswerRequest[]
     totalAnswerTime?: number
+    runningTime: number
 }
 
 export type QuestionResponse = {
@@ -50,6 +66,7 @@ export type QuestionResponse = {
 export type StoredStudentAnswer = {
     lastAnswerTime: number
     questions: Question[]
+    runningTime: number
 }
 export type QuestionGroupResponse = {
     id: number
@@ -90,19 +107,6 @@ export type ExamQuestion = {
     questionId: number
     answer?: number
     textualAnswers?: string[]
-}
-
-export type StudentExamResult = {
-    title: string
-    durationInMinutes: number
-    startTime: string
-    endTime: string
-    score: number
-    totalQuestions: number
-    percentageAmongStudents: number
-    questionSolvingOrderEffeciency?: number
-    courses: CourseInfo[]
-    code: string
 }
 
 export type CategoryResponse = {

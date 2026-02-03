@@ -13,6 +13,7 @@ import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   t: any
+  isDisable: boolean
   question: Question
   updateQuestionAnswer: ({ questionId, textualAnswers, answer }: ExamQuestion) => void
   updateQuestionStar: any
@@ -27,7 +28,7 @@ const schema = (t: any) => {
   })
 }
 
-const ExamAnswer = ({ t, question, updateQuestionAnswer, updateQuestionStar }: Props) => {
+const ExamAnswer = ({ t, question, isDisable, updateQuestionAnswer, updateQuestionStar }: Props) => {
   const answers = question.textualAnswers?.length ? question.textualAnswers : ['']
   
   const renderAnswer = (question: Question, type: QuestionAnswerType) => {
@@ -69,7 +70,7 @@ const ExamAnswer = ({ t, question, updateQuestionAnswer, updateQuestionStar }: P
                   disabled={
                     !values.textualAnswers.length || values.textualAnswers.some((i: string) => !i.trim().length)
                   }
-                  onPress={() => handleSubmit(values)}
+                  onPress={isDisable ? undefined : () => handleSubmit(values)}
                 >
                   <Text style={styles.confirmButtonText}>{t('registration')}</Text>
                 </TouchableOpacity>
@@ -96,7 +97,7 @@ const ExamAnswer = ({ t, question, updateQuestionAnswer, updateQuestionStar }: P
                     ? palette.main[500]
                     : palette.grey[300]
                 }}
-                onPress={() =>
+                onPress={isDisable ? undefined : () =>
                   updateQuestionAnswer({
                     questionId: question.id,
                     answer: indexAnswer + 1
@@ -133,7 +134,7 @@ const ExamAnswer = ({ t, question, updateQuestionAnswer, updateQuestionStar }: P
   return (
     <View style={{ gap: 8 }}>
       {renderAnswer(question, question.questionAnswerType)}
-      <StarSwitch isStar={question.isStar} onSwitch={() => updateQuestionStar(question.id, !question.isStar)} />
+      <StarSwitch isStar={question.isStar} isDisable={isDisable} onSwitch={() => updateQuestionStar(question.id, !question.isStar)} />
     </View>
   )
 }

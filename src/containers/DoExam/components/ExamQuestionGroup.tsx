@@ -4,7 +4,7 @@ import { palette } from '@/theme'
 import { Ionicons } from '@expo/vector-icons'
 import StarSwitch from '@/components/Switch/StarSwitch'
 import { ScaledSheet } from 'react-native-size-matters'
-import { QuestionAnswerType } from '@/utils/enums'
+import { ExamStatus, QuestionAnswerType } from '@/utils/enums'
 import ExamAnswer from './ExamAnswer'
 import { ExamQuestion, Question, QuestionGroupResponse } from '../config/types'
 
@@ -16,6 +16,9 @@ type Props = {
   toggleExpand: (id: number | null) => void
   questionRefs: React.MutableRefObject<(View | null)[]>
   questionList: Question[]
+  isEnd: boolean
+  status?: ExamStatus
+  handleQuestionLayout: (index: number) => void
   scrollToNextQuestion: (index: number) => void
   updateQuestionStar: (questionId: number, isStar: boolean) => void
   updateQuestionAnswer: ({ questionId, textualAnswers, answer }: ExamQuestion) => void
@@ -23,11 +26,13 @@ type Props = {
 const ExamQuestionGroup = ({
   t,
   data,
-  groupIndex,
+  isEnd,
+  status,
   expandedId,
   toggleExpand,
   questionRefs,
   questionList,
+  handleQuestionLayout,
   scrollToNextQuestion,
   updateQuestionStar,
   updateQuestionAnswer
@@ -40,6 +45,7 @@ const ExamQuestionGroup = ({
         key={`question-${question.id}`}
         ref={(ref) => (questionRefs.current[question.questionIndex || 0] = ref)}
         collapsable={false}
+        onLayout={() => handleQuestionLayout(question.questionIndex || 0)}
       >
         <CustomDropDown
           styleCard={styles.styleCard}
@@ -89,6 +95,7 @@ const ExamQuestionGroup = ({
                   </TouchableOpacity>
                   <StarSwitch
                     isStar={question.isStar}
+                    isDisable={isEnd || (status === ExamStatus.Paused)}
                     onSwitch={() => updateQuestionStar(question.id, !question.isStar)}
                   />
                 </View>
@@ -100,11 +107,13 @@ const ExamQuestionGroup = ({
         >
           <ExamAnswer
             t={t}
+            isDisable={isEnd || (status === ExamStatus.Paused)}
             question={question}
             updateQuestionAnswer={({ questionId, answer, textualAnswers }) => {
               updateQuestionAnswer({ questionId, answer, textualAnswers })
-              question.questionAnswerType !== QuestionAnswerType.MultipleChoice && scrollToNextQuestion(question.questionIndex || 0);
-              (question.questionIndex || 0) === questionList.length - 1 && toggleExpand(null)
+              question.questionAnswerType !== QuestionAnswerType.MultipleChoice &&
+                scrollToNextQuestion(question.questionIndex || 0)
+              ;(question.questionIndex || 0) === questionList?.length - 1 && toggleExpand(null)
             }}
             updateQuestionStar={updateQuestionStar}
           />

@@ -5,6 +5,7 @@ import useLiveResult from '../hooks/useLiveResult'
 import { utcToLocalTime } from '@/utils/helpers'
 import { palette, TYPO } from '@/theme'
 import { Question } from '@/utils/types'
+import Loading from '@/components/Loading'
 
 interface Props {
   title: string
@@ -23,45 +24,53 @@ const LiveResultDialog = ({
   handleExamEnd,
   handleDetailExamResult
 }: Props) => {
-  const { t, resultData, totalTime } = useLiveResult({ examCode })
-  const totalScore = resultData?.questions.reduce((acc: number, cur: Question) => {
-    return acc += cur?.score || 0
-  } , 0)
-
+  const { t, examResult, totalTime, resultData, isLoading } = useLiveResult({ examCode })
   return (
     <CommonDialog onClose={onClose} isVisible={open} title={title}>
+      {isLoading && <Loading isOverlay={false} />}
       <View style={styles.examInfo}>
-        <Text style={styles.examTitle}>{resultData?.title || ""}</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-          <Text style={styles.examSubtitle}>{utcToLocalTime(resultData?.startTime, t('full_date_time_format'))}</Text>
-          {/* <Text style={styles.examSubtitle}>{resultData?.finishTime}</Text> */}
+        <Text style={styles.examTitle}>{examResult?.title || ''}</Text>
+        <View style={{ }}>
+          <Text style={styles.examSubtitle}>{utcToLocalTime(examResult?.startTime, t('full_date_time_format'))}</Text>
+          {!!examResult?.courses?.length && <Text style={styles.examSubtitle}>{examResult?.courses?.map((course) => course.name).join(', ')}</Text>}
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
           <Text style={styles.examDetails}>{`${t('exam_end')} ${totalTime}`}</Text>
-          <Text style={styles.examDetails}>{t('total_questions_title', { total: resultData?.questions.length})}</Text>
+          <Text style={styles.examDetails}>{t('total_questions_title', { total: resultData?.questions?.length })}</Text>
         </View>
       </View>
 
       <View style={styles.scoreBlock}>
-        <Text style={styles.score}>{t('score_format', { score: resultData?.score || 0 })}</Text>
+        <Text style={styles.score}>{t('score_format', { score: examResult?.score || 0 })}</Text>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-          <Text style={{ ...styles.scoreText, color: palette.grey[500] }}>백분율</Text>
-          <Text style={{ ...styles.scoreText, color: palette.grey[700] }}> {`${(+((resultData?.score || 0)/(totalScore || 0) * 100) || 0)?.toFixed(2)}%`}</Text>
+          <Text style={{ ...styles.scoreText, color: palette.grey[500] }}> {t('percentage')}:</Text>
+          <Text style={{ ...styles.scoreText, color: palette.grey[700] }}>
+            {' '}
+            {examResult?.percentageAmongStudents?.toFixed(2) || 0}%
+          </Text>
         </View>
-
-        {/* <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-          <Text style={{ ...styles.scoreText, color: palette.grey[500] }}>풀이 순서 효율</Text>
-          <Text style={{ ...styles.scoreText, color: palette.grey[700] }}>68.89%</Text>
-        </View> */}
+        {!examResult?.questionSolvingOrderEfficiency ||
+          (examResult?.questionSolvingOrderEfficiency === 0 && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+              <Text style={{ ...styles.scoreText, color: palette.grey[500] }}>
+                {' '}
+                {t('solution_sequence_efficiency')}:
+              </Text>
+              <Text style={{ ...styles.scoreText, color: palette.grey[700] }}>
+                {' '}
+                {examResult?.questionSolvingOrderEfficiency.toFixed(2)}%
+              </Text>
+            </View>
+          ))}
       </View>
 
       <View style={styles.buttonContainer}>
         <Button mode="contained" style={styles.confirmButton} onPress={handleExamEnd}>
-          <Text style={styles.confirmText}>확인</Text>
+          <Text style={styles.confirmText}>{t('exam_end')}</Text>
         </Button>
         <Button mode="outlined" style={styles.detailButton} onPress={handleDetailExamResult}>
-          <Text style={styles.detailText}>상세 보기</Text>
+          <Text style={styles.detailText}>{t('view_details')}</Text>
         </Button>
       </View>
     </CommonDialog>
@@ -113,7 +122,7 @@ const styles = StyleSheet.create({
   },
   score: {
     ...TYPO.heading2,
-    color: palette.main[500],
+    color: palette.yellow[900],
     marginBottom: 8
   },
   scoreText: {
@@ -123,21 +132,18 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 16
+    gap: 16,
   },
   confirmButton: {
     marginRight: 8,
     borderRadius: 6,
     backgroundColor: palette.main[500],
-    paddingHorizontal: 24,
     paddingVertical: 4
   },
   detailButton: {
     marginLeft: 8,
     borderRadius: 6,
     borderColor: palette.main[500],
-    paddingHorizontal: 12,
-    paddingVertical: 4,
     color: palette.main[500]
   },
   confirmText: {

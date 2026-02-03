@@ -1,31 +1,32 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ExamQuestion,
-  ExamResponse,
   Question,
   StoredStudentAnswer,
+  StudentAnswerRequest
 } from "../config/types";
 import { answerQuestionExam } from "../apiClients";
 import _ from "lodash";
-import { QuestionAnswerType } from "../../../utils/enums";
 import useAuthStore from "@/store/useAuthStore";
 import { useTranslation } from "react-i18next";
-import { DATE_MIN_VALUE, DATE_TIME_MIN_VALUE } from "@/utils/constants";
 import { diffFromNow, getErrorMessage, toast, toISOString } from "@/utils/helpers";
+import { ExamStatus, QuestionAnswerType } from "@/utils/enums";
 import moment from "moment";
-import { getDataStorage, removeDataStorage, setDataStorage } from "@/utils/storage";
-import { StudentAnswerRequest } from "@/utils/types";
 import { isTextType } from "@/utils/helpers/textbook";
-
+import { ExamSessionResponse } from "@/utils/types";
+import NetInfo from '@react-native-community/netinfo';
+import { getDataStorage, removeDataStorage, setDataStorage } from "@/utils/storage";
+const DATE_TIME_FORMAT = "YYYY-MM-DDTHH:mm:ss.SSSZ"
 const rollBackQuestionList = "rb";
 const recoverQuestionList = "rc";
 interface Props {
   examId?: number;
-  exam?: ExamResponse;
+  exam?: ExamSessionResponse;
   examCode: string;
   questionList?: Question[];
   isEnding?: boolean;
   isProgressing?: boolean;
+  updateExam?: React.Dispatch<React.SetStateAction<ExamSessionResponse | undefined>>
   updateQuestionList?: (questions: Question[]) => void;
   updateExamLastTimeAnswer?: (lastTimeAnswer: string) => void;
   handleExamEnded?: () => void;
@@ -36,6 +37,7 @@ const useExamSolving = (props: Props) => {
     examId,
     exam,
     examCode,
+    updateExam,
     questionList = [],
     isEnding = false,
     isProgressing = true,
@@ -44,37 +46,41 @@ const useExamSolving = (props: Props) => {
     handleExamEnded,
     handleUpdateSlider
   } = props;
-  const { user } = useAuthStore()
+
+  const { user, selectedAcademy } = useAuthStore()
+  const academyId = selectedAcademy?.id
   const academyDomain: string | undefined = user?.academyDomain;
   const userId: number | undefined = user?.id;
 
   const { t } = useTranslation();
   const apiTimeouts = useRef<any>({});
 
-  const [ltAnswerTime, setLtAnswerTime] = useState<string>();
+  const ltAnswerTime = useRef<string>();
+  const runningTimeRef = useRef<number>();
+  const totalAnsweredTimeRef = useRef<number>();
   const [recoverExamCode, setRecoveredExamCode] = useState<string>();
 
   const recoverKey = useMemo(() => {
-    if (!academyDomain || !userId || !examCode) return undefined;
-    return `${recoverQuestionList}${academyDomain?.toLowerCase()}${examCode}${userId}`;
-  }, [academyDomain, examCode, userId]);
+    if (!academyDomain || !userId || !examCode || !academyId) return undefined;
+    return `${recoverQuestionList}.${academyId}.${examCode}.${userId}`;
+  }, [academyDomain, academyId, examCode, userId]);
 
   const rollbackKey = useMemo(() => {
-    if (!academyDomain || !userId || !examCode) return undefined;
-    return `${rollBackQuestionList}${academyDomain?.toLowerCase()}${examCode}${userId}`;
-  }, [academyDomain, examCode, userId]);
+    if (!academyDomain || !userId || !examCode || !academyId) return undefined;
+    return `${rollBackQuestionList}.${academyId}.${examCode}.${userId}`;
+  }, [academyDomain, academyId, examCode, userId]);
 
-  const getDiffTime = (exam: ExamResponse, now: string) => {
-    let lastAnswerTime = ltAnswerTime || exam.lastAnswerTime;
-    if (
-      !lastAnswerTime ||
-      lastAnswerTime === DATE_TIME_MIN_VALUE ||
-      lastAnswerTime === DATE_MIN_VALUE
-    ) {
-      lastAnswerTime = exam.startTimeSession;
-    }
-
-    const diff = diffFromNow(lastAnswerTime, "milliseconds", now);
+  const getDiffTime = (exam: ExamSessionResponse, now: string, totalRunningTime: number) => {
+    let diff = 0;
+    if ((exam.runningTime != 0 || (!!runningTimeRef.current)) && !exam.isLate)
+      diff = totalRunningTime - (runningTimeRef.current ?? exam.runningTime);
+    else
+      diff = totalRunningTime - (totalAnsweredTimeRef.current ?? exam.totalAnsweredTime) - exam.totalPausedTime;
+    diff = Math.max(0, diff)
+    runningTimeRef.current = totalRunningTime;
+    ltAnswerTime.current = now;
+    if (!totalAnsweredTimeRef.current) totalAnsweredTimeRef.current = exam.totalAnsweredTime
+    totalAnsweredTimeRef.current += diff
     return diff;
   };
 
@@ -88,6 +94,16 @@ const useExamSolving = (props: Props) => {
     try {
       res = await answerQuestionExam(examCode, body);
       res = res.data;
+      const examResponse = res?.data;
+      if (examResponse) {
+        if (!runningTimeRef.current || (examResponse.runningTime && examResponse.runningTime > runningTimeRef.current))
+          runningTimeRef.current = examResponse.runningTime;
+        if (!totalAnsweredTimeRef.current || (examResponse.totalAnsweredTime && examResponse.totalAnsweredTime > totalAnsweredTimeRef.current))
+          totalAnsweredTimeRef.current = examResponse.totalAnsweredTime;
+        updateExam?.((prev: any) => {
+          return ({ ...prev, questions: examResponse?.questions, rowVersion: examResponse?.rowVersion, runningTime: examResponse?.runningTime, startTime: examResponse?.startTime, totalAnsweredTime: examResponse?.totalAnsweredTime, totalPausedTime: examResponse?.totalPausedTime })
+        })
+      }
     } catch (err: any) {
       error = err;
     } finally {
@@ -101,17 +117,18 @@ const useExamSolving = (props: Props) => {
         const rollBackQuestions = await getRollBackQuestionList();
         if (rollBackQuestions) {
           updateQuestionList?.(rollBackQuestions.questions);
-          setLtAnswerTime(rollBackQuestions.lastAnswerTime);
+          if (ltAnswerTime.current && (diffFromNow(rollBackQuestions.lastAnswerTime, "milliseconds", ltAnswerTime.current) || 0) > 0)
+            ltAnswerTime.current = rollBackQuestions.lastAnswerTime;
         }
 
-        const errorMessage = error.response?.data?.title || res?.message;
+        const errorMessage = error?.response?.data?.title || res?.message;
         if (errorMessage && typeof errorMessage === "string" && !callback)
           toast.error(error?.response?.status === 500 ? `${getErrorMessage(t, error)}: ${errorMessage}` : getErrorMessage(t, error));
       }
-      if(res?.status === 0)
+      if (res?.status === 0)
         await removeDataStorage(`${recoverKey}`);
       await removeDataStorage(`${rollbackKey}`);
-      await callback?.();
+      callback?.();
     }
   };
 
@@ -119,6 +136,7 @@ const useExamSolving = (props: Props) => {
     questions: Question[],
     lastAnswerTime: string,
     lastAnswerTimeNum: number,
+    runningTime: number,
     questionId?: number
   ) => {
     if (!exam || !recoverKey) return;
@@ -132,13 +150,14 @@ const useExamSolving = (props: Props) => {
 
     questionId && handleUpdateSlider?.(questionId);
 
-    callApiUpdateAnswers(questions, lastAnswerTime, lastAnswerTimeNum);
+    callApiUpdateAnswers(questions, lastAnswerTime, lastAnswerTimeNum, runningTime);
   };
 
   const callApiUpdateAnswers = async (
     arrQuestionNew: Question[],
     lastAnswerTime: string,
     lastAnswerTimeNum: number,
+    runningTime: number,
     callback?: Function
   ) => {
     if ((!examId && !callback) || !rollbackKey) return;
@@ -147,14 +166,17 @@ const useExamSolving = (props: Props) => {
       rollbackKey,
       JSON.stringify({
         lastAnswerTime: lastAnswerTime,
+        runningTime,
         questions: questionList
       })
     );
-    setLtAnswerTime(lastAnswerTime);
+    if (ltAnswerTime.current && (diffFromNow(lastAnswerTime, "milliseconds", ltAnswerTime.current) || 0) > 0)
+      ltAnswerTime.current = lastAnswerTime;
     updateQuestionList?.(arrQuestionNew);
 
     const body: StudentAnswerRequest = {
       lastAnswerTime: lastAnswerTimeNum,
+      runningTime: runningTime,
       questions: arrQuestionNew.map((i) => ({
         questionId: i.id,
         selectedAnswers: i.selectedAnswers,
@@ -173,13 +195,13 @@ const useExamSolving = (props: Props) => {
       await updateAnswers(body, lastAnswerTime, callback);
     } else {
       apiTimeouts.current[rollbackKey] = setTimeout(
-        async() => await updateAnswers(body, lastAnswerTime),
+        () => updateAnswers(body, lastAnswerTime),
         500
       );
     }
   };
 
-  const getRollBackQuestionList = async() => {
+  const getRollBackQuestionList = async () => {
     if (!rollbackKey) return null;
     const rollBackQuestionsStr = await getDataStorage(rollbackKey);
     if (!rollBackQuestionsStr) return null;
@@ -197,32 +219,36 @@ const useExamSolving = (props: Props) => {
       return null;
     }
   };
-  const updateQuestionAnswer = ({ questionId, textualAnswers = [], answer } :  ExamQuestion) => {
+  const updateQuestionAnswer = ({ questionId, textualAnswers = [], answer }: ExamQuestion) => {
     try {
       if (!exam) return;
-      const time = moment().format("YYYY-MM-DDTHH:mm:ss.SSSZ");
+      const examStatus = exam.isLate ? exam.lateStatus : exam.status
+      if (examStatus !== ExamStatus.InProgress) return
+      const time = moment().format(DATE_TIME_FORMAT);
       const now = toISOString(time);
       const nowTime = moment(now).utc().valueOf();
-      
+
+      const totalRunningTime = moment(now).diff(moment.utc(!exam.isLate ? exam.startTime : exam.startTimeSession).local(), "milliseconds") - exam.totalPausedTime
+
       const listQuestionNews = _.cloneDeep(questionList);
       const arrQuestionNew = listQuestionNews.map((item: Question) => {
         const isTextAnswerType = isTextType(item.questionAnswerType)
         if (item.textualAnswers !== undefined && !isTextAnswerType) {
           delete item.textualAnswers
         }
-        if(item.selectedAnswers !== undefined && isTextAnswerType) {
+        if (item.selectedAnswers !== undefined && isTextAnswerType) {
           delete item.selectedAnswers
         }
         if (item.id === questionId) {
           switch (item.questionAnswerType) {
             case QuestionAnswerType.SingleChoice:
-              if(answer === undefined) break;
+              if (answer === undefined) break;
               item.selectedAnswers = item.selectedAnswers?.includes(answer)
                 ? item.selectedAnswers.filter((i: number) => i != answer)
                 : [answer];
               break;
             case QuestionAnswerType.MultipleChoice:
-              if(answer === undefined) break;
+              if (answer === undefined) break;
               item.selectedAnswers = item.selectedAnswers?.includes(answer)
                 ? item.selectedAnswers.filter((i: number) => i != answer)
                 : [...(item.selectedAnswers ?? []), answer];
@@ -231,19 +257,19 @@ const useExamSolving = (props: Props) => {
               item.textualAnswers = textualAnswers
               break;
           }
-          
-          const diff = getDiffTime(exam, now);
-          item.duration = (item.duration || 0) + +diff;
+
+          const diff = getDiffTime(exam, now, totalRunningTime)
+          item.duration = (item.duration || 0) + diff;
+
           item.answerTime =
             item.answerTime && item.answerTime !== 0
               ? item.answerTime
               : nowTime;
         }
-        
         return item;
       });
 
-      handleUpdateAnswer(arrQuestionNew, now, nowTime, questionId);
+      handleUpdateAnswer(arrQuestionNew, now, nowTime, totalRunningTime, questionId);
     } catch (error) {
       console.log({ error });
     }
@@ -252,15 +278,20 @@ const useExamSolving = (props: Props) => {
   const updateQuestionStar = (questionId: number, isStar: boolean) => {
     try {
       if (!exam) return;
-      const time = moment().format("YYYY-MM-DDTHH:mm:ss.SSSZ");
-      const now = moment(time).toISOString();
+      const examStatus = exam.isLate ? exam.lateStatus : exam.status
+      if (examStatus !== ExamStatus.InProgress) return
+      const time = moment().format(DATE_TIME_FORMAT);
+      const now = toISOString(time);
       const nowTime = moment(now).utc().valueOf();
+
+      const totalRunningTime = moment(now).diff(moment.utc(!exam.isLate ? exam.startTime : exam.startTimeSession).local(), "milliseconds") - exam.totalPausedTime
+
       const listQuestionNews = _.cloneDeep(questionList);
       const arrQuestionNew = listQuestionNews.map((item: Question) => {
         if (item.id === questionId) {
           item.isStar = isStar;
-          const diff = getDiffTime(exam, now);
-          item.duration = (item.duration || 0) + +diff;
+          const diff = getDiffTime(exam, now, totalRunningTime)
+          item.duration = (item.duration || 0) + diff;
           item.answerTime =
             item.answerTime && item.answerTime !== 0
               ? item.answerTime
@@ -269,7 +300,7 @@ const useExamSolving = (props: Props) => {
         return item;
       });
 
-      handleUpdateAnswer(arrQuestionNew, now, nowTime, questionId);
+      handleUpdateAnswer(arrQuestionNew, now, nowTime, totalRunningTime, questionId);
     } catch (error) {
       console.log({ error });
     }
@@ -279,23 +310,24 @@ const useExamSolving = (props: Props) => {
     recoverKey: string,
     callback?: Function
   ) => {
+    if (!exam) return
     let data: StoredStudentAnswer | null = null;
     try {
       const recoverJsonQuestions = await getDataStorage(recoverKey);
       data = JSON.parse(recoverJsonQuestions || "");
     } catch (error) {
       await removeDataStorage(recoverKey);
-      console.log({ error });
     }
-    const currentLastAnswerTime = exam?.lastAnswerTime
-      ? moment.utc(exam?.lastAnswerTime).valueOf()
+    const currentLastAnswerTime = exam.lastAnswerTime
+      ? moment.utc(exam.lastAnswerTime).valueOf()
       : 0;
 
     if (
       !!data &&
       data.questions.length &&
       data.lastAnswerTime &&
-      currentLastAnswerTime < data.lastAnswerTime
+      currentLastAnswerTime < data.lastAnswerTime &&
+      exam.runningTime <= data.runningTime
     ) {
       const lastAnswerTime = moment(data.lastAnswerTime)
         .toDate()
@@ -304,10 +336,11 @@ const useExamSolving = (props: Props) => {
         data.questions,
         lastAnswerTime,
         data.lastAnswerTime,
+        data.runningTime || 0,
         callback
       );
     } else {
-      await callback?.();
+      callback?.();
     }
   };
 
@@ -318,8 +351,7 @@ const useExamSolving = (props: Props) => {
 
   const recoverAnswers = async () => {
     setRecoveredExamCode(undefined);
-    if(!recoverKey)
-    {
+    if (!recoverKey) {
       setRecoveredExamCode(recoverKey);
       return;
     }
@@ -327,9 +359,8 @@ const useExamSolving = (props: Props) => {
       await handleRecoverExamAnswer(recoverKey, () => {
         handleClearStorage()
       })
-    }catch (e: any) {
+    } catch (e: any) {
       console.log({ error: e.message });
-      
     }
     setRecoveredExamCode(recoverKey);
   }
@@ -337,18 +368,40 @@ const useExamSolving = (props: Props) => {
   useEffect(() => {
     if (!recoverKey || !examId) return;
     const endExam = async() => {
-      if (isEnding){
+      if (isEnding) {
         await removeDataStorage(recoverKey);
         handleExamEnded?.();
       }
     };
-    
+
     handleRecoverExamAnswer(recoverKey, endExam);
   }, [recoverKey, examId, isEnding, handleExamEnded]);
 
   useEffect(() => {
     !isProgressing && recoverAnswers()
   }, [recoverKey, isProgressing])
+
+  useEffect(() => {
+  let unsubscribe: any;
+
+  if (isProgressing) {
+    unsubscribe = NetInfo.addEventListener(state => {
+      if (state.isConnected && state.isInternetReachable) {
+        recoverAnswers();
+      }
+    });
+  }
+
+  return () => {
+    unsubscribe?.();
+  };
+}, [isProgressing, recoverKey]);
+
+  useEffect(() => {
+    ltAnswerTime.current = undefined
+    runningTimeRef.current = undefined
+    totalAnsweredTimeRef.current = undefined
+  }, [exam?.timestamp])
   return {
     recoverExamCode,
     recoverKey,

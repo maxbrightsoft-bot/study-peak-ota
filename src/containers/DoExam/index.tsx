@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, ScrollView, Platform, KeyboardAvoidingView } from 'react-native'
+import { View, Text, ScrollView, Platform, KeyboardAvoidingView, TouchableOpacity } from 'react-native'
 import { palette } from '@/theme'
 import { Ionicons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -13,6 +13,9 @@ import { QuestionGroupResponse } from './config/types'
 import ExamQuestionGroup from './components/ExamQuestionGroup'
 import { navigate } from '@/navigators/NavigationHelpers'
 import { Routes } from '@/navigators/RouteName'
+import FloatingActionButton from '@/components/Button/FloatingActionButton'
+import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
+import { ExamStatus } from '@/utils/enums'
 
 type Props = {
   examCode: string
@@ -21,6 +24,7 @@ type Props = {
 const DoExam = ({ examCode }: Props) => {
   const {
     t,
+    page,
     exam,
     isEnding,
     endExam,
@@ -38,12 +42,17 @@ const DoExam = ({ examCode }: Props) => {
     openResultDialog,
     liveResultDialog,
     toggleExpand,
-    handleCloseResultDialog,
+    handleRestartExam,
+    handleQuestionLayout,
+    updateQuestionAnswer,
+    updateQuestionStar,
+    isOpenConfirmDialog,
+    handleCloseConfirmDialog,
+    handleOpenConfirmDialog,
+    handlePauseAndResumeExam,
     handleExamEnd,
     handleDetailExamResult,
     handleCloseLiveResultDialog,
-    updateQuestionAnswer,
-    updateQuestionStar,
     onFishedExam
   } = useExam({ examCode })
 
@@ -53,7 +62,12 @@ const DoExam = ({ examCode }: Props) => {
       {!openResultDialog && (
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>{exam?.title}</Text>
+            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+              {(exam?.totalStudentAttemptNumber || 0) >= 1 && (
+                <Text style={styles.attempt}>{`#${(exam?.totalStudentAttemptNumber || 0) + 1}`}</Text>
+              )}
+              <Text style={styles.title}>{exam?.title}</Text>
+            </View>
             <View style={styles.titleContainer}>
               <Text style={styles.subtitle}>{t('title')}</Text>
               {/* <Text style={styles.subtitle}>Page #</Text> */}
@@ -67,19 +81,24 @@ const DoExam = ({ examCode }: Props) => {
         keyboardVerticalOffset={80}
         style={{ flex: 1, position: 'relative' }}
       >
-        <View style={{ height: '85%', paddingBottom: 40 }}>
-          <ScrollView  contentContainerStyle={styles.scrollContainer} ref={scrollViewRef} scrollEventThrottle={16}>
+        <View style={{ height: '85%' }}>
+          <ScrollView contentContainerStyle={styles.scrollContainer} ref={scrollViewRef} scrollEventThrottle={16}>
             {questionListMapped.map((questionGroup: QuestionGroupResponse, groupIndex: number) => (
               <React.Fragment key={`group-${questionGroup.id}`}>
                 <ExamQuestionGroup
                   t={t}
                   data={questionGroup}
+                  handleQuestionLayout={handleQuestionLayout}
                   questionRefs={questionRefs}
                   scrollToNextQuestion={scrollToNextQuestion}
                   updateQuestionStar={updateQuestionStar}
                   updateQuestionAnswer={updateQuestionAnswer}
                   groupIndex={groupIndex}
                   expandedId={expandedId}
+                  isEnd={
+                    exam?.isLate ? exam?.lateStatus === ExamStatus.Completed : exam?.status === ExamStatus.Completed
+                  }
+                  status={exam?.isLate ? exam.lateStatus : exam?.status}
                   questionList={questionList}
                   toggleExpand={toggleExpand}
                 />
@@ -88,21 +107,50 @@ const DoExam = ({ examCode }: Props) => {
           </ScrollView>
         </View>
 
+        <View>
+          {(exam?.isLate || (!exam?.isLate && exam?.lateStatus === ExamStatus.Completed)) && (
+            <FloatingActionButton
+              t={t}
+              status={exam?.lateStatus}
+              onTogglePauseResume={handlePauseAndResumeExam}
+              onOpenConfirmDialog={handleOpenConfirmDialog}
+              keys={{
+                pause: 'pause_exam',
+                resume: 'resume_exam',
+                restart: 'restart_exam'
+              }}
+              ariaLabel="exam-actions"
+            />
+          )}
+        </View>
+
         <View style={styles.footer}>
           <View style={styles.timeContainer}>
             <Text style={styles.timeLeft}>{remainTimeString}</Text>
             <Text style={styles.totalTime}>{`/ ${totalTimeString}`}</Text>
           </View>
-          <Ionicons onPress={onFishedExam} name="exit" size={18} color={palette.main[700]} />
+          <TouchableOpacity
+            onPress={onFishedExam}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 255,
+              backgroundColor: palette.grey[50],
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}
+          >
+            <Ionicons name="exit" size={14} color={palette.main[700]} />
+          </TouchableOpacity>
         </View>
         {!isEnding && (
           <HangOnDialog
             title={t('notification')}
             content={t('waiting_for_all_students_to_complete_the_exam')}
-            open={!!endExam && !!exam && !exam.isLate}
+            open={!!endExam && !!exam && !exam.isLate && !liveResultDialog}
           />
         )}
-        {isEnding && liveResultDialog && (
+        {liveResultDialog && (
           <LiveResultDialog
             title={t('exam_end')}
             open={liveResultDialog}
@@ -115,9 +163,25 @@ const DoExam = ({ examCode }: Props) => {
             handleDetailExamResult={handleDetailExamResult}
           />
         )}
-        {openResultDialog && <ExamResult onClose={handleExamEnd} examCode={examCode} />}
-        {!exam && remainTime !== undefined && remainTime < 0 && <Loading />}
+        {openResultDialog && (
+          <ExamResult
+            onClose={handleExamEnd}
+            examCode={examCode}
+            examSessionId={exam?.id}
+            studentExamSessionId={exam?.studentExamSessionId}
+          />
+        )}
+        {!exam && remainTime !== undefined && remainTime < 0 && liveResultDialog && <Loading isOverlay={false} />}
       </KeyboardAvoidingView>
+      <ConfirmDialog
+        open={isOpenConfirmDialog}
+        toggle={handleCloseConfirmDialog}
+        text={t('are_you_sure_you_want_to_restart_the_exam')}
+        onConfirm={() => {
+          handleCloseConfirmDialog()
+          handleRestartExam()
+        }}
+      />
     </View>
   )
 }
@@ -143,12 +207,19 @@ const styles = ScaledSheet.create({
     fontSize: 14,
     color: '#000'
   },
-  subtitle: {
+  attempt: {
     fontSize: 12,
+    fontWeight: 500,
+    color: palette.red[900]
+  },
+  subtitle: {
+    fontSize: 14,
+    fontWeight: 500,
     color: '#aaa'
   },
   currentQuestion: {
     fontWeight: 'bold',
+    color: palette.grey[900],
     fontSize: 14
   },
   styleCard: {
@@ -210,7 +281,8 @@ const styles = ScaledSheet.create({
   timeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: '8@ms'
+    gap: '8@ms',
+    paddingVertical: 8
   },
   timeLeft: {
     color: palette.main[700],
