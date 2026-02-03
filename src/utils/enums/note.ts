@@ -1,6 +1,10 @@
 export enum NoteType {
-  Default,
-  StudentReadable
+    ToAcademy,
+    ToStudent,
+    AdminToAllAdmin,
+    AdminToAllTeacher,
+    TeacherToAllAdmin,
+    TeacherToTeachers
 }
 
 export enum NoteSortColumn {

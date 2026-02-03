@@ -17,6 +17,7 @@ export const DEFAULT_PAGING_RESPONSE: PagingResponse = {
   totalItems: 0,
   totalPages: 0,
 }
+export const TOAST_EXAM_STATUS = 'TOAST_EXAM_STATUS'
 export const STATUS_BAR_HEIGHT = Platform.OS === 'ios' ? 44 : StatusBar.currentHeight || 0;
 export const HEADER_HEIGHT = Platform.OS === 'ios' ? 100 : 90;
 export const TAB_BAR_HEIGHT = 60;
@@ -30,18 +31,35 @@ export const PUSHER_CONFIG = {
 }
 export const BASE_URL = process.env.EXPO_PUBLIC_BASE_URL || ''
 export const SUPER_ADMIN_BASE_URL =
-    process.env.EXPO_PUBLIC_SUPER_ADMIN_BASE_URL || ""
+  process.env.EXPO_PUBLIC_SUPER_ADMIN_BASE_URL || ""
+export const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL || ""
 
 export const GOOGLE_RECAPTCHA_KEY =
-    process.env.EXPO_PUBLIC_GOOGLE_RECAPTCHA_KEY || ""
+  process.env.EXPO_PUBLIC_GOOGLE_RECAPTCHA_KEY || ""
 
 export const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || ""
 
 export const GOOGLE_RECAPTCHA_ID =
-    process.env.EXPO_PUBLIC_GOOGLE_RECAPTCHA_ID || ""
+  process.env.EXPO_PUBLIC_GOOGLE_RECAPTCHA_ID || ""
 
 export const GOOGLE_RECAPTCHA_SECRET =
-    process.env.EXPO_PUBLIC_GOOGLE_RECAPTCHA_SECRET || ""
-  
+  process.env.EXPO_PUBLIC_GOOGLE_RECAPTCHA_SECRET || ""
+
+export const BRIEF_GRADE_OPTIONS = [
+  { label: "es_1st", value: 1 },
+  { label: "es_2nd", value: 2 },
+  { label: "es_3rd", value: 3 },
+  { label: "es_4th", value: 4 },
+  { label: "es_5th", value: 5 },
+  { label: "es_6th", value: 6 },
+  { label: "ms_1st", value: 7 },
+  { label: "ms_2nd", value: 8 },
+  { label: "ms_3rd", value: 9 },
+  { label: "hs_1st", value: 10 },
+  { label: "hs_2nd", value: 11 },
+  { label: "hs_3rd", value: 12 },
+  { label: "n_retaker", value: 13 }
+];
+
 export * from './language'
 export * from './exam'

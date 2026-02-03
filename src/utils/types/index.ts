@@ -36,7 +36,7 @@ export type Option = {
   value: any
 }
 
-export type Language = {
+export type LanguageResponse = {
   code: string
   name: string
   fullName: string
@@ -78,3 +78,4 @@ export * from './textbook'
 export * from './exam'
 export * from './note'
 export * from './chat'
+export * from './subjects'

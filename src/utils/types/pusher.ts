@@ -5,3 +5,6 @@ export type ConcurrentConnection = {
     academyDomain?: string,
     isRegistered: boolean
 }
+
+export type EventHandler = (...args: any[]) => void;
+export type EventsMap = Record<string, EventHandler>;

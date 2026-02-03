@@ -1,12 +1,27 @@
 import _ from "lodash"
-import moment, { unitOfTime } from "moment"
-import { DATE_MIN_VALUE } from "../constants"
+import moment, { Moment, unitOfTime } from "moment"
+import { DATE_MIN_VALUE, DATE_TIME_MIN_VALUE } from "../constants"
 
 export const getLocalDayOfWeek = (utcDateTime: string, dayOfWeek: number) => {
     const currentDayOfWeek = moment.utc(utcDateTime).weekday()
     let diff = dayOfWeek - currentDayOfWeek
     if (diff < 0) diff += 7
     return moment.utc(utcDateTime).add(diff, "days").local().weekday()
+}
+
+export const diffFromNow = (time: string, unitOfTime: unitOfTime.Diff, targetTime?: string) => {
+    if (time === DATE_MIN_VALUE || targetTime === DATE_MIN_VALUE) return 0
+    try {
+        const now = !targetTime ? moment() : moment.utc(targetTime).local();
+        return now.diff(moment.utc(time).local(), unitOfTime)
+    } catch {
+        return ""
+    }
+}
+
+export const isValidTime = (time?: string) => {
+    if (!time || time === DATE_MIN_VALUE || time === DATE_TIME_MIN_VALUE) return false
+    return true
 }
 
 export const getUtcDayOfWeek = (
@@ -19,31 +34,23 @@ export const getUtcDayOfWeek = (
     return localDateTime.add(diff, "days").utc().weekday()
 }
 
-export const timeSpanToLocalMoment = (time: string, date?: string) => {
-    if (!time) return null
-    const times = time.split(":")
-
-    if (times.length !== 3) return null
-    const totalSeconds = +times[0] * 60 * 60 + +times[1] * 60 + +times[2]
-    const startOfDay = moment.utc(date).startOf("day")
-    let dateTime = date ? startOfDay.add(totalSeconds, "seconds") : moment().startOf("day")
-    if (date && dateTime.isBefore(moment.utc(date)))
-        dateTime = dateTime.add(1, "day")
-    return dateTime.local()
+export const getLessonDateTime = (time: string, date?: string): Moment => {
+    const originalDate = date ? moment.utc(date) : moment.utc().startOf('day');
+    let lessonDate = originalDate.clone().startOf('day').add(moment.duration(time));
+    
+    if (lessonDate.isBefore(originalDate))
+        lessonDate = lessonDate.add(1, 'day');
+    return lessonDate.local();
 }
-
-
-export const diffFromNow = (time: string, unitOfTime: unitOfTime.Diff, targetTime?: string) => {
-    if (time === DATE_MIN_VALUE || targetTime === DATE_MIN_VALUE) return 0
-    try {
-        const now = !targetTime ? moment() : moment.utc(targetTime).local();
-        return now.diff(moment.utc(time).local(), unitOfTime)
-    } catch {
-        return ""
-    }
+export const getLessonFormat = (t: any, date: string, startTime: string, endTime: string) => {
+    const startDate = getLessonDateTime(startTime, date)
+    const endDate = getLessonDateTime(endTime, date)
+    const isSameDate = startDate.isSame(endDate, 'day')
+    const dateFormat = isSameDate ? `${startDate.format("HH:mm")} ~ ${endDate.format("HH:mm")} ${startDate.format(t("date_format"))}` : `${startDate.format(`HH:mm ${t("date_format")}`)} ~ ${startDate.format(`HH:mm ${t("date_format")}`)}`
+    return dateFormat
 }
-
-export const convertHHMMSStoSeconds = (time: string) => {
+export const convertHHMMSStoSeconds = (time?: string) => {
+    if(!time) return 0
     var times = time.split(":")
     return +times[0] * 60 * 60 + +times[1] * 60 + +times[2]
 }
@@ -56,35 +63,17 @@ export const getRemainTime = (startTime: string, duration: string) => {
     return durationInNumber - timePass
 }
 
-export const toISOString = (time?: string) => {
-    try {
-        return moment(time).toISOString()
-    } catch {
-        return ""
-    }
+export const getRemainTimeFromMinutes = (startTime: string, duration: number, runningTime: number, lastResumeTime?: string) => {
+    const time = (!lastResumeTime || lastResumeTime === DATE_TIME_MIN_VALUE) ? startTime : lastResumeTime
+    const timePass = diffFromNow(time, "milliseconds")
+    if (typeof timePass !== "number") return null
+    const totalTimePassed = runningTime + timePass
+    if (totalTimePassed > duration) return 0
+    return duration - totalTimePassed
 }
 
-export const formatTimeSecond = (duration: number, t: any) => {
-    duration = Math.round(duration)
-    return `${duration < 60 ? `${duration}${t("seconds")}` : t("mins_mins_seconds_seconds", {
-        mins: Math.floor(duration / 60),
-        seconds: duration % 60
-    })}`
-}
-
-export const formatTimeDiff = (my: number, top: number, t: any) => {
-    const diff = Math.round(my - top)
-    let prefix = ""
-    if (diff < 0) prefix = "-"
-    if (diff > 0) prefix = "+"
-    return `${prefix}${formatTimeSecond(Math.abs(diff), t)}`
-}
-
-export const formatDuration = (t: any, duration: number) => {
-    if(!duration) return `0${t("seconds")}`
-    const totalTime = Math.round(duration)
-    return totalTime > 60 ? t("mins_mins_seconds_seconds", {
-        mins: Math.floor(totalTime/60),
-        seconds: totalTime % 60
-    }) : `${Math.round(duration)}${t("seconds")}`
+export const getCountTime = (startTime: string, duration: number) => {
+    const timePass = diffFromNow(startTime, "milliseconds")
+    if (typeof timePass !== "number") return null
+    return duration + timePass
 }

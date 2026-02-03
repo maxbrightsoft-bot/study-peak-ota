@@ -14,6 +14,7 @@ export type UserResponse = {
   isLearningSpace: boolean
   isNotEnoughStatements?: boolean
   roles: string[]
+  superId: number
 }
 
 export type Student = {
@@ -29,3 +30,14 @@ export type Student = {
     schoolName: string;
     fullName: string
 };
+
+export type StudentInfo = {
+    id: number
+    email: string
+    fullName: string
+    grade?: number
+    gradeYear?: number
+    phoneNumber?: string
+    parentPhoneNumber?: string
+    schoolName?: string
+}
