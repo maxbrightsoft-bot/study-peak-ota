@@ -1,6 +1,6 @@
 import { BASE_URL } from "@/utils/constants"
 import { TextbookQuery } from "../configs/type"
-import { api } from "@/services/apiClient"
+import { api } from "@/services/api/apiClient"
 
 const TEXTBOOK_URL = `${BASE_URL}/api/textbooks/prepared-textbooks`
 const TEXTBOOK_SESSION_URL = `${BASE_URL}/api/textbooksession`

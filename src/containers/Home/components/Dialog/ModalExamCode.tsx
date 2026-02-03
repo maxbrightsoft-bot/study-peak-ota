@@ -6,21 +6,24 @@ import { useTranslation } from 'react-i18next'
 import { View, Text, TouchableOpacity } from 'react-native'
 import { Divider } from 'react-native-paper'
 import { ScaledSheet } from 'react-native-size-matters'
+import Loading from '@/components/Loading'
 
 interface Props {
   codeExam: string
   setCodeExam: (val: string) => void
   open: boolean
+  loading: boolean
   onClose: () => void
   handleCodeExam: (code: string) => void
   isCheckTeacherStart: boolean
 }
 
-const ModalExamCode = ({ codeExam, setCodeExam, onClose, open, handleCodeExam, isCheckTeacherStart }: Props) => {
+const ModalExamCode = ({ codeExam, loading, setCodeExam, onClose, open, handleCodeExam, isCheckTeacherStart }: Props) => {
   const { t } = useTranslation()
 
   return (
     <CommonDialog isVisible={open} onClose={onClose} title={t('enter_test_code')}>
+      {loading && <Loading isOverlay={false} />}
       <View style={styles.container}>
         <View style={styles.inputWrapper}>
           {codeExam && isCheckTeacherStart ? (

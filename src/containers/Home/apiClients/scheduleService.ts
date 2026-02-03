@@ -1,6 +1,6 @@
 import { BASE_URL } from "@/utils/constants";
 import { ScheduleQuery, ScheduleRequest, ScheduleStatusRequest } from "../configs/type";
-import { api } from "@/services/apiClient";
+import { api } from "@/services/api/apiClient";
 
 const SCHEDULE_URL = `${BASE_URL}/api/schedules`;
 

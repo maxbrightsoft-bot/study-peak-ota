@@ -13,7 +13,7 @@ import { DateData } from "react-native-calendars";
 import { MarkingProps } from "react-native-calendars/src/calendar/day/marking";
 
 type Props = {
-  getScheduleList: () => void;
+  getScheduleList: (loading: boolean) => void;
   getScheduleListForNoteEvent: () => void;
   onScheduleCountChange: () => void
   handleSelectDate: ({
@@ -39,7 +39,7 @@ const useCalendar = ({ getScheduleList, getScheduleListForNoteEvent, onScheduleC
   const [openTooltipList, setOpenTooltipList] = useState<number | boolean>(
     false
   );
-  const { setLoading } = useAuthStore()
+  const [loadingConfirmDialog, setLoadingConfirmDialog] = useState(false)
   const [selectedSchedule, setSelectedSchedule] = useState<ScheduleResponse>();
   const [scheduleRequest, setScheduleRequest] = useState<ScheduleFormData>();
   const { t } = useTranslation();
@@ -95,22 +95,24 @@ const useCalendar = ({ getScheduleList, getScheduleListForNoteEvent, onScheduleC
       !scheduleRequest.title
     )
       return;
-    setLoading(true)
+    setLoadingConfirmDialog(true)
     try {
       const schedule: ScheduleRequest = convertScheduleFormToRequest(scheduleRequest)
       if (scheduleRequest.id)
         await updateScheduleApi(scheduleRequest.id, schedule);
       else
         await createScheduleApi(schedule);
-      await getScheduleList();
+      await getScheduleList(false);
       await getScheduleListForNoteEvent();
       onScheduleCountChange();
       toast.success(t(scheduleRequest.id ? "update_schedule_successfully" : "create_schedule_successfully"));
     } catch (error: any) {
       toast.error(getErrorMessage(t, error));
     }
-    setLoading(false)
-    handleCloseConfirmDialog();
+    finally {
+      setLoadingConfirmDialog(false)
+      handleCloseConfirmDialog();
+    }
   };
 
   const handleSetSchedule = (values?: ScheduleResponse) => {
@@ -237,6 +239,7 @@ const useCalendar = ({ getScheduleList, getScheduleListForNoteEvent, onScheduleC
     goToNextMonth, 
     goToPreviousMonth,
     onDayPress,
+    loadingConfirmDialog,
     currentCalendarMonth,
     selectedSchedule,
     onVisibleMonthsChange,

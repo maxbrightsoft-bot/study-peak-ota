@@ -10,6 +10,7 @@ import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   t: any
+  loading: boolean
   schedules?: ScheduleResponse[]
   openTooltipList: number | boolean
   handleOpenTooltip: (index: number) => void
@@ -35,6 +36,7 @@ type Props = {
 const NoteEvent = (noteProps: Props) => {
   const {
     t,
+    loading,
     schedules,
     openTooltipList,
     handleOpenTooltip,
@@ -57,8 +59,8 @@ const NoteEvent = (noteProps: Props) => {
     handleUpdateScheduleStatus
   } = noteProps
   return (
-    <View style={{ marginTop: 16, padding: 8, borderRadius: 8, borderColor: palette.grey[300], borderWidth: 1 }}>
-      <View>
+    <View style={{ marginTop: 16, padding: 8, borderRadius: 8, borderColor: palette.grey[300], borderWidth: 1, backgroundColor: palette.grey[50] }}>
+      <View style={{ gap: 8}}>
         {schedules?.map((schedule, index) => (
           <NoteItem
             key={index}
@@ -114,6 +116,7 @@ const NoteEvent = (noteProps: Props) => {
         isDelete
       />
       <CreateNewScheduleConfirmDialog
+        loading={loading}
         open={isOpenConfirmDialog}
         onClose={() => {
           handleCloseConfirmDialog()
