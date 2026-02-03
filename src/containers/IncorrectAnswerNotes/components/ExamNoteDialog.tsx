@@ -1,5 +1,5 @@
 import React, { FC } from 'react'
-import { KeyboardAvoidingView, Platform, ScrollView, TextInput, TouchableOpacity, View } from 'react-native'
+import { Image, KeyboardAvoidingView, Platform, ScrollView, TextInput, TouchableOpacity, View } from 'react-native'
 import { Text, useTheme } from 'react-native-paper'
 import { Formik } from 'formik'
 import * as Yup from 'yup'
@@ -8,10 +8,15 @@ import CommonDialog from '@/components/ModalBase/CommonDialog'
 import { palette, TYPO } from '@/theme'
 import Select from '@/components/Select/CustomSelect'
 import { ScaledSheet } from 'react-native-size-matters'
+import Loading from '@/components/Loading'
+import { Ionicons } from '@expo/vector-icons'
 
 interface ExamNoteDialogProps {
   open: boolean
+  imageUrl: string
   selectedNote?: any
+  handleUploadImage: () => Promise<void>
+  isLoadingNotes: boolean
   selectedQuestion?: any
   questionOptions?: { label: string; value: number }[]
   onClose: () => void
@@ -25,6 +30,9 @@ const schema = Yup.object().shape({
 
 const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
   open,
+  imageUrl,
+  handleUploadImage,
+  isLoadingNotes,
   selectedNote,
   selectedQuestion,
   questionOptions = [],
@@ -42,6 +50,7 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
       onClose={onClose}
       title={t(selectedNote ? 'correct_incorrect_answer_notes' : 'write_a_note_of_incorrect_answers')}
     >
+      {isLoadingNotes && <Loading isOverlay={false} />}
       <Formik
         initialValues={{
           content: selectedNote?.content || '',
@@ -55,7 +64,9 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={80}>
               <ScrollView>
                 <View style={{ marginBottom: 16 }}>
-                  <Text variant="labelLarge" style={{ color: palette.grey[700]}}>{t('problem_number')}</Text>
+                  <Text variant="labelLarge" style={{ color: palette.grey[700] }}>
+                    {t('problem_number')}
+                  </Text>
                   {selectedNote || selectedQuestion ? (
                     <Text style={{ color: theme.colors.primary, fontWeight: 'bold' }}>
                       {t('number_question', {
@@ -68,13 +79,15 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
                     <Select
                       onValueChange={(value) => setFieldValue('questionId', value)}
                       value={values.questionId}
-                      items={questionOptions}
+                      options={questionOptions}
                     />
                   )}
                 </View>
 
                 <View>
-                  <Text variant="labelLarge" style={{ color: palette.grey[700]}}>{t('incorrect_answer_note_contents')}</Text>
+                  <Text variant="labelLarge" style={{ color: palette.grey[700] }}>
+                    {t('incorrect_answer_note_contents')}
+                  </Text>
                   <TextInput
                     multiline
                     numberOfLines={3}
@@ -91,6 +104,19 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
                     value={values.content}
                     onChangeText={handleChange('content')}
                   />
+                </View>
+                <View style={{ marginTop: 12 }}>
+                  {imageUrl ? (
+                    <Image
+                      source={{ uri: imageUrl }}
+                      style={{ width: 120, height: 120, borderRadius: 8, borderWidth: 1, borderColor: palette.grey[500] }}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <TouchableOpacity onPress={handleUploadImage}>
+                      <Ionicons name="image" size={32} color={palette.grey[500]} />
+                    </TouchableOpacity>
+                  )}
                 </View>
               </ScrollView>
             </KeyboardAvoidingView>
@@ -133,9 +159,7 @@ const styles = ScaledSheet.create({
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: '16@ms',
-    borderTopWidth: 1,
-    borderTopColor: palette.grey[200]
+    paddingVertical: '16@ms'
   },
   button: {
     paddingVertical: '12@ms',

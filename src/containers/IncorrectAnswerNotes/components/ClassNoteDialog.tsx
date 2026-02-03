@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import CommonDialog from '@/components/ModalBase/CommonDialog'
 import { palette, TYPO } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
+import { Ionicons } from '@expo/vector-icons'
 
 interface ClassNoteDialogProps {
   visible: boolean
@@ -53,13 +54,18 @@ const ClassNoteDialog: FC<ClassNoteDialogProps> = ({
         <ScrollView contentContainerStyle={{ paddingHorizontal: 24 }}>
           {(selectedNote || studentName) && (
             <View style={{ marginBottom: 12 }}>
-              <Text variant="labelLarge" style={{ color: palette.grey[700]}}> {t('incorrect_answer_note_contents')}</Text>
+              <Text variant="labelLarge" style={{ color: palette.grey[700] }}>
+                {' '}
+                {t('incorrect_answer_note_contents')}
+              </Text>
               <Text style={{ fontWeight: 'bold', color: '#3DC674' }}>{selectedNote?.fullName || studentName}</Text>
             </View>
           )}
 
           <View style={{ marginBottom: 12 }}>
-            <Text variant="labelLarge" style={{ color: palette.grey[700]}}>{t("incorrect_answer_note_contents")}</Text>
+            <Text variant="labelLarge" style={{ color: palette.grey[700] }}>
+              {t('incorrect_answer_note_contents')}
+            </Text>
             <TextInput
               mode="outlined"
               multiline

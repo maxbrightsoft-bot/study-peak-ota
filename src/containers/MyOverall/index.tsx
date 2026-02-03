@@ -1,26 +1,40 @@
 import React, { FC, useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView } from 'react-native'
-import OverallChartContainer from './components/OverallChartContainer'
-import CategoriesOverallChartContainer from './components/CategoriesOverallChartContainer'
-import OverallTimeChartContainer from './components/OverallTimeChartContainer'
+import OverallChartContainer, { OverallChartContainerProps } from './components/OverallChartContainer'
+import CategoriesOverallChartContainer, {
+  CategoriesOverallChartContainerProps
+} from './components/CategoriesOverallChartContainer'
+import OverallTimeChartContainer, { OverallTimeChartContainerProps } from './components/OverallTimeChartContainer'
+import { ExamResult } from '@/utils/types'
+import { useTranslation } from 'react-i18next'
+import { SubjectType } from '@/utils/enums'
 
 interface OverallTabProps {
-  overallChartContainerProps: any
-  categoriesOverallChartContainerProps: any
-  overallTimeChartContainerProps: any
+  resultData: ExamResult | undefined
+  overallChartContainerProps: OverallChartContainerProps
+  categoriesOverallChartContainerProps: CategoriesOverallChartContainerProps
+  subcategoriesOverallChartContainerProps?: CategoriesOverallChartContainerProps
+  overallTimeChartContainerProps: OverallTimeChartContainerProps
+  questionTypesOverallChartContainerProps?: CategoriesOverallChartContainerProps
   isPrint?: boolean
   onRendered?: () => void
 }
 
 const MyOverall: FC<OverallTabProps> = ({
+  resultData,
   categoriesOverallChartContainerProps,
+  subcategoriesOverallChartContainerProps,
+  questionTypesOverallChartContainerProps,
   overallChartContainerProps,
   overallTimeChartContainerProps,
   isPrint,
   onRendered
 }) => {
+  const { t } = useTranslation()
   const [overallChartRendered, setOverallChartRendered] = useState<boolean>(false)
   const [categoriesOverallChartRendered, setCategoriesOverallChartRendered] = useState<boolean>(false)
+  const [subcategoriesOverallChartRendered, setSubcategoriesOverallChartRendered] = useState<boolean>(false)
+  const [questionTypesOverallChartRendered, setQuestionTypesOverallChartRendered] = useState<boolean>(false)
   const [overallTimeChartsRendered, setOverallTimeChartsRendered] = useState<boolean>(false)
 
   const handleOverallChartRendered = () => {
@@ -33,11 +47,31 @@ const MyOverall: FC<OverallTabProps> = ({
     setOverallTimeChartsRendered(true)
   }
 
+  const handleSubcategoriesOverallChartRendered = () => {
+    setSubcategoriesOverallChartRendered(true)
+  }
+  const handleQuestionTypesOverallChartRendered = () => {
+    setQuestionTypesOverallChartRendered(true)
+  }
+
   useEffect(() => {
-    if (overallChartRendered && categoriesOverallChartRendered && overallTimeChartsRendered) {
+    if (
+      overallChartRendered &&
+      categoriesOverallChartRendered &&
+      overallTimeChartsRendered &&
+      subcategoriesOverallChartRendered &&
+      (resultData?.type != SubjectType.Math || questionTypesOverallChartRendered)
+    ) {
       onRendered?.()
     }
-  }, [overallChartRendered, categoriesOverallChartRendered, overallTimeChartsRendered])
+  }, [
+    resultData?.type,
+    overallChartRendered,
+    categoriesOverallChartRendered,
+    overallTimeChartsRendered,
+    subcategoriesOverallChartRendered,
+    questionTypesOverallChartRendered
+  ])
 
   return (
     <ScrollView style={[styles.container, isPrint && { marginTop: 230 }]}>
@@ -54,6 +88,26 @@ const MyOverall: FC<OverallTabProps> = ({
             {...categoriesOverallChartContainerProps}
             onRendered={handleCategoriesOverallChartRendered}
             isPrint={isPrint}
+            id="my-average-data"
+            title={t('my_average_data')}
+          />
+        </View>
+        <View style={styles.fullWidth}>
+          <CategoriesOverallChartContainer
+            {...subcategoriesOverallChartContainerProps}
+            onRendered={handleSubcategoriesOverallChartRendered}
+            isPrint={isPrint}
+            id="subcategories-data"
+            title={t('subcategories_data')}
+          />
+        </View>
+        <View style={styles.fullWidth}>
+          <CategoriesOverallChartContainer
+            {...questionTypesOverallChartContainerProps}
+            onRendered={handleQuestionTypesOverallChartRendered}
+            isPrint={isPrint}
+            id="question-types-data"
+            title={t('question_types_data')}
           />
         </View>
       </View>
@@ -70,7 +124,7 @@ const MyOverall: FC<OverallTabProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'column',
+    flexDirection: 'column'
   },
   printRow: {
     flexDirection: 'row'

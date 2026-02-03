@@ -1,5 +1,5 @@
 import React, { FC } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { Ionicons } from '@expo/vector-icons'
 import { ProblemKey } from '@/utils/enums'

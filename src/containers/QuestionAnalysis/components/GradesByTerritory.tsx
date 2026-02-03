@@ -5,11 +5,11 @@ import { useTranslation } from 'react-i18next'
 import { CategoryResponse, ExamResult } from '@/utils/types'
 import { ProblemKey } from '@/utils/enums'
 import { totalSolveTimeCategories } from '../configs/helpers'
-import { formatDuration } from '@/utils/helpers'
 import { CategoryFormat } from '../configs/types'
 import { Ionicons } from '@expo/vector-icons'
 import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
+import { formatDuration } from '@/utils/helpers'
 
 type Props = {
   data: CategoryResponse[]
@@ -22,10 +22,10 @@ type Props = {
 
 const GradesByTerritory = ({ data, keyOpen, openProblem, changeOpen, resultData, isPrint }: Props) => {
   const { t } = useTranslation()
-  const formattedData = totalSolveTimeCategories(resultData, data)
+  // const formattedData = totalSolveTimeCategories(resultData, data)
   const isOpen = openProblem === ProblemKey.GradesByTerritory || isPrint
 
-  const renderTableRows = (data: CategoryFormat[]) => {
+  const renderTableRows = (data: CategoryResponse[]) => {
     return data.map((item) => (
       <DataTable.Row key={item.id} style={styles.row}>
         <DataTable.Cell style={styles.column1}>
@@ -35,7 +35,7 @@ const GradesByTerritory = ({ data, keyOpen, openProblem, changeOpen, resultData,
           <Text style={[styles.cellText, styles.boldText]}>{item?.percentageAmongStudents?.toFixed(2)}%</Text>
         </DataTable.Cell>
         <DataTable.Cell numeric>
-          <Text style={styles.cellText}>{formatDuration(t, item.totalSolveTime)}</Text>
+          <Text style={styles.cellText}>{item.totalSolvedTime ? formatDuration(t, item.totalSolvedTime) : ''}</Text>
         </DataTable.Cell>
       </DataTable.Row>
     ))
@@ -60,7 +60,7 @@ const GradesByTerritory = ({ data, keyOpen, openProblem, changeOpen, resultData,
 
       {isOpen && (
         <View style={styles.contentContainer}>
-          {formattedData.length ? (
+          {data.length ? (
             <DataTable>
               <DataTable.Header style={{ backgroundColor: palette.grey[50] }}>
                 <DataTable.Title style={{ borderRightWidth: 1, borderColor: palette.grey[300] }}>
@@ -79,7 +79,7 @@ const GradesByTerritory = ({ data, keyOpen, openProblem, changeOpen, resultData,
                   <Text style={styles.cellText}>{t('total_solve_time')}</Text>
                 </DataTable.Title>
               </DataTable.Header>
-              {renderTableRows(formattedData)}
+              {renderTableRows(data)}
             </DataTable>
           ) : (
             <View style={styles.noDataContainer}>

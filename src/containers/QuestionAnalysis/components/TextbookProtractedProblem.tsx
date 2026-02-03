@@ -1,7 +1,7 @@
 import React, { FC } from 'react'
 import { View, Text, TouchableOpacity, FlatList } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { ExamResult, LongTimeSpendQuestion, TextbookResult } from '@/utils/types'
+import { LongTimeSpendQuestion, TextbookResult } from '@/utils/types'
 import { ProblemKey } from '@/utils/enums'
 import { formatTimeSecond } from '@/utils/helpers'
 import MathRender from '@/components/MathRender'

@@ -1,4 +1,4 @@
-import React, { FC } from 'react'
+import React from 'react'
 import { View, TouchableOpacity } from 'react-native'
 import { Text, DataTable } from 'react-native-paper'
 import { useTranslation } from 'react-i18next'
@@ -22,10 +22,10 @@ type Props = {
 
 const GradesByTerritory = ({ data, keyOpen, openProblem, changeOpen, resultData, isPrint }: Props) => {
   const { t } = useTranslation()
-  const formattedData = totalTextbookSolveTimeCategories(resultData, data)
+  // const formattedData = totalTextbookSolveTimeCategories(resultData, data)
   const isOpen = openProblem === ProblemKey.GradesByTerritory || isPrint
 
-  const renderTableRows = (data: CategoryFormat[]) => {
+  const renderTableRows = (data: CategoryResponse[]) => {
     return data.map((item) => (
       <DataTable.Row key={item.id} style={styles.row}>
         <DataTable.Cell style={styles.column1}>
@@ -41,7 +41,7 @@ const GradesByTerritory = ({ data, keyOpen, openProblem, changeOpen, resultData,
                 <Text style={styles.cellText}>{item.totalQuestions}</Text>
               </DataTable.Cell> */}
         <DataTable.Cell numeric>
-          <Text style={styles.cellText}>{formatDuration(t, item.totalSolveTime)}</Text>
+          <Text style={styles.cellText}>{item.totalSolvedTime ? formatDuration(t, item.totalSolvedTime) : ''}</Text>
         </DataTable.Cell>
       </DataTable.Row>
     ))
@@ -66,7 +66,7 @@ const GradesByTerritory = ({ data, keyOpen, openProblem, changeOpen, resultData,
 
       {isOpen && (
         <View style={styles.contentContainer}>
-          {formattedData.length ? (
+          {data.length ? (
             <DataTable>
               <DataTable.Header style={{ backgroundColor: palette.grey[50] }}>
                 <DataTable.Title style={{ borderRightWidth: 1, borderColor: palette.grey[300] }}>
@@ -79,7 +79,7 @@ const GradesByTerritory = ({ data, keyOpen, openProblem, changeOpen, resultData,
                   <Text style={styles.cellText}>{t('total_solve_time')}</Text>
                 </DataTable.Title>
               </DataTable.Header>
-              {renderTableRows(formattedData)}
+              {renderTableRows(data)}
             </DataTable>
           ) : (
             <View style={styles.noDataContainer}>

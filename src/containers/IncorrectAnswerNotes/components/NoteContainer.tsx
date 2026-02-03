@@ -1,9 +1,10 @@
 import React, { FC } from 'react'
-import { View, FlatList, ActivityIndicator, StyleSheet } from 'react-native'
+import { View, FlatList } from 'react-native'
 import { NotesContainerProps } from '../configs/interfaces'
 import NoteItem from './NoteItem'
 import { ScaledSheet } from 'react-native-size-matters'
 import { palette } from '@/theme'
+import Loading from '@/components/Loading'
 
 const NotesContainer: FC<NotesContainerProps> = ({
   data,

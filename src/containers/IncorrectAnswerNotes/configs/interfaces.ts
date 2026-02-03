@@ -1,4 +1,5 @@
 import { Action, NoteResponse, QuestionData } from "@/utils/types"
+import { MouseEvent, RefObject } from "react"
 
 export interface NotesContainerProps{
     isLoading?: boolean
@@ -19,7 +20,10 @@ export interface ExamNoteDialogProps {
     selectedQuestion?: QuestionData
     questionOptions?: any[]
     onClose: () => void
+    isLoadingNotes: boolean
     onSaveNote: (content: string, questionId: number) => void
+    imageUrl: string
+    handleUploadImage: () => Promise<void>
 }
 
 export interface ClassNoteDialogProps {
