@@ -2,43 +2,83 @@ import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { persist, createJSONStorage, StateStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Pusher, PusherChannel, PusherEvent } from "@pusher/pusher-websocket-react-native";
-import { AcademyHeaders, BASE_URL, LANGUAGES, NoAcademyHeaders, PUSHER_CONFIG, SUPER_ADMIN_BASE_URL } from "@/utils/constants";
-import { AcademyResponse, Language, UserResponse } from "@/utils/types";
-import { api } from "@/services/apiClient";
+import {
+  Pusher,
+  PusherChannel,
+  PusherEvent,
+} from "@pusher/pusher-websocket-react-native";
+
+import {
+  AcademyHeaders,
+  BASE_URL,
+  LANGUAGES,
+  NoAcademyHeaders,
+  PUSHER_CONFIG,
+} from "@/utils/constants";
+import {
+  AcademyResponse,
+  LanguageResponse,
+  SubjectTimerResponse,
+  UserResponse,
+} from "@/utils/types";
+import { AlarmResponse } from "@/utils/types/alarm";
+import { api } from "@/services/api/apiClient";
 import { autoReconnectPusher } from "@/utils/helpers/pusher";
+
+interface EventHandler<T = any> {
+  eventName: string;
+  handler: (data: T) => void;
+}
 
 interface StoreState {
   isLoading: boolean;
+  isLoadingWithoutOverlay: boolean;
   user: UserResponse | null;
-  academies: AcademyResponse[] | [];
-  selectedAcademy?: AcademyResponse | null,
+  academies: AcademyResponse[];
+  selectedAcademy: AcademyResponse | null;
+  hasEnteredSelectAcademy: boolean
+  language: LanguageResponse;
+  timers: SubjectTimerResponse[];
+  alarm: AlarmResponse | null;
+
   pusher?: Pusher;
   channel?: PusherChannel;
 }
 
 interface StoreActions {
+  setUser: (user: UserResponse | null) => void;
   setAcademies: (academies: AcademyResponse[]) => void;
-  setSelectAcademy: (academy?: AcademyResponse) => void;
-  setUser: (userData: any) => void;
-  language: Language
-  logout: () => Promise<void>;
+  setSelectAcademy: (academy?: AcademyResponse | null) => void;
+  setHasEnteredSelectAcademy: (value: boolean) => void
   setLoading: (isLoading: boolean) => void;
-  setLanguage: (lang: Language) => void
+  setLoadingWithoutOverlay: (isLoading: boolean) => void;
+  setLanguage: (lang: LanguageResponse) => void;
+
+  setTimers: (timers: SubjectTimerResponse[] | null) => void;
+  setAlarm: (alarm: AlarmResponse | null) => void;
+
+  initializePusher: (
+    academyDomain: string,
+    isLearningSpace: boolean
+  ) => Promise<Pusher>;
+
   subscribeChannel: (
     pusher: Pusher,
     channelName: string,
     eventHandlers: EventHandler[]
   ) => Promise<PusherChannel>;
-  unsubscribeChannelSafe: (pusher: Pusher,
-    channelName: string,) => Promise<void>;
-  disconnectPusher: (pusher?: Pusher, channel?: PusherChannel) => void;
-  initializePusher: (academyDomain: string, isLearningSpace: boolean) => Promise<Pusher>;
-}
 
-interface EventHandler {
-  eventName: string;
-  handler: (data: any) => void;
+  unsubscribeChannelSafe: (
+    pusher: Pusher,
+    channelName: string
+  ) => Promise<void>;
+
+  disconnectPusher: (
+    pusher?: Pusher,
+    channel?: PusherChannel
+  ) => Promise<void>;
+
+  logout: () => Promise<void>;
 }
 
 type AuthStore = StoreState & StoreActions;
@@ -46,184 +86,205 @@ type AuthStore = StoreState & StoreActions;
 const useAuthStore = create<AuthStore>()(
   persist(
     immer((set, get) => ({
-      // Initial state
       isLoading: false,
+      isLoadingWithoutOverlay: false,
       user: null,
       academies: [],
       selectedAcademy: null,
+
+      language: LANGUAGES[0],
+      timers: [],
+      alarm: null,
+      hasEnteredSelectAcademy: true,
       pusher: undefined,
       channel: undefined,
-      language: LANGUAGES[0],
 
-      // Actions
-      setUser: (userData: any) => {
+      setUser: (user) => {
         set((state) => {
-          state.user = userData;
+          state.user = user;
         });
       },
-
-      setLoading: (isLoading: boolean) => {
+      
+      setHasEnteredSelectAcademy: (value) => {
         set((state) => {
-          state.isLoading = isLoading;
-        });
-      },
-      setLanguage: (lang: Language) => {
-        set((state) => {
-          state.language = lang;
-        });
-      },
-      setSelectAcademy: (academy?: AcademyResponse) => {
-        set((state) => {
-          state.selectedAcademy = academy;
-        });
+          state.hasEnteredSelectAcademy = value
+        })
       },
 
-      setAcademies: (academies: AcademyResponse[]) => {
+      setAcademies: (academies) => {
         set((state) => {
           state.academies = academies;
         });
       },
 
-      subscribeChannel: async (
-        pusher: Pusher,
-        channelName: string,
-        eventHandlers: EventHandler[]
-      ): Promise<PusherChannel> => {
-        if (!pusher) {
-          throw new Error("[Pusher] Instance is not initialized");
-        }
-
-        // await get().unsubscribeChannelSafe(pusher, channelName);
-
-        const existingChannel = await pusher.getChannel(channelName);
-
-        if (existingChannel) throw new Error("[Pusher] Event has been initialized");
-
-        try {
-          const channel = await pusher.subscribe({
-            channelName,
-            onEvent: (event: PusherEvent) => {
-              try {
-                const matched = eventHandlers.find(e => e.eventName === event.eventName);
-                if (matched) {
-                  if (event.data) {
-                    const parsedData = JSON.parse(event.data);
-                    matched.handler(parsedData);
-                  } else {
-                    console.warn(`[Pusher] Event ${event.eventName} has no data`);
-                    matched.handler(null);
-                  }
-                } else {
-                  console.log(`[Pusher] Unhandled event: ${event.eventName}`);
-                }
-              } catch (parseErr) {
-                console.error("[Pusher] Failed to parse event data", parseErr);
-              }
-            }
-          });
-
-          set((state) => {
-            state.channel = channel;
-          });
-
-          return channel;
-
-        } catch (err) {
-          console.error(`[Pusher] Failed to subscribe to channel ${channelName}`, err);
-          throw err;
-        }
-      },
-
-      unsubscribeChannelSafe: async (
-        pusher: Pusher,
-        channelName: string
-      ): Promise<void> => {
-        try {
-          await pusher.unsubscribe({ channelName });
-
-        } catch (err) {
-          console.warn(`[Pusher] Failed to unsubscribe from ${channelName}:`, err);
-        }
-      },
-
-      disconnectPusher: async(pusher?: Pusher, channel?: PusherChannel) => {
-        if (channel) {
-          await channel.unsubscribe();
-        }
-        if (pusher) {
-          await pusher.disconnect();
-        }
-
+      setSelectAcademy: (academy = null) => {
         set((state) => {
-          state.pusher = undefined;
-          state.channel = undefined;
+          state.selectedAcademy = academy;
         });
       },
 
-      initializePusher: async (academyDomain: string, isLearningSpace: boolean) => {
-        const pusherInstance = Pusher.getInstance();
+      setLoading: (isLoading) => {
+        set((state) => {
+          state.isLoading = isLoading;
+        });
+      },
 
-        await pusherInstance.init({
+      setLoadingWithoutOverlay: (isLoading) => {
+        set((state) => {
+          state.isLoadingWithoutOverlay = isLoading;
+        });
+      },
+
+      setLanguage: (lang) => {
+        set((state) => {
+          state.language = lang;
+        });
+      },
+
+      setTimers: (timers) => {
+        set((state) => {
+          state.timers = timers ? [...timers] : [];
+        });
+      },
+
+      setAlarm: (alarm) => {
+        set((state) => {
+          state.alarm = alarm;
+          if (__DEV__) console.log("[Alarm]", alarm);
+        });
+      },
+
+      initializePusher: async (academyDomain, isLearningSpace) => {
+        const { pusher } = get();
+        if (pusher) return pusher;
+
+        const instance = Pusher.getInstance();
+
+        await instance.init({
           apiKey: PUSHER_CONFIG.key,
           cluster: PUSHER_CONFIG.cluster,
-          onAuthorizer: async (channelName, socketId) => {
-            try {
-              const formData = new FormData();
-              formData.append('socket_id', socketId);
-              formData.append('channel_name', channelName);
+          useTLS: true,
 
-              const res = await api.post(`${BASE_URL}/api/auth/pusher`, formData, {
+          onAuthorizer: async (channelName, socketId) => {
+            const formData = new FormData();
+            formData.append("socket_id", socketId);
+            formData.append("channel_name", channelName);
+
+            const res = await api.post(
+              `${BASE_URL}/api/auth/pusher`,
+              formData,
+              {
                 headers: {
-                  'Content-Type': 'multipart/form-data',
+                  "Content-Type": "multipart/form-data",
                   [AcademyHeaders]: academyDomain,
                   [NoAcademyHeaders]: isLearningSpace,
                 },
-              });
-              const data = await res.data
-
-              return {
-                auth: data.auth,
-                channel_data: data.channel_data,
               }
-            } catch (error) {
-              console.error('Authorizer error', error)
-              throw error
-            }
+            );
+
+            return {
+              auth: res.data.auth,
+              channel_data: res.data.channel_data,
+            };
           },
-          useTLS: true,
+
           onConnectionStateChange: (state) => {
-            console.log("Pusher connection state:", state);
+            if (__DEV__) console.log("[Pusher] State:", state);
             if (state === "DISCONNECTED") {
-              autoReconnectPusher(pusherInstance);
+              autoReconnectPusher(instance);
             }
           },
+
           onError: (error) => {
-            console.error("Pusher error:", error);
+            console.error("[Pusher] Error:", error);
           },
         });
 
-        await pusherInstance.connect();
+        await instance.connect();
 
         set((state) => {
-          state.pusher = pusherInstance;
+          state.pusher = instance;
         });
 
-        return pusherInstance;
+        return instance;
       },
+
+      subscribeChannel: async (pusher, channelName, eventHandlers) => {
+        await get().unsubscribeChannelSafe(pusher, channelName);
+
+        const channel = await pusher.subscribe({
+          channelName,
+          onEvent: (event: PusherEvent) => {
+            try {
+              const matched = eventHandlers.find(
+                (e) => e.eventName === event.eventName
+              );
+
+              if (!matched) {
+                if (__DEV__) {
+                  console.log("[Pusher] Unhandled:", event.eventName);
+                }
+                return;
+              }
+
+              const data = event.data ? JSON.parse(event.data) : null;
+              matched.handler(data);
+            } catch (err) {
+              console.error("[Pusher] Event error:", err);
+            }
+          },
+        });
+
+        set((state) => {
+          state.channel = channel;
+        });
+
+        return channel;
+      },
+
+      unsubscribeChannelSafe: async (pusher, channelName) => {
+        try {
+          await pusher.unsubscribe({ channelName });
+        } catch (err) {
+          if (__DEV__) {
+            console.warn("[Pusher] Unsubscribe failed:", err);
+          }
+        }
+      },
+
+      disconnectPusher: async (pusher, channel) => {
+        try {
+          if (channel) await channel.unsubscribe();
+          if (pusher) await pusher.disconnect();
+        } finally {
+          set((state) => {
+            state.pusher = undefined;
+            state.channel = undefined;
+          });
+        }
+      },
+
       logout: async () => {
         const { pusher, channel, disconnectPusher } = get();
 
-        await disconnectPusher(pusher, channel)
+        await disconnectPusher(pusher, channel);
 
-        set((state) => {
-          state.user = null;
-          state.selectedAcademy = null;
-          state.academies = [];
-          state.pusher = undefined;
-          state.channel = undefined;
-        });
-        await AsyncStorage.clear()
+        set(() => ({
+          isLoading: false,
 
+          user: null,
+          academies: [],
+          selectedAcademy: null,
+
+          language: LANGUAGES[0],
+          timers: [],
+          alarm: null,
+
+          pusher: undefined,
+          channel: undefined,
+        }));
+
+        await AsyncStorage.clear();
       },
     })),
     {
@@ -232,8 +293,9 @@ const useAuthStore = create<AuthStore>()(
       partialize: (state) => ({
         user: state.user,
         academies: state.academies,
-        isLoading: state.isLoading,
         selectedAcademy: state.selectedAcademy,
+        isLoading: state.isLoading,
+        language: state.language,
       }),
     }
   )

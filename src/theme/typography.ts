@@ -5,7 +5,7 @@ type TypoStyle = TextStyle;
 export const TYPO: Record<string, TypoStyle> = {
   // Headings
   heading1: {
-    fontSize: Platform.OS === 'ios' ? 24 : 20,
+    fontSize: Platform.OS === 'ios' ? 24 : 18,
     fontWeight: 'bold',
   },
   heading2: {
@@ -13,7 +13,7 @@ export const TYPO: Record<string, TypoStyle> = {
     fontWeight: 'bold',
   },
   heading3: {
-    fontSize: Platform.OS === 'ios'  ? 16 : 18,
+    fontSize: Platform.OS === 'ios'  ? 16 : 14,
     fontWeight: 'bold',
   },
 

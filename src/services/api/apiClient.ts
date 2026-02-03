@@ -9,7 +9,7 @@ import {
   LEARNING_SPACE,
   LanguageHeaders,
   NoAcademyHeaders,
-} from '../utils/constants'
+} from '../../utils/constants'
 import { getDataStorage } from '@/utils/storage';
 import useAuthStore from '@/store/useAuthStore';
 
@@ -51,9 +51,10 @@ export const apiUpload: AxiosInstance = axios.create({
         if (language) config.headers[LanguageHeaders] = `${language}`
 
         return config
-
       },
-      (error: any) => Promise.reject(error)
+      (error: any) => {
+        Promise.reject(error)
+      }
     )
   )
   ;[api, apiUpload].forEach((i) =>
