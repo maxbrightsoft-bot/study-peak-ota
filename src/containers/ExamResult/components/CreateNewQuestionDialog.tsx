@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { KeyboardAvoidingView, Platform, ScrollView, TextInput, TouchableOpacity, View } from 'react-native'
 import { HelperText, Text } from 'react-native-paper'
 import { useFormik } from 'formik'
@@ -8,8 +8,11 @@ import CustomSelect from '@/components/Select/CustomSelect'
 import { useTranslation } from 'react-i18next'
 import { palette, TYPO } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
+import Loading from '@/components/Loading'
+import { Ionicons } from '@expo/vector-icons'
 
 type Props = {
+  loading: boolean
   openCreateQuestionDialog: boolean
   onCloseCreateQuestion: () => void
   handleCreateQuestion: (data: any) => void
@@ -28,6 +31,7 @@ const CreateNewQuestionDialog: React.FC<Props> = ({
   onCloseCreateQuestion,
   handleCreateQuestion,
   examSessionId,
+  loading,
   studentTextbookId,
   selectedQuestion,
   questionOptions
@@ -45,20 +49,32 @@ const CreateNewQuestionDialog: React.FC<Props> = ({
     }
   })
 
+  useEffect(() => {
+    if (!openCreateQuestionDialog) {
+      formik.resetForm()
+    }
+  }, [openCreateQuestionDialog])
+
   return (
     <CommonDialog isVisible={openCreateQuestionDialog} onClose={onCloseCreateQuestion} title={t('ask_a_question')}>
+      {loading && <Loading isOverlay />}
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView>
           <View style={{ marginBottom: 16 }}>
-            <Text variant="labelLarge" style={{ color: palette.grey[700]}}> {t('questions_to_ask')}</Text>
+            <Text variant="labelLarge" style={{ color: palette.grey[700] }}>
+              {' '}
+              {t('questions_to_ask')}
+            </Text>
             <CustomSelect
               value={questionOptions.find((q) => q.value === formik.values.questionId) || ''}
               onValueChange={(value) => formik.setFieldValue('questionId', value)}
-              items={questionOptions}
+              options={questionOptions}
             />
           </View>
           <View style={{ marginBottom: 16 }}>
-            <Text variant="labelLarge" style={{ color: palette.grey[700]}}>{t('question_content')}</Text>
+            <Text variant="labelLarge" style={{ color: palette.grey[700] }}>
+              {t('question_content')}
+            </Text>
             <TextInput
               multiline
               style={{

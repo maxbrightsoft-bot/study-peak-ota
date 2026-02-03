@@ -3,22 +3,25 @@ import {
     getQuestionTimeCategoriesResultsApi,
 } from "../apiClients"
 import { QuestionTimeCategoryData } from "@/utils/types"
+import { checkData } from "../configs/helpers"
 
 const useOverallTimeChartContainer = (
     examCode: string,
-    examSessionId: number,
+    studentExamSessionId: string,
     chapterId: number,
+    isGetDataResult: boolean = true
 ) => {
     const [isLoading, setLoading] = useState<boolean>(false)
     const [categories, setCategories] = useState<QuestionTimeCategoryData[]>([])
 
     useEffect(() => {
         const fetchData = async () => {
+            if (checkData(categories) || !isGetDataResult) return
             setLoading(true)
             try {
                 if (chapterId) return
                 else {
-                    const res = await getQuestionTimeCategoriesResultsApi(examCode)
+                    const res = await getQuestionTimeCategoriesResultsApi(examCode, +(studentExamSessionId || 0))
                         
                     setCategories(res.data?.data ?? [])
                 }
@@ -28,7 +31,7 @@ const useOverallTimeChartContainer = (
             setLoading(false)
         }
         fetchData()
-    }, [examCode, examSessionId])
+    }, [examCode, isGetDataResult, JSON.stringify(categories), studentExamSessionId])
     return {
         isLoading,
         categories

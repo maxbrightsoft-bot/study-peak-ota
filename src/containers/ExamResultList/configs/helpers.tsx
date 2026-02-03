@@ -1,9 +1,9 @@
 import { palette } from '@/theme';
 import { utcToLocalTime } from '@/utils/helpers';
-import { ExamSession } from '@/utils/types';
-import { StyleSheet, Text } from 'react-native';
+import { ExamSessionResponse } from '@/utils/types';
+import { StyleSheet } from 'react-native';
 
-export const groupMonth = (exams: Array<ExamSession> | null) => {
+export const groupMonth = (exams: Array<ExamSessionResponse> | null) => {
   if (!exams?.length) return;
   const examsSorted = exams;
   const obj = {};

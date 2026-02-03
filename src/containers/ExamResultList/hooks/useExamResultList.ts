@@ -4,18 +4,18 @@ import { useTranslation } from "react-i18next";
 import useAuthStore from "@/store/useAuthStore";
 import { getListExamApi } from "../apiClients";
 import { ExamStatus } from "@/utils/enums";
-import { ExamSession } from "@/utils/types";
-import { groupMonth } from "../configs/helpers";
+import { ExamSessionResponse } from "@/utils/types";
 import { GroupExamSession } from "../configs/types";
 import { useFocusEffect } from "@react-navigation/native";
+import { groupMonthV2 } from "@/containers/ExamResult/configs/helpers";
 
 const useExamResultList = () => {
   const { setLoading, selectedAcademy } = useAuthStore()
   const { t } = useTranslation();
-  const [listExam, setListExam] = useState<ExamSession[]>([]);
+  const [listExam, setListExam] = useState<ExamSessionResponse[]>([]);
   const [search, setSearch] = useState<string>("");
   const inputSearch = useRef<any>(null);
-  const [selectedExam, setSelectedExam] = useState<ExamSession>();
+  const [selectedExam, setSelectedExam] = useState<ExamSessionResponse>();
   const [expandedId, setExpandedId] = useState<number | null>(null)
 
   useFocusEffect(
@@ -76,7 +76,7 @@ const useExamResultList = () => {
   };
 
   const groupExams: GroupExamSession | undefined = useMemo(
-    () => groupMonth(listExam),
+    () => groupMonthV2(listExam),
     [JSON.stringify(listExam)]
   );
 
@@ -84,7 +84,7 @@ const useExamResultList = () => {
     getListExam();
   }, [selectedAcademy?.id]);
 
-  const handleViewResult = (exam: ExamSession) => {
+  const handleViewResult = (exam: ExamSessionResponse) => {
     setSelectedExam(exam)
   }
 

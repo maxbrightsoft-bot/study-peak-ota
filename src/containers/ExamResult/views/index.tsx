@@ -1,11 +1,11 @@
 import SlideDrawer from '@/components/ModalBase/SlideDrawer'
 import StartArrowSelect from '@/components/Select/StartArrowSelect'
 import { palette, TYPO } from '@/theme'
-import { utcToLocalTime } from '@/utils/helpers'
+import { isValidTime, utcToLocalTime } from '@/utils/helpers'
 import { Action, NoteResponse, Question } from '@/utils/types'
 import { Ionicons } from '@expo/vector-icons'
 import { useState } from 'react'
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { Text, TouchableOpacity, View } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 import { ExamStatusView } from '@/utils/enums'
 import ExamMyAnswer from '@/containers/MyAnswer/views/ExamMyAnswer'
@@ -17,7 +17,6 @@ import { NotesContainerProps } from '@/containers/IncorrectAnswerNotes/configs/i
 import ExamNoteDialog from '@/containers/IncorrectAnswerNotes/components/ExamNoteDialog'
 import CreateNewQuestionDialog from '../components/CreateNewQuestionDialog'
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
-import { AnswerItemBaseProps } from '@/containers/MyAnswer/configs/types'
 import ExamOverView from '../components/ExamOverView'
 import { examStatusViewOptions } from '../configs/constants'
 import useExamResult from '../hooks/useExamResult'
@@ -27,14 +26,21 @@ import useCategoriesOverallChartContainer from '../hooks/useCategoriesOverallCha
 import useOverallChartContainer from '../hooks/useOverallChartContainer'
 import useOverallTimeChartContainer from '../hooks/useOverallTimeChartContainer'
 import MyOverall from '@/containers/MyOverall'
+import useQuestionTypesOverallChartContainer from '../hooks/useQuestionTypesOverallChartContainer'
+import NoteDrawer from '@/containers/IncorrectAnswerNotes/components/NoteDrawer'
 
 type Props = {
   examCode?: string
-  onClose: () => void
+  code?: string
+  examSessionId?: any
+  onClose?: () => void
   chapterId?: number
+  studentId?: number
+  studentExamSessionId?: any
+  onViewQA?: (studentId: number, sessionId?: number, questionId?: number, isTextbook?: boolean) => void
 }
 
-const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
+const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, studentExamSessionId, onViewQA }: Props) => {
   const {
     t,
     contentRef,
@@ -42,15 +48,26 @@ const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
     handlePrint,
     examResultData,
     examResultNotes,
+    isOpenConfirmRestartExamDialog,
+    handleOpenConfirmRestartExamDialog,
+    handleCloseConfirmRestartExamDialog,
     handleOpenQuestionDialogFromNote,
     handleOpenNoteDialogFromQuestion
-  } = useExamResult({ examCode, chapterId, isPrint: false })
+  } = useExamResult({
+    examCode: examCode || code || '',
+    chapterId,
+    examSessionId,
+    studentExamSessionId,
+    isPrint: false
+  })
 
   const {
     examStatusView,
     resultData,
     longTimeSpend,
     openProblem,
+    effectSize,
+    handleRestartExam,
     textbookResult,
     categoryResponses,
     questionOptions,
@@ -75,15 +92,7 @@ const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
     handleCloseDeleteDialog
   } = examResultNotes
 
-  const {
-    isOpenQuestionDialog,
-    questionIdContextMenu,
-    handleCloseQuestionDialog,
-    handleCreateQuestion,
-    handleOpenQuestionContextMenu,
-    handleOpenQuestionDialog,
-    handleCloseQuestionContextMenu
-  } = QADialog
+  const { loading: loadingCreateConversation, isOpenQuestionDialog, handleCloseQuestionDialog, handleCreateQuestion, handleOpenQuestionDialog } = QADialog
 
   const questionActions: Action<Question>[] = chapterId
     ? [
@@ -112,32 +121,50 @@ const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
         }
       ]
 
-  const questionItemProp: AnswerItemBaseProps = {
-    menuContextActions: questionActions,
-    onCloseContextMenu: handleCloseQuestionContextMenu,
-    onOpenContextMenu: handleOpenQuestionContextMenu
-  }
-
-  const [setlectedNoteView, setSetlectedNoteView] = useState<NoteResponse>()
+  const [selectedNoteView, setSelectedNoteView] = useState<NoteResponse>()
 
   const handleOpenNoteDrawer = (note: NoteResponse) => {
-    setSetlectedNoteView(note)
+    setSelectedNoteView(note)
   }
+
   const handleCloseNoteDrawer = () => {
-    setSetlectedNoteView(undefined)
+    setSelectedNoteView(undefined)
   }
 
-  const overallChartContainer = useOverallChartContainer(examCode ?? '', resultData?.examSessionId ?? 0, chapterId ?? 0)
-
-  const categoriesOverallChartContainer = useCategoriesOverallChartContainer(
+  const overallChartContainer = useOverallChartContainer(
     examCode ?? '',
-    resultData?.examSessionId ?? 0,
+    studentExamSessionId,
+    code ?? '',
     chapterId ?? 0
   )
 
+  const categoriesOverallChartContainer = useCategoriesOverallChartContainer(
+    examResultData.resultData,
+    examCode || code || '',
+    studentExamSessionId,
+    chapterId ?? 0,
+    false
+  )
+
+  const subcategoriesOverallChartContainer = useCategoriesOverallChartContainer(
+    examResultData.resultData,
+    examCode || code || '',
+    studentExamSessionId,
+    chapterId ?? 0,
+    true
+  )
+
+  const questionTypesOverallChartContainer = useQuestionTypesOverallChartContainer(
+    examResultData.resultData,
+    examCode || code || '',
+    studentExamSessionId,
+    chapterId ?? 0,
+    true
+  )
+
   const overallTimeChartContainer = useOverallTimeChartContainer(
-    examCode ?? '',
-    resultData?.examSessionId ?? 0,
+    examCode || code || '',
+    studentExamSessionId,
     chapterId ?? 0
   )
 
@@ -154,7 +181,7 @@ const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
       textStyle: {
         color: palette.warning.main
       },
-      onPress: handleOpenEditNote
+      onPress: (data: NoteResponse) => handleOpenEditNote(data)
     },
     {
       label: t('delete_note'),
@@ -162,7 +189,7 @@ const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
       textStyle: {
         color: palette.error.main
       },
-      onPress: handleOpenDeleteNoteDialog
+      onPress: (data: NoteResponse) => handleOpenDeleteNoteDialog(data)
     }
   ]
 
@@ -188,15 +215,18 @@ const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
           ? null
           : resultData && (
               <MyOverall
+                resultData={resultData}
+                subcategoriesOverallChartContainerProps={subcategoriesOverallChartContainer}
                 overallChartContainerProps={overallChartContainer}
                 categoriesOverallChartContainerProps={categoriesOverallChartContainer}
                 overallTimeChartContainerProps={overallTimeChartContainer}
+                questionTypesOverallChartContainerProps={questionTypesOverallChartContainer}
               />
             )
       case ExamStatusView.MyAnswers:
         return chapterId
-          ? textbookResult && <TextbookMyAnswer data={textbookResult} />
-          : resultData && <ExamMyAnswer data={resultData} categories={categoryResponses} />
+          ? textbookResult && <TextbookMyAnswer data={textbookResult} effectSize={effectSize} />
+          : resultData && <ExamMyAnswer data={resultData} categories={categoryResponses} effectSize={effectSize} />
       case ExamStatusView.QuestionAnalysis:
         return chapterId
           ? textbookResult && (
@@ -224,15 +254,6 @@ const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
               notesContainerProps={notesContainerProps}
               onCreateNote={handleOpenNoteDialogCreateNote}
             />
-            <CreateNewQuestionDialog
-              examSessionId={resultData?.examSessionId}
-              studentTextbookId={textbookResult?.studentTextbookSessionId}
-              handleCreateQuestion={handleCreateQuestion}
-              openCreateQuestionDialog={isOpenQuestionDialog}
-              onCloseCreateQuestion={handleCloseQuestionDialog}
-              questionOptions={questionOptions}
-              selectedQuestion={selectedQuestion}
-            />
             <ConfirmDialog
               open={openDeleteNoteDialog}
               toggle={handleCloseDeleteDialog}
@@ -254,24 +275,56 @@ const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
   return (
     <SlideDrawer visible={!!resultData || !!textbookResult}>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={onClose}>
-            <Ionicons name="chevron-back-outline" size={24} color={palette.main[500]} />
-            <Text style={[styles.backText]}>티로 가기</Text>
-          </TouchableOpacity>
+        <View style={{ paddingVertical: 16 }}>
+          <View style={styles.header}>
+            <TouchableOpacity style={styles.backButton} onPress={onClose}>
+              <Ionicons name="chevron-back-outline" size={20} color={palette.main[500]} />
+              <Text style={[styles.backText]}>티로 가기</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.printButton} onPress={handlePrint}>
+              <Text style={[styles.printText]}>{t('print')}</Text>
+            </TouchableOpacity>
+          </View>
 
-          <TouchableOpacity style={styles.printButton} onPress={handlePrint}>
-            <Text style={[styles.printText]}>{t('print')}</Text>
-          </TouchableOpacity>
+          <View style={styles.action}>
+            <TouchableOpacity style={styles.restartButton} onPress={handleOpenQuestionDialog}>
+              <View style={styles.iconWrapper}>
+                <Ionicons name="chatbubble-ellipses-sharp" size={14} color={palette.main[500]} />
+              </View>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: palette.main[500] }}>{t('ask_a_question2')}</Text>
+            </TouchableOpacity>
+            {!chapterId && (
+              <TouchableOpacity style={styles.restartButton} onPress={handleOpenConfirmRestartExamDialog}>
+                <View style={styles.iconWrapper}>
+                  <Ionicons name="refresh-outline" size={14} color="#3498db" />
+                </View>
+                <Text style={styles.restartText}>{t('restart_exam')}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
-
         <View style={styles.titleContainer}>
-          <Text style={styles.examTitle}>{chapterId ? textbookResult?.chapterName : resultData?.title}</Text>
+          <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+            <Text style={styles.examTitle}>{chapterId ? textbookResult?.chapterName : resultData?.title}</Text>
+            {(resultData?.studentTotalAttemptTime || 0) > 1 && (
+              <Text
+                style={{
+                  fontWeight: 500,
+                  fontSize: 12,
+                  color: resultData?.isSelected ? palette.main[700] : palette.red[900]
+                }}
+              >
+                {`#${(resultData?.studentAttemptNumber || 0) + 1}/${resultData?.studentTotalAttemptTime}`}
+              </Text>
+            )}
+          </View>
           <Text style={styles.examDate}>
-            {' '}
             {chapterId
               ? utcToLocalTime(textbookResult?.startTime, t('date_format'))
-              : utcToLocalTime(resultData?.startTime, t('date_format'))}
+              : utcToLocalTime(
+                  isValidTime(resultData?.studentStartTime) ? resultData?.studentStartTime : resultData?.startTime,
+                  t('date_format')
+                )}
           </Text>
         </View>
 
@@ -301,6 +354,33 @@ const ExamResult = ({ onClose, examCode, chapterId }: Props) => {
           textbookResult={textbookResult}
         />
       </View>
+      {!!selectedNoteView && (
+        <NoteDrawer
+          open={!!selectedNoteView}
+          data={selectedNoteView}
+          onClose={handleCloseNoteDrawer}
+          showStudentInfo={false}
+        />
+      )}
+      <CreateNewQuestionDialog
+        loading={loadingCreateConversation}
+        examSessionId={resultData?.examSessionId}
+        studentTextbookId={textbookResult?.studentTextbookSessionId}
+        handleCreateQuestion={handleCreateQuestion}
+        openCreateQuestionDialog={isOpenQuestionDialog}
+        onCloseCreateQuestion={handleCloseQuestionDialog}
+        questionOptions={questionOptions}
+        selectedQuestion={selectedQuestion}
+      />
+      <ConfirmDialog
+        open={!!isOpenConfirmRestartExamDialog}
+        toggle={() => handleCloseConfirmRestartExamDialog?.()}
+        text={t('are_you_sure_you_want_to_restart_the_exam')}
+        onConfirm={() => {
+          handleCloseConfirmRestartExamDialog?.()
+          handleRestartExam?.()
+        }}
+      />
     </SlideDrawer>
   )
 }
@@ -310,8 +390,7 @@ export default ExamResult
 const styles = ScaledSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    paddingVertical: '24@ms'
+    backgroundColor: '#fff'
   },
   header: {
     flexDirection: 'row',
@@ -325,28 +404,48 @@ const styles = ScaledSheet.create({
   },
   backText: {
     ...TYPO.button2,
-    color: palette.main[500]
+    fontWeight: 700,
+    color: palette.grey[900]
   },
+  action: { paddingHorizontal: '24@ms', gap: 8, flexDirection: 'row', justifyContent: 'space-between' },
   printButton: {
-    paddingVertical: 8
+    paddingVertical: '8@ms'
   },
   printText: {
     ...TYPO.button2,
     fontWeight: 700,
-    color: palette.main[500]
+    color: palette.grey[900]
+  },
+  restartButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: '8@ms',
+    paddingHorizontal: '12@ms',
+    borderWidth: 1,
+    borderColor: '#d0d0c8',
+    borderRadius: '6@ms'
+  },
+  iconWrapper: {
+    marginRight: '6@ms'
+  },
+  restartText: {
+    fontSize: '13@ms',
+    fontWeight: '700',
+    color: '#3498db'
   },
   titleContainer: {
     flexDirection: 'row',
+    borderTopWidth: 1,
+    borderColor: palette.grey[100],
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginVertical: '18@ms',
+    paddingVertical: '16@ms',
     paddingHorizontal: '24@ms'
   },
   examTitle: {
     ...TYPO.button3,
     fontWeight: 700,
-    color: palette.grey[900],
-    marginBottom: 4
+    color: palette.grey[900]
   },
   examDate: {
     ...TYPO.button4,
@@ -360,29 +459,15 @@ const styles = ScaledSheet.create({
     borderBottomWidth: 1,
     borderColor: palette.grey[100]
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16
-  },
   sectionTitle: {
     marginLeft: 4
   },
   dropdownContainer: {
-    marginVertical: '12@ms',
     alignSelf: 'flex-start'
   },
   overviewContainer: {
     paddingVertical: '24@ms',
     gap: '16@ms'
-  },
-  overviewItem: {
-    marginBottom: 16
-  },
-  overviewLabel: {
-    ...TYPO.caption,
-    color: palette.grey[500],
-    marginBottom: 4
   },
   overviewValue: {
     ...TYPO.button3,
@@ -397,6 +482,6 @@ const styles = ScaledSheet.create({
     width: '48%'
   },
   contentContainer: {
-    marginBottom: '40@ms'
+    paddingBottom: '40@ms'
   }
 })

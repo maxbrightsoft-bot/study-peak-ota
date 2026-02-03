@@ -1,4 +1,4 @@
-import { api } from "@/services/apiClient"
+import { api } from "@/services/api/apiClient"
 import { BASE_URL } from "@/utils/constants"
 import { NoteRequest, NoteSearchQuery } from "@/utils/types"
 
@@ -10,6 +10,8 @@ export const getNotesApi = (query: NoteSearchQuery) =>
     })
 export const createNoteApi = (note: NoteRequest) =>
     api.post(`${NOTES_URL}`, note)
-export const updateNoteApi = (id: number, content: string) =>
-    api.put(`${NOTES_URL}/${id}`, { content })
+
+export const updateNoteApi = (id: number, data: NoteRequest) =>
+    api.put(`${NOTES_URL}/${id}`, data)
+
 export const deleteNoteApi = (id: number) => api.delete(`${NOTES_URL}/${id}`)

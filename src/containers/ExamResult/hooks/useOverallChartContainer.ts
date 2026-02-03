@@ -4,23 +4,26 @@ import {
     getOverallResultsApi,
 } from "../apiClients"
 import { OverallExamResultResponse } from "@/utils/types"
-import { getPercentage } from "../configs/types"
+import { checkData, getPercentage } from "../configs/helpers"
 
 const useOverallChartContainer = (
     examCode: string,
-    examSessionId: number,
+    studentExamSessionId: string,
+    code: string,
     chapterId: number,
+    isGetDataResult: boolean = true
 ) => {
     const { t } = useTranslation()
     const [isLoading, setLoading] = useState<boolean>(false)
     const [overallData, setOverallData] = useState<OverallExamResultResponse>()
     useEffect(() => {
         const fetchData = async () => {
+            if (checkData(overallData) || !isGetDataResult) return
             setLoading(true)
             try {
                 if (chapterId) return
                 else {
-                    const res = await getOverallResultsApi(examCode)
+                    const res = await getOverallResultsApi(examCode, +(studentExamSessionId || 0))
 
                     setOverallData(res.data)
                 }
@@ -30,7 +33,7 @@ const useOverallChartContainer = (
             setLoading(false)
         }
         fetchData()
-    }, [examCode, examSessionId])
+    }, [examCode, code, studentExamSessionId, isGetDataResult, JSON.stringify(overallData)])
 
     const myData = useMemo(() => {
         if (!overallData || !overallData.data[0]) return [0, 0, 0, 0, 0, 0]

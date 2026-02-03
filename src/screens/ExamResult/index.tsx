@@ -6,8 +6,10 @@ type Props = {
 
 const ExamResultScreen = ({ route }: Props) => {
   const examCode = route?.params?.examCode
+  const studentExamSessionId = route?.params?.studentExamSessionId
+  const examSessionId = route?.params?.examSessionId
   return (
-    <ExamResult examCode={examCode}/>
+    <ExamResult examCode={examCode} studentExamSessionId={studentExamSessionId} examSessionId={examSessionId}/>
   )
 }
 
