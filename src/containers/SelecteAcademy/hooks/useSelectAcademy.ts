@@ -1,23 +1,37 @@
 import useLogin from "@/containers/Login/hooks/useLogin"
-import { switchAcademy } from "@/layouts/apiClients/academyServices"
+import { getUserAcademies, switchAcademy } from "@/layouts/apiClients/academyServices"
 import { navigate } from "@/navigators/NavigationHelpers"
 import { Routes } from "@/navigators/RouteName"
 import useAuthStore from "@/store/useAuthStore"
 import { Role } from "@/utils/enums"
 import { getErrorMessage, toast } from "@/utils/helpers"
-import { LoginAccessTokenRequest } from "@/utils/types"
-import { useMemo, useState } from "react"
+import { AcademyResponse, LoginAccessTokenRequest } from "@/utils/types"
+import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 const useSelectAcademy = () => {
   const { t } = useTranslation()
-  const { academies, user, setLoading, setSelectAcademy } = useAuthStore()
+  const { academies, user, setLoading, setAcademies, setSelectAcademy, setHasEnteredSelectAcademy } = useAuthStore()
   const { handleLoginAccessToken } = useLogin()
   const [academy, setAcademy] = useState<number>()
 
-  const handleRedirectHome = () => {
-    navigate(Routes.Auth.Home)
+  const getAcademies = async (isLoading: boolean = true) => {
+    if (!user) return
+    isLoading && setLoading(true)
+    try {
+      const res = await getUserAcademies(Role.Student, user.isLearningSpace)
+      const items: AcademyResponse[] = res.data.items || []
+      setAcademies(items)
+    } catch (error) {
+      toast.error(getErrorMessage(t, error))
+    }
+    isLoading && setLoading(false)
   }
+
+  useEffect(() => {
+    if (academies.length) return
+    getAcademies()
+  }, [user?.academyDomain, user?.email])
 
   const handleSelectedAcademy = (value: number) => {
     setAcademy(value)
@@ -25,6 +39,10 @@ const useSelectAcademy = () => {
 
   const academyOptions = useMemo(() => {
     return [
+      {
+        label: t('my_study_space'),
+        value: undefined
+      },
       ...academies.map((i) => ({
         ...i,
         label: i.name,
@@ -38,7 +56,7 @@ const useSelectAcademy = () => {
     isLoading: boolean = true,
   ) => {
     isLoading && setLoading(true)
-    
+
     try {
       const selectedAcademy = academies.find((i) => i.id === academy)
       const academyId = selectedAcademy ? selectedAcademy.id : 0
@@ -53,7 +71,7 @@ const useSelectAcademy = () => {
         role: Role.Student,
         isMobile: true
       }
-      
+
       await handleLoginAccessToken(
         requestBody,
         isLearningSpace,
@@ -68,6 +86,7 @@ const useSelectAcademy = () => {
       toast.error(getErrorMessage(t, error))
     }
     finally {
+      setHasEnteredSelectAcademy(true)
       isLoading && setLoading(false)
     }
   }
@@ -77,7 +96,6 @@ const useSelectAcademy = () => {
     academy,
     handleSwitchAcademy,
     academyOptions,
-    handleRedirectHome,
     handleSelectedAcademy
   }
 }

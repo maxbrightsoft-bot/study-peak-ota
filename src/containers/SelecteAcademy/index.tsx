@@ -5,25 +5,40 @@ import useSelectAcademy from './hooks/useSelectAcademy'
 import Select from '@/components/Select/CustomSelect'
 
 const SelectAcademy = () => {
-  const { academy, academyOptions, handleRedirectHome, handleSwitchAcademy, handleSelectedAcademy } = useSelectAcademy()
+  const { academy, academyOptions, handleSwitchAcademy, handleSelectedAcademy } = useSelectAcademy()
+
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <View style={{ gap: 4 }}>
+        <View>
           <Text style={styles.title}>스터디 스페이스를 선택해주세요.</Text>
-          <Select onValueChange={handleSelectedAcademy} value={academy} items={academyOptions} />
+          <Text style={styles.labelText}>스터디 스페이스</Text>
+          <Select onValueChange={handleSelectedAcademy} value={academy} options={academyOptions} />
           <Text style={styles.helperText}>안내 텍스트입니다.</Text>
         </View>
       </View>
-      <View style={{ position: 'absolute', bottom: 50, flexDirection: "column", width: "100%", transform: "translateX(25%)" }}>
+      <View
+        style={{
+          position: 'absolute',
+          bottom: 50,
+          flexDirection: 'column',
+          width: '100%',
+          transform: 'translateX(25%)'
+        }}
+      >
         <Button
-          style={{ backgroundColor: palette.main[500], borderRadius: 6, width: '100%', padding: 8 }}
-          onPress={() => handleSwitchAcademy(false)}
+          style={{
+            backgroundColor: palette.main[500],
+            borderRadius: 6,
+            width: '100%',
+            padding: 8,
+          }}
+          onPress={() => handleSwitchAcademy(!academy)}
         >
           <Text style={{ color: '#FFF' }}>확인</Text>
         </Button>
         <View>
-          <Button style={{ padding: 8, marginTop: 24 }} onPress={handleRedirectHome}>
+          <Button mode="outlined" style={styles.cancelButton} onPress={() => handleSwitchAcademy(true)}>
             <Text style={{ color: palette.main[500] }}>건너뛰기</Text>
           </Button>
         </View>
@@ -35,11 +50,11 @@ const SelectAcademy = () => {
 export default SelectAcademy
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 24, paddingTop: 80 },
+  container: { flex: 1, paddingHorizontal: 24 },
   content: {
     justifyContent: 'center'
   },
-  title: { ...TYPO.caption, color: palette.grey[900] },
+  title: { ...TYPO.heading1, color: palette.main[500], marginBottom: 80, marginTop: 156 },
   label: { ...TYPO.caption },
   input: {
     fontSize: 16,
@@ -58,9 +73,15 @@ const styles = StyleSheet.create({
     ...TYPO.button2,
     color: '#FFF'
   },
+  labelText: {
+    ...TYPO.caption,
+    color: palette.grey[900],
+    marginBottom: 8
+  },
   helperText: {
     ...TYPO.caption,
-    color: palette.grey[500]
+    color: palette.grey[500],
+    marginTop: 4
   },
   checkbox: {
     padding: 0
@@ -76,5 +97,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8
+  },
+  cancelButton: {
+    borderRadius: 6,
+    padding: 8,
+    marginTop: 24
   }
 })
