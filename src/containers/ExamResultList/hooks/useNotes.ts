@@ -21,7 +21,15 @@ const useNotes = (
     const [notes, setNotes] = useState<NoteResponse[]>([])
     const [isLoadingNotes, setLoadingNotes] = useState<boolean>(false)
 
+    const handleLoadChange = (bool: boolean) => {
+        setLoadingNotes(bool)
+    }
+
     const getNotes = async () => {
+        if (!filter || !filter.currentPage) {
+            setNotes([])
+            return
+        }
         if (isLoadingNotes) return
         setLoadingNotes(true)
         try {
@@ -38,7 +46,9 @@ const useNotes = (
         } catch (error) {
             toast.error(getErrorMessage(t, error))
         }
-        setLoadingNotes(false)
+        finally {
+            setLoadingNotes(false)
+        }
     }
     const handleLoadMore = useCallback(() => {
         if (
@@ -79,11 +89,10 @@ const useNotes = (
         }, [])
     );
 
-    console.log({ notes });
-
     return {
         t,
         notes,
+        handleLoadChange,
         isLoadingNotes,
         handleLoadMore,
         handleNoteAdded,

@@ -1,12 +1,12 @@
 import CustomDropDown from '@/components/DropDown/CustomDropDown'
 import { KeyboardAvoidingView, Platform, FlatList, Text, TouchableOpacity, View } from 'react-native'
 import useExamResultList from './hooks/useExamResultList'
-import { ExamSession } from '@/utils/types'
+import { ExamSessionResponse } from '@/utils/types'
 import { ScaledSheet } from 'react-native-size-matters'
 import { palette, TYPO } from '@/theme'
 import SearchInput from '@/components/Input/SearchInput'
 import moment from 'moment'
-import { highlightText, utcToLocalTime } from '@/utils/helpers'
+import { highlightText, isValidTime, utcToLocalTime } from '@/utils/helpers'
 import ExamResult from '../ExamResult/views'
 
 const ExamResultList = () => {
@@ -23,25 +23,34 @@ const ExamResultList = () => {
     onChangeSearch
   } = useExamResultList()
 
-  // Render item for search results
-  const renderSearchItem = ({ item }: { item: ExamSession }) => (
+  const renderSearchItem = ({ item }: { item: ExamSessionResponse }) => (
     <TouchableOpacity onPress={() => handleViewResult(item)} activeOpacity={0.8}>
       <View style={styles.examItem}>
         <View style={styles.examContent}>
           <View style={styles.examHeader}>
             <Text style={styles.examTitle}>{highlightText(item?.title || '', search)}</Text>
-            <Text style={styles.examScore}>{t('score_format', { score: item?.score })}</Text>
+            {(item.studentTotalAttemptTime || 0) > 1 && (
+              <Text
+                style={{
+                  fontWeight: 500,
+                  fontSize: 12,
+                  color: item.isSelected ? palette.main[700] : palette.red[900]
+                }}
+              >
+                {`#${item.studentAttemptNumber + 1}/${item.studentTotalAttemptTime}`}
+              </Text>
+            )}
           </View>
           <View style={styles.examFooter}>
             <Text style={styles.examDate}>{utcToLocalTime(item.startTime, t('date_format'))}</Text>
+            <Text style={styles.examScore}>{t('score_format', { score: item?.score })}</Text>
           </View>
         </View>
       </View>
     </TouchableOpacity>
   )
 
-  // Render item for grouped exams
-  const renderGroupItem = ({ item, index }: { item: [string, ExamSession[]]; index: number }) => {
+  const renderGroupItem = ({ item, index }: { item: [string, ExamSessionResponse[]]; index: number }) => {
     const [key, exams] = item
     return (
       <View style={styles.groupExamContainer}>
@@ -55,16 +64,30 @@ const ExamResultList = () => {
           expanded={expandedId === index}
           onPress={() => toggleExpand(index)}
         >
-          {exams.map((exam: ExamSession, index) => (
+          {exams.map((exam, index) => (
             <TouchableOpacity key={`${key}_${index}`} onPress={() => handleViewResult(exam)} activeOpacity={0.8}>
               <View style={styles.examItem}>
                 <View style={styles.examContent}>
                   <View style={styles.examHeader}>
                     <Text style={styles.examTitle}>{exam?.title || ''}</Text>
-                    <Text style={styles.examScore}>{t('score_format', { score: exam?.score })}</Text>
+                    {(exam.studentTotalAttemptTime || 0) > 1 && (
+                      <Text
+                        style={{
+                          fontWeight: 500,
+                          fontSize: 12,
+                          color: exam.isSelected ? palette.main[700] : palette.red[900]
+                        }}
+                      >
+                        {`#${exam.studentAttemptNumber + 1}/${exam.studentTotalAttemptTime}`}
+                      </Text>
+                    )}
                   </View>
                   <View style={styles.examFooter}>
-                    <Text style={styles.examDate}>{utcToLocalTime(exam.startTime, t('date_format'))}</Text>
+                    <Text style={styles.examDate}>{utcToLocalTime(
+                                isValidTime(exam.studentStartTime) ? exam.studentStartTime : exam.startTime,
+                                t("date_format")
+                            )}</Text>
+                    <Text style={styles.examScore}>{t('score_format', { score: exam?.score })}</Text>
                   </View>
                 </View>
               </View>
@@ -101,7 +124,7 @@ const ExamResultList = () => {
           />
         )}
       </KeyboardAvoidingView>
-      {!!selectedExam && <ExamResult onClose={handleBack} examCode={selectedExam?.code || ''} />}
+      {!!selectedExam && <ExamResult onClose={handleBack} examCode={selectedExam?.code || ''} examSessionId={selectedExam.id} studentExamSessionId={selectedExam?.studentExamSessionId}/>}
     </View>
   )
 }

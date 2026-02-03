@@ -1,26 +1,34 @@
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { useTranslation } from "react-i18next"
 import { getOverallCategoriesResultsApi } from "../apiClients"
-import { OverallCategoryData } from "@/utils/types"
-import { getPercentage } from "../configs/types"
+import { ExamResult, OverallCategoryData } from "@/utils/types"
+import { checkData, getPercentage } from "../configs/helpers"
 
 const useCategoriesOverallChartContainer = (
+    examResultData: ExamResult | undefined,
     examCode: string,
-    examSessionId: number,
+    studentExamSessionId: string,
     chapterId: number,
+    useSubcategories: boolean = false,
+    isGetDataResult: boolean = true
 ) => {
     const [isLoading, setLoading] = useState<boolean>(false)
     const [overallData, setOverallData] = useState<OverallCategoryData[]>([])
     const { t } = useTranslation()
     useEffect(() => {
         const fetchData = async () => {
+            if (
+                (useSubcategories && !examResultData) ||
+                checkData(overallData) ||
+                !isGetDataResult
+            ) return
             setLoading(true)
             try {
                 if (chapterId) return
                 else {
-                    const res = await getOverallCategoriesResultsApi(examCode)
+                    const res = await getOverallCategoriesResultsApi(examCode, +(studentExamSessionId || 0), useSubcategories)
                         
-                    setOverallData(res.data?.data ?? [])
+                    setOverallData(res.data?.data?.slice(0, 6) ?? [])
                 }
             } catch (error) {
                 console.log(error)
@@ -28,7 +36,7 @@ const useCategoriesOverallChartContainer = (
             setLoading(false)
         }
         fetchData()
-    }, [examCode, examSessionId])
+    }, [useSubcategories, examCode, isGetDataResult, examResultData?.type, studentExamSessionId, examResultData?.examSessionId, JSON.stringify(overallData)])
 
     const myData = useMemo(() => {
         if (!overallData?.length) return [0, 0, 0, 0, 0, 0]

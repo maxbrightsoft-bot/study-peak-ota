@@ -1,16 +1,16 @@
-import { MouseEvent, useState } from "react";
+import { useState } from "react";
 import { createConversationApi } from "../apiClients";
 import { useTranslation } from "react-i18next";
 import { Question, QuestionData } from "@/utils/types";
-import useAuthStore from "@/store/useAuthStore";
 import { getErrorMessage, toast } from "@/utils/helpers";
+import { GestureResponderEvent } from "react-native";
 
 
 const useCreateQuestionDialog = (handleSelectQuestion: (question?: QuestionData) => void) => {
     const [isOpenQuestionDialog, setOpenQuestionDialog] = useState<boolean>(false)
     const [questionIdContextMenu, setQuestionIdContextMenu] = useState<number>()
     const { t } = useTranslation()
-    const { setLoading } = useAuthStore()
+    const [loading, setLoading] = useState(false)
 
     const handleCloseQuestionContextMenu = () => {
         setQuestionIdContextMenu(0)
@@ -18,8 +18,8 @@ const useCreateQuestionDialog = (handleSelectQuestion: (question?: QuestionData)
     const handleOpenQuestionContextMenu = (question: Question) => {
         setQuestionIdContextMenu(question?.id)
     }
-    
-    const handleOpenQuestionDialog = (_: MouseEvent<HTMLButtonElement>, question?: Question) => {
+
+    const handleOpenQuestionDialog = (_: GestureResponderEvent, question?: Question) => {
         handleSelectQuestion(question)
         handleCloseQuestionContextMenu()
         setOpenQuestionDialog(true)
@@ -31,19 +31,23 @@ const useCreateQuestionDialog = (handleSelectQuestion: (question?: QuestionData)
         setOpenQuestionDialog(false)
     }
 
-    const handleCreateQuestion = async({ content, examSessionId, studentTextbookId, questionId }: { content : string, examSessionId: number, studentTextbookId: number, questionId: number}) => {
+    const handleCreateQuestion = async ({ content, examSessionId, studentTextbookId, questionId }: { content: string, examSessionId: number, studentTextbookId: number, questionId: number }) => {
         setLoading(true)
         try {
             await createConversationApi({ examSessionId, content, questionId, studentTextbookId })
-            handleCloseQuestionDialog()
+            toast.success(t('conversation_created_success'))
         } catch (error) {
             console.log({ error });
             toast.error(getErrorMessage(t, error))
         }
-        setLoading(false)
+        finally {
+            setLoading(false)
+            handleCloseQuestionDialog()
+        }
     }
-    
+
     return {
+        loading,
         questionIdContextMenu,
         isOpenQuestionDialog,
         setOpenQuestionDialog,

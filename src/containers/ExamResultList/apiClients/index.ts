@@ -1,4 +1,4 @@
-import { api } from "@/services/apiClient"
+import { api, apiUpload } from "@/services/api/apiClient"
 import { BASE_URL } from "@/utils/constants"
 import { StudentAnswerRequest } from "@/utils/types"
 
@@ -14,6 +14,8 @@ export const getListExamApi = (query: any) =>
 
 export const getExamResult = (examCode?: string) => api.get(`${EXAM_SESSION_URL}/${examCode}/results`)
 
+export const apiUploadImageFile = (file: FormData) =>
+    apiUpload.post(`${BASE_URL}/api/file/images`, file)
 
 export const getQuestionExam = (code?: string) => api.get(`${EXAM_SESSION_URL}/${code}/questions`);
 

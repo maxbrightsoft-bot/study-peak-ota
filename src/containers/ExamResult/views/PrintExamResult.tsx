@@ -68,7 +68,13 @@ const PrintExamResult: FC<Props> = ({
       <View style={styles.contentWrapper}>
         {chapterId ? null : (
           <View style={styles.overviewItem}>
-            <View>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 8
+              }}
+            >
               <Text style={{ ...TYPO.heading1, color: palette.grey[700] }}>{resultData?.student.fullName}</Text>
               <Text style={{ ...TYPO.body1, color: palette.grey[500] }}>{resultData?.student.email}</Text>
             </View>
@@ -82,6 +88,7 @@ const PrintExamResult: FC<Props> = ({
           ? null
           : resultData && (
               <MyOverall
+                resultData={resultData}
                 isPrint={true}
                 overallChartContainerProps={overallChartContainer}
                 categoriesOverallChartContainerProps={categoriesOverallChartContainer}
@@ -123,13 +130,11 @@ const styles = ScaledSheet.create({
     overflow: 'hidden'
   },
   contentWrapper: {
-    marginBottom: '24@ms',
+    marginVertical: '24@ms',
     backgroundColor: '#FFF'
   },
   overviewItem: {
-    paddingHorizontal: '24@ms',
-    flexDirection: 'row',
-    justifyContent: 'space-between'
+    paddingHorizontal: '24@ms'
   }
 })
 

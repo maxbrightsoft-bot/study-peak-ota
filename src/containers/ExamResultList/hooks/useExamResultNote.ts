@@ -1,36 +1,69 @@
-import { ExamResult, NoteRequest, NoteResponse, NoteSearchQuery, Question, QuestionData } from "@/utils/types"
-import { MouseEvent } from "react"
+import { MouseEvent, useRef } from "react"
 import { useState, useEffect } from "react"
-import { useTranslation } from "react-i18next"
-import useNotes from "./useNotes"
-import useAuthStore from "@/store/useAuthStore"
-import { createNoteApi, deleteNoteApi, updateNoteApi } from "../apiClients/noteService"
-import { getErrorMessage, toast } from "@/utils/helpers"
-import { ExamNoteDialogProps } from "@/containers/IncorrectAnswerNotes/configs/interfaces"
 import { DEFAULT_NOTE_FILTER } from "../configs/constants"
+import { NoteRequest, NoteResponse, NoteSearchQuery } from "../../../utils/types/note"
+import { ExamResult, Question, QuestionData } from "../../../utils/types"
+import { useTranslation } from "react-i18next"
+import useAuthStore from "@/store/useAuthStore"
+import { getErrorMessage, toast } from "@/utils/helpers"
+import { apiUploadImageFile } from "@/containers/Chat/apiClient/conversationService"
+import useNotes from "./useNotes"
+import { createNoteApi, deleteNoteApi, updateNoteApi } from "../apiClients/noteService"
+import { ExamNoteDialogProps } from "@/containers/IncorrectAnswerNotes/configs/interfaces"
+import { pick } from "@react-native-documents/picker"
 
-const useExamResultNote = (
-    questionOptions: any[],
-    examStatusView: number,
-    examSessionId: number,
-    handleSelectQuestion: (question?: QuestionData) => void,
-    examCode?: string,
-    examResult?: any
-) => {
+interface UseExamResultNoteParams {
+    questionOptions: any[]
+    handleSelectQuestion: (question?: QuestionData) => void
+    examCode?: string
+    examSessionId?: any
+    studentExamSessionId: string
+    examResult?: ExamResult
+}
+
+const useExamResultNote = ({
+    questionOptions,
+    handleSelectQuestion,
+    examCode,
+    examSessionId,
+    studentExamSessionId,
+    examResult
+}: UseExamResultNoteParams) => {
     const { t } = useTranslation()
-    const { user, setLoading } = useAuthStore()
+    const { user, setLoadingWithoutOverlay } = useAuthStore()
     const [notesFilter, setNotesFilter] = useState<NoteSearchQuery>()
     const [selectedNote, setSelectedNote] = useState<NoteResponse>()
     const [openNoteDialog, setOpenNoteDialog] = useState<boolean>(false)
     const [openDeleteNoteDialog, setOpenDeleteNoteDialog] = useState<boolean>(false)
     const [noteIdContextMenu, setNoteIdContextMenu] = useState<number>()
+    const [imageUrl, setImageUrl] = useState("")
+
+    const handleUploadImage = async () => {
+        try {
+            const [result] = await pick({
+                mode: 'open',
+                allowVirtualFiles: true
+            })
+
+            setLoadingWithoutOverlay(true)
+            const formData = new FormData();
+            formData.append("upload", result as any);
+            const res = await apiUploadImageFile(formData);
+            console.log({ url: res?.data?.url });
+            setImageUrl(res?.data?.url)
+        } catch (error) {
+            toast.error(getErrorMessage(t, error))
+        }
+        setLoadingWithoutOverlay(false);
+    }
 
     const {
+        isLoadingNotes,
+        handleLoadChange,
         handleLoadMore,
         handleNoteAdded,
         handleNoteUpdated,
         handleNoteRemoved,
-        isLoadingNotes,
         notes
     } = useNotes(setNotesFilter, notesFilter)
 
@@ -39,7 +72,6 @@ const useExamResultNote = (
         handleCloseTooltip()
         setOpenNoteDialog(true)
     }
-
     const handleCloseTooltip = () => {
         setNoteIdContextMenu(0)
     }
@@ -51,10 +83,10 @@ const useExamResultNote = (
         setSelectedNote(undefined)
         setOpenNoteDialog(false)
         handleSelectQuestion(undefined)
+        setImageUrl("")
     }
 
     const handleOpenNoteDialog = (e: MouseEvent<HTMLButtonElement>, note: NoteResponse) => {
-        e.stopPropagation()
         setSelectedNote(note)
         setOpenNoteDialog(true)
     }
@@ -65,31 +97,43 @@ const useExamResultNote = (
         setOpenDeleteNoteDialog(false)
         handleSelectQuestion(undefined)
         setSelectedNote(undefined)
+        setImageUrl('')
     }
 
     const handleSaveNote = async (content: string, questionId?: number) => {
-        setLoading(true)
         try {
             if (content.trim().length === 0) return
+
+            handleLoadChange(true)
+
             const data: NoteRequest = {
-                content
+                content,
+                imageUrl
             }
+
+            console.log({ data });
             if (selectedNote) {
-                const res = await updateNoteApi(selectedNote.id, data.content)
+                const res = await updateNoteApi(selectedNote.id, data)
                 handleNoteUpdated(res.data)
-                toast.success(t("update_note_successfully"))
             } else {
                 data.examSessionId = examSessionId ? examSessionId : examResult?.examSessionId
                 data.questionId = questionId
+                data.studentExamSessionId = studentExamSessionId
                 const res = await createNoteApi(data)
                 handleNoteAdded(res.data)
-                toast.success(t("create_note_successfully"))
             }
+
+            toast.success(t(!!selectedNote ? "update_note_successfully" : "create_note_successfully"))
             reset()
+
         } catch (error) {
+            console.log({ error });
             toast.error(getErrorMessage(t, error))
         }
-        setLoading(false)
+        finally {
+            handleLoadChange(false)
+            handleCloseNoteDialog()
+        }
     }
 
     const handleCloseDeleteDialog = () => {
@@ -106,7 +150,8 @@ const useExamResultNote = (
     }
     const handleDeleteNote = async () => {
         if (!selectedNote?.id) return
-        setLoading(true)
+        setOpenDeleteNoteDialog(false)
+        handleLoadChange(true)
         try {
             await deleteNoteApi(selectedNote.id)
             toast.success(t("delete_note_successfully"))
@@ -115,7 +160,9 @@ const useExamResultNote = (
         } catch (error) {
             toast.error(getErrorMessage(t, error))
         }
-        setLoading(false)
+        finally {
+            handleLoadChange(false)
+        }
     }
 
     const handleOpenEditNote = (
@@ -125,21 +172,26 @@ const useExamResultNote = (
         handleCloseTooltip()
         setOpenNoteDialog(true)
     }
+
     useEffect(() => {
-        if (!user?.id || (!examCode && (!examSessionId)) || examStatusView !== 3) {
+        if (!user?.id || (!examCode)) {
             setNotesFilter(undefined)
         } else {
-            setNotesFilter({ ...DEFAULT_NOTE_FILTER, examCode }
+            setNotesFilter(
+                { ...DEFAULT_NOTE_FILTER, examCode, studentExamSessionId }
             )
         }
-    }, [user?.id, examCode, examSessionId, examStatusView])
+    }, [user?.id, examCode])
 
     const noteDialogProps: ExamNoteDialogProps = {
         open: openNoteDialog,
         questionOptions: questionOptions,
         selectedNote,
         onClose: handleCloseNoteDialog,
-        onSaveNote: handleSaveNote
+        onSaveNote: handleSaveNote,
+        imageUrl,
+        isLoadingNotes,
+        handleUploadImage
     }
 
     return {
@@ -147,12 +199,12 @@ const useExamResultNote = (
         notes,
         noteDialogProps,
         noteIdContextMenu,
-        isLoadingNotes,
         openDeleteNoteDialog,
         handleOpenDeleteNoteDialog,
         setOpenNoteDialog,
         handleLoadMore,
         handleDeleteNote,
+        isLoadingNotes,
         handleOpenNoteDialog,
         handleOpenNoteDialogCreateNote,
         handleCloseTooltip,

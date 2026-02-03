@@ -27,7 +27,7 @@ const TextbookOverView = ({ t, resultData }: Props) => {
     <ScrollView style={styles.overviewContainer}>
       <View style={styles.overviewItem}>
         <Text style={styles.overviewLabel}>시험 접수</Text>
-        <Text style={{ ...TYPO.heading1, color: palette.main[500] }}>
+        <Text style={{ ...TYPO.heading1, color: palette.yellow[900] }}>
           {t('score_format', {
             score: resultData?.score
           })}

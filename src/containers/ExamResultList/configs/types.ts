@@ -1,4 +1,4 @@
-import { ExamSession } from "@/utils/types";
+import { ExamSession, ExamSessionResponse } from "@/utils/types";
 
 export type Category = {
   id: number;
@@ -13,7 +13,17 @@ export type ExamSessionData = {
   code: string
 }
 
+export enum ExamPrintDataType
+{
+    MyOverall,
+    ComprehensiveAnalysis,
+    CompareSolution,
+    ComparisonOfTopRankingsAndProblemSolvingOrder,
+    ProblemAnalysis,
+    IncorrectAnswerNotes
+}
+
 export type GroupExamSession = {
-  [key: string]: ExamSession[]
+  [key: string]: ExamSessionResponse[]
 }
 

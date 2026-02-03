@@ -4,7 +4,7 @@ import { CategoryResponse, EffectSize, ExamResult, LongTimeSpendQuestion, NoteRe
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ProblemKey } from "@/utils/enums"
 import { captureRef } from 'react-native-view-shot'
-import Share from 'react-native-share';
+import RNFS from 'react-native-fs';
 import { useTranslation } from "react-i18next"
 import { examStatusViewOptions } from "../../ExamResultList/configs/constants"
 import useExamResultNote from "../../ExamResultList/hooks/useExamResultNote"
@@ -13,13 +13,19 @@ import { getChapterResultsApi, getChapterResultsCategoriesApi, getChapterResults
 import { Platform, View } from "react-native"
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import { useFocusEffect } from "@react-navigation/native"
+import { navigate } from "@/navigators/NavigationHelpers"
+import { restartExamApi } from "@/containers/DoExam/apiClients"
+import { Routes } from "@/navigators/RouteName"
 
 type Props = {
   chapterId?: number
-  examCode?: string
+  examCode: string
   isPrint: boolean
+  examSessionId?: string
+  studentExamSessionId: string
 }
-const useExamResult = ({ chapterId, examCode, isPrint }: Props) => {
+
+const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExamSessionId }: Props) => {
   const { t } = useTranslation()
   const contentRef = useRef<View>(null)
   const { user, setLoading } = useAuthStore()
@@ -41,7 +47,15 @@ const useExamResult = ({ chapterId, examCode, isPrint }: Props) => {
   const [errorMessage, setErrorMessage] = useState<string>()
   const [examStatusView, setExamStatusView] = useState(examStatusViewOptions(t)[0].value)
   const [contentSize, setContentSize] = useState({ width: 0, height: 0 });
+  const [isOpenConfirmRestartExamDialog, setIsOpenConfirmRestartExamDialog] = useState(false)
 
+  const handleCloseConfirmRestartExamDialog = () => {
+    setIsOpenConfirmRestartExamDialog(false)
+  }
+
+  const handleOpenConfirmRestartExamDialog = () => {
+    setIsOpenConfirmRestartExamDialog(true)
+  }
 
   useFocusEffect(
     useCallback(() => {
@@ -95,11 +109,11 @@ const useExamResult = ({ chapterId, examCode, isPrint }: Props) => {
     try {
       const result = await Promise.all(
         [
-          getResults(examCode),
-          getResultsLongTimeSpend(examCode),
-          getResultsEffectSize(examCode),
-          getResultsTimeOrderQuestion(examCode),
-          getResultsCategories(examCode)
+          getResults(examCode, { studentExamSessionId }),
+          getResultsLongTimeSpend(examCode, { studentExamSessionId }),
+          getResultsEffectSize(examCode, { studentExamSessionId }),
+          getResultsTimeOrderQuestion(examCode, { studentExamSessionId }),
+          getResultsCategories(examCode, { studentExamSessionId })
         ])
 
       setResultData(result[0].data?.data);
@@ -149,23 +163,32 @@ const useExamResult = ({ chapterId, examCode, isPrint }: Props) => {
   const questionOptions = useMemo(() => {
     const questions = resultData?.questions
     if (!questions) return [];
-    return questions.map(({ id, questionOrder }) => ({
-      label: t("question_order", { number: questionOrder + 1 }),
+    return questions.map(({ parentQuestionId, parentQuestionOrder, id, questionOrder }) => ({
+      label: t("question_order", { number: parentQuestionId ? `${parentQuestionOrder + 1}.${questionOrder + 1}` : questionOrder + 1 }),
       value: id
     }));
   }, [JSON.stringify(resultData?.questions)]);
+
+  const studentTextbookQuestions = useMemo(() => {
+    if (!textbookResult?.studentQuestionResults) return [];
+    return textbookResult?.studentQuestionResults.map((question) => ({
+      label: t("question_order", { number: question.parentQuestionId ? `${question.parentQuestionOrder + 1}.${question.questionOrder + 1}` : question.questionOrder + 1 }),
+      value: question.id
+    }))
+  }, [JSON.stringify(textbookResult?.studentQuestionResults)])
 
   const handleSelectQuestion = (question?: QuestionData) => {
     setSelectedQuestion(question)
   }
 
-  const examResultNotes = useExamResultNote(
+  const examResultNotes = useExamResultNote({
     questionOptions,
-    examStatusView,
-    0,
     handleSelectQuestion,
+    examSessionId,
+    studentExamSessionId,
     examCode,
-    resultData
+    examResult: resultData
+  }
   )
 
   const QADialog = useCreateQuestionDialog(handleSelectQuestion)
@@ -198,6 +221,18 @@ const useExamResult = ({ chapterId, examCode, isPrint }: Props) => {
     setOpenQuestionDialog(true)
   }
 
+  const handleRestartExam = async () => {
+    if (!studentExamSessionId) return
+    setLoading(true)
+    try {
+      await restartExamApi(examCode);
+      navigate(Routes.Auth.DoExam, { examCode })
+    } catch (error) {
+      toast.error(getErrorMessage(t, error))
+    }
+    setLoading(false)
+  }
+
   const fileExamName = !resultData
     ? ""
     : `Exam-Result_${resultData!.student.fullName}_${resultData!.title}_(${utcToLocalTime(resultData!.startTime, "MM-DD-YYYY HH:mm")})`
@@ -214,57 +249,60 @@ const useExamResult = ({ chapterId, examCode, isPrint }: Props) => {
     , [resultData?.startTime, resultData?.finishTime])
 
   const handlePrint = async () => {
-    if (!contentRef.current) return;
+  if (!contentRef.current) return;
 
-    try {
-      const uri = await captureRef(contentRef, {
-        format: 'png',
-        quality: 1,
-        result: 'base64',
-      });
+  setLoading(true)
+  try {
+    const uri = await captureRef(contentRef, {
+      format: 'png',
+      quality: 1,
+      result: 'base64',
+    });
 
-      const sanitizedFileName = fileName.replace(/[ \(\):]/g, '_');
+    const sanitizedFileName = fileName.replace(/[ \(\):]/g, '_');
 
-      const htmlContent = `
+    const htmlContent = `
       <!DOCTYPE html>
       <html>
         <head>
           <meta charset="utf-8">
-          <title>Document</title>
           <style>
-            body {
-              font-family: Arial, sans-serif;
-              margin: 0;
-            }
+            body { margin: 0; }
+            img { width: 100%; }
           </style>
         </head>
         <body>
-            <img src="data:image/png;base64,${uri}" alt="Content" />
+          <img src="data:image/png;base64,${uri}" />
         </body>
       </html>
     `;
 
-      const options = {
-        html: htmlContent,
-        fileName: sanitizedFileName,
-        width: 595,
-        height: 842,
-        bgColor: '#FFFFFF'
-      };
+    const pdf = await RNHTMLtoPDF.convert({
+      html: htmlContent,
+      fileName: sanitizedFileName,
+      width: 595,
+      height: 842,
+      bgColor: '#FFFFFF',
+    });
 
-      const file = await RNHTMLtoPDF.convert(options);
+    if (!pdf.filePath) return;
 
-      if (file.filePath) {
-        await Share.open({
-          url: Platform.OS === 'android' ? `file://${file.filePath}` : file.filePath,
-          type: 'application/pdf',
-        });
-      }
+    const targetPath =
+      Platform.OS === 'android'
+        ? `${RNFS.DownloadDirectoryPath}/${sanitizedFileName}.pdf`
+        : `${RNFS.DocumentDirectoryPath}/${sanitizedFileName}.pdf`;
 
-    } catch (err) {
-      console.error('Print error:', err);
-    }
-  };
+    await RNFS.copyFile(pdf.filePath, targetPath);
+
+    toast.success(`${t('file_saved_at')} ${targetPath}`)
+
+  } catch (err) {
+    console.error('Print error:', err);
+  }
+  finally {
+    setLoading(false)
+  }
+};
 
   const onContentLayout = (event: any) => {
     const { width, height } = event.nativeEvent.layout;
@@ -278,7 +316,7 @@ const useExamResult = ({ chapterId, examCode, isPrint }: Props) => {
     QADialog,
     handlePrint,
     examResultData: {
-      questionOptions,
+      questionOptions: chapterId ? studentTextbookQuestions : questionOptions,
       examTime,
       examStatusView,
       totalTime,
@@ -292,11 +330,15 @@ const useExamResult = ({ chapterId, examCode, isPrint }: Props) => {
       examCode,
       errorMessage,
       selectedQuestion,
+      handleRestartExam,
       handleChangeExamStatusView,
       setOpenProblem,
     },
     onContentLayout,
     examResultNotes,
+    isOpenConfirmRestartExamDialog,
+    handleCloseConfirmRestartExamDialog,
+    handleOpenConfirmRestartExamDialog,
     handleOpenNoteDialogFromQuestion,
     handleOpenQuestionDialogFromNote
   }
