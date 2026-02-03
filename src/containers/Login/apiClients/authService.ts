@@ -1,4 +1,4 @@
-import { api } from "@/services/apiClient"
+import { api } from "@/services/api/apiClient"
 import { PhoneLoginRequest } from "../configs/types"
 import { AcademyHeaders, BASE_URL, SUPER_ADMIN_BASE_URL } from "@/utils/constants"
 

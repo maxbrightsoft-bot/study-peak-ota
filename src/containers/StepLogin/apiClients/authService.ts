@@ -1,4 +1,4 @@
-import { api } from "@/services/apiClient"
+import { api } from "@/services/api/apiClient"
 import { BASE_URL } from "@/utils/constants"
 
 const AUTH_LOGIN_URL = `${BASE_URL}/api/Auth`

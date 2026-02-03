@@ -10,7 +10,7 @@ import { Routes } from "@/navigators/RouteName"
 import { removeDataStorage, setDataStorage } from "@/utils/storage"
 
 const useLoginPhoneNumber = () => {
-    const { user, setLoading, setUser } = useAuthStore()
+    const { user, setLoading, setUser, setHasEnteredSelectAcademy } = useAuthStore()
     const academyDomain = user?.academyDomain || ''
     const { t } = useTranslation()
     const [showPassword, setShowPassword] = useState<boolean>(false)
@@ -20,6 +20,7 @@ const useLoginPhoneNumber = () => {
         token: string,
         redirectUrl: string
     ) => {
+
         setUser({
             ...data,
         });
@@ -76,7 +77,10 @@ const useLoginPhoneNumber = () => {
                 toast.error(getErrorMessage(t, error))
             }
         }
-        setLoading(false)
+        finally {
+            setHasEnteredSelectAcademy(false)
+            setLoading(false)
+        }
     }
 
     return {

@@ -92,7 +92,7 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
                     <Select
                       onValueChange={(value) => setFieldValue('major', value)}
                       value={values.major || ''}
-                      items={subjectOptions}
+                      options={subjectOptions}
                     />
                   )}
                 </Field>
@@ -104,7 +104,7 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
                     <Select
                       onValueChange={(value) => setFieldValue('grade', value)}
                       value={values.grade || ''}
-                      items={gradeOptions}
+                      options={gradeOptions}
                     />
                   )}
                 </Field>
@@ -138,7 +138,7 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
             transform: 'translateX(25%)'
           }}
         >
-          <Button style={{ backgroundColor: palette.main[500], borderRadius: 6, width: '100%' }} onPress={onNext}>
+          <Button style={styles.buttonAction} onPress={onNext}>
             <Text style={{ color: '#FFF' }}>{step < stepCount - 1 ? '확인' : '회원가입'}</Text>
           </Button>
         </View>
@@ -150,11 +150,11 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
 export default StepItem
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingBottom: 24, paddingTop: 115, paddingHorizontal: 24, position: 'relative' },
+  container: { flex: 1, paddingBottom: 24, paddingTop: 156, paddingHorizontal: 24, position: 'relative' },
   content: {
     justifyContent: 'center'
   },
-  title: { ...TYPO.heading1, marginBottom: 80 },
+  title: { ...TYPO.heading1, marginBottom: 80, color: palette.main[500] },
   label: { ...TYPO.caption },
   input: {
     fontSize: 16,
@@ -194,5 +194,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8
+  },
+  buttonAction: {
+    backgroundColor: palette.main[500], borderRadius: 6, width: '100%'
   }
 })
