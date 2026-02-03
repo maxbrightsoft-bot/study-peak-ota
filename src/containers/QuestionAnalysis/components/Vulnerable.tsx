@@ -1,5 +1,5 @@
 import React, { FC, Fragment, useMemo } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native'
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native'
 import _ from 'lodash'
 import { useTranslation } from 'react-i18next'
 import { ProblemKey, QuestionAnswerType } from '@/utils/enums'

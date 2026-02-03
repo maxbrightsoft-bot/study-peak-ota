@@ -19,16 +19,7 @@ interface NoteItemProps extends TooltipProps<NoteResponse> {
   onItemClick?: (data: NoteResponse) => void
 }
 
-const NoteItem: FC<NoteItemProps> = ({
-  data,
-  openTooltip,
-  actions,
-  placement = 'bottom-end',
-  onClose,
-  onOpen,
-  onLoad,
-  onItemClick
-}) => {
+const NoteItem: FC<NoteItemProps> = ({ data, openTooltip, actions, onClose, onOpen, onLoad, onItemClick }) => {
   const { t } = useTranslation()
   const [tooltipVisible, setTooltipVisible] = useState(openTooltip)
 
@@ -51,7 +42,7 @@ const NoteItem: FC<NoteItemProps> = ({
         <View style={styles.textContainer}>
           <View style={styles.row}>
             <Text style={styles.textLeft}>
-              {data.examSessionId ? `${t('article')} ${data.articleNumber}` : data.fullName}
+              {data.examSessionId ? `${t('article')} ${(data.questionGroupIndex ?? 0) + 1}` : `${data.fullName}`}
             </Text>
             <Text style={styles.textMiddle}>
               {data.examSessionId
@@ -60,7 +51,7 @@ const NoteItem: FC<NoteItemProps> = ({
             </Text>
             {data.examSessionId && <Text style={styles.textRight}>{data.categoryName}</Text>}
           </View>
-          <MathRender content={data.content} textColor={palette.grey[700]}/>
+          <MathRender content={data.content} textColor={palette.grey[700]} />
           {/* <Text numberOfLines={1} ellipsizeMode="tail" style={styles.contentText}>
             {data.content?.replace(/<[^>]+>/g, '') || ''}
           </Text> */}
@@ -81,15 +72,14 @@ const NoteItem: FC<NoteItemProps> = ({
           </CustomTooltip>
         )}
       </View>
-
     </TouchableOpacity>
   )
 }
 
 const styles = ScaledSheet.create({
   container: {
-    paddingVertical: "16@ms",
-    paddingHorizontal: "24@ms",
+    paddingVertical: '16@ms',
+    paddingHorizontal: '24@ms',
     borderRadius: 6,
     backgroundColor: '#fff'
   },
@@ -110,16 +100,16 @@ const styles = ScaledSheet.create({
   textMiddle: {
     color: palette.grey[900],
     marginRight: 8,
-    fontWeight: 700,
+    fontWeight: 700
   },
   textRight: {
     color: palette.grey[500],
-    fontWeight: 500,
+    fontWeight: 500
   },
   contentText: {
     marginTop: 4,
     color: palette.grey[700],
-    fontWeight: 500,
+    fontWeight: 500
   },
   iconButton: {
     padding: 4

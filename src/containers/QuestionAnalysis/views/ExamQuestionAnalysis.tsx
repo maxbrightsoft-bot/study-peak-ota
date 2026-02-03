@@ -4,7 +4,7 @@ import Vulnerable from '../components/Vulnerable'
 import ProtractedProblem from '../components/ProtractedProblem'
 import GradesByTerritory from '../components/GradesByTerritory'
 import { CategoryResponse, ExamResult, LongTimeSpendQuestion } from '@/utils/types'
-import { ScrollView, View } from 'react-native'
+import { ScrollView } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {

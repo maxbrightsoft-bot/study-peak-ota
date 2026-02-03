@@ -22,23 +22,23 @@ const HexagonChart: FC<Props> = ({ id, myData, avgData, categories, isPrint }) =
 
   const radarData = useMemo(() => {
     return normalizedMyData.map((value, index) => ({
-      label: normalizedCategories?.[index],
-      value
+      label: normalizedCategories?.[index] || `cat_${index}`,
+      value: typeof value === 'number' ? value : 0
     }))
-  }, [normalizedMyData, normalizedAvgData, normalizedCategories])
+  }, [normalizedMyData, normalizedCategories])
 
   const radarAvgData = useMemo(() => {
     return normalizedAvgData.map((value, index) => ({
-      label: normalizedCategories?.[index],
-      value
+      label: normalizedCategories?.[index] || `cat_${index}`,
+      value: typeof value === 'number' ? value : 0
     }))
-  }, [normalizedMyData, normalizedAvgData, normalizedCategories])
+  }, [normalizedAvgData, normalizedCategories])
 
   return (
-    <View style={[styles.container, isPrint && { paddingBottom: 50}]}>
-      <View style={{ alignItems: "center"}}>
+    <View style={[styles.container, isPrint && { paddingBottom: 50 }]}>
+      <View style={{ alignItems: 'center' }}>
         <RadarChart
-          size={isPrint? 200 : undefined}
+          size={isPrint ? 200 : undefined}
           data={radarData as any}
           dataFillColor={palette.main[300]}
           dataFillOpacity={0.5}
@@ -56,9 +56,9 @@ const HexagonChart: FC<Props> = ({ id, myData, avgData, categories, isPrint }) =
           </View>
         </View>
       </View>
-      <View style={{ alignItems: "center"}}>
+      <View style={{ alignItems: 'center' }}>
         <RadarChart
-          size={isPrint? 200 : undefined}
+          size={isPrint ? 200 : undefined}
           data={radarAvgData as any}
           dataFillColor={palette.primary.light}
           dataFillOpacity={0.5}

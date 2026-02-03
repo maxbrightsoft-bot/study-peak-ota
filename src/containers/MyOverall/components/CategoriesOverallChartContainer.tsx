@@ -6,8 +6,10 @@ import HexagonChart from './HexagonChart'
 import { checkEmptyValue } from '../configs/helpers'
 
 export interface CategoriesOverallChartContainerProps {
-  isLoading: boolean
+  isLoading?: boolean
   myData: number[]
+  id?: string
+  title?: string
   avgData: number[]
   categories: any[]
   isPrint?: boolean
@@ -19,9 +21,11 @@ export interface CategoriesOverallChartContainerProps {
 const CategoriesOverallChartContainer: FC<CategoriesOverallChartContainerProps> = ({
   isLoading,
   myData,
+  title,
   avgData,
   categories,
   isPrint,
+  id
 }) => {
   const { t } = useTranslation()
 
@@ -29,7 +33,7 @@ const CategoriesOverallChartContainer: FC<CategoriesOverallChartContainerProps> 
 
   return (
     <View style={styles.container}>
-      <OverallTabHeader title={t('my_average_data')} />
+      <OverallTabHeader title={title || ''} />
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
@@ -37,7 +41,7 @@ const CategoriesOverallChartContainer: FC<CategoriesOverallChartContainerProps> 
         </View>
       ) : (
         <HexagonChart
-          id="categories-hexagon-chart"
+          id={id || ""}
           myData={myData}
           avgData={avgData}
           categories={categories}

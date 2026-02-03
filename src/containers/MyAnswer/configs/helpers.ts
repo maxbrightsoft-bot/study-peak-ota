@@ -1,16 +1,11 @@
 import { CategoryResponse, ExamResult, Question, TextbookResult } from "@/utils/types";
 import { FormatDataMyAnswer, FormatTextbookDataMyAnswer } from "./types";
 
-export const getOverallColorClassName = (
-  correctRate: number,
-  styles: {
-      [className: string]: string
-  }
-) => {
-  return styles[
-      `overall-response-${correctRate < 40 ? 1 : correctRate <= 70 ? 2 : 3}`
-  ]
-}
+export const getOverallColor = (correctRate: number): string => {
+  if (correctRate < 40) return '#EF4444';
+  if (correctRate <= 70) return '#F59E0B';
+  return '#10B981';
+};
 
 export const formatDataMyAnswer = (inputData: ExamResult, categories: CategoryResponse[]) => {
   const questionsByCategory = categories.map(
@@ -34,7 +29,7 @@ export const formatTextbookDataMyAnswer = (inputData: TextbookResult, questionGr
         return question.questionGroupId === questionGroupId;
       })
       const category = questions?.[0]?.categories?.[0]
-      const subcategory = !category ? null : questions?.[0]?.categories?.find(c => !!c.parentCategoryId && c.parentCategoryId === category?.id)
+      const subcategory = !category ? undefined : questions?.[0]?.categories?.find(c => !!c.parentCategoryId && c.parentCategoryId === category?.id)
       return {
         categories: category && subcategory ? [category, subcategory] : category ? [category] : [],
         questions,

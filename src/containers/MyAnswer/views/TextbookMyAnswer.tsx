@@ -1,143 +1,220 @@
-import React, { FC } from 'react'
-import { View, Text, FlatList } from 'react-native'
+import React, { FC, useMemo } from 'react'
+import { View, Text, ScrollView, StyleSheet } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import _ from 'lodash'
+import { EffectSize, StudentQuestionResult, TextbookResult } from '@/utils/types'
 import { formatTextbookDataMyAnswer } from '../configs/helpers'
-import { Category, TextbookResult } from '@/utils/types'
-import TextbookAnswerItem from '../components/AnswerItem'
-import { AnswerItemBaseProps, StudentQuestionResult } from '../configs/types'
-import { ScaledSheet } from 'react-native-size-matters'
-import { palette } from '@/theme'
+import AnswerItem from '../components/TextbookAnswerItem'
+import { FormatTextbookDataMyAnswer } from '../configs/types'
+import { red } from '@/theme/colors'
 
 interface Props {
   data: TextbookResult
-  questionIdContextMenu?: number
-  itemProps?: AnswerItemBaseProps
+  effectSize?: EffectSize[]
+  isStudent?: boolean
+  openContextMenu?: boolean
+  onOpenContextMenu?: (data: any) => void
+  onCloseContextMenu?: (data: any) => void
+  menuContextActions?: any[]
 }
 
-const MyAnswer: FC<Props> = ({ data, itemProps }) => {
-  const questionGroupIds = Array.from(new Set(data.studentQuestionResults.map((i) => i.questionGroupId))).sort(
-    (a, b) => a - b
+const TextbookMyAnswer: FC<Props> = ({
+  data,
+  effectSize,
+  isStudent = true,
+  openContextMenu,
+  onOpenContextMenu,
+  onCloseContextMenu,
+  menuContextActions = []
+}) => {
+  const questionGroupIds = useMemo(
+    () => Array.from(new Set(data.studentQuestionResults.map((i) => i.questionGroupId))).sort((a, b) => a - b),
+    [data.studentQuestionResults]
   )
-  const formattedData = formatTextbookDataMyAnswer(data, questionGroupIds)
+
+  const formattedData = useMemo(() => formatTextbookDataMyAnswer(data, questionGroupIds), [data, questionGroupIds])
+
   const { t } = useTranslation()
 
-  const renderAnswer = (item: StudentQuestionResult, index: number, questions: StudentQuestionResult[]) => {
+  const renderAnswer = (
+    item: StudentQuestionResult,
+    index: number,
+    questions: StudentQuestionResult[],
+    questionGroupId: number
+  ) => {
     const nextItem: StudentQuestionResult | undefined = index < questions.length - 1 ? questions[index + 1] : undefined
     const isLast = index === questions.length - 1
     const isFirst = index === 0
+    const effectSizeItem = effectSize?.find((i) => i.id === item.id)
 
     return (
-      <TextbookAnswerItem
-        key={item.id}
-        {...itemProps}
+      <AnswerItem
+        key={`${item.id}-${index}`}
         data={item}
+        questionGroupId={questionGroupId}
         nextData={nextItem}
         isLast={isLast}
         isFirst={isFirst}
+        effectSize={effectSizeItem}
       />
     )
   }
 
   const renderHeader = () => (
     <View style={styles.headerRow}>
-      <View style={[styles.headerCell, { alignItems: 'flex-start' }]}>
-        <Text style={styles.headerText}>{t('problem_number')}</Text>
+      <View style={styles.column1}>
+        <Text style={styles.headerText} numberOfLines={2}>
+          {t('problem_number')}
+        </Text>
       </View>
-      <View style={styles.headerCell}>
-        <Text style={styles.headerText}>{t('answer')}</Text>
+      <View style={styles.column2}>
+        <Text style={styles.headerText} numberOfLines={2}>
+          {t('answer')}
+        </Text>
       </View>
-      <View style={styles.headerCell}>
-        <Text style={styles.headerText}>{t('solve_time')}</Text>
+      <View style={styles.column3}>
+        <Text style={styles.headerText} numberOfLines={2}>
+          {t('solve_time')}
+        </Text>
       </View>
-      <View style={styles.headerCell}>
-        <Text style={styles.headerText}>{t('comparison_of_top_rankings')}</Text>
+      <View style={styles.column4}>
+        <Text style={styles.headerText} numberOfLines={3}>
+          {t('comparison_of_top_rankings')}
+        </Text>
       </View>
-      <View style={styles.headerCell}>
-        <Text style={styles.headerText}>{t('total_correct_rate')}</Text>
+      <View style={styles.column5}>
+        <Text style={styles.headerText} numberOfLines={3}>
+          {t('total_correct_rate')}
+          <Text style={styles.skipRateText}>{`\n(${t('not_selected')})`}</Text>
+        </Text>
       </View>
-    </View>
-  )
-
-  const renderCategoryHeader = (categories: Category[]) => (
-    <View style={styles.categoryHeader}>
-      <Text style={styles.categoryLabel}>{t('_category')}</Text>
-      <Text style={styles.categoryName}>{categories?.map(i => i.name).join(" / ")}</Text>
     </View>
   )
 
   return (
     <View style={styles.container}>
-      {formattedData && formattedData.length > 0 && (
-        <FlatList
-          data={formattedData}
-          keyExtractor={(item) => item.questionGroupId.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.categoryContainer}>
-              <View style={styles.categorySection}>
-                {renderHeader()}
-                {renderCategoryHeader(item.categories)}
+      <ScrollView
+        horizontal={false}
+        showsVerticalScrollIndicator={true}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 200 }}
+      >
+        {formattedData &&
+          formattedData.length > 0 &&
+          formattedData.map((item: FormatTextbookDataMyAnswer) => (
+            <View key={item.questionGroupId} style={styles.categorySection}>
+              {renderHeader()}
+
+              <View style={styles.categoryHeader}>
+                <View style={styles.categoryColumn}>
+                  <Text style={styles.categoryLabel}>{t('_category')}</Text>
+                  <Text style={styles.categoryName} numberOfLines={1}>
+                    {item.categories?.map((i) => i.name).join(' / ')}
+                  </Text>
+                </View>
               </View>
 
-              <FlatList
-                data={item.questions}
-                renderItem={({ item: question, index }) => renderAnswer(question, index, item.questions)}
-                keyExtractor={(question) => question.id.toString()}
-              />
+              <View style={styles.questionsContainer}>
+                {item.questions.map((question, index) =>
+                  renderAnswer(question, index, item.questions, item.questionGroupId)
+                )}
+              </View>
             </View>
-          )}
-        />
-      )}
+          ))}
+      </ScrollView>
     </View>
   )
 }
 
-const styles = ScaledSheet.create({
+const styles = StyleSheet.create({
   container: {
-    marginBottom: 150,
-    backgroundColor: '#fff'
+    backgroundColor: '#FFFFFF'
   },
-  categoryContainer: {
+  categorySection: {
     marginBottom: 16
   },
-  categorySection: {},
   headerRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: '24@ms',
-    borderColor: palette.grey[100],
-    backgroundColor: palette.grey[50]
+    backgroundColor: '#F9FAFB',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    minHeight: 60
   },
-  headerCell: {
-    flex: 1,
+  column1: {
+    flex: 1.2,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 12
+    paddingHorizontal: 4
+  },
+  column2: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4
+  },
+  column3: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4
+  },
+  column4: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4
+  },
+  column5: {
+    flex: 1.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4
+  },
+  column6: {
+    flex: 1.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4
   },
   headerText: {
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '600',
-    color: '#97A1AF'
+    color: '#97A1AF',
+    textAlign: 'center'
+  },
+  skipRateText: {
+    fontSize: 9,
+    color: red[900]
   },
   categoryHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
     paddingVertical: 8,
-    paddingHorizontal: '24@ms',
-    gap: 8,
-    backgroundColor: palette.grey[50],
-    borderTopWidth: 1,
-    borderColor: palette.grey[100]
+    paddingHorizontal: 12,
+    backgroundColor: '#F9FAFB',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB'
+  },
+  categoryColumn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center'
   },
   categoryLabel: {
-    color: '#97A1AF',
     fontSize: 12,
+    color: '#97A1AF',
     marginRight: 4
   },
   categoryName: {
-    color: '#414E62',
     fontSize: 12,
-    fontWeight: '700'
+    fontWeight: '700',
+    color: '#414E62',
+    flex: 1
+  },
+  questionsContainer: {
+    backgroundColor: '#FFFFFF'
   }
 })
 
-export default MyAnswer
+export default TextbookMyAnswer
