@@ -34,7 +34,8 @@ const useLogin = () => {
     }),
     scopes: ["profile", "email"],
   });
-  const { setLoading, logout, setUser } = useAuthStore();
+
+  const { setLoading, logout, setUser, setHasEnteredSelectAcademy } = useAuthStore();
 
   WebBrowser.maybeCompleteAuthSession();
 
@@ -167,7 +168,9 @@ const useLogin = () => {
       const { id_token } = response?.params;
 
       getUserInfo(id_token);
+      setHasEnteredSelectAcademy(false)
     } else if (response?.type === "error") {
+
       toast.error(getErrorMessage(t, response.error?.message || ""));
     }
   }, [response]);

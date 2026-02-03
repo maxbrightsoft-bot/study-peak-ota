@@ -1,4 +1,4 @@
-import { api } from "@/services/apiClient";
+import { api } from "@/services/api/apiClient";
 import { AcademyHeaders, BASE_URL, NoAcademyHeaders, SUPER_ADMIN_BASE_URL } from "@/utils/constants";
 import { LoginAccessTokenRequest, LoginRequest } from "@/utils/types";
 
@@ -45,4 +45,3 @@ export const apiLoginWithAccessToken = (
   });
 
 export const getSuperAdminInfoFromWeb = () => api.get(`${AUTH_SUPER_ADMIN_URL}/info`)
-

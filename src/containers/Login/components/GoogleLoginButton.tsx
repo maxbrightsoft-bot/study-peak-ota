@@ -3,6 +3,7 @@ import React from "react";
 import { TouchableOpacity, Text, StyleSheet } from "react-native";
 import IconGoogle from "@/assets/icons/google.svg"
 import useLogin from "../hooks/useLogin";
+import { palette } from "@/theme";
 
 const GoogleLoginButton = () => {
   const {
@@ -28,7 +29,7 @@ const styles = StyleSheet.create({
   googleButton: {
     flexDirection: "row",
     alignItems: "center",
-    borderColor: "#ccc",
+    borderColor: palette.grey[700],
     borderWidth: 1,
     paddingVertical: 12,
     paddingHorizontal: 16,
