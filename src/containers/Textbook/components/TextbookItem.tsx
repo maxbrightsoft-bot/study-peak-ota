@@ -1,14 +1,14 @@
 import { palette, TYPO } from '@/theme'
 import { getSafeUrl, utcToLocalTime } from '@/utils/helpers'
-import { TextbookResponse } from '@/utils/types/textbook'
+import { Textbook } from '@/utils/types'
 import { Ionicons } from '@expo/vector-icons'
 import { Image, StyleSheet, Text, View } from 'react-native'
 import { Button, Divider, Title } from 'react-native-paper'
 
 type Props = {
-  textbook: TextbookResponse
+  textbook: Textbook
   t: any
-  handleOpenDialog: (textbook: TextbookResponse) => void
+  handleOpenDialog: (textbook: Textbook) => void
 }
 
 const TextbookItem = ({ textbook, t, handleOpenDialog }: Props) => {
@@ -34,7 +34,12 @@ const TextbookItem = ({ textbook, t, handleOpenDialog }: Props) => {
           </View>
         </View>
         <Divider />
-        <Button mode="contained" style={styles.startButton} buttonColor={palette.main[500]} onPress={() => handleOpenDialog(textbook)}>
+        <Button
+          mode="contained"
+          style={styles.startButton}
+          buttonColor={palette.main[500]}
+          onPress={() => handleOpenDialog(textbook)}
+        >
           <View style={styles.buttonContent}>
             <Ionicons name="book" size={20} color="#FFF" />
             <Text style={styles.buttonText}>시험 시작하기</Text>
