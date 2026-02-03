@@ -1,17 +1,16 @@
 import { useRef, useState, useEffect, useMemo, useCallback } from "react";
 import useMessageList from "./useMessageList";
 import { useTranslation } from "react-i18next";
-import { ConversationsResponse, MessageRequest, MessageResponse, StudentsConversationResponse } from "@/utils/types";
+import { ConversationsResponse, EventsMap, MessageRequest, MessageResponse, StudentsConversationResponse } from "@/utils/types";
 import useAuthStore from "@/store/useAuthStore";
-import { PusherChannel } from "@pusher/pusher-websocket-react-native";
 import { getErrorMessage, toast } from "@/utils/helpers";
 import { IChatItemProps } from "../configs/types";
-import { COMPLETED_CONVERSATION_EVENT, DELETE_MESSAGE_EVENT, NEW_CONVERSATION_EVENT, NEW_MESSAGE_EVENT, UPDATE_MESSAGE_EVENT } from "../configs/constants";
 import { apiAddMessage, apiUploadImageFile, updateLastTimeReadConversation } from "../apiClient/conversationService";
 import { pick } from '@react-native-documents/picker'
 import { useFocusEffect } from "@react-navigation/native";
 import { Keyboard } from "react-native";
 import RNFS from 'react-native-fs';
+import useSocketConversation from "./useSocketConversation";
 
 interface Props {
   conversation?: ConversationsResponse;
@@ -20,14 +19,11 @@ interface Props {
 const useChatContainer = (props: Props) => {
   const { conversation, student } = props;
   const { t } = useTranslation()
-  const { user, pusher, subscribeChannel, unsubscribeChannelSafe } = useAuthStore()
+  const { user } = useAuthStore()
 
-  const channel = useRef<PusherChannel>();
-  const channelName = useRef<string>();
-
-  const academyDomain: string | undefined = user?.academyDomain
+  const isReceivedMessage = useRef(false)
   const roles = user?.roles || []
-
+  const [isSending, setSending] = useState<boolean>(false)
   const [selectedConversation, setSelectedConversation] = useState<ConversationsResponse>();
   const [message, setMessage] = useState<MessageRequest>();
   const [isScrollToEnd, setScrollToEnd] = useState<boolean>(false)
@@ -64,7 +60,7 @@ const useChatContainer = (props: Props) => {
     setLoading(true);
     if (!selectedConversation?.id) return;
     setScrollToEnd(true)
-
+    setSending(true)
     try {
       let res;
       if (url) {
@@ -89,12 +85,16 @@ const useChatContainer = (props: Props) => {
       }
       const { data } = res?.data
 
-      const isExits = messages.some(i => i.id == data.id)
-      if (isExits) return
+      if (!isReceivedMessage.current) {
+        setMessages((state: MessageResponse[]) => {
+          const isExist = state.find(i => i.id == data?.id)
+          if (isExist) return state
+          setScrollToEnd(true)
 
-      setMessages((state: MessageResponse[]) => {
-        return [data, ...state]
-      });
+          return [data, ...state]
+        });
+        isReceivedMessage.current = false
+      }
 
     } catch (error) {
       setMessages((state: MessageResponse[]) => {
@@ -102,8 +102,11 @@ const useChatContainer = (props: Props) => {
       })
       toast.error(getErrorMessage(t, error))
     }
-    setLoading(false)
-    handleChangeInput('')
+    finally {
+      setSending(false)
+      setLoading(false)
+      handleChangeInput('')
+    }
 
   };
 
@@ -173,79 +176,45 @@ const useChatContainer = (props: Props) => {
     });
   };
 
-  const handleNewMessageSent = async (data: MessageResponse) => {
+  const handleNewMessageSent = async (data: string) => {
     if (!data) return
-    setScrollToEnd(true)
-    const isExits = messages.some(i => i.id == data.id)
-    if (isExits) return
-    setMessages((state: MessageResponse[]) => {
-      return [data, ...state]
-    });
-    selectedConversation?.id && await updateLastTimeReadConversation(selectedConversation.id)
-  };
+    const parsedData = JSON.parse(data)
+    isReceivedMessage.current = !!parsedData.id
 
-  const handleNewConversation = async (data: string) => {
-    if (!data) return
-    const item = JSON.parse(data)
-    setScrollToEnd(true)
     setMessages((state: MessageResponse[]) => {
-      return [item, ...state]
-    });
+      const isExist = state.find(i => i.id == parsedData?.id)
+      if (isExist) return state
+      setScrollToEnd(true)
 
+
+      return [parsedData, ...state]
+    });
     selectedConversation?.id && await updateLastTimeReadConversation(selectedConversation.id)
   };
 
   const handleCompletedConversation = (data: string) => {
     if (!data) return
     const parsedData = JSON.parse(data)
-    if (parsedData.id) setSelectedConversation(JSON.parse(data))
-  };
 
+    setSelectedConversation((prev) => prev?.id === parsedData.id ? parsedData : prev)
+  };
   const handleLoadMoreMessages = async () => {
     if (selectedConversation?.id === undefined) return;
 
     return await handleLoadMore(selectedConversation?.id)
   }
 
-  const cleanupPusher = () => {
-    if (!pusher) return
-    if (channelName.current) {
-      unsubscribeChannelSafe(pusher, channelName.current)
-    }
+  const conversationEvents: EventsMap = {
+    "new-message-event": handleNewMessageSent,
+    "completed-conversation-event": handleCompletedConversation,
+    "delete-message-event": deleteMessageState,
+    "update-message-event": updateMessageState,
   };
 
-  const handleListenerEvent = async () => {
-    try {
-      if (
-        pusher &&
-        academyDomain &&
-        !!selectedConversation?.id
-      ) {
-        cleanupPusher()
-
-        channelName.current = `presence-conversation-channel-${selectedConversation.id}-${academyDomain.trim().toUpperCase()}`;
-        const messageHandlers = {
-          [NEW_MESSAGE_EVENT]: handleNewMessageSent,
-          [COMPLETED_CONVERSATION_EVENT]: handleCompletedConversation,
-          [NEW_CONVERSATION_EVENT]: handleNewConversation,
-          [DELETE_MESSAGE_EVENT]: deleteMessageState,
-          [UPDATE_MESSAGE_EVENT]: updateMessageState
-        }
-        channel.current = await subscribeChannel(pusher, channelName.current, Object.entries(messageHandlers).map(([eventName, handler]) => ({ eventName, handler })));
-      }
-    } catch (err) {
-      console.error("Pusher subscription failed", err);
-    }
-  }
-
-  useEffect(() => {
-    const initPusher = async () => {
-      await handleListenerEvent();
-    };
-
-    initPusher();
-    return cleanupPusher;
-  }, [selectedConversation?.id, academyDomain, pusher]);
+  useSocketConversation({
+    conversationEvents,
+    selectedConversation
+  })
 
   useEffect(() => {
     const getConversation = async () => {
@@ -277,7 +246,7 @@ const useChatContainer = (props: Props) => {
     });
     return results
   }, [
-    JSON.stringify(messages),
+    messages,
     user?.id,
   ]);
 
@@ -298,18 +267,8 @@ const useChatContainer = (props: Props) => {
   return {
     chatHeaderProps: {
       fullName: student?.fullName,
-      examTitle: selectedConversation?.examTitle,
-      courseId: selectedConversation?.courseId,
-      score: selectedConversation?.score,
-      totalScore: selectedConversation?.totalScore,
-      questionOrder: selectedConversation?.question?.questionOrder,
-      category: selectedConversation?.category,
-      conversationId: selectedConversation?.id,
-      isCompleted: selectedConversation?.isCompleted,
-      durationExam: selectedConversation?.duration,
-      createdAt: selectedConversation?.createdAt,
-      teacherName: selectedConversation?.teacherName,
-      roles
+      roles,
+      ...selectedConversation
     },
     chatListProps: {
       isScrollToEnd,
@@ -321,6 +280,7 @@ const useChatContainer = (props: Props) => {
       handleToggleScrollToEnd
     },
     inputProps: {
+      isSending,
       text: message?.content || "",
       onChangeInput: handleChangeInput,
       onSubmit: handleAddMessage,

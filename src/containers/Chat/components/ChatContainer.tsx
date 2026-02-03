@@ -4,7 +4,7 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import React, { useEffect, useMemo, useRef } from 'react'
 import { View, Text, FlatList, TouchableOpacity } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
-import { IChatHeaderProps, IChatListProps, IInputChatProps } from '../configs/types'
+import { IChatListProps, IInputChatProps } from '../configs/types'
 import { ActivityIndicator } from 'react-native-paper'
 import ChatItem from './ChatItem'
 import { utcToLocalTime } from '@/utils/helpers'
@@ -20,7 +20,7 @@ type Props = {
   isLoadingMessages: boolean
   chatListProps: IChatListProps
   inputProps: IInputChatProps
-  chatHeaderProps: IChatHeaderProps
+  chatHeaderProps: any
   handleLoadMoreMessages: () => Promise<true | undefined>
 }
 const ChatContainer = ({
@@ -34,17 +34,33 @@ const ChatContainer = ({
   const { isLoading } = useAuthStore()
   const { messages, isScrollToEnd, handleUpdateMessage, handleDeleteMessage, handleToggleScrollToEnd } = chatListProps
   const {
+    examTitle,
+    createdAt,
+    score,
+    totalScore,
+    courseId,
+    isSelected,
+    questionOrder,
+    studentAttemptNumber,
+    studentTotalAttemptTime,
+    parentQuestionId,
+    parentQuestionOrder,
+    isOnlyConversationStudentWithTeacher
+  } = chatHeaderProps
+  const {
     isCompleted,
     onChangeInput,
     onSubmit,
     handleUploadImage,
     text,
+    isSending,
     handleUploadImageCanvas,
     openSketchCanvasDialog,
     handleOpenSketchCanvasDialog,
     handleCloseSketchCanvasDialog
   } = inputProps
   const flatListRef = useRef<FlatList>(null)
+  const disabled = isCompleted || isSending
   const filterMessage = useMemo(() => {
     let prevTime = 0
     let prevSender: prevSender
@@ -66,15 +82,75 @@ const ChatContainer = ({
     }
   }, [isScrollToEnd])
 
-  console.log({ isScrollToEnd });
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.examTitle}>{chatHeaderProps.examTitle}</Text>
-        <Text style={styles.dateTitle}>{utcToLocalTime(chatHeaderProps.createdAt, t('date_format'))}</Text>
+        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+          <Text style={styles.examTitle}>{examTitle}</Text>
+          {studentTotalAttemptTime > 1 && (
+            <Text style={[TYPO.button4, { color: isSelected ? palette.main[500] : palette.red[900] }]}>
+              #{studentAttemptNumber + 1}/{studentTotalAttemptTime}
+            </Text>
+          )}
+        </View>
+        <View style={{ justifyContent: 'flex-end', alignItems: 'flex-end' }}>
+          <View>
+            {courseId ? (
+              <Text
+                style={{
+                  fontWeight: '700',
+                  fontSize: 12,
+                  lineHeight: 14.32,
+                  color: '#1F2937'
+                }}
+              >
+                {questionOrder != undefined
+                  ? t('problem_number_question', {
+                      number: parentQuestionId
+                        ? `${(parentQuestionOrder || 0) + 1}.${questionOrder + 1}`
+                        : questionOrder + 1
+                    })
+                  : courseId
+                    ? t('class_inquiry')
+                    : t('exam_inquiry')}
+              </Text>
+            ) : (
+              !isOnlyConversationStudentWithTeacher && (
+                <View
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    gap: 4
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontWeight: '700',
+                      fontSize: 12,
+                      lineHeight: 14.32,
+                      color: '#4B5563'
+                    }}
+                  >
+                    {score || 0}
+                  </Text>
+                  <Text
+                    style={{
+                      fontWeight: '700',
+                      fontSize: 12,
+                      lineHeight: 14.32,
+                      color: '#D1D5DB'
+                    }}
+                  >
+                    /{totalScore || 0}
+                  </Text>
+                </View>
+              )
+            )}
+          </View>
+          <Text style={styles.dateTitle}>{utcToLocalTime(createdAt, t('date_format'))}</Text>
+        </View>
       </View>
-      <View style={{ height: "75%"}}>
+      <View style={{ height: '75%' }}>
         {!isLoading && isLoadingMessages && (
           <View style={[styles.overlay]}>
             <ActivityIndicator style={{ paddingVertical: 12 }} animating={true} color={palette.primary.main} />
@@ -88,6 +164,10 @@ const ChatContainer = ({
           <FlatList
             ref={flatListRef}
             data={filterMessage}
+            style={{
+              backgroundColor: palette.grey[50],
+              paddingHorizontal: 24
+            }}
             renderItem={({ item }) => (
               <ChatItem
                 t={t}
@@ -109,7 +189,7 @@ const ChatContainer = ({
 
       <View style={styles.inputContainer}>
         <View style={{ justifyContent: 'center', alignItems: 'center', gap: 4 }}>
-          <TouchableOpacity onPress={handleUploadImage}>
+          <TouchableOpacity disabled={disabled} onPress={handleUploadImage}>
             <Ionicons name="add-circle" size={32} color={palette.grey[500]} />
           </TouchableOpacity>
           <TouchableOpacity
@@ -119,16 +199,17 @@ const ChatContainer = ({
               paddingVertical: 5,
               paddingHorizontal: 12
             }}
+            disabled={disabled}
             onPress={handleOpenSketchCanvasDialog}
           >
-            <MaterialIcons name="draw" disabled={isCompleted} size={25} color="#FFF" />
+            <MaterialIcons name="draw" size={25} color="#FFF" />
           </TouchableOpacity>
         </View>
         <View style={{ flexGrow: 1 }}>
-          <TextField value={text} style={styles.input} onChangeText={onChangeInput} />
+          <TextField disabled={disabled} value={text} style={styles.input} onChangeText={onChangeInput} />
         </View>
-        <TouchableOpacity onPress={() => onSubmit()}>
-          <Ionicons name="send" disabled={isCompleted} size={25} color={palette.main[500]} />
+        <TouchableOpacity disabled={disabled} onPress={() => onSubmit()}>
+          <Ionicons name="send" size={25} color={palette.main[500]} />
         </TouchableOpacity>
       </View>
       {openSketchCanvasDialog && (
@@ -149,9 +230,10 @@ const styles = ScaledSheet.create({
   },
   header: {
     flexDirection: 'row',
-    paddingVertical: '18@ms',
+    paddingBottom: '16@ms',
     alignItems: 'center',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
+    paddingHorizontal: '24@ms'
   },
   overlay: {
     justifyContent: 'center',
@@ -216,7 +298,8 @@ const styles = ScaledSheet.create({
     gap: 8,
     alignItems: 'center',
     paddingVertical: '12@ms',
-    backgroundColor: 'white'
+    backgroundColor: 'white',
+    paddingHorizontal: '24@ms'
   },
   timestamp: {
     fontSize: 12,

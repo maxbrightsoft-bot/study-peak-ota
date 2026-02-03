@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { getListConversation } from "../apiClient/studentStatusService";
-import { CONVERSATION_DEFAULT_FILTER, NEW_MESSAGE_CONVERSATIONS_EVENT, UNREAD_MESSAGE_COUNT_EVENT } from "../configs/constants";
+import { CONVERSATION_DEFAULT_FILTER } from "../configs/constants";
 import _ from "lodash"
 import { getListCourseByStudentApi } from "../apiClient/examService";
 import { Course } from "../configs/types";
@@ -8,14 +8,14 @@ import useAuthStore from "@/store/useAuthStore";
 import { useTranslation } from "react-i18next";
 import { getErrorMessage, toast } from "@/utils/helpers";
 import { ConversationFilter, ConversationsResponse } from "@/utils/types";
-import { PusherChannel } from "@pusher/pusher-websocket-react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import { getSocket } from "@/services";
 
 const useConversationList = () => {
-  const { user, setLoading, pusher, subscribeChannel, unsubscribeChannelSafe, selectedAcademy } = useAuthStore()
+  const { user, setLoading, selectedAcademy } = useAuthStore()
   const academyDomain = user?.academyDomain
-  const channelName2 = useRef<string>();
-  const channel2 = useRef<PusherChannel>();
+  const channel1 = useRef('')
+  const channel2 = useRef('')
   const [selectedConversation, setSelectedConversation] = useState<ConversationsResponse>();
   const [conversations, setConversations] = useState<ConversationsResponse[]>([])
   const [textSearch, setTextSearch] = useState("");
@@ -24,6 +24,7 @@ const useConversationList = () => {
   const [isVisibleCreateConversationDialog, setVisibleCreateConversationDialog] = useState(false)
   const { t } = useTranslation()
   const inputSearch = useRef<any>(null);
+  const socket = getSocket()
 
   const handleChangeSelectedConversation = (val: ConversationsResponse) => {
     setSelectedConversation(val)
@@ -99,49 +100,31 @@ const useConversationList = () => {
     }))
   }
 
-  const cleanupPusher = () => {
-    if (!pusher) return
-    if (channelName2.current)
-      unsubscribeChannelSafe(pusher, channelName2.current)
-
-  };
-
   useEffect(() => {
     if (!user?.id || !user?.academyDomain) return
     getListCourseByStudent()
   }, [user?.id, user?.academyDomain])
 
-  const handleListenerEvent = async () => {
-    try {
-      if (
-        !pusher ||
-        !academyDomain ||
-        !selectedConversation?.id
-      ) return
-      cleanupPusher()
-
-      channelName2.current = `conversations-channel-${user.id}-${academyDomain.trim().toUpperCase()}`;
-
-      const messageHandlers = {
-        [UNREAD_MESSAGE_COUNT_EVENT]: handleChangeUnreadMessagesConversationCount,
-        [NEW_MESSAGE_CONVERSATIONS_EVENT]: handleNewMessageCount
-      };
-
-      channel2.current = await subscribeChannel(pusher, channelName2.current, Object.entries(messageHandlers).map(([eventName, handler]) => ({ eventName, handler })));
-    } catch (err) {
-      console.error("Pusher subscription failed", err);
-    }
-  }
-
   useEffect(() => {
-    const initPusher = async () => {
-      await handleListenerEvent();
+    if (
+      academyDomain && socket
+    ) {
+      channel1.current = `presence-conversation-channel-${selectedConversation?.id}-${academyDomain.trim().toUpperCase()}`
+      channel2.current = `conversations-channel-${user.id}-${academyDomain.trim().toUpperCase()}`
+      socket.emit('subscribe', channel1.current);
+      socket.emit('subscribe', channel2.current);
+      socket.on("completed-conversation-event", handleCompletedConversation);
+      socket.on("unread-messages-count-event", handleChangeUnreadMessagesConversationCount);
+      socket.on("new-message-conversations-event", handleNewMessageCount);
+    }
+    return () => {
+      socket?.emit('unsubscribe', channel1.current);
+      socket?.emit('unsubscribe', channel2.current);
+      socket?.off("completed-conversation-event", handleCompletedConversation);
+      socket?.off("unread-messages-count-event", handleChangeUnreadMessagesConversationCount);
+      socket?.off("new-message-conversations-event", handleNewMessageCount);
     };
-
-    initPusher();
-
-    return cleanupPusher;
-  }, [selectedConversation?.id, user?.id, academyDomain, pusher]);
+  }, [selectedConversation?.id, academyDomain, user?.id, socket?.id]);
 
   useFocusEffect(
     useCallback(() => {

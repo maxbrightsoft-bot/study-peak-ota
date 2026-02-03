@@ -10,7 +10,6 @@ import CreateConversationDialog from './components/CreateConversationDialog'
 import ConversationItem from './components/ConversationItem'
 import ChatContainer from './components/ChatContainer'
 import useChatContainer from './hooks/useChatContainer'
-import usePusherConversation from './hooks/usePusherConversation'
 
 type Props = {
   isVisible: boolean
@@ -33,8 +32,6 @@ const Chat = ({ isVisible, onClose }: Props) => {
   const { isLoadingMessages, chatListProps, inputProps, chatHeaderProps, handleLoadMoreMessages } = useChatContainer({
     conversation: selectedConversation
   })
-  usePusherConversation()
-
   const renderItem = ({ item }: any) => (
     <ConversationItem
       t={t}
@@ -69,11 +66,13 @@ const Chat = ({ isVisible, onClose }: Props) => {
         </View>
         <View style={styles.contentContainer}>
           {!selectedConversation && (
-            <SearchInput
-              value={textSearch}
-              onChangeText={handleChangeTextSearch}
-              placeholder={t('search_placeholder')}
-            />
+            <View style={{ paddingHorizontal: 24 }}>
+              <SearchInput
+                value={textSearch}
+                onChangeText={handleChangeTextSearch}
+                placeholder={t('search_placeholder')}
+              />
+            </View>
           )}
           {!!selectedConversation ? (
             <ChatContainer
@@ -85,7 +84,14 @@ const Chat = ({ isVisible, onClose }: Props) => {
               chatHeaderProps={chatHeaderProps}
             />
           ) : (
-            <FlatList data={conversations} renderItem={renderItem} keyExtractor={(item) => item.id.toString()} />
+            <FlatList
+              style={{
+                paddingHorizontal: 24
+              }}
+              data={conversations}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.id.toString()}
+            />
           )}
         </View>
         {/* {!selectedConversation && (
@@ -147,8 +153,7 @@ const styles = ScaledSheet.create({
   },
   contentContainer: {
     flex: 1,
-    gap: '8@ms',
-    paddingHorizontal: '24@ms'
+    gap: '8@ms'
   },
   buttonContainer: {
     position: 'absolute',

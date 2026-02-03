@@ -1,4 +1,4 @@
-import { MessageRequest, StudentsConversationResponse } from "@/utils/types"
+import { ConversationsResponse, MessageRequest, StudentsConversationResponse } from "@/utils/types"
 
 export type Course = {
     id: number,
@@ -28,24 +28,14 @@ export interface IChatItemProps {
     conversationId?: number
 }
 
-export interface IChatHeaderProps {
+export interface IChatHeaderProps extends ConversationsResponse  {
     fullName?: string
-    examTitle?: string
-    createdAt?: string
-    durationExam?: string
-    score?: number | null
-    totalScore?: number | null
-    courseId?: number | null
-    category?: string | null
-    questionOrder?: number
-    conversationId?: number
-    isCompleted?: boolean
-    teacherName?: string
     roles?: Array<string>
 }
 
 export interface IInputChatProps {
     text: string
+    isSending: boolean
     onSubmit: (url?: string) => Promise<void>
     onChangeInput: (text: string) => void
     isCompleted?: boolean

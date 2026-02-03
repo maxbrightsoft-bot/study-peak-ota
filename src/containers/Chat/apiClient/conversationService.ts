@@ -1,4 +1,4 @@
-import { api, apiUpload } from "@/services/apiClient"
+import { api, apiUpload } from "@/services/api/apiClient"
 import { BASE_URL } from "@/utils/constants"
 import { ConversationFilter, MessageFilter, MessageRequest } from "@/utils/types"
 
