@@ -4,40 +4,43 @@ import { Formik } from 'formik'
 import CommonDialog from '@/components/ModalBase/CommonDialog'
 import { palette } from '@/theme'
 import CustomSelect from '@/components/Select/CustomSelect'
+import Loading from '@/components/Loading'
 
 interface Props {
   open: boolean
   onClose: () => void
   t: any
+  loading: boolean
   options: { label: string; value: number }[]
   onSubmit: (values: any) => void
 }
 
-const StartPageDialog = ({ t, onClose, open, options, onSubmit }: Props) => {
+const StartPageDialog = ({ t, loading, onClose, open, options, onSubmit }: Props) => {
   return (
     <CommonDialog isVisible={open} onClose={onClose} title={t('start_from_page')}>
-          <Formik initialValues={{ startPage: options[0]?.value }} onSubmit={onSubmit}>
-            {({ handleSubmit, setFieldValue, values }) => (
-              <View>
-                <View style={styles.content}>
-                  <Text style={styles.label}>{t('page_to_start_with')}</Text>
-                  <CustomSelect
-                    value={values.startPage}
-                    onValueChange={(itemValue) => setFieldValue('startPage', itemValue)}
-                    items={options}
-                  />
-                </View>
-                <View style={styles.footer}>
-                  <TouchableOpacity onPress={onClose} style={styles.cancelButton}>
-                    <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => handleSubmit()} style={styles.submitButton}>
-                    <Text style={styles.submitButtonText}>{t('start_of_the_solution')}</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-          </Formik>
+      {loading && <Loading isOverlay={false} />}
+      <Formik initialValues={{ startPage: options[0]?.value }} onSubmit={onSubmit}>
+        {({ handleSubmit, setFieldValue, values }) => (
+          <View>
+            <View>
+              <Text style={styles.label}>{t('page_to_start_with')}</Text>
+              <CustomSelect
+                value={values.startPage}
+                onValueChange={(itemValue) => setFieldValue('startPage', itemValue)}
+                options={options}
+              />
+            </View>
+            <View style={styles.footer}>
+              <TouchableOpacity onPress={onClose} style={styles.cancelButton}>
+                <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleSubmit()} style={styles.submitButton}>
+                <Text style={styles.submitButtonText}>{t('start_of_the_solution')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+      </Formik>
     </CommonDialog>
   )
 }

@@ -1,4 +1,4 @@
-import Textbook from '@/containers/Textbook'
+import Textbook from '@/containers/Textbook/view'
 
 const TextbookScreen = () => {
   return <Textbook />

@@ -2,20 +2,24 @@ import { palette, TYPO } from '@/theme'
 import React from 'react'
 import { View, StyleSheet, FlatList } from 'react-native'
 import { Text } from 'react-native-paper'
-import useTextbook from './hooks/useTextbook'
-import TextbookItem from './components/TextbookItem'
-import FilterModal from './components/Dialog/FilterModal'
-import TextbookDrawer from './components/Dialog/TextbookDrawer'
+import useTextbook from '../hooks/useTextbook'
+import TextbookItem from '../components/TextbookItem'
+import FilterModal from '../components/Dialog/FilterModal'
+import TextbookDrawer from '../components/Dialog/TextbookDrawer'
+import AudioGuideModal from '@/layouts/components/AudioGuideModal'
 
 const Textbook = () => {
   const {
     t,
     textbookList,
     openFilterModal,
+    isOpenAudioGuide,
+    handleCloseAudioGuide,
     handleCloseFilterModal,
-    handleOpenFilterModal,
+    handleOpenAudioGuide,
     selectedTextbook,
     isOpenDialog,
+    handleStartTextbookFromGuideModal,
     handleCloseDialog,
     handleOpenDialog
   } = useTextbook({})
@@ -42,7 +46,20 @@ const Textbook = () => {
         </View>
       </Button> */}
       {isOpenDialog && (
-        <TextbookDrawer isOpen={isOpenDialog} onClose={handleCloseDialog} textbookId={selectedTextbook?.id} />
+        <TextbookDrawer
+          isOpen={isOpenDialog}
+          onClose={handleCloseDialog}
+          textbookId={selectedTextbook?.id}
+          onOpenAudioGuide={handleOpenAudioGuide}
+        />
+      )}
+      {isOpenAudioGuide && (
+        <AudioGuideModal
+          open={isOpenAudioGuide}
+          audioUrls={selectedTextbook?.subject?.audioUrls ?? []}
+          onClose={handleCloseAudioGuide}
+          onStart={handleStartTextbookFromGuideModal}
+        />
       )}
       <FilterModal t={t} open={openFilterModal} onClose={handleCloseFilterModal} title="필터로 검색" />
     </View>
@@ -59,7 +76,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     margin: 24,
     gap: 24,
-    padding: 8,
+    padding: 8
   },
   startButton: {
     paddingVertical: 6,
