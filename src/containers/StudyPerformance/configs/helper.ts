@@ -21,6 +21,12 @@ export const getWeekTimestampArray = (weekNumber: number) => {
   return [...weekDays, endOfSunday];
 };
 
+export const getWeekOfMonth = (date: moment.Moment) => {
+  const startWeek = moment(date).startOf('month').week();
+  const currentWeek = moment(date).week();
+  return currentWeek - startWeek + 1;
+};
+
 export const getWeekCountOfMonth = (month: number, year: number = moment().year()) => {
   const start = moment([year, month]).startOf('month');
   const end = moment([year, month]).endOf('month');
@@ -192,6 +198,31 @@ export const rgbToHex = (r: number, g: number, b: number): string => {
   return `#${[r, g, b].map(x => x.toString(16).padStart(2, '0')).join('')}`;
 }
 
+export const hslToHex = (h: number, s: number, l: number): string => {
+  const sNorm = s / 100;
+  const lNorm = l / 100;
+  const a = sNorm * Math.min(lNorm, 1 - lNorm);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const color = lNorm - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+};
+
+export const getRandomColors = (
+  length: number,
+  _minDistance = 50,
+  _maxAttempts = 500
+): string[] => {
+  return Array.from({ length }, (_, i) => {
+    const hue = (360 / length) * i + Math.random() * (360 / length / 2);
+    const saturation = 65 + Math.random() * 20  // 65–85%
+    const lightness = 65 + Math.random() * 10   // 65–75%
+    return hslToHex(hue % 360, saturation, lightness);
+  });
+};
+
 export const getRandomRGB = (): number[] => {
   return [
     Math.floor(Math.random() * 156),
@@ -199,35 +230,6 @@ export const getRandomRGB = (): number[] => {
     Math.floor(Math.random() * 156)
   ];
 }
-
-export const getRandomColors = (
-  length: number,
-  minDistance = 50,
-  maxAttempts = 500
-): string[] => {
-  const colors: number[][] = [];
-  let attempts = 0;
-
-  while (colors.length < length && attempts < maxAttempts) {
-    const candidate = getRandomRGB();
-
-    const isFarEnough = colors.every(existing =>
-      getColorDistance(existing, candidate) >= minDistance
-    );
-
-    if (isFarEnough) {
-      colors.push(candidate);
-    }
-
-    attempts++;
-  }
-
-  while (colors.length < length) {
-    colors.push(getRandomRGB());
-  }
-
-  return colors.map(([r, g, b]) => rgbToHex(r, g, b));
-};
 
 export const getDefaultCurrentTimeOption = (t: any, timeType: number) => {
   const now = moment();

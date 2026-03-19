@@ -1,69 +1,259 @@
-import { useEffect, useRef, useState } from "react"
-import { TabList } from "../configs/constants"
-import useAuthStore from "@/store/useAuthStore"
-import { Role } from "@/utils/enums"
-import { useTranslation } from "react-i18next"
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { TabList } from '../configs/constants'
+import useAuthStore from '@/store/useAuthStore'
+import { Role } from '@/utils/enums'
+import { useTranslation } from 'react-i18next'
+import { apiUploadImageFile } from '@/containers/ExamResultList/apiClients'
+import { getErrorMessage, toast } from '@/utils/helpers'
+import { createNoteApi } from '@/containers/ExamResultList/apiClients/noteService'
+import { ConversationQuestion, ExamSessionResponse, NoteRequest } from '@/utils/types'
+import { useFocusEffect } from '@react-navigation/native'
+import {
+  getListCourseByStudentApi,
+  getListExamByCourseApi,
+  getListQuestionByExamApi
+} from '@/containers/Chat/apiClient/examService'
+import { Course } from '@/containers/Chat/configs/types'
+import { pick } from '@react-native-documents/picker'
+import { FlatList } from 'react-native'
 
 const useMyData = () => {
-    const { user, setLoading } = useAuthStore()
-    const academyDomain = user?.academyDomain
-    const isSuperAdmin = (user?.roles || []).includes(
-            Role.Admin
-        ) && !academyDomain
+  const { user, setLoading, setLoadingWithoutOverlay } = useAuthStore()
+  const academyDomain = user?.academyDomain
+  const isSuperAdmin = (user?.roles || []).includes(Role.Admin) && !academyDomain
+  const isLearningSpace = user?.isLearningSpace
+  const isAcademy = isLearningSpace || !!academyDomain
+  const isAdminOrNonAcademy = !isAcademy || isSuperAdmin
+  const contentRef = useRef<FlatList>(null)
+  const { t } = useTranslation()
+  const [selected, setSelected] = useState(TabList[0].value)
+  const [isReadyPrint, setReadyPrint] = useState(false)
+  const [isClickPrint, setClickPrint] = useState(false)
+  const [openCreateNote, setOpenCreateNote] = useState(false)
+  const [examList, setListExam] = useState<ExamSessionResponse[]>([])
+  const [courseIdSelected, setCourseIdSelected] = useState<string>()
+  const [examSessionIdSelected, setExamSessionIdSelected] = useState<string>()
+  const [questions, setQuestion] = useState<Array<ConversationQuestion>>()
+  const [courses, setCourses] = useState<Array<Course>>()
+  const [imageUrl, setImageUrl] = useState('')
 
-    const isLearningSpace = (user?.isLearningSpace
-    )
-    const isAcademy = isLearningSpace || !!academyDomain
-    const isAdminOrNonAcademy = !isAcademy || isSuperAdmin
+  const handleOpenCreateNote = () => {
+    setOpenCreateNote(true)
+  }
 
-    const contentRef = useRef<any>(null)
-    const { t } = useTranslation()
+  const handleUploadImage = async () => {
+    try {
+      const [result] = await pick({
+        mode: 'open',
+        allowVirtualFiles: true
+      })
 
-    const [selected, setSelected] = useState(TabList[0].value)
-    const [isReadyPrint, setReadyPrint] = useState(false)
-    const [isClickPrint, setClickPrint] = useState(false)
+      setLoadingWithoutOverlay(true)
+      const formData = new FormData()
+      formData.append('upload', result as any)
+      const res = await apiUploadImageFile(formData)
+      setImageUrl(res?.data?.url)
+    } catch (error) {
+      toast.error(getErrorMessage(t, error))
+    }
+    setLoadingWithoutOverlay(false)
+  }
 
-    const handlePrint = () => {
-        if (!isReadyPrint || !isClickPrint) return
+  const handleChangeExam = (value: string) => {
+    setExamSessionIdSelected(value)
+  }
 
-        setTimeout(() => {
-            handleTogglePrint()
-            setLoading(false)
-        }, 300)
+  const handleChangeCourse = (value: string) => {
+    setCourseIdSelected(value)
+  }
+
+  const handleCloseCreateNote = () => {
+    setOpenCreateNote(false)
+  }
+
+  const handlePrint = () => {
+    if (!isReadyPrint || !isClickPrint) return
+
+    setTimeout(() => {
+      handleTogglePrint()
+      setLoading(false)
+    }, 300)
+  }
+
+  const handleReadyPrint = () => {
+    setReadyPrint(true)
+  }
+
+  const handleTogglePrint = () => {
+    setClickPrint((prev) => !prev)
+  }
+
+  const handleChangeTab = (newValue: any) => {
+    setSelected(newValue)
+    setReadyPrint(false)
+    setClickPrint(false)
+  }
+
+  const handleSaveNote = async ({
+    content,
+    questionId,
+    examSessionId,
+    studentExamSessionId
+  }: {
+    content: string
+    questionId?: number
+    examSessionId: number
+    studentExamSessionId: number
+  }) => {
+    try {
+      if (content.trim().length === 0) return
+
+      const data: NoteRequest = {
+        content,
+        questionId,
+        examSessionId,
+        studentExamSessionId,
+        imageUrl
+      }
+
+      await createNoteApi(data)
+
+      toast.success(t('create_note_successfully'))
+    } catch (error) {
+      toast.error(getErrorMessage(t, error))
+    } finally {
+      handleCloseCreateNote()
+    }
+  }
+
+  const getListCourseByStudent = async () => {
+    setLoading(true)
+    try {
+      const res = await getListCourseByStudentApi({ studentId: user?.id || 0 })
+      setCourses(res.data.items || [])
+    } catch (error) {
+      toast.error(getErrorMessage(t, error))
+    }
+    setLoading(false)
+  }
+
+  const getListExamByCourse = async ({ courseId }: { courseId: string }) => {
+    setLoadingWithoutOverlay(true)
+    try {
+      const res = await getListExamByCourseApi({ courseId })
+      setListExam(res.data.items || [])
+      setExamSessionIdSelected(`${res.data.items[0]?.id}.${res.data.items[0]?.studentExamSessionId}`)
+    } catch (error) {
+      toast.error(getErrorMessage(t, error))
+    }
+    setLoadingWithoutOverlay(false)
+  }
+
+  const getListQuestionByExam = async ({ examId }: { examId: string }) => {
+    setLoadingWithoutOverlay(true)
+    try {
+      const res = await getListQuestionByExamApi({ id: examId })
+      setQuestion(res.data.items || [])
+    } catch (error) {
+      toast.error(getErrorMessage(t, error))
+    }
+    setLoadingWithoutOverlay(false)
+  }
+
+  useEffect(() => {
+    if (isClickPrint) {
+      setLoading(true)
     }
 
-    const handleReadyPrint = () => {
-        setReadyPrint(true)
-    }
+    handlePrint()
+  }, [isReadyPrint, isClickPrint])
 
-    const handleTogglePrint = () => {
-        setClickPrint(prev => !prev)
-    }
+  useEffect(() => {
+    if (!examSessionIdSelected || !openCreateNote) return
+    getListQuestionByExam({ examId: examSessionIdSelected.split('.')?.[0] })
+  }, [examSessionIdSelected, openCreateNote])
 
-    const handleChangeTab = (newValue: any) => {
-        setSelected(newValue)
-        setReadyPrint(false)
-        setClickPrint(false)
-    }
+  useEffect(() => {
+    if (!courseIdSelected || !openCreateNote) return
+    getListExamByCourse({ courseId: courseIdSelected })
+  }, [courseIdSelected, openCreateNote])
 
-    useEffect(() => {
-        if (isClickPrint) {
-            setLoading(true)
-        }
+  useEffect(() => {
+    if (!openCreateNote || !courses?.length) return
+    setCourseIdSelected(String(courses[0].id))
+  }, [JSON.stringify(courses), openCreateNote])
 
-        handlePrint()
-    }, [isReadyPrint, isClickPrint])
+  const courseOptions = useMemo(() => {
+    if (!courses) return []
+    return courses.map(({ id, name }) => ({
+      label: name,
+      value: id
+    }))
+  }, [courses])
 
-    return {
-        t,
-        selected,
-        contentRef,
-        handlePrint,
-        handleReadyPrint,
-        handleTogglePrint,
-        handleChangeTab,
-        isAdminOrNonAcademy
-    }
+  const questionOptions = useMemo(() => {
+    if (!questions || !examList) return []
+    return questions.map(({ superId, questionOrder, parentQuestionId, parentQuestionOrder = 0 }) => ({
+      label: t('question_order', {
+        number: !!parentQuestionId ? `${parentQuestionOrder + 1}.${questionOrder + 1}` : questionOrder + 1
+      }),
+      value: superId
+    }))
+  }, [questions])
+
+  const examOptions = useMemo(() => {
+    if (!examList) return []
+    return examList.map(({ id, studentExamSessionId, studentAttemptNumber, studentTotalAttemptTime, title }) => ({
+      label: `${title} ${studentTotalAttemptTime > 1 ? `#${studentAttemptNumber + 1}/${studentTotalAttemptTime}` : ''}`,
+      value: `${id}.${studentExamSessionId}`
+    }))
+  }, [examList])
+
+  useFocusEffect(
+    useCallback(() => {
+      getListCourseByStudent()
+      setSelected(TabList[0].value)
+      contentRef.current?.scrollToOffset({
+        offset: 0,
+        animated: true
+      })
+      return () => {
+        setOpenCreateNote(false)
+        setExamSessionIdSelected(undefined)
+        setCourseIdSelected(undefined)
+        setQuestion(undefined)
+        setImageUrl('')
+        setListExam([])
+      }
+    }, [])
+  )
+
+  return {
+    t,
+    selected,
+    contentRef,
+    handlePrint,
+    examOptions,
+    examList,
+    imageUrl,
+    questions,
+    academyDomain,
+    courseOptions,
+    examSessionIdSelected,
+    handleChangeExam,
+    handleChangeCourse,
+    questionOptions,
+    handleSaveNote,
+    handleReadyPrint,
+    handleTogglePrint,
+    handleChangeTab,
+    openCreateNote,
+    courseIdSelected,
+    handleUploadImage,
+    handleOpenCreateNote,
+    handleCloseCreateNote,
+    isAdminOrNonAcademy
+  }
 }
 
 export default useMyData

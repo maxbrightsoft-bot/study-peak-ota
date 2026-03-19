@@ -3,7 +3,7 @@ import { ceilTo } from '@/utils/helpers'
 import { MaterialIcons } from '@expo/vector-icons'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { View, Text, Pressable, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { Divider } from 'react-native-paper'
 import { MILLISECONDS_PER_HOUR } from '../configs/constants'
 import { sum } from '../configs/helper'
@@ -45,33 +45,37 @@ const TodayStudyTimeCard: React.FC<Props> = ({ data, isTimerTab, onOpen }) => {
         <Text style={[styles.changeText, { color }]}>
           {`${value >= 0 ? '+' : '-'}${ceilTo(Math.abs(value), 2)}${suffix}`}
         </Text>
-        {arrow && <Text style={{ color, fontSize: 16, marginLeft: 4 }}>{arrow}</Text>}
+        {arrow && <Text style={{ color, fontSize: 16}}>{arrow}</Text>}
       </View>
     )
   }
 
   return (
-    <View style={styles.wrapper}>
-      <View style={[styles.card, { borderColor: palette.main[500] }]}>
+    <TouchableOpacity style={styles.wrapper} onPress={onOpen}>
+      <View style={[styles.card]}>
         <View style={styles.content}>
           <View style={styles.headerRow}>
-            <Text style={[styles.title, { color: palette.grey[900] }]}>{t('today_net_study_time')}</Text>
+            <Text style={[styles.title, { color: '#FFF' }]}>{t('today_net_study_time')}</Text>
             <View style={styles.timeRow}>
-              <Text style={[styles.timeValue, { color: palette.grey[900] }]}>{ceilTo(currentValue, 2)}</Text>
-              <Text style={[styles.timeUnit, { color: palette.grey[500] }]}>{isTimerTab ? t('hour') : '%'}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Text style={[styles.timeValue, { color: '#FFF' }]}>{ceilTo(currentValue, 2)}</Text>
+                <Text style={[styles.timeUnit, { color: '#FFF' }]}>{isTimerTab ? t('hour') : '%'}</Text>
+              </View>
+              <View style={{ backgroundColor: palette.main[400], width: 1, height: 14 }} />
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Text style={[styles.subValue, { color: '#FFF' }]}>{t('compared_to_yesterday')}</Text>
+                {renderChangeText(change, isTimerTab ? t('hour') : '%')}
+              </View>
             </View>
           </View>
-          <Divider />
+          <Divider style={{ backgroundColor: palette.main[500] }} />
           <View style={styles.bottomRow}>
+            <Text style={[styles.subValue, { color: '#FFF' }]}>
+              {isTimerTab ? t('accumulated') : t('total_number_questions_solved')}
+            </Text>
+
             <View style={styles.timeRow}>
-              <Text style={[styles.subValue, { color: palette.grey[500] }]}>{t('compared_to_yesterday')}</Text>
-              {renderChangeText(change, isTimerTab ? t('hour') : '%')}
-            </View>
-            <View style={styles.timeRow}>
-              <Text style={[styles.subValue, { color: palette.grey[500] }]}>
-                {isTimerTab ? t('accumulated') : t('total_number_questions_solved')}
-              </Text>
-              <Text style={[styles.subUnit, { color: palette.grey[900] }]}>
+              <Text style={[styles.subUnit, { color: '#FFF' }]}>
                 {isTimerTab ? (
                   `${accumulatedTime}${t('hour')}`
                 ) : (
@@ -84,24 +88,19 @@ const TodayStudyTimeCard: React.FC<Props> = ({ data, isTimerTab, onOpen }) => {
             </View>
           </View>
         </View>
-        <Pressable onPress={onOpen}>
-          <Text style={[styles.moreText, { color: palette.main[500] }]}>더보기</Text>
-        </Pressable>
       </View>
-    </View>
+    </TouchableOpacity>
   )
 }
 
 export default TodayStudyTimeCard
 
 const styles = StyleSheet.create({
-  wrapper: {
-    marginBottom: 100
-  },
+  wrapper: {},
   card: {
-    borderWidth: 1,
-    padding: 16,
-    borderRadius: 6,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: palette.main[600],
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -109,7 +108,7 @@ const styles = StyleSheet.create({
   },
   content: {
     gap: 8,
-    flex: 1,
+    flex: 1
   },
   headerRow: {
     flexDirection: 'row',
@@ -123,7 +122,7 @@ const styles = StyleSheet.create({
   timeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4
+    gap: 8
   },
   timeValue: {
     fontSize: 16,
@@ -149,11 +148,11 @@ const styles = StyleSheet.create({
   },
   subUnit: {
     fontSize: 14,
-    fontWeight: '600'
+    fontWeight: '400'
   },
   moreText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '700'
   },
   changeRow: {
     flexDirection: 'row',
@@ -165,6 +164,6 @@ const styles = StyleSheet.create({
   },
   unitText: {
     fontSize: 14,
-    color: palette.grey[500]
+    color: "#FFF"
   }
 })

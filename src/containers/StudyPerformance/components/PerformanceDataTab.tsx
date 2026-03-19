@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, ScrollView, StyleSheet, ActivityIndicator, Text } from 'react-native'
+import { View, FlatList, StyleSheet, ActivityIndicator, Text } from 'react-native'
 import TimePeriodSelector from './TimePeriodSelector'
 import { Mode, timeTypeOptions } from '../configs/constants'
 import StudyTimeChart from './StudyTimeChart'
@@ -16,7 +16,7 @@ import TodayStudyTimeCard from './TodayStudyTimeCard'
 
 type Props = {
   studentId?: number
-  contentRef?: React.RefObject<any>
+  contentRef?: React.RefObject<FlatList>
   studentInfo?: StudentInfo
   handleReadyPrint: () => void
 }
@@ -35,6 +35,9 @@ const PerformanceData = ({ studentId, contentRef, studentInfo, handleReadyPrint 
     loadingRankingData,
     loadingSubjectCumulativeData,
     subjectOptions,
+    handlePrevious,
+    handleNext,
+    isDisableNavigation,
     currentTimeOptions,
     selectedSubject,
     handleChangeSubject,
@@ -71,23 +74,68 @@ const PerformanceData = ({ studentId, contentRef, studentInfo, handleReadyPrint 
     loadingSubjects
   ])
 
-  const colors = {
-    gray50: '#f9fafb',
-    gray100: '#f3f4f6',
-    white: '#ffffff'
+  const sections = [
+    { key: 'study_time_chart' },
+    ...(studyTimeDistributionData.length ? [{ key: 'subject_distribution' }] : []),
+    { key: 'subject_statics' }
+  ]
+
+  const renderItem = ({ item }: { item: { key: string } }) => {
+    switch (item.key) {
+      case 'study_time_chart':
+        return (
+          <View style={styles.section}>
+            {!data || loadingSubjects || loadingData ? (
+              <View style={[styles.paper, styles.chartPlaceholder]}>
+                <ActivityIndicator size="large" color="#0000ff" />
+              </View>
+            ) : (
+              <StudyTimeChart
+                data={data}
+                loading={loadingSubjects || loadingData}
+                isTimerTab={false}
+                currentTime={currentTime}
+                isDisableNavigation={isDisableNavigation}
+                onNext={handleNext}
+                onPrevious={handlePrevious}
+                renderChart={() => setRenderStudyTimeChart(true)}
+                overallData={overallData}
+                timeType={timeType}
+                label={labelStudyTimeChart}
+                categories={categoryStudyTimeCharts}
+              />
+            )}
+          </View>
+        )
+
+      case 'subject_distribution':
+        return (
+          <View style={styles.section}>
+            <SubjectDistribution
+              loading={loadingSubjects || loadingSubjectData}
+              isTimerTab={false}
+              data={studyTimeDistributionData}
+              colorSubjects={colorSubjects}
+            />
+          </View>
+        )
+
+      case 'subject_statics':
+        return (
+          <View style={styles.section}>
+            <SubjectStatics loading={loadingSubjects || loadingSubjectData} data={studyTimeDistributionData} />
+          </View>
+        )
+
+      default:
+        return null
+    }
   }
 
-  if (loadingSubjects || loadingData) {
-    return (
-      <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    )
-  }
-
-  const renderMainContent = () => (
-    <View style={{ ...styles.mainContent, padding: 24, gap: 24 }}>
-      <View style={{ ...styles.section, backgroundColor: '#FFF', zIndex: 10 }}>
+  return (
+    <View style={[styles.container, { backgroundColor: '#f9fafb' }]}>
+      <TodayStudyTimeCard data={subjectCumulativeData} onOpen={handleToggle} />
+      <View style={{ ...styles.section, padding: 24, backgroundColor: '#FFF', zIndex: 10 }}>
         <TimePeriodSelector
           timeType={timeType}
           handleChangeTimeType={handleChangeTimeType}
@@ -100,73 +148,31 @@ const PerformanceData = ({ studentId, contentRef, studentInfo, handleReadyPrint 
           currentTimeOptions={currentTimeOptions}
         />
       </View>
-
-      <View style={styles.section}>
-        {!data || loadingSubjects || loadingData ? (
-          <View style={[styles.paper, styles.chartPlaceholder]}>
-            <ActivityIndicator size="large" color="#0000ff" />
-          </View>
-        ) : (
-          <StudyTimeChart
-            data={data}
-            loading={loadingSubjects || loadingData}
-            isTimerTab={false}
-            renderChart={() => setRenderStudyTimeChart(true)}
-            overallData={overallData}
-            timeType={timeType}
-            label={labelStudyTimeChart}
-            categories={categoryStudyTimeCharts}
-          />
-        )}
-      </View>
-
-      <View style={styles.section}>
-        <SubjectDistribution
-          loading={loadingSubjects || loadingSubjectData}
-          isTimerTab={false}
-          data={studyTimeDistributionData}
-          colorSubjects={colorSubjects}
-        />
-      </View>
-
-      <View style={styles.section}>
-        <SubjectStatics loading={loadingSubjects || loadingSubjectData} data={studyTimeDistributionData} />
-      </View>
-      <TodayStudyTimeCard data={subjectCumulativeData} onOpen={handleToggle} />
-    </View>
-  )
-
-  return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.gray50 }]}>
-      <View style={styles.layout}>
-        {renderMainContent()}
-        <TodayStudyDrawer
-          isOpen={visible}
-          isTimerTab={false}
-          onClose={handleToggle}
-          loadingRankingData={loadingRankingData}
-          loadingSubjectCumulativeData={loadingSubjectCumulativeData}
-          subjectCumulativeData={subjectCumulativeData}
-          subjectStudyTimeData={subjectCumulativeData}
-          rankingData={rankingData}
-        />
-      </View>
-      {/* <View style={styles.sidebar}>
-        <View style={[styles.sidebarContainer, { borderColor: colors.gray100 }]}>
-          <TodayStudyTime
-            loading={loadingSubjects || loadingSubjectCumulativeData}
-            isTimerTab={false}
-            data={subjectCumulativeData}
-          />
-          <View style={styles.divider} />
-          <Achievements loading={loadingSubjects || loadingRankingData} isTimerTab={false} data={rankingData} />
-        </View>
-      </View> */}
+      <FlatList
+        ref={contentRef}
+        data={sections}
+        keyExtractor={(item) => item.key}
+        renderItem={renderItem}
+        contentContainerStyle={{ paddingBottom: 800, gap: 10, backgroundColor: palette.main[50], paddingHorizontal: 24, paddingTop: 24 }}
+        ListFooterComponent={
+          visible ? (
+            <TodayStudyDrawer
+              isOpen={visible}
+              isTimerTab={false}
+              onClose={handleToggle}
+              loadingRankingData={loadingRankingData}
+              loadingSubjectCumulativeData={loadingSubjectCumulativeData}
+              subjectCumulativeData={subjectCumulativeData}
+              subjectStudyTimeData={subjectCumulativeData}
+              rankingData={rankingData}
+            />
+          ) : null
+        }
+      />
 
       <View style={styles.hiddenContent}>
-        <View ref={contentRef} style={styles.printContent}>
+        <View style={styles.printContent}>
           <InforPrint studentInfo={studentInfo} />
-
           <View style={styles.printGrid}>
             <View style={styles.paper}>
               <View style={styles.row}>
@@ -192,6 +198,10 @@ const PerformanceData = ({ studentId, contentRef, studentInfo, handleReadyPrint 
                 loading={loadingSubjects || loadingData}
                 isTimerTab={false}
                 isPrint
+                onPrevious={handlePrevious}
+                onNext={handleNext}
+                currentTime={currentTime}
+                isDisableNavigation={isDisableNavigation}
                 renderChart={() => setRenderStudyTimeChart(true)}
                 overallData={overallData}
                 timeType={timeType}
@@ -200,14 +210,16 @@ const PerformanceData = ({ studentId, contentRef, studentInfo, handleReadyPrint 
               />
             </View>
 
-            <View style={styles.section}>
-              <SubjectDistribution
-                loading={loadingSubjects || loadingSubjectData}
-                isTimerTab={false}
-                data={studyTimeDistributionData}
-                colorSubjects={colorSubjects}
-              />
-            </View>
+            {!!studyTimeDistributionData.length && (
+              <View style={styles.section}>
+                <SubjectDistribution
+                  loading={loadingSubjects || loadingSubjectData}
+                  isTimerTab={false}
+                  data={studyTimeDistributionData}
+                  colorSubjects={colorSubjects}
+                />
+              </View>
+            )}
 
             <View style={styles.section}>
               <SubjectStatics loading={loadingSubjects || loadingSubjectData} data={studyTimeDistributionData} />
@@ -226,7 +238,7 @@ const PerformanceData = ({ studentId, contentRef, studentInfo, handleReadyPrint 
           </View>
         </View>
       </View>
-    </ScrollView>
+    </View>
   )
 }
 
@@ -234,19 +246,8 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: palette.grey[50]
   },
-  centerContent: {
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  layout: {
-    display: 'flex',
-    flexDirection: 'column'
-  },
+  section: {},
   mainContent: {
-    width: '100%',
-    gap: '24@ms'
-  },
-  sidebar: {
     width: '100%'
   },
   sidebarContainer: {
@@ -254,7 +255,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 1
   },
-  section: {},
   paper: {
     backgroundColor: '#FFF',
     borderRadius: 4,
@@ -277,8 +277,8 @@ const styles = StyleSheet.create({
   },
   hiddenContent: {
     position: 'absolute',
-    top: -1000,
     left: 0,
+    pointerEvents: 'none',
     opacity: 0
   },
   printContent: {

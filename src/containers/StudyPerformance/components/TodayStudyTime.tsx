@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, Text, ActivityIndicator } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import Svg, { Circle } from 'react-native-svg'
+import Svg, { Circle, G } from 'react-native-svg'
 import { palette } from '@/theme'
 import { MaterialIcons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -16,17 +16,56 @@ type Props = {
   isPrint?: boolean
 }
 
-const CircularProgress = ({ value, size = 150, stroke = 8, mainColor, restColor, children }: any) => {
+const CircularProgress = ({
+  value,
+  size = 180,
+  stroke = 18,
+  mainColor = palette.sub[400],
+  restColor = palette.sub[50],
+  children
+}: any) => {
   const radius = (size - stroke) / 2
   const circumference = 2 * Math.PI * radius
-  const offset = circumference - (value / 100) * circumference
+
+  const ARC_ANGLE = 300
+  const START_ANGLE = 120
+  const DOT_COUNT = 30
+  const dotRadius = 1
+
+  const arcLength = (ARC_ANGLE / 360) * circumference
+
+  const progress = Math.min(Math.max(value, 0), 100)
+  const progressLength = (progress / 100) * arcLength
+  const dashOffset = arcLength - progressLength
+
+  const renderDots = () => {
+    return Array.from({ length: DOT_COUNT }).map((_, i) => {
+      const dotPathRadius = radius - stroke
+      const angle = ((START_ANGLE + (ARC_ANGLE * i) / (DOT_COUNT - 1)) * Math.PI) / 180
+
+      const cx = size / 2 + dotPathRadius * Math.cos(angle)
+
+      const cy = size / 2 + dotPathRadius * Math.sin(angle)
+
+      return <Circle key={i} cx={cx} cy={cy} r={dotRadius} fill={mainColor} />
+    })
+  }
 
   return (
     <View style={{ width: size, height: size }}>
-      <Svg width={size} height={size} style={styles.svg}>
-        <Circle cx={size / 2} cy={size / 2} r={radius} stroke={restColor} strokeWidth={stroke} fill="transparent" />
-      </Svg>
-      <Svg width={size} height={size} style={[styles.svg, styles.progressSvg]}>
+      <Svg width={size} height={size}>
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={restColor}
+          strokeWidth={stroke}
+          fill="transparent"
+          strokeDasharray={`${arcLength} ${circumference}`}
+          strokeLinecap="round"
+          transform={`rotate(${START_ANGLE} ${size / 2} ${size / 2})`}
+        />
+
         <Circle
           cx={size / 2}
           cy={size / 2}
@@ -34,14 +73,26 @@ const CircularProgress = ({ value, size = 150, stroke = 8, mainColor, restColor,
           stroke={mainColor}
           strokeWidth={stroke}
           fill="transparent"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
+          strokeDasharray={`${arcLength} ${circumference}`}
+          strokeDashoffset={dashOffset}
           strokeLinecap="round"
-          transform={`rotate(-90, ${size / 2}, ${size / 2})`}
+          transform={`rotate(${START_ANGLE} ${size / 2} ${size / 2})`}
         />
+
+        {renderDots()}
       </Svg>
 
-      <View style={[styles.center, { width: size, height: size }]}>{children}</View>
+      <View
+        style={{
+          width: size,
+          height: size,
+          position: 'absolute',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
+        {children}
+      </View>
     </View>
   )
 }
@@ -67,8 +118,8 @@ const TodayStudyTime = ({ data, loading, isTimerTab = true, isPrint }: Props) =>
 
   const isIncrease = change > 0
 
-  const mainColor = isIncrease ? palette.main[700] : palette.main[500]
-  const restColor = isIncrease ? palette.main[500] : isTimerTab || change === 0 ? palette.grey[300] : palette.error.main
+  const mainColor = isIncrease ? palette.main[600] : palette.sub[400]
+  const restColor = isIncrease ? palette.main[600] : isTimerTab || change === 0 ? palette.sub[50] : palette.error.main
 
   const ratio = isIncrease
     ? ((lastValue ? change || 0 : 1) / (!!lastValue ? lastValue : 1)) * 100
@@ -77,19 +128,17 @@ const TodayStudyTime = ({ data, loading, isTimerTab = true, isPrint }: Props) =>
   const clampedRatio = Math.min(ratio, 100)
 
   const renderChangeText = (value: number, suffix = '') => {
-    const color = value >= 0 ? palette.success.main : palette.error.main
+    const color = value >= 0 ? palette.main[600] : palette.error.main
     const arrow =
       value > 0 ? (
-        <MaterialIcons name="arrow-drop-up" size={24} color={palette.success.main} />
+        <MaterialIcons name="arrow-drop-up" size={24} color={palette.main[600]} />
       ) : value < 0 ? (
         <MaterialIcons name="arrow-drop-down" size={24} color={palette.error.main} />
       ) : null
 
     return (
       <View style={styles.changeRow}>
-        <Text style={[styles.changeText, { color }]}>
-          {`${value >= 0 ? '+' : '-'}${ceilTo(Math.abs(value), 2)}${suffix}`}
-        </Text>
+        <Text style={[styles.changeText, { color }]}>{`${ceilTo(Math.abs(value), 2)}${suffix}`}</Text>
         {arrow && <Text style={{ color, fontSize: 16, marginLeft: 4 }}>{arrow}</Text>}
       </View>
     )
@@ -99,34 +148,36 @@ const TodayStudyTime = ({ data, loading, isTimerTab = true, isPrint }: Props) =>
     <View style={styles.detailsContainer}>
       <Text style={styles.title}>{isTimerTab ? t('today_net_study_time') : t('today_correct_answer_rate')}</Text>
 
-      <View style={styles.detailRow}>
-        <Text style={styles.detailLabel}>{t('compared_to_yesterday')}</Text>
-        {renderChangeText(change, isTimerTab ? t('hour') : '%')}
-      </View>
-
-      <View style={styles.detailRow}>
-        <Text style={styles.detailLabel}>{isTimerTab ? t('accumulated') : t('total_number_questions_solved')}</Text>
-        <Text style={styles.detailValue}>
-          {isTimerTab ? (
-            `${accumulatedTime}${t('hour')}`
-          ) : (
-            <>
-              {totalAnsweredQuestions}
-              <Text style={styles.unitText}>{` ${t('question(s)')}`}</Text>
-            </>
-          )}
-        </Text>
-      </View>
-
-      {!isTimerTab && (
+      <View style={{ gap: 4 }}>
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>{t('cumulative_correct_answer_rate')}</Text>
-          <Text style={[styles.detailValue, { fontWeight: '700' }]}>
-            {`${roundTo(data.totalCorrectRate, 2)}`}
-            <Text style={styles.unitText}>%</Text>
+          <Text style={styles.detailLabel}>{t('compared_to_yesterday')}</Text>
+          {renderChangeText(change, isTimerTab ? t('hour') : '%')}
+        </View>
+
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>{isTimerTab ? t('accumulated') : t('total_number_questions_solved')}</Text>
+          <Text style={styles.detailValue}>
+            {isTimerTab ? (
+              `${accumulatedTime}${t('hour')}`
+            ) : (
+              <>
+                {totalAnsweredQuestions}
+                <Text style={styles.unitText}>{` ${t('question(s)')}`}</Text>
+              </>
+            )}
           </Text>
         </View>
-      )}
+
+        {!isTimerTab && (
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>{t('cumulative_correct_answer_rate')}</Text>
+            <Text style={[styles.detailValue, { fontWeight: '700' }]}>
+              {`${roundTo(data.totalCorrectRate, 2)}`}
+              <Text style={styles.unitText}>%</Text>
+            </Text>
+          </View>
+        )}
+      </View>
     </View>
   )
 
@@ -162,7 +213,8 @@ const styles = ScaledSheet.create({
   container: {
     padding: '16@ms',
     borderBottomWidth: 1,
-    borderBottomColor: palette.grey[100]
+    borderBottomColor: palette.grey[100],
+    alignItems: 'center'
   },
   loadingContainer: {
     height: 150,
@@ -171,7 +223,8 @@ const styles = ScaledSheet.create({
   },
   content: {
     flexDirection: 'row',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
+    gap: 24
   },
   progressSection: {},
   detailsSection: {
@@ -218,14 +271,14 @@ const styles = ScaledSheet.create({
     gap: 8
   },
   detailLabel: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
     color: palette.grey[500]
   },
   detailValue: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
-    color: palette.grey[900]
+    color: "#222222"
   },
   unitText: {
     fontSize: 14,

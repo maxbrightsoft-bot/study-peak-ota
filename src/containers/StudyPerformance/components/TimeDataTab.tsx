@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { View, ScrollView, StyleSheet, Text } from 'react-native'
+import React, { useEffect, useState, useRef } from 'react'
+import { View, FlatList, StyleSheet, Text } from 'react-native'
 import TimePeriodSelector from './TimePeriodSelector'
 import StudyTimeChart from './StudyTimeChart'
 import SubjectDistribution from './SubjectDistribution'
@@ -15,7 +15,7 @@ import TodayStudyDrawer from './TodayStudyDrawer'
 
 type Props = {
   studentId?: number
-  contentRef?: React.RefObject<any>
+  contentRef?: React.RefObject<FlatList>
   studentInfo?: StudentInfo
   handleReadyPrint: () => void
 }
@@ -29,9 +29,11 @@ const TimeData = ({ studentId, contentRef, studentInfo, handleReadyPrint }: Prop
     loadingData,
     visible,
     handleToggle,
+    handlePrevious,
+    handleNext,
+    isDisableNavigation,
     loadingSubjectData,
     loadingRankingData,
-    titleTooltipChart,
     loadingSubjectCumulativeData,
     categoryStudyTimeCharts,
     labelStudyTimeChart,
@@ -58,7 +60,6 @@ const TimeData = ({ studentId, contentRef, studentInfo, handleReadyPrint }: Prop
       !loadingSubjectCumulativeData
 
     if (!isReady) return
-
     handleReadyPrint()
   }, [
     isRenderStudyTimeChart,
@@ -69,8 +70,62 @@ const TimeData = ({ studentId, contentRef, studentInfo, handleReadyPrint }: Prop
     loadingSubjectCumulativeData
   ])
 
-  const renderMainContent = () => (
-    <View style={styles.mainContent}>
+  const sections = [
+    { key: 'study_time_chart' },
+    ...(studyTimeDistributionData.length ? [{ key: 'subject_distribution' }] : []),
+    { key: 'comparison_chart' }
+  ]
+
+  const renderItem = ({ item }: { item: { key: string } }) => {
+    switch (item.key) {
+      case 'study_time_chart':
+        return data ? (
+          <View style={styles.section}>
+            <StudyTimeChart
+              data={data}
+              timeType={timeType}
+              onPrevious={handlePrevious}
+              onNext={handleNext}
+              currentTime={currentTime}
+              isDisableNavigation={isDisableNavigation}
+              loading={loadingData}
+              label={labelStudyTimeChart}
+              categories={categoryStudyTimeCharts}
+            />
+          </View>
+        ) : null
+
+      case 'subject_distribution':
+        return (
+          <View style={styles.section}>
+            <SubjectDistribution
+              loading={loadingSubjectData}
+              data={studyTimeDistributionData}
+              colorSubjects={colorSubjects}
+            />
+          </View>
+        )
+
+      case 'comparison_chart':
+        return (
+          <View style={styles.section}>
+            <ComparisonChart
+              loading={loadingSubjectData}
+              label={labelComparisonChart}
+              data={studyTimeDistributionData}
+              colorSubjects={colorSubjects}
+            />
+          </View>
+        )
+
+      default:
+        return null
+    }
+  }
+
+  return (
+    <View style={styles.container}>
+      <TodayStudyTimeCard data={subjectCumulativeData} isTimerTab onOpen={() => handleToggle()} />
       <View style={{ ...styles.section, padding: 24, backgroundColor: '#FFF', zIndex: 10 }}>
         <TimePeriodSelector
           timeType={timeType}
@@ -81,57 +136,32 @@ const TimeData = ({ studentId, contentRef, studentInfo, handleReadyPrint }: Prop
           currentTimeOptions={getCurrentTimeOptions(t, timeType)}
         />
       </View>
-      <View style={{ padding: 24, gap: 24 }}>
-        <View style={styles.section}>
-          {data && (
-            <StudyTimeChart
-              data={data}
-              timeType={timeType}
-              loading={loadingData}
-              label={labelStudyTimeChart}
-              categories={categoryStudyTimeCharts}
-            />
-          )}
-        </View>
-
-        <View style={styles.section}>
-          <SubjectDistribution
-            loading={loadingSubjectData}
-            data={studyTimeDistributionData}
-            colorSubjects={colorSubjects}
+      <FlatList
+        ref={contentRef}
+        data={sections}
+        keyExtractor={(item) => item.key}
+        renderItem={renderItem}
+        contentContainerStyle={{
+          paddingBottom: 600,
+          gap: 10,
+          backgroundColor: palette.bg[100],
+          paddingHorizontal: 24,
+          paddingTop: 24
+        }}
+        ListFooterComponent={
+          <TodayStudyDrawer
+            isOpen={visible}
+            onClose={handleToggle}
+            loadingRankingData={loadingRankingData}
+            loadingSubjectCumulativeData={loadingSubjectCumulativeData}
+            subjectCumulativeData={subjectCumulativeData}
+            subjectStudyTimeData={subjectStudyTimeData}
+            rankingData={rankingData}
           />
-        </View>
-
-        <View style={styles.section}>
-          <ComparisonChart
-            loading={loadingSubjectData}
-            label={labelComparisonChart}
-            titleTooltip={titleTooltipChart}
-            data={studyTimeDistributionData}
-            colorSubjects={colorSubjects}
-          />
-        </View>
-        <TodayStudyTimeCard data={subjectCumulativeData} isTimerTab onOpen={handleToggle} />
-      </View>
-    </View>
-  )
-
-  return (
-    <ScrollView style={styles.container}>
-      <View style={styles.layout}>
-        {renderMainContent()}
-        <TodayStudyDrawer
-          isOpen={visible}
-          onClose={handleToggle}
-          loadingRankingData={loadingRankingData}
-          loadingSubjectCumulativeData={loadingSubjectCumulativeData}
-          subjectCumulativeData={subjectCumulativeData}
-          subjectStudyTimeData={subjectStudyTimeData}
-          rankingData={rankingData}
-        />
-      </View>
+        }
+      />
       <View style={styles.hiddenContent}>
-        <View ref={contentRef} style={styles.printContent}>
+        <View style={styles.printContent}>
           <InforPrint studentInfo={studentInfo} />
           <View style={styles.printGrid}>
             <View style={styles.paper}>
@@ -152,6 +182,10 @@ const TimeData = ({ studentId, contentRef, studentInfo, handleReadyPrint }: Prop
                 <StudyTimeChart
                   data={data}
                   isPrint
+                  onPrevious={handlePrevious}
+                  onNext={handleNext}
+                  currentTime={currentTime}
+                  isDisableNavigation={isDisableNavigation}
                   timeType={timeType}
                   loading={loadingData}
                   label={labelStudyTimeChart}
@@ -160,13 +194,15 @@ const TimeData = ({ studentId, contentRef, studentInfo, handleReadyPrint }: Prop
               )}
             </View>
 
-            <View style={styles.section}>
-              <SubjectDistribution
-                loading={loadingSubjectData}
-                data={studyTimeDistributionData}
-                colorSubjects={colorSubjects}
-              />
-            </View>
+            {!!studyTimeDistributionData.length && (
+              <View style={styles.section}>
+                <SubjectDistribution
+                  loading={loadingSubjectData}
+                  data={studyTimeDistributionData}
+                  colorSubjects={colorSubjects}
+                />
+              </View>
+            )}
 
             <View style={styles.section}>
               <ComparisonChart
@@ -174,7 +210,6 @@ const TimeData = ({ studentId, contentRef, studentInfo, handleReadyPrint }: Prop
                 isPrint
                 renderChart={() => setRenderComparisonChart(true)}
                 label={labelComparisonChart}
-                titleTooltip={titleTooltipChart}
                 data={studyTimeDistributionData}
                 colorSubjects={colorSubjects}
               />
@@ -183,7 +218,7 @@ const TimeData = ({ studentId, contentRef, studentInfo, handleReadyPrint }: Prop
           </View>
         </View>
       </View>
-    </ScrollView>
+    </View>
   )
 }
 
@@ -191,31 +226,12 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: palette.grey[50]
   },
-  layout: {
-    display: 'flex',
-    flexDirection: 'column'
-  },
-  mainContent: {
-  },
-  sidebar: {
-    display: 'flex',
-  },
-  sidebarContainer: {
-    backgroundColor: '#FFF',
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: palette.grey[100]
-  },
   section: {},
-  divider: {
-    height: 1,
-    backgroundColor: palette.grey[100]
-  },
   hiddenContent: {
     position: 'absolute',
-    top: -1000,
     left: 0,
-    opacity: 0
+    opacity: 0,
+    pointerEvents: 'none'
   },
   printContent: {
     width: '100%'
@@ -238,7 +254,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
   col: {
-    display: 'flex',
     flex: 1,
     paddingHorizontal: 8
   },
