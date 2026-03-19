@@ -8,16 +8,24 @@ import useAuthStore from "@/store/useAuthStore";
 
 const useDialog = () => {
   const { t } = useTranslation()
-  const { setLoading } = useAuthStore()
+  const { setLoadingWithoutOverlay } = useAuthStore()
   const [openDialog, setOpenDialog] = useState<boolean>(false);
+  const [openConfirmDialog, setOpenConfirmDialog] = useState<boolean>(false);
+  const [selectedItem, setSelectedItem] = useState<any>()
   const [selectedFile, setSelectedFile] = useState<MessageRequest | null>();
 
-  const toggleDialog = () => {
+  const toggleDialog = (item?: any) => {
+    item && setSelectedItem(item)
     setOpenDialog((state) => !state);
   };
 
+  const toggleConfirmDialog = (item?: any) => {
+    item && setSelectedItem(item)
+    setOpenConfirmDialog((state) => !state);
+  };
+
+
   const handleConfirm = async (conversationId: number) => {
-    setLoading(true)
     try {
       await completeConversation(conversationId)
       toggleDialog()
@@ -25,12 +33,11 @@ const useDialog = () => {
     } catch (error) {
       toast.error(getErrorMessage(t, error, t("fail_to_complete_conversation")))
     }
-    setLoading(false)
   }
 
   const handleUploadImage = async () => {
     try {
-
+      setLoadingWithoutOverlay(true)
       const [result] = await pick({
         mode: 'open',
         allowVirtualFiles: true
@@ -44,13 +51,18 @@ const useDialog = () => {
     } catch (error) {
       toast.error(getErrorMessage(t, error))
     }
+    finally {
+      setLoadingWithoutOverlay(false)
+    }
   }
 
-
   return {
+    selectedItem,
     selectedFile,
     openDialog,
     toggleDialog,
+    openConfirmDialog,
+    toggleConfirmDialog,
     handleConfirm,
     handleUploadImage
   }

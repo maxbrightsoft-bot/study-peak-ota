@@ -9,6 +9,7 @@ import { ScaledSheet } from 'react-native-size-matters'
 import { Ionicons } from '@expo/vector-icons'
 import TextField from '@/components/Input/TextField'
 import { getSafeUrl } from '@/utils/helpers'
+import { Shadow } from 'react-native-shadow-2'
 
 type Props = {
   open: boolean
@@ -57,7 +58,9 @@ const UpdateMessageDialog: React.FC<Props> = ({
         >
           {({ setFieldValue, handleSubmit }) => (
             <>
-              <Text variant="labelLarge" style={{ color: palette.grey[700]}}>{t('questions_to_ask')}</Text>
+              <Text variant="labelLarge" style={{ color: palette.grey[700], paddingBottom: 8 }}>
+                {t('questions_to_ask')}
+              </Text>
               <Field
                 style={{ paddingRight: '40px' }}
                 name="content"
@@ -80,11 +83,19 @@ const UpdateMessageDialog: React.FC<Props> = ({
         </Formik>
       ) : (
         <View>
-          <View style={{ display: 'flex', flexDirection: 'column', gap: '8px', justifyContent: "center" }}>
-            <Image
-              source={{ uri: getSafeUrl(selectedFile?.content || content) }}
-              style={{ width: 300, height: 300, objectFit: 'contain' }}
-            />
+          <View style={{ display: 'flex', flexDirection: 'column', gap: '8px', justifyContent: 'center' }}>
+            <Shadow
+              stretch
+              startColor="rgba(0,0,0,0.035)"
+              endColor="rgba(0,0,0,0)"
+              offset={[0, 1]}
+              distance={10}
+            >
+              <Image
+                source={{ uri: getSafeUrl(selectedFile?.content || content) }}
+                style={{ width: 300, height: 300, objectFit: 'contain' }}
+              />
+            </Shadow>
             <TouchableOpacity style={styles.attachmentButton} onPress={handleUploadImage}>
               <Ionicons name="add-circle" size={32} color={palette.grey[500]} />
               <Text>{t('attachment')}</Text>
@@ -94,7 +105,10 @@ const UpdateMessageDialog: React.FC<Props> = ({
             <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>
               <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, styles.confirmButton]} onPress={() => handleUpdateMessage(selectedFile?.content)}>
+            <TouchableOpacity
+              style={[styles.button, styles.confirmButton]}
+              onPress={() => handleUpdateMessage(selectedFile?.content || content)}
+            >
               <Text style={styles.confirmButtonText}>{t('registration')}</Text>
             </TouchableOpacity>
           </View>
@@ -128,33 +142,29 @@ const styles = ScaledSheet.create({
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: '16@ms',
-    borderTopWidth: 1,
-    borderTopColor: palette.grey[200]
+    paddingBottom: '16@ms',
+    paddingTop: '24@ms'
   },
   attachmentButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: "8@ms",
-    borderWidth: 1,
-    borderColor: palette.grey[300],
-    marginVertical: "12@ms",
-    justifyContent: "center",
-    borderRadius: "6@ms",
-    paddingVertical: "6@ms"
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: '8@ms',
+    marginVertical: '12@ms',
+    justifyContent: 'center',
+    borderRadius: '6@ms',
+    paddingVertical: '6@ms'
   },
   button: {
     paddingVertical: '12@ms',
     paddingHorizontal: '24@ms',
-    borderRadius: '8@ms',
-    minWidth: '120@ms',
+    borderRadius: '12@ms',
     alignItems: 'center'
   },
   cancelButton: {
     backgroundColor: palette.grey[100]
   },
   confirmButton: {
-    backgroundColor: palette.main[500]
+    backgroundColor: palette.main[600]
   },
   cancelButtonText: {
     ...TYPO.button2,

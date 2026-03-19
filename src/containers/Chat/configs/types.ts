@@ -56,3 +56,9 @@ export interface IChatListProps {
     handleUpdateMessage: (conversationId: number, id: number, message: string, callback: any) => Promise<void>,
     handleDeleteMessage: (conversationId: number, id: number, callback: any) => Promise<void>,
 }
+
+export type FilterValues = {
+  questionId?: number,
+  courseId?: number,
+  examSessionId?: number
+}

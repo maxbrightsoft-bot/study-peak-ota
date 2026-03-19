@@ -1,6 +1,6 @@
 import { api } from "@/services/api/apiClient";
 import { BASE_URL } from "@/utils/constants";
-import { Role } from "@/utils/enums";
+import { ExamStatus, OrderBy, Role } from "@/utils/enums";
 
 const EXAM_URL = `${BASE_URL}/api/examsession`;
 const COURSE_URL = `${BASE_URL}/api/course`;
@@ -12,10 +12,12 @@ export const getListExamByCourseApi = ({
 }) =>
   api.get(`${EXAM_URL}`, {
     params: {
-      roles: Role.Student,
       courseId,
       currentPage: 1,
-      pageSize: 10
+      pageSize: -1,
+      sortColumnName: "ExamSession.StartTime",
+      sortColumnDirection: OrderBy.DESC,
+      statuses: [ExamStatus.Completed]
     }
   });
 

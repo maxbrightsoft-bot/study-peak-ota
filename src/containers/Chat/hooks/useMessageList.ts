@@ -4,11 +4,13 @@ import { useTranslation } from "react-i18next";
 import { MESSAGE_DEFAULT_FILTER } from "../configs/constants";
 import { deleteMessage, getMessagesByConversation, updateLastTimeReadConversation, updateMessage } from "../apiClient/conversationService";
 import { getErrorMessage, toast } from "@/utils/helpers";
+import useAuthStore from "@/store/useAuthStore";
 
 const useMessageList = () => {
   const [messages, setMessages] = useState<MessageResponse[]>([])
   const [messageFilter, setMessageFilter] = useState<MessageFilter>(MESSAGE_DEFAULT_FILTER)
   const [isLoading, setLoading] = useState<boolean>(false)
+  const { setLoadingWithoutOverlay } = useAuthStore()
   const { t } = useTranslation()
 
   const getMessageList = async (conversationId: number) => {
@@ -62,6 +64,7 @@ const useMessageList = () => {
 
   const handleDeleteMessage = async (conversationId: number, id: number, callback: any) => {
     if (isLoading) return
+    setLoadingWithoutOverlay(true)
     try {
       await deleteMessage(conversationId, id)
 
@@ -69,6 +72,7 @@ const useMessageList = () => {
       toast.error(getErrorMessage(t, error))
       return
     }
+    setLoadingWithoutOverlay(false)
     callback()
   }
 
@@ -96,13 +100,16 @@ const useMessageList = () => {
 
   const handleUpdateMessage = async (conversationId: number, id: number, message: string, callback: any) => {
     try {
+      setLoadingWithoutOverlay(true)
       await updateMessage(conversationId, id, message)
     } catch (error) {
+      console.log({ error });
       toast.error(getErrorMessage(t, error))
-      return
     }
-    setLoading(false)
-    callback()
+    finally {
+      setLoadingWithoutOverlay(false)
+      callback()
+    }
   }
 
   return {
