@@ -1307,6 +1307,7 @@
   "monthly_average": "월평균",
   "annual_average": "연평균",
   "week_of_month": "{{month}}월 {{week}}주차",
+  "day_of_month": "{{month}}월 {{day}}일",
   "week_number": "{{week}}주차",
   "month_number": "{{monthName}}월",
   "year_number": "{{year}}년",
@@ -1644,5 +1645,8 @@
   "exam_not_found": "시험을 찾을 수 없습니다",
   "textbook_not_found": "교재를 찾을 수 없습니다",
   "file_saved_at": "파일 저장 위치:",
-  "conversation_created_success": "대화가 성공적으로 생성되었습니다"
+  "conversation_created_success": "대화가 성공적으로 생성되었습니다",
+  "add_new_incorrect_note_prompt": "새로운 오답노트를 추가해보세요",
+  "review_wrong_answer_notes": "오답노트 모아보기",
+  "are_you_sure_you_want_to_leave": "정말로 나가시겠습니까?"
 }
