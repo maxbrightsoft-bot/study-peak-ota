@@ -5,25 +5,47 @@
     "jsEngine": "jsc",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/app-icon.png",
     "scheme": "com.max.britghtsoft.touchstudymobile",
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.max.britghtsoft.touchstudymobile"
+      "bundleIdentifier": "com.max.britghtsoft.touchstudymobile",
+      "buildNumber": "7",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photos so you can upload images.",
+        "NSPhotoLibraryAddUsageDescription": "Allow StudyPeak to save photos to your library.",
+        "NSCameraUsageDescription": "This app needs access to the camera to take photos.",
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.152811895076-4fh9ctjtl077laeh3itrtn3fejdtlcqc"
+            ]
+          }
+        ]
+      }
     },
     "android": {
       "package": "com.max.britghtsoft.touchstudymobile",
+      "versionCode": 25,
       "intentFilters": [
         {
           "action": "VIEW",
+          "autoVerify": true,
           "data": [
             {
               "scheme": "com.max.britghtsoft.touchstudymobile"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -33,7 +55,14 @@
     },
     "plugins": [
       "expo-router",
-      ["react-native-bootsplash", { "assetsDir": "assets/bootsplash" }]
+      [
+        "react-native-bootsplash",
+        {
+          "assetsDir": "assets/bootsplash"
+        }
+      ],
+      "@react-native-community/datetimepicker",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
