@@ -19,6 +19,13 @@ export type ExamResponse = {
     rowVersion: string
 }
 
+export enum ScrollType {
+    FIRST,
+    PREV,
+    NEXT,
+    LAST
+}
+
 export type AnswerRequest = {
     questionId: number
     selectedAnswers?: number[]
@@ -56,6 +63,7 @@ export type QuestionResponse = {
     textualAnswers?: string[]
     isStar: boolean
     duration: number
+    score: number
     classAverageTime?: number
     answerTime: string
     questionOrder: number
@@ -80,6 +88,7 @@ export type Question = {
     textualAnswers?: string[]
     isStar: boolean
     duration: number
+    score: number
     answerTime: number
     questionOrder: number
     questionIndex?: number

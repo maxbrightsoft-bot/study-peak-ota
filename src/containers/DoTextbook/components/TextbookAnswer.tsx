@@ -4,7 +4,6 @@ import { Text } from 'react-native-paper'
 import _ from 'lodash'
 import { QuestionAnswerType } from '../../../utils/enums'
 import { palette, TYPO } from '@/theme'
-import StarSwitch from '@/components/Switch/StarSwitch'
 import { PreparedQuestionResponse, TextbookQuestion } from '../config/types'
 import * as Yup from 'yup'
 import AnswerContent from './AnswerContent'
@@ -13,10 +12,9 @@ import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   t: any
-  isDisable: boolean
+  onClose: () => void
   question: PreparedQuestionResponse
   updateQuestionAnswer: ({ questionId, textualAnswers, answer }: TextbookQuestion) => void
-  updateQuestionStar: any
 }
 
 const schema = (t: any) => {
@@ -28,7 +26,7 @@ const schema = (t: any) => {
   })
 }
 
-const TextbookAnswer = ({ t, question, isDisable, updateQuestionAnswer, updateQuestionStar }: Props) => {
+const TextbookAnswer = ({ t, question, onClose, updateQuestionAnswer }: Props) => {
   const answers = question.textualAnswers?.length ? question.textualAnswers : ['']
 
   const renderAnswer = (question: PreparedQuestionResponse, type: QuestionAnswerType) => {
@@ -48,6 +46,7 @@ const TextbookAnswer = ({ t, question, isDisable, updateQuestionAnswer, updateQu
                 questionId: question.id,
                 textualAnswers: values.textualAnswers
               })
+              onClose()
             }}
             enableReinitialize
           >
@@ -70,7 +69,7 @@ const TextbookAnswer = ({ t, question, isDisable, updateQuestionAnswer, updateQu
                   disabled={
                     !values.textualAnswers.length || values.textualAnswers.some((i: string) => !i.trim().length)
                   }
-                  onPress={isDisable ? undefined : () => handleSubmit(values)}
+                  onPress={() => handleSubmit(values)}
                 >
                   <Text style={styles.confirmButtonText}>{t('registration')}</Text>
                 </TouchableOpacity>
@@ -82,46 +81,19 @@ const TextbookAnswer = ({ t, question, isDisable, updateQuestionAnswer, updateQu
       case QuestionAnswerType.MultipleChoice:
       case QuestionAnswerType.SingleChoice:
         return (
-          <View style={{ gap: 8, width: '100%' }}>
-            {Array.from({ length: question.answerCount }, (_, indexAnswer) => (
-              <TouchableOpacity
-                key={indexAnswer}
-                style={{
-                  width: '100%',
-                  borderRadius: 8,
-                  marginBottom: 4,
-                  alignItems: 'center',
-                  paddingVertical: 8,
-                  backgroundColor: question?.selectedAnswers?.includes(indexAnswer + 1) ? palette.main[500] : 'white',
-                  borderColor: question?.selectedAnswers?.includes(indexAnswer + 1)
-                    ? palette.main[500]
-                    : palette.grey[300]
-                }}
-                disabled={isDisable}
-                onPress={() =>
-                  updateQuestionAnswer({
-                    questionId: question.id,
-                    answer: indexAnswer + 1
-                  })
-                }
-              >
-                <View
-                  style={[
-                    styles.optionWrap,
-                    { borderColor: question?.selectedAnswers?.includes(indexAnswer + 1) ? '#FFF' : palette.grey[500] }
-                  ]}
+          <View style={styles.answerRow}>
+            {Array.from({ length: question?.answerCount || 0 }).map((_, num) => {
+              const isSelected = question?.selectedAnswers?.includes(num + 1)
+              return (
+                <TouchableOpacity
+                  key={num}
+                  style={[styles.answerButton, isSelected && styles.selectedAnswerButton]}
+                  onPress={() => updateQuestionAnswer({ questionId: question?.id || 0, answer: num + 1 })}
                 >
-                  <Text
-                    style={[
-                      styles.optionText,
-                      { color: question?.selectedAnswers?.includes(indexAnswer + 1) ? '#FFF' : palette.grey[500] }
-                    ]}
-                  >
-                    {indexAnswer + 1}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+                  <Text style={{ color: isSelected ? '#FFF' : '#222222' }}>{num + 1}</Text>
+                </TouchableOpacity>
+              )
+            })}
           </View>
         )
 
@@ -130,22 +102,11 @@ const TextbookAnswer = ({ t, question, isDisable, updateQuestionAnswer, updateQu
     }
   }
 
-  return (
-    <View style={styles.container}>
-      {renderAnswer(question, question.questionAnswerType)}
-      <StarSwitch
-        isStar={question.isStar}
-        isDisable={isDisable}
-        onSwitch={async () => await updateQuestionStar(question.id, !question.isStar)}
-      />
-    </View>
-  )
+  return <View style={styles.container}>{renderAnswer(question, question.questionAnswerType)}</View>
 }
 
 const styles = ScaledSheet.create({
-  container: {
-    gap: 8
-  },
+  container: {},
   question: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -183,6 +144,40 @@ const styles = ScaledSheet.create({
     backgroundColor: '#007bff',
     padding: 15,
     borderRadius: 8
+  },
+  answerRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+    paddingHorizontal: 15,
+    justifyContent: 'space-between'
+  },
+  answerButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: '#EAEAEA',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  selectedAnswerButton: {
+    backgroundColor: palette.main[600],
+    color: '#fff'
+  },
+  navRow: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    gap: 8,
+    paddingBottom: 34,
+    justifyContent: 'space-between'
+  },
+  actionTitle: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: '#222222',
+    fontWeight: 500
   },
   nextButtonText: {
     color: '#fff',

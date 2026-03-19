@@ -23,6 +23,13 @@ export interface SimplePreparedTextbookResponse {
   timestamp?: number
 }
 
+export enum ScrollType {
+    FIRST,
+    PREV,
+    NEXT,
+    LAST
+}
+
 export type StudentTextbookAnswerRequest = {
     lastAnswerTime: number
     questions: AnswerRequest[]
@@ -115,7 +122,6 @@ export interface PreparedQuestionResponse {
   duration: number;
   questionOrder: number;
   score: number;
-  textualAnswer: string
   questionIndex?: number
   questionAnswerType: QuestionAnswerType
 }

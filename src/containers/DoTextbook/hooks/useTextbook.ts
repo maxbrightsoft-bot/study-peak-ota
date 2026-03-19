@@ -10,6 +10,7 @@ import {
   ChangeAnswerTimeRequest,
   PreparedQuestionGroupResponse,
   PreparedQuestionResponse,
+  ScrollType,
   SimplePreparedTextbookResponse,
 } from "../config/types";
 import useTextbookSolving from "./useTextbookSolving";
@@ -17,19 +18,20 @@ import { useTextbookTimer } from "./useTextbookTimer";
 import { isNull } from "../config/helpers";
 import { Routes } from "@/navigators/RouteName";
 import { navigate } from "@/navigators/NavigationHelpers";
-import { Alert, findNodeHandle, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView, UIManager, View } from "react-native";
+import { Alert, findNodeHandle, FlatList, UIManager, View } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { PauseOrResumeExamRequest, RestartTextbookRequest } from "@/utils/types";
 import { ExamStatus, SubjectType } from "@/utils/enums";
 import moment from "moment";
-import { getErrorMessage, toast } from "@/utils/helpers";
+import { formatMinutesToTime, getErrorMessage, toast } from "@/utils/helpers";
 import _ from "lodash";
 import useCountDownTimer from "@/hooks/useCountDownTimer";
+import useTimers from "@/layouts/hooks/useTimer";
+import useAlarm from "@/layouts/hooks/useAlarm";
 
 type Props = {
   handleOpenDrawer?: () => void;
-  onPauseOrResume?: () => void;
   textbookId?: string;
   page?: string;
   reqTime?: string
@@ -38,14 +40,12 @@ type Props = {
 
 const useTextbook = ({
   handleOpenDrawer,
-  onPauseOrResume,
   textbookId,
-  page,
   reqTime,
   restart
 }: Props = {}) => {
   const { t } = useTranslation();
-  const { setLoading, alarm } = useAuthStore();
+  const { setLoading, alarm, setLoadingWithoutOverlay } = useAuthStore();
   const firstLoadRef = useRef<boolean>(true);
   const [textbook, setTextbook] = useState<SimplePreparedTextbookResponse>();
   const [questionGroupList, setQuestionGroupList] = useState<
@@ -55,20 +55,39 @@ const useTextbook = ({
     []
   );
   const navigation = useNavigation();
-  const scrollViewRef = useRef<ScrollView>(null)
+  const scrollViewRef = useRef<FlatList>(null)
   const questionRefs = useRef<Array<View | null>>([])
-  const [expandedId, setExpandedId] = useState<number | null>(null)
-  const sectionPositions = useRef<Record<number, number>>({}).current;
-  const [activePage, setActivePage] = useState(0);
-  const [currentIndex, setCurrentIndex] = useState(0)
   const [isNotFoundTextbook, setNotFoundTextbook] = useState<boolean>();
   const [currentSlide, setCurrentSlide] = useState<number>(0);
-  const [completedTasks, setCompletedTasks] = useState<number>(0);
   const [startTime, setStartTime] = useState<moment.Moment>();
+  const [currentQuestionId, setCurrentQuestionId] = useState<number>();
   const [openRestartTextbookDialog, setOpenRestartTextbookDialog] = useState(false);
   const [restartTextbookData, setRestartTextbookData] = useState<RestartTextbookRequest>({});
   const [isOpenConfirmDialog, setOpenConfirmDialog] = useState(false);
-  const pendingScrollIndex = useRef<number | null>(null);
+  const [openAnswerSheet, setOpenAnswerSheet] = useState(false);
+  const [openTimerDialog, setOpenTimerDialog] = useState<boolean>(false)
+  const [openLeaveDialog, setOpenLeaveDialog] = useState<boolean>(false)
+
+  const handleOpenLeaveDialog = () => {
+    setOpenLeaveDialog(true)
+  }
+
+  const handleCloseLeaveDialog = () => {
+    setOpenLeaveDialog(false)
+  }
+
+  const handleTimerDialogToggle = () => {
+    setOpenTimerDialog(state => !state)
+  }
+
+  const handleOpenAnswerSheet = (id?: number) => {
+    id && setCurrentQuestionId(id);
+    setOpenAnswerSheet(true);
+  }
+
+  const handleCloseAnswerSheet = () => {
+    setOpenAnswerSheet(false);
+  }
 
 
   const nav1 = useRef<any>(null);
@@ -91,69 +110,47 @@ const useTextbook = ({
     setOpenRestartTextbookDialog(true);
   };
 
-  const handleLayout = (index: number) => (event: LayoutChangeEvent) => {
-    const { y } = event.nativeEvent.layout;
-    sectionPositions[index] = y;
-  };
+  const scrollToQuestion = useCallback(
+    (type: ScrollType) => {
+      if (!questionList?.length) return
 
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const offsetY = event.nativeEvent.contentOffset.y;
+      const currentIndex = questionList.findIndex(
+        (q) => q.id === currentQuestionId
+      )
 
-    const sortedSections = Object.entries(sectionPositions)
-      .map(([index, position]) => ({
-        index: parseInt(index),
-        position
-      }))
-      .sort((a, b) => a.position - b.position);
+      if (currentIndex === -1) return
 
-    for (let i = 0; i < sortedSections.length; i++) {
-      const currentSection = sortedSections[i];
-      const nextSection = sortedSections[i + 1];
+      let targetIndex = currentIndex
 
-      if (offsetY >= currentSection.position &&
-        (nextSection === undefined || offsetY < nextSection.position)) {
-        if (activePage !== currentSection.index) {
-          setActivePage(currentSection.index);
-        }
-        break;
+      switch (type) {
+        case ScrollType.FIRST:
+          targetIndex = 0
+          break
+
+        case ScrollType.LAST:
+          targetIndex = questionList.length - 1
+          break
+
+        case ScrollType.PREV:
+          targetIndex = Math.max(0, currentIndex - 1)
+          break
+
+        case ScrollType.NEXT:
+          targetIndex = Math.min(
+            questionList.length - 1,
+            currentIndex + 1
+          )
+          break
       }
-    }
-  };
 
-  const scrollToPage = (page: string) => {
-    if (scrollViewRef.current && sectionPositions[page as any] !== undefined) {
-      setActivePage(parseInt(page))
-      scrollViewRef.current.scrollTo({
-        y: sectionPositions[page as any],
-        animated: true
-      });
-    }
-  };
+      if (targetIndex === currentIndex) return
 
-  useEffect(() => {
-    if (!!page) scrollToPage(page)
-  }, [page])
-
-  const toggleExpand = (id: number | null) => {
-    setExpandedId((prev) => (prev === id ? null : id))
-  }
-
-  const scrollToNextQuestion = useCallback(
-    (index: number) => {
-      const nextIndex = index + 1;
-      if (nextIndex >= questionList.length) return;
-
-      pendingScrollIndex.current = nextIndex;
-
-      toggleExpand(questionList[nextIndex].id);
-      setCurrentIndex(questionList[nextIndex].questionOrder);
+      setCurrentQuestionId(questionList[targetIndex].id)
     },
-    [questionList, toggleExpand, setCurrentIndex]
-  );
+    [questionList, currentQuestionId]
+  )
 
-  const handleQuestionLayout = (index: number) => {
-    if (pendingScrollIndex.current !== index) return;
-
+  const onScrollToIndex = (index: number) => {
     const ref = questionRefs.current[index];
     const scrollViewNode = scrollViewRef.current
       ? findNodeHandle(scrollViewRef.current)
@@ -169,22 +166,32 @@ const useTextbook = ({
       scrollViewNode,
       () => { },
       (_left, top) => {
-        scrollViewRef.current?.scrollTo({
-          y: Math.max(0, top - 16),
-          animated: true,
-        });
+        scrollViewRef.current?.scrollToOffset({
+          offset: top - 50,
+          animated: true
+        })
       }
     );
-
-    pendingScrollIndex.current = null;
   };
 
+
+  useEffect(() => {
+    if (!currentQuestionId) return
+
+    const index = questionList.findIndex(
+      q => q.id === currentQuestionId
+    )
+
+    if (index === -1) return
+
+    onScrollToIndex(index)
+  }, [currentQuestionId])
 
   const getQuestionsTextbook = async (showErrorMessage: boolean = false) => {
     if (!textbookId) return;
 
     setNotFoundTextbook(false);
-    setLoading(true);
+    setLoadingWithoutOverlay(true);
     setStartTime(undefined);
 
     try {
@@ -225,7 +232,11 @@ const useTextbook = ({
       setNotFoundTextbook(true);
     }
 
-    setLoading(false);
+    setLoadingWithoutOverlay(false);
+    scrollViewRef.current?.scrollToOffset({
+      offset: 0,
+      animated: true
+    })
     if (firstLoadRef.current) firstLoadRef.current = false;
   };
 
@@ -257,20 +268,7 @@ const useTextbook = ({
   });
 
   const remainTimeString = useMemo(() => {
-    const secondsToTimeSpan = (sec?: number) => {
-      if (sec === undefined)
-        return t("mins_mins_seconds_seconds", { mins: "00", seconds: "00" });
-      const min = Math.floor(sec / 60);
-      const seconds = sec - min * 60;
-      const time = t("mins_mins_seconds_seconds", {
-        mins: min.toString().padStart(2, "0"),
-        seconds: seconds.toString().padStart(2, "0")
-      });
-      return time;
-    };
-    return secondsToTimeSpan(
-      remainTime !== undefined && remainTime < 0 ? 0 : remainTime
-    );
+    return formatMinutesToTime((remainTime || 0) / 60);
   }, [remainTime, t]);
 
   const totalTimeString = useMemo(() => {
@@ -300,11 +298,10 @@ const useTextbook = ({
 
   const totalTasks = questionList.length;
 
-  useEffect(() => {
-    const completedTasksCount = questionList.filter(
+  const completedTasks = useMemo(() => {
+    return questionList.filter(
       (q) => q.selectedAnswers?.length || !isNull(q.textualAnswers)
     ).length;
-    setCompletedTasks(completedTasksCount);
   }, [questionList]);
 
   const startPageOptions = useMemo(() => {
@@ -352,12 +349,36 @@ const useTextbook = ({
       };
       await recoverAnswers();
       await pauseOrFinished(Number(textbookId), req);
-      navigate(Routes.Auth.Home);
+      handleCloseLeaveDialog()
+      navigate(Routes.Auth.Textbook);
     } catch (error) {
       toast.error(getErrorMessage(t, error));
     }
     setLoading(false);
   };
+
+  const {
+    timers,
+    studyTimerProps,
+    timeUpdateDialogProps,
+    isTimerRunning,
+  } = useTimers(openTimerDialog, handleTimerDialogToggle)
+
+  const {
+    audioGuideModalProps,
+    isAlarmRunning,
+    speaker,
+    disabledSpeaker,
+    audioPopupProps,
+    handleToggleSpeaker,
+    alarmClockProps,
+  } = useAlarm(openTimerDialog, timers)
+
+  useEffect(() => {
+    if (questionList.length > 0) {
+      setCurrentQuestionId(questionList[0].id);
+    }
+  }, [questionList.length]);
 
   const handlePauseAndResumeTextbook = async (status: ExamStatus) => {
     if (!textbook || !textbookId) return;
@@ -372,8 +393,8 @@ const useTextbook = ({
       };
       const res = await pauseAndResumeTextbookApi(Number(textbook.id), req);
 
-      if (onPauseOrResume && alarm?.subject?.id === textbook.subject.id && alarm?.duration === textbook.duration * 60000){
-        onPauseOrResume()
+      if (alarmClockProps.panelProps.onPauseOrResume && alarm?.subject?.id === textbook.subject.id && alarm?.duration === textbook.duration * 60000) {
+        alarmClockProps.panelProps.onPauseOrResume()
       }
       const data = res.data;
 
@@ -398,7 +419,7 @@ const useTextbook = ({
   const handleRestartTextbook = async () => {
     if (!textbook || !textbookId) return;
 
-    setLoading(true);
+    setLoadingWithoutOverlay(true);
     try {
       const req: RestartTextbookRequest = {
         rowVersion: textbook.rowVersion,
@@ -410,20 +431,35 @@ const useTextbook = ({
     } catch (error) {
       toast.error(getErrorMessage(t, error));
     }
-    setLoading(false);
+    setLoadingWithoutOverlay(false);
     handleCloseConfirmDialog();
   };
 
-  useEffect(() => {
-    if (!textbookId) return;
-    getQuestionsTextbook();
-  }, [textbookId, restart, reqTime]);
+  const clearData = () => {
+    setTextbook(undefined);
+    setQuestionList([]);
+    setQuestionGroupList([]);
+    setCurrentQuestionId(undefined);
+    setStartTime(undefined);
+    setOpenAnswerSheet(false);
+    setOpenConfirmDialog(false);
+    setOpenRestartTextbookDialog(false);
+    setOpenTimerDialog(false);
+    questionRefs.current = [];
+    scrollViewRef.current?.scrollToOffset({
+      offset: 0,
+      animated: true
+    })
+  }
 
   useFocusEffect(
     useCallback(() => {
-      scrollViewRef?.current?.scrollTo({ y: 0 });
-      setExpandedId(null)
+      if (!textbookId) return;
 
+      getQuestionsTextbook();
+      return () => {
+        clearData()
+      }
     }, [textbookId, restart, reqTime])
   );
 
@@ -461,6 +497,32 @@ const useTextbook = ({
   //   setCurrentSlide(slideIndex);
   // }, [page, questionGroupList]);
 
+  const questionStarList = useMemo(() => {
+    return questionList.filter(q => q.isStar).map(q => q.id)
+  }, [questionList])
+
+  const handleNextStar = () => {
+    const index = questionStarList.indexOf(currentQuestionId || 0)
+    if (index === -1) return setCurrentQuestionId(questionStarList[0])
+
+    const nextIndex = index + 1
+
+    if (nextIndex < questionStarList.length) {
+      setCurrentQuestionId(questionStarList[nextIndex])
+    }
+  }
+
+  const handlePrevStar = () => {
+    const index = questionStarList.indexOf(currentQuestionId || 0)
+    if (index === -1) return setCurrentQuestionId(questionStarList[questionStarList.length - 1])
+
+    const prevIndex = index - 1
+
+    if (prevIndex >= 0) {
+      setCurrentQuestionId(questionStarList[prevIndex])
+    }
+  }
+
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
       if (textbook?.status !== ExamStatus.InProgress) return;
@@ -486,19 +548,12 @@ const useTextbook = ({
 
   return {
     t,
-    currentIndex,
-    expandedId,
-    toggleExpand,
+    currentQuestionId,
     questionRefs,
     scrollViewRef,
     questionGroupList,
     questionPage,
     textbook,
-    handleLayout,
-    activePage,
-    handleScroll,
-    setCurrentIndex,
-    scrollToNextQuestion,
     currentSlide,
     setCurrentSlide,
     updateQuestionAnswer,
@@ -507,6 +562,7 @@ const useTextbook = ({
     nav2,
     questionList,
     remainTimeString,
+    scrollToQuestion,
     totalTimeString,
     startPageOptions,
     isNotFoundTextbook,
@@ -516,9 +572,29 @@ const useTextbook = ({
     handlePauseAndResumeTextbook,
     formattedTime,
     totalTasks,
+    speaker,
+    disabledSpeaker,
+    openTimerDialog,
+    questionStarList,
+    handleNextStar,
+    handlePrevStar,
+    audioPopupProps,
+    openLeaveDialog,
+    handleCloseLeaveDialog,
+    handleOpenLeaveDialog,
+    handleTimerDialogToggle,
+    alarmClockProps,
+    audioGuideModalProps,
+    isAlarmRunning,
+    isTimerRunning,
+    studyTimerProps,
+    timeUpdateDialogProps,
+    handleToggleSpeaker,
+    openAnswerSheet,
+    handleOpenAnswerSheet,
+    handleCloseAnswerSheet,
     completedTasks,
     onFinishedTextbook,
-    handleQuestionLayout,
     handleRestartTextbook,
     openRestartTextbookDialog,
     handleCloseRestartTextbookDialog,

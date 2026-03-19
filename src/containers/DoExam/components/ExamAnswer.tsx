@@ -4,7 +4,6 @@ import { Text } from 'react-native-paper'
 import _ from 'lodash'
 import { QuestionAnswerType } from '../../../utils/enums'
 import { palette, TYPO } from '@/theme'
-import StarSwitch from '@/components/Switch/StarSwitch'
 import { ExamQuestion, Question } from '../config/types'
 import { Formik } from 'formik'
 import * as Yup from 'yup'
@@ -13,10 +12,9 @@ import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   t: any
-  isDisable: boolean
+  onClose: () => void
   question: Question
   updateQuestionAnswer: ({ questionId, textualAnswers, answer }: ExamQuestion) => void
-  updateQuestionStar: any
 }
 
 const schema = (t: any) => {
@@ -28,9 +26,9 @@ const schema = (t: any) => {
   })
 }
 
-const ExamAnswer = ({ t, question, isDisable, updateQuestionAnswer, updateQuestionStar }: Props) => {
+const ExamAnswer = ({ t, question, onClose, updateQuestionAnswer }: Props) => {
   const answers = question.textualAnswers?.length ? question.textualAnswers : ['']
-  
+
   const renderAnswer = (question: Question, type: QuestionAnswerType) => {
     switch (type) {
       case QuestionAnswerType.ShortAnswer:
@@ -48,6 +46,7 @@ const ExamAnswer = ({ t, question, isDisable, updateQuestionAnswer, updateQuesti
                 questionId: question.id,
                 textualAnswers: values.textualAnswers
               })
+              onClose()
             }}
             enableReinitialize
           >
@@ -70,7 +69,7 @@ const ExamAnswer = ({ t, question, isDisable, updateQuestionAnswer, updateQuesti
                   disabled={
                     !values.textualAnswers.length || values.textualAnswers.some((i: string) => !i.trim().length)
                   }
-                  onPress={isDisable ? undefined : () => handleSubmit(values)}
+                  onPress={() => handleSubmit(values)}
                 >
                   <Text style={styles.confirmButtonText}>{t('registration')}</Text>
                 </TouchableOpacity>
@@ -82,47 +81,19 @@ const ExamAnswer = ({ t, question, isDisable, updateQuestionAnswer, updateQuesti
       case QuestionAnswerType.MultipleChoice:
       case QuestionAnswerType.SingleChoice:
         return (
-          <View style={{ gap: 4, width: '100%' }}>
-            {Array.from({ length: question.answerCount }, (_, indexAnswer) => (
-              <TouchableOpacity
-                key={indexAnswer}
-                style={{
-                  width: '100%',
-                  borderRadius: 8,
-                  marginBottom: 4,
-                  alignItems: 'center',
-                  paddingVertical: 8,
-                  backgroundColor: question.selectedAnswers?.includes(indexAnswer + 1) ? palette.main[500] : 'white',
-                  borderColor: question.selectedAnswers?.includes(indexAnswer + 1)
-                    ? palette.main[500]
-                    : palette.grey[300]
-                }}
-                onPress={isDisable ? undefined : () =>
-                  updateQuestionAnswer({
-                    questionId: question.id,
-                    answer: indexAnswer + 1
-                  })
-                }
-              >
-                <View
-                  style={[
-                    styles.optionWrap,
-                    { borderColor: question.selectedAnswers?.includes(indexAnswer + 1) ? '#FFF' : palette.grey[500] }
-                  ]}
+          <View style={styles.answerRow}>
+            {Array.from({ length: question?.answerCount || 0 }).map((_, num) => {
+              const isSelected = question?.selectedAnswers?.includes(num + 1)
+              return (
+                <TouchableOpacity
+                  key={num}
+                  style={[styles.answerButton, isSelected && styles.selectedAnswerButton]}
+                  onPress={() => updateQuestionAnswer({ questionId: question?.id || 0, answer: num + 1 })}
                 >
-                  <Text
-                    style={[
-                      styles.optionText,
-                      {
-                        color: question.selectedAnswers?.includes(indexAnswer + 1) ? '#FFF' : palette.grey[500]
-                      }
-                    ]}
-                  >
-                    {indexAnswer + 1}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+                  <Text style={{ color: isSelected ? '#FFF' : '#222222' }}>{num + 1}</Text>
+                </TouchableOpacity>
+              )
+            })}
           </View>
         )
 
@@ -131,12 +102,7 @@ const ExamAnswer = ({ t, question, isDisable, updateQuestionAnswer, updateQuesti
     }
   }
 
-  return (
-    <View style={{ gap: 8 }}>
-      {renderAnswer(question, question.questionAnswerType)}
-      <StarSwitch isStar={question.isStar} isDisable={isDisable} onSwitch={() => updateQuestionStar(question.id, !question.isStar)} />
-    </View>
-  )
+  return <View>{renderAnswer(question, question.questionAnswerType)}</View>
 }
 
 const styles = ScaledSheet.create({
@@ -218,6 +184,50 @@ const styles = ScaledSheet.create({
     backgroundColor: '#6c757d',
     padding: 15,
     borderRadius: 8
+  },
+  answerRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+    paddingHorizontal: 15,
+    justifyContent: 'space-between'
+  },
+  answerButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: '#EAEAEA',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  navRow: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    paddingBottom: 34,
+    gap: 8,
+    justifyContent: 'space-between'
+  },
+  actionTitle: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: '#222222',
+    fontWeight: 500
+  },
+  selectedAnswerButton: {
+    backgroundColor: palette.main[600],
+    color: '#fff'
+  },
+  navButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: 26,
+    borderWidth: 1,
+    borderColor: '#222222'
   },
   resetButtonText: {
     color: '#fff',

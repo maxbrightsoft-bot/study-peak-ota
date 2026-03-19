@@ -2,18 +2,18 @@ import React from 'react'
 import {
   View,
   Text,
-  TextInput,
   ScrollView,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform
 } from 'react-native'
 import { FieldArray, Field } from 'formik'
-import { palette, TYPO } from '@/theme'
+import { palette } from '@/theme'
 import { QuestionAnswerType } from '@/utils/enums'
 import { Ionicons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
 import { Question } from '../config/types'
+import TextField from '@/components/Input/TextField'
 
 type Props = {
   t: (key: string, params?: any) => string
@@ -43,7 +43,7 @@ const AnswerContent = ({ t, question, questionNumber, errors, values }: Props) =
                   <View style={styles.answerInputContainer}>
                     <Field name={`textualAnswers[${index}]`}>
                       {({ field }: any) => (
-                        <TextInput
+                        <TextField
                           style={styles.textInput}
                           value={field.value}
                           onChangeText={field.onChange(`textualAnswers[${index}]`)}
@@ -60,7 +60,6 @@ const AnswerContent = ({ t, question, questionNumber, errors, values }: Props) =
                       <Ionicons name="trash-sharp" size={12} color={"#FFF"} />
                     </TouchableOpacity>
                   </View>
-
                   {errors.textualAnswers?.[index] && (
                     <Text style={styles.errorText}>{errors.textualAnswers?.[index]}</Text>
                   )}
@@ -121,6 +120,7 @@ const styles = ScaledSheet.create({
   textInput: {
     borderWidth: 1,
     borderColor: '#e0e0e0',
+    color: "#222222",
     borderRadius: 4,
     padding: 12,
     flex: 1,
