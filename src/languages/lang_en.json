@@ -1308,6 +1308,7 @@
   "monthly_average": "Monthly Average",
   "annual_average": "Annual Average",
   "week_of_month": "Week {{week}} of {{monthName}}",
+  "day_of_month": "Day {{day}} of {{monthName}}",
   "week_number": "Week {{week}}",
   "month_number": "{{monthName}}",
   "year_number": "{{year}}",
@@ -1644,5 +1645,8 @@
   "exam_not_found": "Exam not found",
   "textbook_not_found": "Textbook not found",
   "file_saved_at": "File saved at:",
-  "conversation_created_success": "Conversation created successfully"
+  "conversation_created_success": "Conversation created successfully",
+  "add_new_incorrect_note_prompt": "Try adding a new incorrect answer note",
+  "review_wrong_answer_notes": "View all wrong answer notes",
+  "are_you_sure_you_want_to_leave": "Are you sure you want to leave?"
 }

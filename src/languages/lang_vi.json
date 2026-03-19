@@ -1319,6 +1319,7 @@
     "monthly_average": "Trung bình hàng tháng",
     "annual_average": "Trung bình hàng năm",
     "week_of_month": "Tuần {{week}} của tháng {{monthName}}",
+    "day_of_month": "Ngày {{day}} tháng {{month}}",
     "week_number": "Tuần {{week}}",
     "month_number": "Tháng {{monthName}}",
     "year_number": "Năm {{year}}",
@@ -1658,5 +1659,8 @@
     "exam_not_found": "Không tìm thấy kỳ thi",
     "textbook_not_found": "Không tìm thấy sách giáo khoa",
     "file_saved_at": "File đã được lưu tại:",
-    "conversation_created_success": "Tạo cuộc hội thoại thành công"
+    "conversation_created_success": "Tạo cuộc hội thoại thành công",
+    "add_new_incorrect_note_prompt": "Hãy thử thêm một ghi chú đáp án sai mới",
+    "review_wrong_answer_notes": "Xem tất cả ghi chú câu sai",
+    "are_you_sure_you_want_to_leave": "Bạn có chắc chắn muốn rời đi không?"
 }
