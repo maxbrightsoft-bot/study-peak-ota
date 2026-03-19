@@ -42,6 +42,7 @@ export type Textbook = {
   limitedTimeInMinutes: number
   limitedQuestionCount: number
   rowVersion: string
+  totalAnswerTime: number
   status: ExamStatus
   isMock: boolean
 };
@@ -75,8 +76,8 @@ export type TextbookResult = {
 }
 
 export type StudentQuestionResult = Question & {
-    categories: Category[]
-    questionGroupId: number
+  categories: Category[]
+  questionGroupId: number
 }
 
 export type SubjectResponse = {
@@ -107,6 +108,10 @@ export type ChapterResponse = {
   subChapters: ChapterResponse[];
   articles: ArticleResponse[];
   questionGroups?: QuestionGroupResponse[];
+  accuracyRate: number
+  completedChapterQuestions: number
+  totalChapterQuestions: number
+
 };
 
 export type QuestionGroupResponse = {
@@ -126,7 +131,7 @@ export type ArticleResponse = {
 };
 
 
-export type CategoryResponse = {
+export interface CategoryResponse {
   id: number
   name: string
   totalQuestions: number
@@ -135,7 +140,7 @@ export type CategoryResponse = {
   percentageAmongStudents: number
   questionIds: number[]
   totalSolvedTime: number
-};
+}
 
 export type QuestionResponse = {
   id?: number;

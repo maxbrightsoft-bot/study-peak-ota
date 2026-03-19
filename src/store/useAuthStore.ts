@@ -24,6 +24,8 @@ import {
 import { AlarmResponse } from "@/utils/types/alarm";
 import { api } from "@/services/api/apiClient";
 import { autoReconnectPusher } from "@/utils/helpers/pusher";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { toast } from "@/utils/helpers";
 
 interface EventHandler<T = any> {
   eventName: string;
@@ -32,6 +34,7 @@ interface EventHandler<T = any> {
 
 interface StoreState {
   isLoading: boolean;
+  redirectUrl: string | null,
   isLoadingWithoutOverlay: boolean;
   user: UserResponse | null;
   academies: AcademyResponse[];
@@ -53,6 +56,8 @@ interface StoreActions {
   setLoading: (isLoading: boolean) => void;
   setLoadingWithoutOverlay: (isLoading: boolean) => void;
   setLanguage: (lang: LanguageResponse) => void;
+  setRedirectUrl: (url: string) => void
+  clearRedirectUrl: () => void
 
   setTimers: (timers: SubjectTimerResponse[] | null) => void;
   setAlarm: (alarm: AlarmResponse | null) => void;
@@ -91,7 +96,7 @@ const useAuthStore = create<AuthStore>()(
       user: null,
       academies: [],
       selectedAcademy: null,
-
+      redirectUrl: null,
       language: LANGUAGES[0],
       timers: [],
       alarm: null,
@@ -104,7 +109,7 @@ const useAuthStore = create<AuthStore>()(
           state.user = user;
         });
       },
-      
+
       setHasEnteredSelectAcademy: (value) => {
         set((state) => {
           state.hasEnteredSelectAcademy = value
@@ -140,6 +145,9 @@ const useAuthStore = create<AuthStore>()(
           state.language = lang;
         });
       },
+
+      setRedirectUrl: (url) => set({ redirectUrl: url }),
+      clearRedirectUrl: () => set({ redirectUrl: null }),
 
       setTimers: (timers) => {
         set((state) => {
@@ -242,9 +250,18 @@ const useAuthStore = create<AuthStore>()(
         return channel;
       },
 
-      unsubscribeChannelSafe: async (pusher, channelName) => {
+      unsubscribeChannelSafe: async (
+        pusher?: any,
+        channelName?: string
+      ) => {
+        if (!pusher || !channelName) return;
+
         try {
           await pusher.unsubscribe({ channelName });
+
+          if (__DEV__) {
+            console.log(`[Pusher] Unsubscribed: ${channelName}`);
+          }
         } catch (err) {
           if (__DEV__) {
             console.warn("[Pusher] Unsubscribe failed:", err);
@@ -266,8 +283,10 @@ const useAuthStore = create<AuthStore>()(
 
       logout: async () => {
         const { pusher, channel, disconnectPusher } = get();
+        await GoogleSignin.signOut();
 
         await disconnectPusher(pusher, channel);
+        toast.dismiss()
 
         set(() => ({
           isLoading: false,

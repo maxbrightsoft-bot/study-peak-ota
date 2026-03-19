@@ -30,9 +30,10 @@ export enum ExamStatus {
 }
 
 export enum ExamStatusView {
-  ExamOverview,
   MyOverall,
   MyAnswers,
+  SolutionOrder,
+  CompareSolution,
   QuestionAnalysis,
   IncorrectAnswerNotes
 }

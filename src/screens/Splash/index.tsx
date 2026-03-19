@@ -2,10 +2,8 @@ import { navigate, reset } from "@/navigators/NavigationHelpers";
 import React, { useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import Logo from "@/assets/icons/student_full-logo_eng.svg";
-import { useLanguage } from "@/hooks/useLanguage";
 import { palette } from "@/theme";
 import { Routes } from "@/navigators/RouteName";
-import useAuthStore from "@/store/useAuthStore";
 
 const SplashScreen = () => {
   useEffect(() => {

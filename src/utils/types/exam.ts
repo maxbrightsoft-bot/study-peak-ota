@@ -34,6 +34,8 @@ export type ExamSessionResponse = {
     status: ExamStatus;
     isLate: boolean
     teacher: any;
+    courses: {id: number, name: string}[]
+    subjectName: string
     startTimeSession: string
     studentStartTime: string
     title: string;
@@ -45,7 +47,6 @@ export type ExamSessionResponse = {
     studentExamSessionId?: number
     totalStudentsJoined: number;
     totalStudentAttemptNumber: number;
-    courseName: string
     totalAttemptTime: number
     studentTotalAttemptTime: number
     type: SubjectType
@@ -83,8 +84,8 @@ export type Question = {
     parentQuestionOrder: number
     overallCorrectRate: number
     skipRate: number
-    selectedAnswers?: string[]
-    correctAnswers?: string[]
+    selectedAnswers?: any[]
+    correctAnswers?: any[]
     correctTextualAnswers?: string[]
     textualAnswers?: string[]
     topDuration?: number | null
@@ -197,24 +198,31 @@ type QuestionTypeCategoryData = {
 }
 
 export type EffectSize = {
-    id: number;
-    questionOrder: number;
-    article: number;
-    isCorrect: boolean;
-    selectedAnswers: string;
-    correctAnswers: string;
-    answerResponseSignal: number | null;
-    problemCategories: number[];
-    mostSelectedAnswers: string;
+    id: number
+    questionOrder: number
+    isCorrect: boolean
+    correctRate: number
+    selectedAnswers?: any[]
+    correctAnswers?: any[]
+    parentQuestionId?: number
+    parentQuestionOrder?: number
+    correctTextualAnswers?: string[]
+    textualAnswers?: string[]
+    answerResponseSignal: number | null
+    problemCategories: number[]
+    mostSelectedAnswers: string
+    answersCount: number
+    averageAnswers: number[]
     questionAnswerType?: QuestionAnswerType
-
 }
 
 export type OrderQuestion = {
-    questionId: number;
-    questionOrder: number;
-    answerOrder: number | null;
-    topAnswerOrder: number | null;
+    questionId: number
+    parentQuestionId: number
+    parentQuestionOrder: number
+    questionOrder: number
+    answerOrder: number | null
+    topAnswerOrder: number | null
 }
 
 export type TimelyOrderQuestion = {
@@ -285,4 +293,15 @@ export type QuestionTime = {
     questionOrder: number
     time: number
     avgTime: number
+}
+
+export interface InfoExamSessionByCode {
+  id: number
+  code: string
+  category: string
+  subject: string
+  grade: number
+  gradeYear: number
+  classes: string[]
+  teacherName: string
 }

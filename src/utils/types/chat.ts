@@ -10,47 +10,51 @@ export type ConversationResponse = {
 }
 
 export type ConversationsResponse = {
-    id: number;
-    studentExamSessionId?: number;
-    courseId: number | null;
-    courseName: string | null;
-    score?: number | null;
-    totalScore?: number | null;
-    studentId: number;
-    category?: string | null;
-    question: ConversationQuestion;
-    isCompleted: boolean;
-    completedAt: string;
-    totalUnReadMessage: number;
-    lastMessage: string | null;
-    examTitle: string;
-    examId: number;
-    examSessionId?: number;
-    mainTeacherCourseName?: string;
-    mainTeacherCourseEmail?: string;
-    studentCreatedId?: number;
-    studentCreatedName?: string;
-    studentTextbookSessionId?: number;
-    duration: string;
-    startTime: string;
-    examCreatedAt: string;
-    createdAt: string;
-    teacherId: number;
-    teacherName: string;
-    textbookId: number;
-    textbookName: string;
-    isSelected: boolean;
-    attemptNumber: number;
-    studentAttemptNumber: number;
-    studentTotalAttemptTime: number;
-    totalAttemptTime: number;
+  id: number;
+  studentExamSessionId?: number;
+  courseId: number | null;
+  courseName: string | null;
+  score?: number | null;
+  totalScore?: number | null;
+  studentId: number;
+  category?: string | null;
+  question: ConversationQuestion;
+  isCompleted: boolean;
+  completedAt: string;
+  totalUnReadMessage: number;
+  lastMessage: string | null;
+  examTitle: string;
+  examId: number;
+  examSessionId?: number;
+  mainTeacherCourseName?: string;
+  mainTeacherCourseEmail?: string;
+  mainTeacherCourseAvatar?: string;
+  studentCreatedId?: number;
+  studentCreatedName?: string;
+  studentTextbookSessionId?: number;
+  duration: string;
+  startTime: string;
+  examCreatedAt: string;
+  createdAt: string;
+  teacherId: number;
+  teacherName: string;
+  teacherAvatar?: string;
+  textbookId: number;
+  textbookName: string;
+  isSelected: boolean;
+  attemptNumber: number;
+  studentAttemptNumber: number;
+  studentTotalAttemptTime: number;
+  totalAttemptTime: number;
 };
 
 export type ConversationQuestion = {
   id: number
+  superId: number
   title: string
-  articleNumber: number
   questionOrder: number
+  parentQuestionOrder?: number
+  parentQuestionId?: number
 }
 
 export type ConversationFilter = {
@@ -80,20 +84,20 @@ export type ExamResponse = {
   description: string
   type: string
   createdBy: {
-      id: number,
-      phoneNumber: string,
-      email: string,
-      avatar: string,
-      fullName: string,
-      schoolName: string
+    id: number,
+    phoneNumber: string,
+    email: string,
+    avatar: string,
+    fullName: string,
+    schoolName: string
   },
   teacher: {
-      id: number,
-      phoneNumber?: string,
-      email: string,
-      avatar: string,
-      fullName: string,
-      schoolName: string
+    id: number,
+    phoneNumber?: string,
+    email: string,
+    avatar: string,
+    fullName: string,
+    schoolName: string
   },
   imageUrl: string
   questionCount: number

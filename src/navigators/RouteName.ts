@@ -10,7 +10,8 @@ export const Routes = {
         ExamResult: "EXAM_RESULT",
         ExamResultList: "EXAM_RESULT_LIST",
         StudyPerformance: "STUDY_PERFORMANCE",
-        Profile: "PROFILE"
+        Profile: "PROFILE",
+        Question: "QUESTION",
     },
     UnAuth: {
         Splash: 'SPLASH',
@@ -29,4 +30,15 @@ export const MainRoutes = {
 export const hiddenTabBar = [
     Routes.Auth.Onboarding,
     Routes.Auth.SelectAcademy,
+    Routes.Auth.DoExam,
+    Routes.Auth.DoTextbook,
 ]
+
+export const noLayoutScreens = [
+    Routes.Auth.DoExam,
+    Routes.Auth.DoTextbook,
+    Routes.Auth.Textbook,
+    Routes.Auth.ExamResultList,
+    Routes.Auth.Question,
+    Routes.Auth.StudyPerformance,
+];

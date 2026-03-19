@@ -28,8 +28,8 @@ const SelectAcademy = () => {
       >
         <Button
           style={{
-            backgroundColor: palette.main[500],
-            borderRadius: 6,
+            backgroundColor: palette.main[600],
+            borderRadius: 12,
             width: '100%',
             padding: 8,
           }}
@@ -39,7 +39,7 @@ const SelectAcademy = () => {
         </Button>
         <View>
           <Button mode="outlined" style={styles.cancelButton} onPress={() => handleSwitchAcademy(true)}>
-            <Text style={{ color: palette.main[500] }}>건너뛰기</Text>
+            <Text style={{ color: palette.main[600] }}>건너뛰기</Text>
           </Button>
         </View>
       </View>
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
   content: {
     justifyContent: 'center'
   },
-  title: { ...TYPO.heading1, color: palette.main[500], marginBottom: 80, marginTop: 156 },
+  title: { ...TYPO.heading1, color: palette.main[600], marginBottom: 80, marginTop: 156 },
   label: { ...TYPO.caption },
   input: {
     fontSize: 16,
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
   },
   error: { color: 'red', marginBottom: 12 },
   button: {
-    backgroundColor: palette.main[500],
+    backgroundColor: palette.main[600],
     padding: 16,
     borderRadius: 6,
     display: 'flex',
@@ -99,8 +99,9 @@ const styles = StyleSheet.create({
     gap: 8
   },
   cancelButton: {
-    borderRadius: 6,
+    borderRadius: 12,
     padding: 8,
-    marginTop: 24
+    marginTop: 24,
+    borderColor: palette.main[600]
   }
 })

@@ -10,6 +10,12 @@ export const navigate = (routeName: string, params?: object) => {
   }
 };
 
+export const replace = (routeName: string, params?: object) => {
+  if (navigationRef.current.isReady()) {
+  navigationRef?.current?.replace(routeName, params);
+  }
+};
+
 export const reset = (routeName: string) => {
   if (navigationRef.current.isReady()) {
   navigationRef?.current?.dispatch(
