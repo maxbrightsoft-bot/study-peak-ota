@@ -1,83 +1,62 @@
-import CustomDropDown from '@/components/DropDown/CustomDropDown'
 import { palette } from '@/theme'
+import { ChapterResponse } from '@/utils/types'
 import { Ionicons } from '@expo/vector-icons'
-import React, { useState } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import React from 'react'
+import { View, Text, TouchableOpacity } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   t: any
   isEnglish: boolean
-  chapter: any
+  chapter: ChapterResponse
+  isMock: boolean
   isStudying: boolean
   handleOpenChapterDialog: (chapter: any) => void
+  handleStartFromPage: (values: { startPage: number }) => Promise<void>
 }
 
-const ChapterDetail = ({ t, isEnglish, chapter, isStudying, handleOpenChapterDialog }: Props) => {
-  const [expanded, setExpanded] = useState(false)
-
-  const toggleExpand = () => {
-    setExpanded(!expanded)
-  }
-
+const ChapterDetail = ({ t, isEnglish, isMock, chapter, isStudying, handleStartFromPage, handleOpenChapterDialog }: Props) => {
+  const isCompleted = chapter.completedChapterQuestions === chapter.totalChapterQuestions
   return (
-    <View style={[styles.accordion, { backgroundColor: palette.common.white }]}>
-      <CustomDropDown
-        title={
-          <View style={{ flexDirection: "row", gap: 8, paddingHorizontal: 4}}>
-            <Ionicons name="checkmark-circle" size={20} color={palette.main[500]} />
-            <Text style={styles.chapterName}>{chapter.name}</Text>
-          </View>
-        }
-        expanded={!expanded}
-        onPress={toggleExpand}
-      >
-        <View style={styles.details}>
-          <View style={styles.row}>
-            <Text style={[styles.label, { width: 130 }]}>{t('page_title')}</Text>
-            <Text style={styles.label}>{t('the_solution_available')}</Text>
-          </View>
-
-          <View style={styles.row}>
-            <Text style={[styles.value, { width: 130 }]}>
-              {`${t('page_number', { number: chapter.pageFrom })} ~ ${t('page_number', { number: chapter.pageTo })}`}
-            </Text>
-            {isEnglish ? (
-              <View style={styles.statRow}>
-                <Text style={styles.lightText}>{`${chapter.completedChapterQuestions} ${t('questions')}`}</Text>
-                <Text style={styles.grayText}>
-                  {t('chapter_progress', {
-                    total: chapter?.totalChapterQuestions || 0
-                  })}
-                </Text>
+    <View style={styles.chapterCard}>
+      <View style={{ flex: 1 }}>
+        {!isCompleted && <Text style={styles.chapterTitle}>{chapter.name}</Text>}
+        {isCompleted && (
+          <View style={styles.chapterTop}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View style={styles.doneBadge}>
+                <Text style={styles.doneText}>{t('complete')}</Text>
               </View>
-            ) : (
-              <View style={styles.statRow}>
-                <Text style={styles.grayText}>
-                  {t('chapter_progress', {
-                    total: chapter?.totalChapterQuestions || 0
-                  })}
-                </Text>
-                <Text style={styles.lightText}>{`${chapter.completedChapterQuestions} ${t('questions')}`}</Text>
-              </View>
-            )}
-          </View>
 
-          <TouchableOpacity
-            disabled={!isStudying}
-            style={[
-              styles.button,
-              {
-                backgroundColor: isStudying ? palette.main[500] : '#ccc'
-              }
-            ]}
-            onPress={() => handleOpenChapterDialog(chapter)}
-          >
-            <Ionicons name="receipt-sharp" color="#fff" size={16} style={{ marginRight: 6 }} />
-            <Text style={styles.buttonText}>{t('solution_results')}</Text>
+              <Text style={styles.chapterTitle}>{chapter.name}</Text>
+            </View>
+
+            <TouchableOpacity
+              disabled={!isStudying}
+              style={[styles.resultBtn]}
+              onPress={() => handleOpenChapterDialog(chapter)}
+            >
+              <Text style={styles.resultText}>{t('solution_results')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+          <Text
+            style={styles.chapterMeta}
+          >{`${chapter.completedChapterQuestions}/${chapter.totalChapterQuestions} 문제`}</Text>
+          <View style={styles.divider} />
+          <Text style={styles.chapterMeta}>
+            {`${t('page_number', { number: chapter.pageFrom })} ~ ${t('page_number', { number: chapter.pageTo })}`}
+          </Text>
+        </View>
+      </View>
+      {!isCompleted && !isMock && (
+        <View>
+          <TouchableOpacity onPress={() => handleStartFromPage({ startPage: chapter.pageFrom })}>
+            <Ionicons name="chevron-forward" size={20} color={palette.grey[300]} />
           </TouchableOpacity>
         </View>
-      </CustomDropDown>
+      )}
     </View>
   )
 }
@@ -115,19 +94,26 @@ const styles = ScaledSheet.create({
     color: '#666'
   },
   details: {
-    paddingHorizontal: "32@ms",
+    paddingHorizontal: '32@ms',
     paddingBottom: 16,
     gap: 16
   },
   row: {
     flexDirection: 'row',
-    gap: 16,
+    gap: 16
   },
   label: {
     fontSize: 13,
     fontWeight: '600',
     color: '#111',
-    justifyContent: "flex-start"
+    justifyContent: 'flex-start'
+  },
+  divider: {
+    backgroundColor: palette.grey[300],
+    width: 1,
+    height: 10,
+    alignSelf: 'center',
+    marginHorizontal: 10
   },
   value: {
     fontSize: 13,
@@ -159,6 +145,61 @@ const styles = ScaledSheet.create({
   buttonText: {
     color: '#fff',
     fontWeight: 'bold'
+  },
+  chapterList: {
+    gap: '16@ms'
+  },
+
+  chapterCard: {
+    backgroundColor: 'white',
+    borderRadius: '14@ms',
+    padding: '16@ms',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+
+  chapterTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+
+  doneBadge: {
+    backgroundColor: '#D7FFE7',
+    paddingHorizontal: '10@ms',
+    paddingVertical: '4@ms',
+    borderRadius: '12@ms'
+  },
+
+  doneText: {
+    fontSize: '12@ms',
+    fontWeight: '600',
+    color: '#3DC674'
+  },
+
+  chapterTitle: {
+    fontSize: '16@ms',
+    fontWeight: '700',
+    color: palette.grey[900]
+  },
+
+  chapterMeta: {
+    fontSize: '13@ms',
+    color: '#667085'
+  },
+  resultBtn: {
+    borderWidth: 1,
+    borderColor: palette.main[500],
+    borderRadius: '16@ms',
+    paddingHorizontal: '12@ms',
+    paddingVertical: '6@ms'
+  },
+
+  resultText: {
+    fontSize: '13@ms',
+    color: palette.main[500],
+    fontWeight: '600'
   }
 })
 

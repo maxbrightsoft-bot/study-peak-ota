@@ -57,8 +57,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden'
   },
   header: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center'
@@ -78,29 +76,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#D1D5DB'
+    paddingVertical: 12,
+    marginBottom: -24
   },
   cancelButton: {
     padding: 8
   },
   cancelButtonText: {
-    color: '#4B5563',
+    color: palette.main[600],
     fontWeight: 'bold',
-    fontSize: 14
+    fontSize: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
   },
   submitButton: {
-    backgroundColor: palette.main[500],
-    padding: 12,
-    borderRadius: 4,
+    backgroundColor: palette.main[600],
+    borderRadius: 14,
     minWidth: 120,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     alignItems: 'center'
   },
   submitButtonText: {
     color: 'white',
     fontWeight: 'bold',
-    fontSize: 14
+    fontSize: 14,
+    lineHeight: 22
   }
 })
 
