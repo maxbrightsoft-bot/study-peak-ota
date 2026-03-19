@@ -24,6 +24,15 @@ export const apiLoginGoogle = (body: LoginRequest, isLearningSpace: boolean) =>
   }
   );
 
+export const apiLoginApple = (body: LoginRequest, isLearningSpace: boolean) =>
+  api.post(`${AUTH_URL}/login-apple`,
+    body, {
+    headers: {
+      [NoAcademyHeaders]: isLearningSpace
+    }
+  }
+  );
+
 export const apiLoginGoogleSuperAdmin = (body: LoginRequest) => api.post(
   `${AUTH_SUPER_ADMIN_URL}/login`,
   body

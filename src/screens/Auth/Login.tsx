@@ -1,4 +1,4 @@
-import Login from "@/containers/Login/views/LoginGoogle";
+import Login from "@/containers/Login/views/Login";
 import React from "react";
 
 const LoginScreen = () => {

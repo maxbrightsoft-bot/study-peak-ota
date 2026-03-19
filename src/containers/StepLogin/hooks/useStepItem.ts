@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { GRADE_OPTIONS } from "../configs/constants";
 import { navigate } from "@/navigators/NavigationHelpers";
@@ -6,6 +6,9 @@ import { getErrorMessage, toast } from "@/utils/helpers";
 import useAuthStore from "@/store/useAuthStore";
 import { updateInfoLogin } from "../apiClients/authService";
 import { Routes } from "@/navigators/RouteName";
+import { REDIRECT_URL } from "@/utils/constants";
+import { setDataStorage } from "@/utils/storage";
+import { useFocusEffect } from "expo-router";
 
 const steps = [
   "fullName",
@@ -22,14 +25,14 @@ type Props = {
 
 const useStepItem = ({ values, errors, setFieldTouched }: Props) => {
   const [step, setStep] = useState(0);
-  const { user, setLoading, setUser } = useAuthStore()
+  const { user, setLoading, setUser, setHasEnteredSelectAcademy } = useAuthStore()
   const { t } = useTranslation();
 
-  const onNext = async () => {
-    const stepKey = steps[step];
+  const onNext = async (num: number) => {
+    const stepKey = steps[num];
     setFieldTouched(stepKey, true)
     if (!values[stepKey] || errors[stepKey]) return;
-    if (step < steps.length - 1) {
+    if (num < steps.length - 1) {
       setStep((prev) => prev + 1);
     } else {
       await handleUpdateInfo()
@@ -46,8 +49,17 @@ const useStepItem = ({ values, errors, setFieldTouched }: Props) => {
     setLoading(true)
     try {
       const res = await updateInfoLogin({ ...values, isMobile: true });
-      setUser(res.data)
-      navigate(user?.academyDomain ? Routes.Auth.Home : Routes.Auth.SelectAcademy)
+
+      if (res.data?.academyDomain) {
+        setHasEnteredSelectAcademy(true)
+      }
+
+      setUser({ ...res.data, isNotEnoughStatements: false })
+
+      setTimeout(() => {
+        navigate(Routes.Auth.Home)
+      }, 100)
+
     } catch (error: any) {
       toast.error(getErrorMessage(t, error))
     }
