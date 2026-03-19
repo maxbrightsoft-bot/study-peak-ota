@@ -1,48 +1,40 @@
-import React from "react";
+import React from 'react'
 
-import { TouchableOpacity, Text, StyleSheet } from "react-native";
-import IconGoogle from "@/assets/icons/google.svg"
-import useLogin from "../hooks/useLogin";
-import { palette } from "@/theme";
+import { TouchableOpacity, Text, StyleSheet } from 'react-native'
+import IconGoogle from '@/assets/icons/google.svg'
+import { palette } from '@/theme'
 
-const GoogleLoginButton = () => {
-  const {
-    request,
-    promptAsync
-  } = useLogin()
+const GoogleLoginButton = ({ loginWithGoogle }: { loginWithGoogle: () => void }) => {
 
   return (
-    <TouchableOpacity
-      style={styles.googleButton}
-      onPress={() => promptAsync()}
-      disabled={!request}
-    >
-      <IconGoogle style={styles.googleIcon}/>
+    <TouchableOpacity style={styles.googleButton} onPress={loginWithGoogle}>
+      <IconGoogle style={styles.googleIcon} />
       <Text style={styles.googleButtonText}>Google로 계속하기</Text>
     </TouchableOpacity>
-  );
-};
+  )
+}
 
-export default GoogleLoginButton;
+export default GoogleLoginButton
 
 const styles = StyleSheet.create({
   googleButton: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     borderColor: palette.grey[700],
     borderWidth: 1,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 6,
-    justifyContent: "center",
+    justifyContent: 'center'
   },
   googleIcon: {
     width: 20,
     height: 20,
-    marginRight: 8,
+    marginRight: 8
   },
   googleButtonText: {
     fontSize: 16,
-    fontWeight: "500",
-  },
-});
+    fontWeight: '500',
+    color: "#222222"
+  }
+})

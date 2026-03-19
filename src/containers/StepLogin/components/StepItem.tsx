@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native'
 import { palette, TYPO } from '@/theme'
 import { Field } from 'formik'
 import TextField from '@/components/Input/TextField'
@@ -34,7 +34,6 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
             <Field name="fullName">
               {() => (
                 <TextField
-                  label="이름"
                   error={touched.fullName && errors.fullName && '이름은 필수입니다'}
                   value={values.fullName}
                   style={styles.input}
@@ -51,7 +50,6 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
             <Field name="phoneNumber">
               {() => (
                 <TextField
-                  label="전화번호"
                   style={styles.input}
                   value={values.phoneNumber}
                   keyboardType="phone-pad"
@@ -70,7 +68,6 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
               {() => (
                 <TextField
                   error={touched.schoolName && errors.schoolName && '학교 이름은 필수입니다'}
-                  label="전화번호"
                   value={values.schoolName}
                   style={styles.input}
                   onChangeText={(value: string) => setFieldValue('schoolName', value)}
@@ -86,7 +83,7 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
             <Text style={styles.title}>학과와 학년을 선택해주세요.</Text>
             <GridContainer spacing={12}>
               <GridItem xs={4} style={{ justifyContent: 'space-between' }}>
-                <Text style={styles.label}>{t('select_liberal_arts/science')}</Text>
+                <Text style={[styles.label, { marginBottom: 8} ]}>{t('select_liberal_arts/science')}</Text>
                 <Field name="major">
                   {() => (
                     <Select
@@ -98,7 +95,7 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
                 </Field>
               </GridItem>
               <GridItem xs={4} style={{ justifyContent: 'space-between' }}>
-                <Text style={styles.label}>{t('current_grade')}</Text>
+                <Text style={[styles.label, { marginBottom: 8} ]}>{t('current_grade')}</Text>
                 <Field name="grade">
                   {() => (
                     <Select
@@ -116,57 +113,69 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
   }
 
   return (
-    <>
-      {step !== 0 && (
-        <Button
-          onPress={onPrev}
-          style={{ width: 30, borderWidth: 1, borderColor: palette.main[500], borderRadius: 6, margin: 24 }}
-        >
-          <Ionicons name="return-up-back" size={24} color={palette.main[500]} />
-        </Button>
-      )}
-      <View style={styles.container}>
-        <View style={styles.content}>{renderStep()}</View>
-        <View
-          style={{
-            position: 'absolute',
-            bottom: 20,
-            width: '100%',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transform: 'translateX(25%)'
-          }}
-        >
-          <Button style={styles.buttonAction} onPress={onNext}>
-            <Text style={{ color: '#FFF' }}>{step < stepCount - 1 ? '확인' : '회원가입'}</Text>
-          </Button>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        {step !== 0 && (
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              paddingHorizontal: 20,
+              paddingVertical: 16,
+              backgroundColor: "#FFF"
+            }}
+          >
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={onPrev}>
+              <Ionicons name="chevron-back-outline" size={24} color={palette.grey[600]} />
+            </TouchableOpacity>
+          </View>
+        )}
+        <View style={styles.container}>
+          <View style={styles.content}>{renderStep()}</View>
+          <View
+            style={{
+              position: 'absolute',
+              bottom: 20,
+              width: '100%',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transform: 'translateX(25%)'
+            }}
+          >
+            <TouchableOpacity style={[styles.button, styles.buttonAction]} onPress={() => onNext(step)}>
+              <Text style={{ color: '#FFF' }}>{step < stepCount - 1 ? '확인' : '회원가입'}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </>
+      </ScrollView>
+    </KeyboardAvoidingView>
   )
 }
 
 export default StepItem
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingBottom: 24, paddingTop: 156, paddingHorizontal: 24, position: 'relative' },
+  container: {
+    backgroundColor: '#FFF',
+    flex: 1,
+    paddingBottom: 24,
+    paddingTop: 156,
+    paddingHorizontal: 24,
+    position: 'relative'
+  },
   content: {
     justifyContent: 'center'
   },
-  title: { ...TYPO.heading1, marginBottom: 80, color: palette.main[500] },
-  label: { ...TYPO.caption },
-  input: {
-    fontSize: 16,
-    paddingVertical: 4,
-    borderBottomWidth: 1,
-    borderColor: palette.grey[300]
-  },
+  title: { ...TYPO.heading1, marginBottom: 80, color: palette.main[600] },
+  label: { ...TYPO.caption, color: "#222222" },
+  input: {},
   error: { color: 'red', marginBottom: 12 },
   button: {
-    backgroundColor: palette.main[500],
+    backgroundColor: palette.main[600],
     padding: 16,
-    borderRadius: 6,
+    borderRadius: 12,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center'
@@ -196,6 +205,7 @@ const styles = StyleSheet.create({
     gap: 8
   },
   buttonAction: {
-    backgroundColor: palette.main[500], borderRadius: 6, width: '100%'
+    backgroundColor: palette.main[600],
+    width: '100%'
   }
 })

@@ -1,183 +1,223 @@
 import { decode as atob } from 'base-64';
-import * as WebBrowser from "expo-web-browser";
-import * as Google from "expo-auth-session/providers/google";
-import { useEffect } from "react";
-import { LoginAccessTokenRequest, LoginRequest, LoginResponse } from "@/utils/types";
-import { Role } from "@/utils/enums";
-import { makeRedirectUri } from 'expo-auth-session';
+import { GoogleSignin, isErrorWithCode, isSuccessResponse, statusCodes } from '@react-native-google-signin/google-signin';
+import { LoginAccessTokenRequest, LoginRequest, LoginResponse } from '@/utils/types';
+import { Role } from '@/utils/enums';
 import {
   ACADEMY_DOMAIN,
   ACCESS_TOKEN,
   LEARNING_SPACE,
-  REDIRECT_URL,
-} from "@/utils/constants";
-import { removeDataStorage, setDataStorage } from "@/utils/storage";
-import useAuthStore from "@/store/useAuthStore";
-import { getAcademyDomain, getErrorMessage, toast } from "@/utils/helpers";
+} from '@/utils/constants';
+import { removeDataStorage, setDataStorage } from '@/utils/storage';
+import useAuthStore from '@/store/useAuthStore';
+import { getAcademyDomain, getErrorMessage, toast } from '@/utils/helpers';
 import {
+  apiLoginApple,
   apiLoginGoogle,
   apiLoginGoogleSuperAdmin,
   apiLoginWithAccessToken,
-} from "../apiClients/accountService";
-import { useTranslation } from "react-i18next";
+} from '../apiClients/accountService';
+import { useTranslation } from 'react-i18next';
 import { Routes } from '@/navigators/RouteName';
+import appleAuth from '@invertase/react-native-apple-authentication';
 
 const useLogin = () => {
   const { t } = useTranslation();
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    iosClientId: process.env.EXPO_PUBLIC_IOS_GOOGLE_CLIENT_ID,
-    androidClientId: process.env.EXPO_PUBLIC_ANDROID_GOOGLE_CLIENT_ID,
-    webClientId: process.env.EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID,
-    clientId: process.env.EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID,
-    redirectUri: makeRedirectUri({
-      scheme: 'com.max.britghtsoft.touchstudymobile',
-    }),
-    scopes: ["profile", "email"],
-  });
-
-  const { setLoading, logout, setUser, setHasEnteredSelectAcademy } = useAuthStore();
-
-  WebBrowser.maybeCompleteAuthSession();
+  const {
+    setLoading,
+    logout,
+    setUser,
+    setHasEnteredSelectAcademy,
+    setRedirectUrl,
+  } = useAuthStore();
 
   const handleRedirectAfterSuccess = async (
     data: any,
     token: string,
     redirectUrl: string
   ) => {
-    setUser({
-      ...data,
-    });
     await setDataStorage(ACCESS_TOKEN, token);
-    !data.academyDomain && await removeDataStorage(ACADEMY_DOMAIN);
-    !!data.academyDomain && await setDataStorage(ACADEMY_DOMAIN, data.academyDomain);
-    data.isLearningSpace
-      ? await setDataStorage(LEARNING_SPACE, "true")
-      : await removeDataStorage(LEARNING_SPACE);
-    await setDataStorage(REDIRECT_URL, redirectUrl)
-  };
 
+    data.academyDomain
+      ? await setDataStorage(ACADEMY_DOMAIN, data.academyDomain)
+      : await removeDataStorage(ACADEMY_DOMAIN);
+
+    data.isLearningSpace
+      ? await setDataStorage(LEARNING_SPACE, 'true')
+      : await removeDataStorage(LEARNING_SPACE);
+
+    setRedirectUrl(redirectUrl);
+    setUser(data);
+  };
   const handleLogin = async (
     apiLogin: () => Promise<LoginResponse>,
-    isLogout: boolean = true,
+    isLogout = true,
     redirectUrlProp?: string
   ) => {
     setLoading(true);
     const academyDomain = await getAcademyDomain();
-    try {
-      const loginResponse = await apiLogin();
-      const { isFirstLogin, token, user } = loginResponse;
-      const isAcademy = !!user?.academyDomain || !!user?.isLearningSpace;
-      const needToRegister = isFirstLogin && isAcademy;
-      let redirectUrl;
 
-      if (needToRegister) {
+    try {
+      const { isFirstLogin, token, user } = await apiLogin();
+      const isAcademy = !!user?.academyDomain || !!user?.isLearningSpace;
+
+      let redirectUrl: string;
+      if (isFirstLogin && isAcademy) {
         redirectUrl = Routes.Auth.Onboarding;
-      } else if (redirectUrlProp != null) {
+      } else if (redirectUrlProp) {
         redirectUrl = redirectUrlProp;
       } else if (isAcademy) {
         redirectUrl = Routes.Auth.Home;
       } else {
+        setHasEnteredSelectAcademy(false);
         redirectUrl = Routes.Auth.SelectAcademy;
       }
 
-      await handleRedirectAfterSuccess({ ...user, isNotEnoughStatements: isFirstLogin }, token, redirectUrl);
+      await handleRedirectAfterSuccess(
+        { ...user, isNotEnoughStatements: isFirstLogin },
+        token,
+        redirectUrl
+      );
     } catch (error) {
-      !!academyDomain && await removeDataStorage(ACADEMY_DOMAIN);
+      academyDomain && (await removeDataStorage(ACADEMY_DOMAIN));
       await removeDataStorage(LEARNING_SPACE);
       toast.error(getErrorMessage(t, error));
-      isLogout && await logout();
+      isLogout && (await logout());
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleAuthGoogle = async (data: LoginRequest) => {
     const academyDomain = await getAcademyDomain();
-    let loginResponse = await apiLoginGoogle(data, true)
+    let loginResponse = await apiLoginGoogle(data, true);
 
-    let result: LoginResponse = loginResponse.data;
     if (loginResponse.status === 204 && academyDomain) {
       await removeDataStorage(ACADEMY_DOMAIN);
       await removeDataStorage(LEARNING_SPACE);
       loginResponse = await apiLoginGoogleSuperAdmin(data);
-      result = loginResponse.data;
     }
-    return result
-  }
 
-  const handleLoginGoogle = async (data: LoginRequest, isLogout = true) => {
-    await handleLogin(
-      () => handleAuthGoogle(data),
-      isLogout,
-    );
+    return loginResponse.data;
   };
 
-  const handleAuthToken = async (data: LoginAccessTokenRequest,
-    isLearningSpace?: boolean,
-    domain?: string,) => {
-    const loginResponse =
-      await apiLoginWithAccessToken(
-        data,
-        isLearningSpace,
-        domain
-      );
-    const result: LoginResponse = loginResponse.data
-    return result
+  const handleAuthApple = async (data: LoginRequest) => {
+    let loginResponse = await apiLoginApple(data, true);
+
+    return loginResponse.data;
+  };
+
+  const loginWithGoogle = async () => {
+    try {
+      setLoading(true);
+
+      await GoogleSignin.hasPlayServices();
+      const response = await GoogleSignin.signIn();
+      if (isSuccessResponse(response)) {
+        const userInfo = response.data
+        const idToken = userInfo.idToken;
+
+        if (!idToken) {
+          throw new Error('NO_ID_TOKEN');
+        }
+
+        const base64Url = idToken.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(atob(base64));
+
+        const infoLogin: LoginRequest = {
+          imageUrl: payload.picture,
+          fullName: payload.name,
+          email: payload.email,
+          token: idToken,
+          googleId: payload.sub,
+          role: Role.Student,
+          isMobile: true,
+        };
+
+        await handleLogin(() => handleAuthGoogle(infoLogin));
+        setHasEnteredSelectAcademy(false);
+      }
+    } catch (error) {
+      console.log('Google Sign-In Error Details:', error);
+      if (isErrorWithCode(error)) {
+        switch (error.code) {
+          case statusCodes.IN_PROGRESS:
+            console.log('Google sign-in already in progress');
+            break;
+          case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
+            console.log('Play services not available');
+            break;
+          default:
+            console.log('Google sign-in error code:', error.code);
+        }
+      } else {
+        console.log('Google sign-in error:', error);
+        toast.error(getErrorMessage(t, error || ''));
+      }
+    }
+    setLoading(false);
+  };
+
+  const onAppleButtonPress = async () => {
+    try {
+      const appleAuthRequestResponse = await appleAuth.performRequest({
+        requestedOperation: appleAuth.Operation.LOGIN,
+        requestedScopes: [
+          appleAuth.Scope.EMAIL,
+          appleAuth.Scope.FULL_NAME,
+        ],
+      });
+
+      if (!appleAuthRequestResponse.identityToken) {
+        throw new Error('Apple Sign-In failed - no identity token returned');
+      }
+
+      console.log({ appleAuthRequestResponse })
+
+      const infoLogin: LoginRequest = {
+        imageUrl: '',
+        fullName: appleAuthRequestResponse.fullName
+          ? `${appleAuthRequestResponse.fullName.givenName || ''} ${appleAuthRequestResponse.fullName.familyName || ''}`
+          : '',
+        email: appleAuthRequestResponse.email || '',
+        token: appleAuthRequestResponse.identityToken,
+        role: Role.Student,
+        isMobile: true,
+      };
+
+      await handleLogin(() => handleAuthApple(infoLogin));
+      setHasEnteredSelectAcademy(false);
+
+    } catch (error) {
+      console.log('Apple login error:', error);
+      toast.error(getErrorMessage(t, error || ''));
+    }
   }
 
   const handleLoginAccessToken = async (
     data: LoginAccessTokenRequest,
     isLearningSpace?: boolean,
     domain?: string,
-    isLogout: boolean = true,
+    isLogout = true,
     redirectUrlProps?: string
   ) => {
     await handleLogin(
-      () => handleAuthToken(data, isLearningSpace, domain),
+      async () => {
+        const res = await apiLoginWithAccessToken(
+          data,
+          isLearningSpace,
+          domain
+        );
+        return res.data;
+      },
       isLogout,
       redirectUrlProps
-    )
-  }
-
-  const getUserInfo = async (token?: string) => {
-    if (!token) return;
-
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = atob(base64);
-      const user = JSON.parse(jsonPayload);
-
-      const infoLogin = {
-        imageUrl: user?.picture,
-        fullName: user?.name,
-        email: user?.email,
-        token,
-        googleId: user?.sub,
-        role: Role.Student,
-        isMobile: true
-      };
-
-      await handleLoginGoogle(infoLogin);
-    } catch (err: any) {
-      toast.error(getErrorMessage(t, err?.message || ""));
-    }
+    );
   };
 
-  useEffect(() => {
-    if (response?.type === "success") {
-      const { id_token } = response?.params;
-
-      getUserInfo(id_token);
-      setHasEnteredSelectAcademy(false)
-    } else if (response?.type === "error") {
-
-      toast.error(getErrorMessage(t, response.error?.message || ""));
-    }
-  }, [response]);
-
   return {
-    request,
-    promptAsync,
+    onAppleButtonPress,
+    loginWithGoogle,
     handleLoginAccessToken,
   };
 };
