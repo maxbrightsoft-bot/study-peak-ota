@@ -10,13 +10,13 @@ import { TimerStatus } from '@/utils/enums'
 import { getRemainTimeFromMinutes, toast } from '@/utils/helpers'
 import { removeDataStorage } from '@/utils/storage'
 import { TOAST_EXAM_STATUS } from '@/utils/constants'
-import { BaseToast, ErrorToast, InfoToast, SuccessToast  } from 'react-native-toast-message'
+import { BaseToast, ErrorToast, InfoToast, SuccessToast } from 'react-native-toast-message'
 
 interface Props {
   audioSrc: string
   toastId: string
   alarm?: any
-  soundRef: React.MutableRefObject<any>
+  soundRef?: React.MutableRefObject<any>
   remainTime: number
   onClose: () => void
 }
@@ -25,6 +25,8 @@ const AUTO_CLOSE_TIME = 3_000
 
 const AudioToastContent: FC<Props> = ({ soundRef, audioSrc, alarm, remainTime, onClose }) => {
   const { t } = useTranslation()
+  const localSoundRef = useRef<any>(null)
+  const sound = soundRef ?? localSoundRef
 
   const [progress, setProgress] = useState(1)
   const [timeLeft, setTimeLeft] = useState(remainTime)
@@ -34,12 +36,13 @@ const AudioToastContent: FC<Props> = ({ soundRef, audioSrc, alarm, remainTime, o
   const tickTimer = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
+    if (!sound.current) return
     const play = async () => {
       try {
-        const { sound } = await Audio.Sound.createAsync({ uri: audioSrc }, { shouldPlay: true })
-        soundRef.current = sound
+        const { sound: audio } = await Audio.Sound.createAsync({ uri: audioSrc }, { shouldPlay: true })
+        sound.current = audio
 
-        sound.setOnPlaybackStatusUpdate((status) => {
+        audio.setOnPlaybackStatusUpdate((status) => {
           if (!status.isLoaded || status.didJustFinish) {
             setIsClosing(true)
           }
@@ -52,7 +55,7 @@ const AudioToastContent: FC<Props> = ({ soundRef, audioSrc, alarm, remainTime, o
     play()
 
     return () => {
-      soundRef.current?.unloadAsync()
+      sound.current?.unloadAsync()
     }
   }, [audioSrc])
 
@@ -128,13 +131,12 @@ const AudioToastContent: FC<Props> = ({ soundRef, audioSrc, alarm, remainTime, o
   }, [alarm])
 
   const handleClose = async () => {
-    await soundRef.current?.stopAsync()
+    await sound.current?.stopAsync()
     onClose()
   }
 
   return (
     <View style={styles.container}>
-      <IconButton icon="close" size={16} onPress={handleClose} style={styles.close} />
 
       <View style={styles.header}>
         <Text style={styles.title}>{t('warning_bell')}</Text>
@@ -200,7 +202,7 @@ export const audioToastConfig = {
         alarm={props.alarm}
         remainTime={props.remainTime}
         toastId={props.toastId}
-        soundRef={props.soundRef}
+        soundRef={props?.soundRef}
         onClose={() => {
           toast.dismiss()
         }}

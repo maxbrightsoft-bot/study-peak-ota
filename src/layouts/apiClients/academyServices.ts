@@ -21,6 +21,9 @@ export const getAcademyByDomainApi = (domain: string, role?: string) => api.get(
   }
 });
 
+export const getAcademyDetailApi = () => api.get(`${ACADEMY_URL}/detail`)
+
+
 export const switchAcademy = (academyId: number, role: Role, isLearningSpace: boolean = false) => api.post(`${ACADEMY_URL}/${academyId}/switch-academy/${role}`, undefined, { params: { isLearningSpace } });
 
 export const switchSuperAdminAcademy = (academyId: number, role: Role) => api.post(`${SUPER_ADMIN_ACADEMY_URL}/${academyId}/switch-academy/${role}`);

@@ -6,24 +6,67 @@ import { palette, TYPO } from '@/theme'
 import { TAB_BAR_HEIGHT } from '@/utils/constants'
 import { Routes } from '@/navigators/RouteName'
 import { currentScreen } from '@/navigators/NavigationHelpers'
-import GraphIcon from '@/assets/iconJSX/graph_fill'
+import PieChartIcon from '@/assets/iconJSX/pieChart'
+import HomeIcon from '@/assets/iconJSX/home'
+import CupIcon from '@/assets/iconJSX/cup'
+import ChatIcon from '@/assets/iconJSX/chat'
+import BookIcon from '@/assets/iconJSX/book'
+import useAuthStore from '@/store/useAuthStore'
 
 const Footer = ({ navigation }: BottomTabBarProps) => {
-  const tabItems = [
-    { name: Routes.Auth.Home, icon: 'home', label: '홈' },
-    { name: Routes.Auth.Textbook, icon: 'book', label: '시험' },
-    { name: Routes.Auth.ExamResultList, icon: 'receipt', label: '시험 이력' },
+  const { user } = useAuthStore()
+
+  const studySpaceTabItems = [
+    {
+      name: Routes.Auth.Home,
+      icon: 'home',
+      label: '홈',
+      iconJSX: (isFocused: boolean) => <HomeIcon color={isFocused ? palette.main[600] : palette.grey[300]} />
+    },
+    {
+      name: Routes.Auth.Textbook,
+      iconJSX: (isFocused: boolean) => <BookIcon color={isFocused ? palette.main[600] : palette.grey[300]} />,
+      label: '문제은행'
+    },
     {
       name: Routes.Auth.StudyPerformance,
       label: '공부 추이',
-      iconJSX: (isFocused: boolean) => <GraphIcon color={isFocused ? palette.main[500] : palette.grey[500]} />
+      iconJSX: (isFocused: boolean) => <PieChartIcon color={isFocused ? palette.main[600] : palette.grey[300]} />
+    }
+  ]
+
+  const tabItems = [
+    {
+      name: Routes.Auth.Home,
+      icon: 'home',
+      label: '홈',
+      iconJSX: (isFocused: boolean) => <HomeIcon color={isFocused ? palette.main[600] : palette.grey[300]} />
     },
-    { name: Routes.Auth.Profile, icon: 'ellipsis-horizontal', label: '기타' }
+    {
+      name: Routes.Auth.ExamResultList,
+      label: '내 성적',
+      iconJSX: (isFocused: boolean) => <CupIcon color={isFocused ? palette.main[600] : palette.grey[300]} />
+    },
+    {
+      name: Routes.Auth.Textbook,
+      iconJSX: (isFocused: boolean) => <BookIcon color={isFocused ? palette.main[600] : palette.grey[300]} />,
+      label: '문제은행'
+    },
+    {
+      name: Routes.Auth.Question,
+      iconJSX: (isFocused: boolean) => <ChatIcon color={isFocused ? palette.main[600] : palette.grey[300]} />,
+      label: '질문'
+    },
+    {
+      name: Routes.Auth.StudyPerformance,
+      label: '공부 추이',
+      iconJSX: (isFocused: boolean) => <PieChartIcon color={isFocused ? palette.main[600] : palette.grey[300]} />
+    }
   ]
 
   return (
     <View style={styles.tabBar}>
-      {tabItems.map((item) => {
+      {(user?.academyDomain ? tabItems : studySpaceTabItems).map((item) => {
         const isFocused = currentScreen() == item.name
 
         return (
@@ -50,11 +93,13 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#eee',
     backgroundColor: 'white',
-    paddingVertical: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
     height: TAB_BAR_HEIGHT
   },
   tabItem: {
-    alignItems: 'center'
+    alignItems: 'center',
+    gap: 6
   },
   tabText: {
     ...TYPO.button4,
