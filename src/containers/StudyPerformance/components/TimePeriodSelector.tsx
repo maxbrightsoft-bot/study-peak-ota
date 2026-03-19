@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Option } from '../configs/types';
 import CustomSelect from '@/components/Select/CustomSelect';
+import { palette } from '@/theme';
 
 type Props = {
   timeType: number;
@@ -10,9 +11,9 @@ type Props = {
   subjectOptions?: Option[];
   currentTimeOptions: Option[];
   selectedSubject?: number;
-  handleChangeTimeType: (item: Option) => void;
-  handleChangeSubject?: (item: Option) => void;
-  handleChangeCurrentTime: (item: Option) => void;
+  handleChangeTimeType: (item: number) => void;
+  handleChangeSubject?: (item: number) => void;
+  handleChangeCurrentTime: (item: number) => void;
 };
 
 const TimePeriodSelector = ({
@@ -28,7 +29,10 @@ const TimePeriodSelector = ({
 }: Props) => {
   const style = {
     borderWidth: 0.5,
-    borderRadius: 6
+    borderColor: palette.grey[100],
+    backgroundColor: "#FFF",
+    borderRadius: 8,
+    height: 40
   }
   return (
     <View style={styles.container}>
@@ -63,7 +67,6 @@ export default TimePeriodSelector;
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    gap: 14,
+    gap: 8,
   },
 });

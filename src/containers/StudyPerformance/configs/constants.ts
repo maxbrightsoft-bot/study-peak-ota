@@ -1,3 +1,14 @@
+import { NoteSortColumn, OrderBy } from "@/utils/enums"
+import { NoteSearchQuery } from "@/utils/types"
+
+export const StudySpaceTabList = [
+  {
+    label: 'time_data',
+    value: 0
+  },
+]
+
+
 export const TabList = [
   {
     label: 'time_data',
@@ -7,6 +18,10 @@ export const TabList = [
     label: 'performance_data',
     value: 1
   },
+  {
+    label: 'review_wrong_answer_notes',
+    value: 2
+  }
 ]
 
 
@@ -33,3 +48,10 @@ export enum TypeText { 'study', 'average', 'compare' }
 export enum Mode { Timer, Question }
 
 export const MILLISECONDS_PER_HOUR = 60 * 60 * 1000
+
+export const DEFAULT_NOTE_FILTER: NoteSearchQuery = {
+  sortColumnDirection: OrderBy.DESC,
+  sortColumnName: NoteSortColumn.CreatedAt,
+  currentPage: 1,
+  pageSize: 12
+}

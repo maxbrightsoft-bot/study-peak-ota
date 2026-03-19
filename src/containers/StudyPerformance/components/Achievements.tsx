@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
   rankText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#6B7280'
+    color: palette.grey[500]
   },
   rankInfo: {
     gap: 4

@@ -1,13 +1,13 @@
 import React, { useMemo, useState } from 'react'
-import { View, Text, ActivityIndicator } from 'react-native'
+import { View, Text, ActivityIndicator, TouchableOpacity, StyleSheet, Dimensions } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { BarChart } from 'react-native-gifted-charts'
 import { DataResponse, QuestionAnswerOverallResponse } from '../configs/types'
 import { calcFocusTime, ceilTo } from '../configs/helper'
 import { timeTypeOptions, TypeText } from '../configs/constants'
 import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
 import moment from 'moment'
+import { Octicons } from '@expo/vector-icons'
 
 type Props = {
   categories: string[]
@@ -17,6 +17,10 @@ type Props = {
   label: string
   loading: boolean
   isPrint?: boolean
+  currentTime: number
+  onPrevious: () => void
+  onNext: () => void
+  isDisableNavigation: (time: number, type?: 'PREVIOUS' | 'NEXT') => boolean
   overallData?: QuestionAnswerOverallResponse
   isTimerTab?: boolean
 }
@@ -40,40 +44,141 @@ const StudyTimeDescriptionItem = ({
   subStaticsTitle,
   isCompared = false
 }: ItemProps) => {
-  const valueColor = !isOverall && isCompared ? (staticsNumber >= 0 ? '#059669' : '#DC2626') : '#111827'
+  const valueColor = isCompared ? (staticsNumber >= 0 ? palette.main[600] : '#DC2626') : '#111827'
 
   return (
     <View style={styles.statsItem}>
       <View style={styles.statsTitleRow}>
-        <Text style={styles.statsTitle}>{title}</Text>
+        <Text numberOfLines={1} ellipsizeMode="tail" style={styles.statsTitle}>
+          {title}
+        </Text>
         {!!subStaticsTitle && <Text style={styles.statsTitle}>{subStaticsTitle}</Text>}
       </View>
 
       <View style={styles.statsValueRow}>
         <Text style={[styles.statsValue, { color: valueColor }]}>
           {isCompared ? `${staticsNumber >= 0 ? '+' : '-'}${Math.abs(staticsNumber)}` : staticsNumber}
-          <Text style={styles.statsUnit}>{` ${unit}`}</Text>
+          <Text
+            style={[
+              styles.statsUnit,
+              { color: isCompared ? (staticsNumber >= 0 ? palette.main[600] : '#DC2626') : palette.grey[500] }
+            ]}
+          >{` ${unit}`}</Text>
         </Text>
 
-        {!!subStaticsNumber && (
+        {/* {!!subStaticsNumber && (
           <Text style={styles.subStatsValue}>
             {`${subStaticsNumber >= 0 ? '+' : '-'}${Math.abs(subStaticsNumber)}${unit}`}
           </Text>
-        )}
+        )} */}
       </View>
     </View>
   )
 }
 
-const BAR_WIDTH = 8
-const BARS_PER_GROUP = 2
-const H_PADDING = 16 * 2
+const CHART_HEIGHT = 165
+const BAR_BG_COLOR = palette.main[100]
+const COLOR_PRIMARY = '#B09FFF'
+const COLOR_SECONDARY = '#FFD572'
+
+type PillBarProps = {
+  pValue: number
+  sValue: number
+  maxValue: number
+  label: string
+  isToday?: boolean
+  barWidth: number
+}
+
+const PillBar = ({ pValue, sValue, maxValue, label, isToday, barWidth }: PillBarProps) => {
+  const safeMax = maxValue > 0 ? maxValue : 1
+  const pHeight = Math.max((pValue / safeMax) * CHART_HEIGHT, pValue > 0 ? 8 : 0)
+  const sHeight = Math.max((sValue / safeMax) * CHART_HEIGHT, sValue > 0 ? 8 : 0)
+
+  return (
+    <View style={{ alignItems: 'center', flex: 1 }}>
+      <View
+        style={{
+          width: barWidth,
+          height: CHART_HEIGHT,
+          backgroundColor: BAR_BG_COLOR,
+          borderRadius: barWidth / 2,
+          justifyContent: 'flex-end',
+          overflow: 'hidden',
+          marginBottom: 8
+        }}
+      >
+        {pHeight > 0 && (
+          <View
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: pHeight,
+              backgroundColor: COLOR_PRIMARY,
+              borderRadius: barWidth / 2
+            }}
+          />
+        )}
+
+        {sHeight > 0 && (
+          <View
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: sHeight,
+              backgroundColor: COLOR_SECONDARY,
+              borderRadius: barWidth / 2
+            }}
+          />
+        )}
+
+        {pHeight > 0 && (
+          <View
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: Math.min(pHeight, sHeight > 0 ? pHeight : pHeight),
+              backgroundColor: COLOR_PRIMARY,
+              borderRadius: barWidth / 2
+            }}
+          />
+        )}
+      </View>
+
+      <Text
+        numberOfLines={1}
+        ellipsizeMode="tail"
+        style={{
+          fontSize: 13,
+          color: isToday ? palette.main[500] : palette.grey[500],
+          fontWeight: isToday ? '600' : '400'
+        }}
+      >
+        {label}
+      </Text>
+    </View>
+  )
+}
+
+const H_PADDING = 32
+const BAR_MIN_WIDTH = 18
+const BAR_MAX_WIDTH = 48
 
 const StudyTimeChart = ({
   data,
   label,
   loading,
   timeType,
+  isDisableNavigation,
+  onNext,
+  currentTime,
+  onPrevious,
   overallData,
   categories = [],
   renderChart,
@@ -82,51 +187,19 @@ const StudyTimeChart = ({
   const { t } = useTranslation()
   const totalP = useMemo(() => calcFocusTime(data?.pData, isTimerTab), [data?.pData, isTimerTab])
   const totalS = useMemo(() => calcFocusTime(data?.sData, isTimerTab), [data?.sData, isTimerTab])
-  const [containerWidth, setContainerWidth] = useState<number | null>(null)
-  const effectiveWidth = containerWidth && containerWidth > H_PADDING ? containerWidth - H_PADDING : 0
+  const [containerWidth, setContainerWidth] = useState<number>(Dimensions.get('window').width - H_PADDING)
 
-  const spacing = useMemo(() => {
-    if (!effectiveWidth || !categories.length) return 20
-
-    const totalBars = categories.length * BARS_PER_GROUP
-    const totalBarWidth = totalBars * BAR_WIDTH
-    const totalSpacingCount = totalBars + 1
-
-    const s = (effectiveWidth - totalBarWidth) / totalSpacingCount
-    return Math.max(s, 4)
-  }, [effectiveWidth, categories.length])
-
-  const chartData = useMemo(() => {
-    if (!categories.length) return []
-
-    const todayKey = moment().locale('en').format('ddd').toLowerCase()
-    const labelWidth = Math.floor(effectiveWidth / categories.length) || 30
-
-    return categories.flatMap((label, index) => {
-      const isToday = label === todayKey
-
-      return [
-        {
-          value: data?.pData[index] ?? 0,
-          label,
-          labelWidth,
-          labelTextStyle: {
-            color: isToday ? palette.main[500] : palette.grey[500]
-          },
-          frontColor: isToday ? palette.main[500] : palette.main[300]
-        },
-        {
-          value: data?.sData[index] ?? 0,
-          frontColor: isToday ? palette.grey[300] : palette.grey[100]
-        }
-      ]
-    })
-  }, [categories, data?.pData, data?.sData, effectiveWidth])
+  const barWidth = useMemo(() => {
+    if (!categories.length) return BAR_MIN_WIDTH
+    const w = (containerWidth / categories.length) * 0.55
+    return Math.min(Math.max(w, BAR_MIN_WIDTH), BAR_MAX_WIDTH)
+  }, [containerWidth, categories.length])
 
   const maxValue = useMemo(() => {
-    if (!chartData.length) return 1
-    return Math.max(...chartData.map((i) => i.value), 1) * 1.2
-  }, [chartData])
+    if (!data) return 1
+    return Math.max(...(data.pData || []), ...(data.sData || []), 1) * 1.15
+  }, [data])
+
   const getLabelByTimeType = (type: number, typeText: TypeText) => {
     const [WEEKLY, MONTHLY, ANNUALLY] = timeTypeOptions(t).map((o) => o.value)
     const dict = {
@@ -207,7 +280,7 @@ const StudyTimeChart = ({
     )
   }
 
-  if (!chartData || chartData.length === 0) {
+  if (!categories.length) {
     return (
       <View style={styles.card}>
         <Text style={{ textAlign: 'center', color: '#6B7280' }}>{t('no_data')}</Text>
@@ -215,37 +288,48 @@ const StudyTimeChart = ({
     )
   }
 
+  const isDisablePrev = isDisableNavigation(currentTime, 'PREVIOUS')
+  const isDisableNext = isDisableNavigation(currentTime, 'NEXT')
+  const todayKey = moment().locale('en').format('ddd').toLowerCase()
+
   return (
     <View style={styles.card}>
-      <View style={{ display: 'flex', gap: 24 }}>
+      <View style={{ gap: 10 }}>
         <View style={styles.chartBox}>
           <View style={styles.chartLabel}>
+            <TouchableOpacity onPress={onPrevious} disabled={isDisablePrev}>
+              <Octicons name="chevron-left" size={18} color={isDisablePrev ? palette.grey[200] : '#222222'} />
+            </TouchableOpacity>
             <Text style={styles.chartLabelText}>{label}</Text>
+            <TouchableOpacity onPress={onNext} disabled={isDisableNext}>
+              <Octicons name="chevron-right" size={18} color={isDisableNext ? palette.grey[200] : '#222222'} />
+            </TouchableOpacity>
           </View>
 
           <View
+            style={styles.barsContainer}
             onLayout={(e) => {
-              if (containerWidth === null) {
-                setContainerWidth(e.nativeEvent.layout.width)
+              const w = e.nativeEvent.layout.width
+              if (w > 0) {
+                setContainerWidth(w)
                 renderChart?.()
               }
             }}
-            style={{ gap: 24, display: 'flex' }}
           >
-            <BarChart
-              data={chartData}
-              height={220}
-              barWidth={BAR_WIDTH}
-              spacing={spacing}
-              maxValue={maxValue}
-              xAxisColor={palette.grey[300]}
-              xAxisThickness={1}
-              hideRules
-              hideYAxisText
-              yAxisThickness={0}
-            />
+            {categories.map((cat, index) => (
+              <PillBar
+                key={cat}
+                label={cat}
+                pValue={data?.pData[index] ?? 0}
+                sValue={data?.sData[index] ?? 0}
+                maxValue={maxValue}
+                isToday={cat === todayKey}
+                barWidth={barWidth}
+              />
+            ))}
           </View>
         </View>
+
         <View style={styles.statsBox}>{renderStats()}</View>
       </View>
     </View>
@@ -262,67 +346,80 @@ const styles = ScaledSheet.create({
     alignItems: 'center'
   },
   chartBox: {
-    backgroundColor: '#FFF',
-    width: '100%',
-    borderWidth: 1,
-    padding: 16,
-    gap: 8,
-    borderColor: palette.grey[100],
-    borderRadius: 6
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 20,
+    gap: 20,
+    shadowColor: '#0000000A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3
   },
   chartLabel: {
-    width: '100%',
-    textAlign: 'center',
-    backgroundColor: palette.grey[100],
-    borderRadius: 999,
-    paddingVertical: 4,
-    paddingHorizontal: 16
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    marginBottom: 14
   },
   chartLabelText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: palette.grey[900],
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111827',
     textAlign: 'center'
   },
-  statsBox: {
-    backgroundColor: '#FFF',
+  barsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    borderWidth: 1,
-    borderColor: palette.grey[100],
-    borderRadius: 6,
-    gap: '8@ms',
-    padding: '16@ms'
+    alignItems: 'flex-end',
+    justifyContent: 'space-between'
+  },
+  statsBox: {
+    backgroundColor: '#FFFFFF',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderRadius: 20,
+    gap: '12@ms',
+    padding: '16@ms',
+    shadowColor: '#0000000A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3
   },
   statsItem: {},
   statsTitleRow: {
-    flexDirection: 'row'
+    flexDirection: 'row',
+    flexWrap: 'wrap'
   },
   statsTitle: {
-    fontSize: 12,
-    color: '#374151'
+    fontSize: 11,
+    color: '#6B7280',
+    lineHeight: 16
   },
   statsValueRow: {
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    marginTop: 2
   },
   statsValue: {
     fontSize: 16,
     fontWeight: '700'
   },
   statsUnit: {
-    fontSize: 14,
-    color: '#6B7280'
+    fontSize: 13,
+    fontWeight: '500'
   },
   subStatsValue: {
-    fontSize: 12,
-    color: '#059669',
+    fontSize: 11,
+    color: palette.main[600],
     marginLeft: 4
   },
   divider: {
-    height: 1,
-    backgroundColor: '#D1D5DB',
-    marginVertical: 8
+    height: 28,
+    width: 1.5,
+    backgroundColor: '#E5E7EB',
+    alignSelf: 'center'
   }
 })
 

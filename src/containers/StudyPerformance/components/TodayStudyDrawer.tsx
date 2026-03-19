@@ -7,6 +7,7 @@ import SubjectProgress from './SubjectProgress'
 import Achievements from './Achievements'
 import { Ionicons } from '@expo/vector-icons'
 import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
+import { useTranslation } from 'react-i18next'
 
 type Props = {
   isOpen: boolean
@@ -30,27 +31,20 @@ const TodayStudyDrawer = ({
   subjectCumulativeData,
   rankingData
 }: Props) => {
+  const { t } = useTranslation()
   return (
     <SlideDrawerRoot visible={isOpen}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={onClose}>
+          <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />
+        </TouchableOpacity>
+        <View>
+          <Text style={{ fontSize: 16, fontWeight: 600, color: '#222222' }}>{t('today_net_study_time')}</Text>
+        </View>
+        <View></View>
+      </View>
       <ScrollView>
         <View style={styles.sidebarContainer}>
-          <View style={{ paddingVertical: 8, paddingHorizontal: 24 }}>
-            <Text style={{ ...TYPO.heading3, textAlign: 'center' }}>생각의 지도 학원</Text>
-          </View>
-          <View
-            style={{
-              paddingHorizontal: 24,
-              paddingVertical: 16,
-              borderTopWidth: 1,
-              borderBottomWidth: 1,
-              borderColor: palette.grey[100]
-            }}
-          >
-            <TouchableOpacity style={styles.backButton} onPress={onClose}>
-              <Ionicons name="chevron-back-outline" size={20} color={palette.grey[900]} />
-              <Text style={[styles.backText]}>티로 가기</Text>
-            </TouchableOpacity>
-          </View>
           <TodayStudyTime loading={loadingSubjectCumulativeData} data={subjectCumulativeData} isTimerTab={isTimerTab} />
           {isTimerTab && (
             <React.Fragment>
@@ -71,6 +65,15 @@ const styles = ScaledSheet.create({
     flex: 1,
     backgroundColor: 'white'
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: '20@ms',
+    paddingVertical: '16@ms',
+    borderBottomWidth: 1,
+    borderColor: palette.grey[100]
+  },
   buttonRow: {
     flexDirection: 'row',
     gap: 16,
@@ -86,7 +89,7 @@ const styles = ScaledSheet.create({
     color: palette.grey[900]
   },
   sidebarContainer: {
-    backgroundColor: '#FFF',
+    backgroundColor: palette.bg[100],
     borderRadius: 6
   },
   divider: {

@@ -1,20 +1,37 @@
 import React from 'react'
-import { View, Text, Pressable } from 'react-native'
-
-import { TabList } from '../configs/constants'
-import { Ionicons } from '@expo/vector-icons'
+import { View, Text, Pressable, TouchableOpacity } from 'react-native'
+import { StudySpaceTabList, TabList } from '../configs/constants'
 import useMyData from '../hooks/useMyData'
 import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
 import PerformanceData from '../components/PerformanceDataTab'
 import TabPanel from '@/components/Tab/TabPanel'
 import TimeData from '../components/TimeDataTab'
+import AddChatIcon from '@/assets/iconJSX/addChat'
+import IncorrectNotes from '../components/IncorrectNotes'
+import CreateExamNoteDialog from '../components/CreateExamNoteDialog'
 
 const MyData = () => {
   const {
     t,
+    imageUrl,
     selected,
+    examList,
+    questions,
     contentRef,
+    examOptions,
+    courseOptions,
+    academyDomain,
+    handleChangeCourse,
+    questionOptions,
+    handleSaveNote,
+    courseIdSelected,
+    examSessionIdSelected,
+    handleChangeExam,
+    handleUploadImage,
+    handleCloseCreateNote,
+    handleOpenCreateNote,
+    openCreateNote,
     handleReadyPrint,
     handleChangeTab,
     isAdminOrNonAcademy
@@ -23,34 +40,27 @@ const MyData = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.tabs}>
-          {TabList.map(({ label, value }, index) => {
-            if (value === 1 && isAdminOrNonAcademy) return null
+        <Text style={styles.headerTitle}>{t('statistics')}</Text>
+        {!!academyDomain && <TouchableOpacity onPress={() => handleOpenCreateNote()}>
+          <AddChatIcon width={24} height={24} color="#222222" />
+        </TouchableOpacity>}
+      </View>
+      <View style={styles.tabs}>
+        {(!!academyDomain ? TabList : StudySpaceTabList).map(({ label, value }, index) => {
+          if (value === 1 && isAdminOrNonAcademy) return null
 
-            const active = value === selected
+          const active = value === selected
 
-            return (
-              <Pressable
-                key={index}
-                onPress={() => handleChangeTab(value)}
-                style={[styles.tabButton, active && styles.tabButtonActive]}
-              >
-                <Text style={[styles.tabText, active && styles.tabTextActive]}>{t(label)}</Text>
-              </Pressable>
-            )
-          })}
-        </View>
-
-        {/* <Pressable
-          onPress={() => {
-            handleTogglePrint()
-            handlePrint()
-          }}
-          style={styles.printButton}
-        >
-          <Ionicons name="print-outline" size={14} color="#6d6e6f" />
-          <Text style={styles.printText}>{t('print')}</Text>
-        </Pressable> */}
+          return (
+            <Pressable
+              key={index}
+              onPress={() => handleChangeTab(value)}
+              style={[styles.tabButton, active && styles.tabButtonActive]}
+            >
+              <Text style={[styles.tabText, active && styles.tabTextActive]}>{t(label)}</Text>
+            </Pressable>
+          )
+        })}
       </View>
 
       <TabPanel value={selected} index={0}>
@@ -60,6 +70,26 @@ const MyData = () => {
       <TabPanel value={selected} index={1}>
         <PerformanceData contentRef={contentRef} handleReadyPrint={handleReadyPrint} />
       </TabPanel>
+      <TabPanel value={selected} index={2}>
+        {!openCreateNote && <IncorrectNotes contentRef={contentRef} />}
+      </TabPanel>
+
+      <CreateExamNoteDialog
+        open={openCreateNote}
+        onClose={handleCloseCreateNote}
+        handleUploadImage={handleUploadImage}
+        examList={examList}
+        imageUrl={imageUrl}
+        questions={questions}
+        courseOptions={courseOptions}
+        handleChangeCourse={handleChangeCourse}
+        examSessionValue={examSessionIdSelected}
+        handleChangeExam={handleChangeExam}
+        questionOptions={questionOptions}
+        courseValue={courseIdSelected}
+        onSaveNote={handleSaveNote}
+        examOptions={examOptions}
+      />
     </View>
   )
 }
@@ -75,36 +105,35 @@ const styles = ScaledSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginHorizontal: "24@ms",
-    borderBottomWidth: 1,
-    borderBottomColor: palette.grey[100]
+    paddingVertical: 16,
+    paddingHorizontal: 20
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 600,
+    color: '#222222'
   },
   tabs: {
     width: '100%',
     display: 'flex',
     flexDirection: 'row',
-    justifyContent: 'center'
+    justifyContent: 'space-around'
   },
   tabButton: {
-    width: '50%',
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    paddingTop: "24@ms",
-    paddingBottom: "12@ms",
-    borderBottomWidth: 1,
-    borderBottomColor: palette.grey[100]
+    flex: 1,
+    paddingVertical: 12
   },
   tabButtonActive: {
-    borderBottomColor: palette.main[500]
+    backgroundColor: palette.sub[400]
   },
   tabText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#6B7280'
+    textAlign: 'center',
+    fontSize: 14,
+    fontWeight: '500',
+    color: palette.grey[400]
   },
   tabTextActive: {
-    color: palette.main[500]
+    color: '#FFF'
   },
   printButton: {
     flexDirection: 'row',
