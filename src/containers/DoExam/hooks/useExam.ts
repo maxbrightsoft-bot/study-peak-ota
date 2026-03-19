@@ -1,3 +1,4 @@
+import { ScrollType } from './../config/types';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   getQuestionExam,
@@ -15,19 +16,19 @@ import _ from "lodash";
 import useExamSolving from "./useExamSolving";
 import { useTranslation } from "react-i18next";
 import moment from "moment";
-import { ExamEvent, ExamStatus } from "@/utils/enums";
-import { getErrorMessage, toast } from "@/utils/helpers";
+import { ExamEvent, ExamStatus, QuestionAnswerType } from "@/utils/enums";
+import { formatMinutesToTime, getErrorMessage, toast } from "@/utils/helpers";
 import useCountDownTimer from "@/hooks/useCountDownTimer";
 import { useNavigation } from "@react-navigation/native";
 import { useFocusEffect } from "@react-navigation/native";
-import { findNodeHandle, ScrollView, UIManager, View, Alert } from "react-native";
+import { findNodeHandle, ScrollView, UIManager, View, Alert, FlatList } from "react-native";
 import { Routes } from "@/navigators/RouteName";
 import { navigate, currentScreen } from "@/navigators/NavigationHelpers";
 import { PusherChannel } from "@pusher/pusher-websocket-react-native";
 import { DATE_MIN_VALUE, DATE_TIME_MIN_VALUE, EXAM_CHANNEL } from "@/utils/constants";
-import { ExamSessionResponse, PauseOrResumeExamRequest } from "@/utils/types";
-import { dialogConfirm } from "@/utils/helpers/dialog";
+import { ExamSessionResponse, InfoExamSessionByCode, PauseOrResumeExamRequest } from "@/utils/types";
 import useAuthStore from "@/store/useAuthStore";
+import { getExamInfoApi } from '@/containers/Home/apiClients';
 
 type Props = {
   examCode: string;
@@ -42,46 +43,114 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
   const [exam, setExam] = useState<ExamSessionResponse>();
   const firstLoadRef = useRef<boolean>(true);
   const [endExam, setEndExam] = useState<boolean>();
-  const [currentSlide, setCurrentSlide] = useState<number>(0);
   const [isEnding, setEnding] = useState<boolean>(false);
   const [isNotFoundExam, setNotFoundExam] = useState<boolean>();
   const [liveResultDialog, setLiveResultDialog] = useState(false);
   const [openResultDialog, setOpenResultDialog] = useState(false);
-  const [isOpenConfirmDialog, setOpenConfirmDialog] = useState(false);
-  const scrollViewRef = useRef<ScrollView>(null);
-  const questionRefs = useRef<Array<View | null>>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [expandedId, setExpandedId] = useState<number | null>(null);
-  const channel = useRef<PusherChannel>();
-  const channelName = useRef<string>();
-  const pendingScrollIndex = useRef<number | null>(null);
 
   const { user, setLoading, pusher,
-    subscribeChannel } = useAuthStore()
+    subscribeChannel, setLoadingWithoutOverlay, unsubscribeChannelSafe } = useAuthStore()
 
   const academyDomain: string | undefined = user?.academyDomain;
   const userId: number | undefined = user?.id;
 
-  const toggleExpand = useCallback((id: number | null) => {
-    setExpandedId((prev) => (prev === id ? null : id));
-  }, []);
+  const [isOpenConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const scrollViewRef = useRef<FlatList>(null);
+  const questionRefs = useRef<Array<View | null>>([]);
+  const [currentQuestionId, setCurrentQuestionId] = useState<number>();
+  const channel = useRef<PusherChannel>();
+  const channelName = useRef<string>();
+  const [openConfirmFinishDialog, setOpenConfirmFinishDialog] = useState(false);
+  const [openAnswerSheet, setOpenAnswerSheet] = useState(false);
+  const [openInfoExamDialog, setOpenInfoExamDialog] = useState<boolean>(false);
+  const [examSession, setExamSession] = useState<InfoExamSessionByCode>();
+  const [openLeaveDialog, setOpenLeaveDialog] = useState<boolean>(false)
 
-  const scrollToNextQuestion = useCallback(
-    (index: number) => {
-      const nextIndex = index + 1;
-      if (nextIndex >= questionList.length) return;
+  const handleOpenLeaveDialog = () => {
+    setOpenLeaveDialog(true)
+  }
 
-      pendingScrollIndex.current = nextIndex;
+  const handleCloseLeaveDialog = () => {
+    setOpenLeaveDialog(false)
+  }
 
-      toggleExpand(questionList[nextIndex].id);
-      setCurrentIndex(questionList[nextIndex].questionOrder);
+  const handleOpenInfoExamDialog = () => {
+    setOpenInfoExamDialog(true);
+  }
+
+  const handleCloseInfoExamDialog = () => {
+    setOpenInfoExamDialog(false);
+  }
+
+  const handleGetInfoExam = async () => {
+    try {
+      setLoadingWithoutOverlay(true);
+      const response = await getExamInfoApi(examCode);
+      setExamSession(response.data);
+    } catch (error) {
+    } finally {
+      setLoadingWithoutOverlay(false);
+    }
+  };
+
+  const handleOpenFinishConfirmDialog = () => {
+    setOpenConfirmFinishDialog(true);
+  }
+
+  const handleCloseFinishConfirmDialog = () => {
+    setOpenConfirmFinishDialog(false);
+  }
+
+  const handleOpenAnswerSheet = (id?: number) => {
+    id && setCurrentQuestionId(id);
+    setOpenAnswerSheet(true);
+  }
+
+  const handleCloseAnswerSheet = () => {
+    setOpenAnswerSheet(false);
+  }
+
+  const scrollToQuestion = useCallback(
+    (type: ScrollType) => {
+      if (!questionList?.length) return
+
+      const currentIndex = questionList.findIndex(
+        (q) => q.id === currentQuestionId
+      )
+
+      if (currentIndex === -1) return
+
+      let targetIndex = currentIndex
+
+      switch (type) {
+        case ScrollType.FIRST:
+          targetIndex = 0
+          break
+
+        case ScrollType.LAST:
+          targetIndex = questionList.length - 1
+          break
+
+        case ScrollType.PREV:
+          targetIndex = Math.max(0, currentIndex - 1)
+          break
+
+        case ScrollType.NEXT:
+          targetIndex = Math.min(
+            questionList.length - 1,
+            currentIndex + 1
+          )
+          break
+      }
+
+      if (targetIndex === currentIndex) return
+
+      setCurrentQuestionId(questionList[targetIndex].id)
     },
-    [questionList, toggleExpand, setCurrentIndex]
-  );
+    [questionList, currentQuestionId]
+  )
 
-  const handleQuestionLayout = (index: number) => {
-    if (pendingScrollIndex.current !== index) return;
-
+  const onScrollToIndex = (index: number) => {
     const ref = questionRefs.current[index];
     const scrollViewNode = scrollViewRef.current
       ? findNodeHandle(scrollViewRef.current)
@@ -97,15 +166,30 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
       scrollViewNode,
       () => { },
       (_left, top) => {
-        scrollViewRef.current?.scrollTo({
-          y: Math.max(0, top - 16),
-          animated: true,
-        });
+        scrollViewRef.current?.scrollToOffset({
+          offset: top - 50,
+          animated: true
+        })
       }
     );
-
-    pendingScrollIndex.current = null;
   };
+
+  useEffect(() => {
+    handleGetInfoExam()
+  }, [])
+
+  useEffect(() => {
+    if (!currentQuestionId) return
+
+    const index = questionList.findIndex(
+      q => q.id === currentQuestionId
+    )
+
+    if (index === -1) return
+
+    onScrollToIndex(index)
+  }, [currentQuestionId])
+
 
   const handleCloseResultDialog = () => {
     setOpenResultDialog(false);
@@ -143,6 +227,32 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     handleCloseLiveResultDialog();
     handleOpenResultDialog();
   };
+
+  const questionStarList = useMemo(() => {
+    return questionList.filter(q => q.isStar).map(q => q.id)
+  }, [questionList])
+
+  const handleNextStar = () => {
+    const index = questionStarList.indexOf(currentQuestionId || 0)
+    if (index === -1) return setCurrentQuestionId(questionStarList[0])
+
+    const nextIndex = index + 1
+
+    if (nextIndex < questionStarList.length) {
+      setCurrentQuestionId(questionStarList[nextIndex])
+    }
+  }
+
+  const handlePrevStar = () => {
+    const index = questionStarList.indexOf(currentQuestionId || 0)
+    if (index === -1) return setCurrentQuestionId(questionStarList[questionStarList.length - 1])
+
+    const prevIndex = index - 1
+
+    if (prevIndex >= 0) {
+      setCurrentQuestionId(questionStarList[prevIndex])
+    }
+  }
 
   const getQuestionExams = async (showErrorMessage: boolean = false) => {
     if (!examCode || !academyDomain || !userId) return;
@@ -210,8 +320,8 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     currentScreen() === Routes.Auth.DoExam && isEnding && setLiveResultDialog(true);
   }, [examCode, isEnding, onExamEnded]);
 
-  const callFinishExam = useCallback(async () => {
-    setLoading(true);
+  const handleFinishExam = useCallback(async () => {
+    setLoadingWithoutOverlay(true);
     try {
       await finishExam(examCode);
       showToast("success", t("finish_exam_successful"));
@@ -221,19 +331,9 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
       showToast("error", getErrorMessage(t, error));
       setEndExam(false);
     }
-    setLoading(false);
+    handleCloseFinishConfirmDialog()
+    setLoadingWithoutOverlay(false);
   }, [examCode, exam, getCheckStatus]);
-
-  const onFishedExam = useCallback(() => {
-    if (endExam) return;
-
-    dialogConfirm(
-      t,
-      "do_you_want_to_quit_your_exam",
-      () => setEndExam(false),
-      () => callFinishExam()
-    );
-  }, [endExam, callFinishExam]);
 
   const handlePauseAndResumeExam = async (status: ExamStatus) => {
     if (!exam) return;
@@ -275,6 +375,12 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (questionList.length > 0) {
+      setCurrentQuestionId(questionList[0].id);
+    }
+  }, [questionList.length]);
 
   const handleRestartExam = async () => {
     if (!exam || (!exam.isLate && exam.lateStatus !== ExamStatus.Completed)) return;
@@ -354,7 +460,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
 
   const handleListenerEvent = async () => {
     try {
-      if (!pusher || !exam || !academyDomain) return;
+      if (!pusher || !exam?.code || !academyDomain) return;
 
       channelName.current = `${EXAM_CHANNEL}-${exam.code}-${academyDomain.trim().toUpperCase()}`;
 
@@ -378,13 +484,15 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
   };
 
   const handleClear = () => {
-    setExpandedId(null);
     handleCloseLiveResultDialog()
     handleCloseResultDialog()
     setQuestionList([])
-    pendingScrollIndex.current = null;
+    setEnding(false)
     firstLoadRef.current = true
-    scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+    scrollViewRef.current?.scrollToOffset({
+      offset: 0,
+      animated: true
+    })
   }
 
   useEffect(() => {
@@ -409,10 +517,27 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     return unsubscribe;
   }, [navigation, exam?.status, t]);
 
-  useEffect(() => {
-    handleListenerEvent();
+  useFocusEffect(
+    useCallback(() => {
+      if (!exam?.code) return;
 
-  }, [exam?.code, academyDomain, pusher]);
+      handleListenerEvent();
+    }, [exam?.code, academyDomain, pusher])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        if (channelName.current && pusher) {
+          const channelNameText = channelName.current;
+          unsubscribeChannelSafe(pusher, channelNameText);
+        }
+
+        channel.current = undefined;
+        channelName.current = undefined;
+      };
+    }, [])
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -422,7 +547,10 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
         firstLoadRef.current = false;
       }
 
-      scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+      scrollViewRef.current?.scrollToOffset({
+        offset: 0,
+        animated: true
+      })
 
       return () => {
         handleClear()
@@ -448,18 +576,25 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     onFinish: getCheckStatus
   });
 
+  const isAllQuestionsAnswered = (
+    questionList: Question[]
+  ): boolean => {
+    if (!questionList?.length) return false
+
+    return questionList.every((question) => {
+      const { questionAnswerType, selectedAnswers, textualAnswers } = question
+
+      if (questionAnswerType === QuestionAnswerType.SingleChoice || questionAnswerType === QuestionAnswerType.MultipleChoice) {
+        return !!selectedAnswers?.length
+      }
+
+      return !!textualAnswers?.length &&
+        textualAnswers.some(answer => answer?.trim() !== '')
+    })
+  }
+
   const remainTimeString = useMemo(() => {
-    const secondsToTimeSpan = (sec?: number) => {
-      if (sec === undefined)
-        return t("mins_mins_seconds_seconds", { mins: "00", seconds: "00" });
-      const min = Math.floor(sec / 60);
-      const seconds = sec - min * 60;
-      return t("mins_mins_seconds_seconds", {
-        mins: min.toString().padStart(2, "0"),
-        seconds: seconds.toString().padStart(2, "0")
-      });
-    };
-    return secondsToTimeSpan(remainTime !== undefined && remainTime < 0 ? 0 : remainTime);
+    return formatMinutesToTime((remainTime || 0) / 60);
   }, [remainTime, t]);
 
   const totalTimeString = useMemo(() => {
@@ -479,20 +614,23 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     isEnding,
     examCode,
     endExam,
+    openLeaveDialog,
+    handleOpenLeaveDialog,
+    handleCloseLeaveDialog,
+    questionStarList,
+    handleNextStar,
+    handlePrevStar,
     questionListMapped,
     openResultDialog,
     questionList,
     isNotFoundExam,
-    currentSlide,
     remainTimeString,
     remainTime,
     totalTimeString,
     updateQuestionAnswer,
     updateQuestionStar,
-    onFishedExam,
+    handleFinishExam,
     getCheckStatus,
-    setCurrentSlide,
-    handleQuestionLayout,
     handleRestartExam,
     isOpenConfirmDialog,
     handleCloseConfirmDialog,
@@ -500,12 +638,21 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     handlePauseAndResumeExam,
     handleCloseResultDialog,
     handleOpenResultDialog,
-    currentIndex,
-    expandedId,
-    toggleExpand,
+    currentQuestionId,
+    examSession,
+    openInfoExamDialog,
+    handleOpenInfoExamDialog,
+    handleCloseInfoExamDialog,
+    handleOpenFinishConfirmDialog,
+    handleCloseFinishConfirmDialog,
+    openConfirmFinishDialog,
+    openAnswerSheet,
+    handleOpenAnswerSheet,
+    handleCloseAnswerSheet,
+    isAllQuestionsAnswered,
     scrollViewRef,
     questionRefs,
-    scrollToNextQuestion,
+    scrollToQuestion,
     liveResultDialog,
     handleExamEnd,
     handleDetailExamResult,

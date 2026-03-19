@@ -4,7 +4,7 @@ import { getErrorMessage, toast } from "@/utils/helpers";
 import { getResults, getStudentExamResultPercentages } from "../apiClients";
 import { navigate } from "@/navigators/NavigationHelpers";
 import { Routes } from "@/navigators/RouteName";
-import { CategoryResponse, EffectSize, ExamResult } from "@/utils/types";
+import { ExamResult } from "@/utils/types";
 import { StudentExamResult } from "../config/types";
 
 type Props = {

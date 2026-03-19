@@ -1,21 +1,28 @@
 import React from 'react'
-import { View, Text, ScrollView, Platform, KeyboardAvoidingView, TouchableOpacity } from 'react-native'
+import { View, Text, Platform, KeyboardAvoidingView, TouchableOpacity, FlatList } from 'react-native'
 import { palette } from '@/theme'
-import { Ionicons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
 import NotFoundExam from '@/components/NotFoundExam'
 import useTextbook from './hooks/useTextbook'
-import { PreparedQuestionGroupResponse } from './config/types'
+import { ScrollType } from './config/types'
 import TextbookQuestionGroup from './components/TextbookQuestionGroup'
 import FloatingActionButton from '@/components/Button/FloatingActionButton'
 import RestartPageDialog from '../Textbook/components/Dialog/RestartPageDialog'
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
-import useAlarm from '@/layouts/hooks/useAlarm'
-import AudioGuideModal from '@/layouts/components/AudioGuideModal'
 import useAlarmTextbook from './hooks/useAlarmTextbook'
-import TextbookDrawer from '../Textbook/components/Dialog/TextbookDrawer'
 import useDrawer from './hooks/useDrawer'
 import { ExamStatus } from '@/utils/enums'
+import LastIcon from '@/assets/iconJSX/last'
+import NextIcon from '@/assets/iconJSX/next'
+import ArrowDown from '@/assets/iconJSX/arrowDown'
+import ArrowRight from '@/assets/iconJSX/arrowRight'
+import { Routes } from '@/navigators/RouteName'
+import { navigate } from '@/navigators/NavigationHelpers'
+import TimerDropDown from '@/layouts/components/TimerDropDown'
+import SelectAnswerSheet from './components/SelectAnswerSheet'
+import MuteIcon from '@/assets/iconJSX/mute'
+import { Ionicons } from '@expo/vector-icons'
+import AudioGuideModal from '@/layouts/components/AudioGuideModal'
 
 type Props = {
   textbookId: string
@@ -25,34 +32,18 @@ type Props = {
 }
 
 const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
-  const {
-    alarmClockProps: {
-      panelProps: { onStart, onPauseOrResume }
-    }
-  } = useAlarm(false, [])
-
   const { isOpenDialog, handleCloseDialog, handleOpenDialog } = useDrawer()
-
-  const { isOpenAudioGuide, handleOpenAudioGuide, handleCloseAudioGuide, handleStartTextbook } = useAlarmTextbook({
-    onStart,
-    handleCloseDialog
-  })
 
   const handleOpenDrawer = () => {
     handleOpenDialog()
     handleCloseAudioGuide()
   }
+
   const {
     t,
     textbook,
-    toggleExpand,
-    currentIndex,
     questionRefs,
-    expandedId,
     questionList,
-    activePage,
-    handleLayout,
-    handleScroll,
     questionGroupList,
     scrollViewRef,
     isNotFoundTextbook,
@@ -61,10 +52,30 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
     formattedTime,
     remainTimeString,
     totalTasks,
+    speaker,
+    disabledSpeaker,
+    openTimerDialog,
+    handleOpenAnswerSheet,
+    handleTimerDialogToggle,
+    alarmClockProps,
+    audioGuideModalProps,
+    isAlarmRunning,
+    isTimerRunning,
+    studyTimerProps,
+    timeUpdateDialogProps,
+    handleToggleSpeaker,
+    currentQuestionId,
     startPageOptions,
-    scrollToNextQuestion,
+    scrollToQuestion,
     completedTasks,
-    handleQuestionLayout,
+    openAnswerSheet,
+    questionStarList,
+    handleNextStar,
+    handlePrevStar,
+    openLeaveDialog,
+    handleCloseLeaveDialog,
+    handleOpenLeaveDialog,
+    handleCloseAnswerSheet,
     onFinishedTextbook,
     isOpenConfirmDialog,
     handleRestartTextbook,
@@ -74,7 +85,25 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
     handleCloseRestartTextbookDialog,
     handleOpenRestartTextbookDialog,
     handlePauseAndResumeTextbook
-  } = useTextbook({ textbookId, page, reqTime, handleOpenDrawer, onPauseOrResume, restart })
+  } = useTextbook({
+    textbookId,
+    page,
+    reqTime,
+    handleOpenDrawer,
+    restart
+  })
+
+  const { isOpenAudioGuide, handleOpenAudioGuide, handleCloseAudioGuide, handleStartTextbook } = useAlarmTextbook({
+    onStart: alarmClockProps.panelProps.onStart,
+    handleCloseDialog
+  })
+  const disabled = textbook?.status === ExamStatus.Completed || textbook?.status === ExamStatus.Paused
+
+  const currentQuestion = questionList.find((question) => question.id === currentQuestionId)
+
+  if (isNotFoundTextbook) {
+    return <NotFoundExam title={t('textbook_not_found')} />
+  }
 
   const audioTextbookProp = !textbook
     ? undefined
@@ -85,9 +114,6 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
         limitedTimeInMinutes: 0,
         totalUses: 0
       }
-  if (isNotFoundTextbook) {
-    return <NotFoundExam title={t('textbook_not_found')} />
-  }
 
   const handleStartTextbookFromGuideModal = (enable: boolean) => {
     if (!audioTextbookProp) return
@@ -97,97 +123,240 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>{textbook?.name}</Text>
-          <View style={styles.titleContainer}>
-            <Text style={styles.subtitle}>{t('title')}</Text>
-            <Text style={styles.subtitle}>{t('page_number', { number: activePage })}</Text>
-          </View>
+        <TouchableOpacity>
+          <TouchableOpacity onPress={handleOpenLeaveDialog}>
+            <View style={{ transform: 'rotate(180deg)' }}>
+              <ArrowRight width={24} height={24} color={palette.grey[300]} />
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+        <View style={styles.titleContainer}>
+          <Text style={styles.subtitle}>{!textbook?.isMock ? formattedTime : remainTimeString}</Text>
+          {!textbook?.isMock && (
+            <View style={styles.timeContainer}>
+              <Text style={styles.timeLeft}>
+                {completedTasks}/{totalTasks}
+              </Text>
+              <Text style={styles.totalTime}>
+                {totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}%
+              </Text>
+            </View>
+          )}
         </View>
-        <Text style={styles.currentQuestion}>{`${t('question')} ${currentIndex + 1}`}</Text>
+        {textbook?.isMock ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            {(isTimerRunning || isAlarmRunning) && (
+              <TouchableOpacity onPress={() => handleToggleSpeaker()}>
+                {speaker ? <Ionicons name="volume-high" size={24} color={palette.grey[500]} /> : <MuteIcon />}
+              </TouchableOpacity>
+            )}
+            <TimerDropDown
+              speaker={speaker}
+              isTextbook
+              disabledSpeaker={disabledSpeaker}
+              openTimerDialog={openTimerDialog}
+              alarmClockProps={alarmClockProps}
+              audioGuideModalProps={audioGuideModalProps}
+              isAlarmRunning={isAlarmRunning}
+              isTimerRunning={isTimerRunning}
+              studyTimerProps={studyTimerProps}
+              timeUpdateDialogProps={timeUpdateDialogProps}
+              onToggleSpeaker={handleToggleSpeaker}
+              onToggleTimerDialog={handleTimerDialogToggle}
+            />
+          </View>
+        ) : (
+          <View />
+        )}
       </View>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={100}
         style={{ flex: 1, position: 'relative' }}
       >
-        <View style={{ height: '85%' }}>
-          <ScrollView contentContainerStyle={styles.scrollContainer} onScroll={handleScroll} ref={scrollViewRef}>
-            {questionGroupList.map((questionGroup: PreparedQuestionGroupResponse, groupIndex: number) => (
-              <React.Fragment key={`group-${questionGroup.id}`}>
-                <View onLayout={handleLayout(questionGroup.pageFrom || 1)} />
-                <TextbookQuestionGroup
-                  t={t}
-                  data={questionGroup}
-                  questionRefs={questionRefs}
-                  handleQuestionLayout={handleQuestionLayout}
-                  scrollToNextQuestion={scrollToNextQuestion}
-                  updateQuestionStar={updateQuestionStar}
-                  updateQuestionAnswer={updateQuestionAnswer}
-                  groupIndex={groupIndex}
-                  expandedId={expandedId}
-                  isEnd={textbook?.status === ExamStatus.Completed}
-                  isMock={textbook?.isMock}
-                  status={textbook?.status}
-                  questionList={questionList}
-                  toggleExpand={toggleExpand}
-                />
-              </React.Fragment>
-            ))}
-          </ScrollView>
-        </View>
-
-        <View>
-          <FloatingActionButton
-            t={t}
-            isOnlyRestart={!textbook?.isMock}
-            status={textbook?.status}
-            onTogglePauseResume={handlePauseAndResumeTextbook}
-            onOpenConfirmDialog={textbook?.isMock ? handleOpenConfirmDialog : handleOpenRestartTextbookDialog}
-            keys={{
-              pause: 'pause_textbook',
-              resume: 'resume_textbook',
-              restart: 'restart_textbook'
+        {questionStarList.length > 0 && (
+          <View
+            style={{
+              position: 'sticky',
+              top: 0,
+              left: 0,
+              right: 0,
+              paddingHorizontal: 20,
+              paddingVertical: 14,
+              zIndex: 1,
+              backgroundColor: palette.grey[500]
             }}
-            ariaLabel="textbook-actions"
-          />
-        </View>
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={{ color: '#FFF' }}>별 표시한 문제 보기</Text>
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <TouchableOpacity onPress={handleNextStar}>
+                  <ArrowDown />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handlePrevStar}>
+                  <View style={{ transform: 'rotate(180deg)' }}>
+                    <ArrowDown />
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
+        <FlatList
+          data={questionGroupList}
+          keyExtractor={(item) => `group-${item.id}`}
+          ref={scrollViewRef}
+          initialNumToRender={5}
+          maxToRenderPerBatch={5}
+          windowSize={5}
+          removeClippedSubviews={true}
+          renderItem={({ item }) => (
+            <TextbookQuestionGroup
+              t={t}
+              data={item}
+              questionRefs={questionRefs}
+              type={textbook?.type}
+              currentQuestion={currentQuestion}
+              onOpenAnswerSheet={handleOpenAnswerSheet}
+              isEnd={textbook?.status === ExamStatus.Completed}
+              isMock={textbook?.isMock}
+              status={textbook?.status}
+              questionList={questionList}
+            />
+          )}
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+        />
+
+        <FloatingActionButton
+          t={t}
+          isOnlyRestart={!textbook?.isMock}
+          status={textbook?.status}
+          onTogglePauseResume={handlePauseAndResumeTextbook}
+          onOpenConfirmDialog={textbook?.isMock ? handleOpenConfirmDialog : handleOpenRestartTextbookDialog}
+          keys={{
+            pause: 'pause_textbook',
+            resume: 'resume_textbook',
+            restart: 'restart_textbook'
+          }}
+          ariaLabel="textbook-actions"
+        />
 
         <View style={styles.footer}>
-          <View style={styles.timeContainer}>
-            <Text style={styles.timeText}>{t(!textbook?.isMock ? 'time' : 'current_time')}:</Text>
-            <Text
-              style={[
-                styles.timeText,
-                { fontWeight: 700, color: palette.main[500], width: !textbook?.isMock ? 100 : 'auto' }
-              ]}
-            >
-              {!textbook?.isMock ? formattedTime : remainTimeString}
-            </Text>
-          </View>
-          {!textbook?.isMock && (
-            <View style={styles.container}>
-              <Text style={[styles.timeText, { fontWeight: 700 }]}>
-                {completedTasks}/{totalTasks}
-              </Text>
-              <Text style={[styles.timeText, { fontWeight: 700 }]}>
-                {totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}%
-              </Text>
-            </View>
-          )}
-          <TouchableOpacity
-            onPress={onFinishedTextbook}
+          <View
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: 255,
-              backgroundColor: palette.grey[50],
-              justifyContent: 'center',
+              paddingVertical: 14,
+              paddingHorizontal: 20,
+              flexDirection: 'row',
+              justifyContent: 'space-between',
               alignItems: 'center'
             }}
           >
-            <Ionicons name="exit" size={14} color={palette.main[700]} />
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={disabled ? undefined : () => handleOpenAnswerSheet()}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.timeLeft}>{(currentQuestion?.questionOrder || 0) + 1}번 </Text>
+                <Text style={styles.totalTime}>문제로 돌아가기</Text>
+              </View>
+              <View style={{ transform: 'rotate(180deg)' }}>
+                <ArrowDown color="#222222" />
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleOpenLeaveDialog}
+              style={{
+                paddingHorizontal: 10,
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
+              <Text style={{ color: '#222222', fontWeight: 500, fontSize: 14 }}>{t('end')}</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.navRow}>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <TouchableOpacity
+                disabled={currentQuestion?.id === questionList[0]?.id}
+                style={[
+                  styles.navButton,
+                  currentQuestion?.id === questionList[0]?.id && { borderColor: palette.grey[300] }
+                ]}
+                onPress={() => scrollToQuestion(ScrollType.FIRST)}
+              >
+                <View style={{ transform: 'rotate(180deg)' }}>
+                  <LastIcon color={currentQuestion?.id === questionList[0]?.id ? palette.grey[300] : '#222222'} />
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                disabled={currentQuestion?.id === questionList[0]?.id}
+                style={[
+                  styles.navButton,
+                  currentQuestion?.id === questionList[0]?.id && { borderColor: palette.grey[300] }
+                ]}
+                onPress={() => scrollToQuestion(ScrollType.PREV)}
+              >
+                <View style={{ transform: 'rotate(180deg)', padding: 4 }}>
+                  <NextIcon color={currentQuestion?.id === questionList[0]?.id ? palette.grey[300] : '#222222'} />
+                </View>
+                <Text
+                  style={[
+                    styles.actionTitle,
+                    currentQuestion?.id === questionList[0]?.id && { color: palette.grey[300] }
+                  ]}
+                >
+                  이전 문항
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <TouchableOpacity
+                disabled={currentQuestion?.id === questionList[questionList.length - 1]?.id}
+                style={[
+                  styles.navButton,
+                  currentQuestion?.id === questionList[questionList.length - 1]?.id && {
+                    borderColor: palette.grey[300]
+                  }
+                ]}
+                onPress={() => scrollToQuestion(ScrollType.NEXT)}
+              >
+                <Text
+                  style={[
+                    styles.actionTitle,
+                    currentQuestion?.id === questionList[questionList.length - 1]?.id && { color: palette.grey[300] }
+                  ]}
+                >
+                  다음 문항
+                </Text>
+                <View style={{ padding: 4 }}>
+                  <NextIcon
+                    color={
+                      currentQuestion?.id === questionList[questionList.length - 1]?.id ? palette.grey[300] : '#222222'
+                    }
+                  />
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                disabled={currentQuestion?.id === questionList[questionList.length - 1]?.id}
+                style={[
+                  styles.navButton,
+                  currentQuestion?.id === questionList[questionList.length - 1]?.id && {
+                    borderColor: palette.grey[300]
+                  }
+                ]}
+                onPress={() => scrollToQuestion(ScrollType.LAST)}
+              >
+                <LastIcon
+                  color={
+                    currentQuestion?.id === questionList[questionList.length - 1]?.id ? palette.grey[300] : '#222222'
+                  }
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </KeyboardAvoidingView>
       <RestartPageDialog
@@ -198,22 +367,6 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
         open={openRestartTextbookDialog}
         onSubmit={handleOpenConfirmDialog}
       />
-      {audioTextbookProp && (
-        <AudioGuideModal
-          open={isOpenAudioGuide}
-          audioUrls={audioTextbookProp.subject?.audioUrls ?? []}
-          onClose={handleCloseAudioGuide}
-          onStart={handleStartTextbookFromGuideModal}
-        />
-      )}
-      {isOpenDialog && (
-        <TextbookDrawer
-          isOpen={isOpenDialog}
-          onClose={handleCloseDialog}
-          textbookId={textbook?.id}
-          onOpenAudioGuide={handleOpenAudioGuide}
-        />
-      )}
       <ConfirmDialog
         open={isOpenConfirmDialog}
         toggle={handleCloseConfirmDialog}
@@ -225,6 +378,32 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
           } else handleRestartTextbook()
         }}
       />
+      <ConfirmDialog
+        open={openLeaveDialog}
+        toggle={handleCloseLeaveDialog}
+        text={t('are_you_sure_you_want_to_leave')}
+        onConfirm={onFinishedTextbook}
+      />
+      {currentQuestion && (
+        <SelectAnswerSheet
+          onFishedExam={onFinishedTextbook}
+          visible={openAnswerSheet}
+          onClose={handleCloseAnswerSheet}
+          scrollToQuestion={scrollToQuestion}
+          updateQuestionStar={updateQuestionStar}
+          updateQuestionAnswer={updateQuestionAnswer}
+          questionList={questionList}
+          currentQuestion={currentQuestion}
+        />
+      )}
+      {audioTextbookProp && (
+        <AudioGuideModal
+          open={isOpenAudioGuide}
+          audioUrls={audioTextbookProp.subject?.audioUrls ?? []}
+          onClose={handleCloseAudioGuide}
+          onStart={handleStartTextbookFromGuideModal}
+        />
+      )}
     </View>
   )
 }
@@ -234,97 +413,103 @@ const styles = ScaledSheet.create({
     flex: 1,
     backgroundColor: '#FFF'
   },
+  titleContainer: {
+    gap: '4@ms'
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: '16@ms',
     alignItems: 'center',
-    paddingHorizontal: 24
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: '16@ms',
-    alignItems: 'center'
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderColor: palette.grey[100]
   },
   title: {
-    fontSize: 14,
-    color: '#000'
+    fontSize: 16,
+    color: '#222222',
+    fontWeight: '600'
   },
   subtitle: {
-    fontSize: 12,
-    color: '#aaa'
-  },
-  styleCard: {
-    marginVertical: 10,
-    padding: 10
-  },
-  styleExpand: {
-    marginTop: 10
+    fontSize: 14,
+    fontWeight: 500,
+    color: palette.grey[400]
   },
   currentQuestion: {
     fontWeight: 'bold',
-    fontSize: 14
+    fontSize: 14,
+    color: palette.grey[900]
   },
   scrollContainer: {
-    paddingHorizontal: 24
-  },
-  accordionBox: {
-    marginBottom: '16@ms'
-  },
-  accordionTitle: {
-    fontWeight: 'bold',
-    fontSize: 14,
-    paddingVertical: '12@ms',
-    paddingHorizontal: '16@ms'
-  },
-  answerBox: {
-    padding: 12,
-    borderRadius: 6,
-    marginVertical: 6,
-    alignItems: 'center'
-  },
-  answerText: {
-    color: '#fff',
-    fontWeight: 'bold'
-  },
-  bookmarkBox: {
-    backgroundColor: '#eee',
-    padding: 6,
-    borderRadius: 12,
-    width: 40,
-    alignItems: 'center',
-    marginTop: 4
-  },
-  bookmarkText: {
-    color: '#aaa'
+    marginTop: 20,
+    paddingHorizontal: 24,
+    paddingBottom: 200,
+    gap: 24
   },
   footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderColor: '#eee',
+    borderTopRightRadius: 12,
+    borderTopLeftRadius: 12,
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    gap: 8,
-    backgroundColor: '#fff',
-    justifyContent: 'space-between'
+    gap: 20,
+    backgroundColor: '#FFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 14,
+    elevation: 10
+  },
+  footerTop: {
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  finishText: {
+    color: '#222222',
+    fontWeight: 500,
+    fontSize: 14
   },
   timeContainer: {
     flexDirection: 'row',
-    gap: '8@ms',
-    paddingVertical: 8
+    alignItems: 'center',
+    gap: '8@ms'
   },
-  timeText: {
+  timeLeft: {
+    color: '#222222',
+    fontWeight: 600,
     fontSize: 16
   },
   totalTime: {
-    color: palette.grey[500],
+    color: '#222222',
+    fontSize: 16,
+    fontWeight: 600
+  },
+  navRow: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingBottom: 34,
+    gap: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  actionTitle: {
     fontSize: 14,
+    lineHeight: 22,
+    color: '#222222',
     fontWeight: 500
+  },
+  navButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: 26,
+    borderWidth: 1,
+    borderColor: '#222222'
   }
 })
 

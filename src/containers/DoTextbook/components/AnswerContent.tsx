@@ -23,7 +23,7 @@ type Props = {
   values: any
 }
 
-const AnswerContent = ({ t, question, questionNumber, errors, values }: Props) => {
+const AnswerContent = ({ t, question, errors, values }: Props) => {
   const addable = values.textualAnswers.some((i: string) => !i.trim().length)
   const deletable = values.textualAnswers?.length <= 1
   const isMultipleAnswer =
@@ -121,6 +121,7 @@ const styles = ScaledSheet.create({
   textInput: {
     borderWidth: 1,
     borderColor: '#e0e0e0',
+    color: "#222222",
     borderRadius: 4,
     padding: 12,
     flex: 1,

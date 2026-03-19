@@ -1,205 +1,216 @@
-import { Text, TouchableOpacity, View } from 'react-native'
-import CustomDropDown from '@/components/DropDown/CustomDropDown'
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { palette } from '@/theme'
-import { Ionicons } from '@expo/vector-icons'
-import StarSwitch from '@/components/Switch/StarSwitch'
-import { ScaledSheet } from 'react-native-size-matters'
-import { ExamStatus, QuestionAnswerType } from '@/utils/enums'
-import ExamAnswer from './ExamAnswer'
-import { ExamQuestion, Question, QuestionGroupResponse } from '../config/types'
+import { ExamStatus, QuestionAnswerType, SubjectType } from '@/utils/enums'
+import { Question, QuestionGroupResponse } from '../config/types'
+import React, { useMemo } from 'react'
+import StarRating from '@/assets/iconJSX/starRating'
+import MathRender from '@/components/MathRender'
 
 type Props = {
   t: any
   data: QuestionGroupResponse
-  expandedId: number | null
-  groupIndex: number
-  toggleExpand: (id: number | null) => void
   questionRefs: React.MutableRefObject<(View | null)[]>
   questionList: Question[]
   isEnd: boolean
+  type?: SubjectType
   status?: ExamStatus
-  handleQuestionLayout: (index: number) => void
-  scrollToNextQuestion: (index: number) => void
-  updateQuestionStar: (questionId: number, isStar: boolean) => void
-  updateQuestionAnswer: ({ questionId, textualAnswers, answer }: ExamQuestion) => void
+  currentQuestion?: Question
+  onOpenAnswerSheet: (id?: number) => void
 }
 const ExamQuestionGroup = ({
-  t,
   data,
   isEnd,
   status,
-  expandedId,
-  toggleExpand,
+  type,
   questionRefs,
-  questionList,
-  handleQuestionLayout,
-  scrollToNextQuestion,
-  updateQuestionStar,
-  updateQuestionAnswer
+  currentQuestion,
+  onOpenAnswerSheet,
+  questionList
 }: Props) => {
   const questions = questionList.filter((q) => q.questionGroupId === data.id)
+  const disabled = isEnd || status === ExamStatus.Paused
+  const questionContent = useMemo(() => {
+    const title = data.articles?.[0].title
+    const author = data.articles?.[0].author
+    const category = data.articles?.[0]?.category?.name
+    const subCategory = data.articles?.[0]?.subcategory?.name
+    const titleAuthor = [title, author].filter((i) => !!i).join(', ')
+    const content = type !== SubjectType.Math ? [subCategory, titleAuthor].filter((i) => !!i).join('|') : category
+    return content
+  }, [
+    type,
+    data.articles?.[0].title,
+    data.articles?.[0].author,
+    data.articles?.[0]?.category?.name,
+    data.articles?.[0]?.subcategory?.name
+  ])
 
-  return questions.map((question: Question) => {
+  const renderAnswer = (question: Question) => {
+    switch (question.questionAnswerType) {
+      case QuestionAnswerType.ShortAnswer:
+      case QuestionAnswerType.OrderMatters:
+      case QuestionAnswerType.OrderDoesNotMatters:
+      case QuestionAnswerType.SynonymProcessing:
+        return <MathRender style={{ backgroundColor: 'transparent' }} content={question.textualAnswers?.[0] || ''} />
+      default:
+        return Array.from({ length: question.answerCount }).map((_, index) => {
+          const isSelected = question.selectedAnswers?.includes(index + 1)
+          return (
+            <View key={index} style={[styles.option, isSelected && styles.selectedOption]}>
+              <Text style={[styles.optionText, isSelected && styles.selectedText]}>{index + 1}</Text>
+            </View>
+          )
+        })
+    }
+  }
+
+  const renderRow = (item: Question, lastQuestionIndex: number) => {
+    const answerCount = item.answerCount
+
     return (
-      <View
-        key={`question-${question.id}`}
-        ref={(ref) => (questionRefs.current[question.questionIndex || 0] = ref)}
-        collapsable={false}
-        onLayout={() => handleQuestionLayout(question.questionIndex || 0)}
+      <TouchableOpacity
+        ref={(ref) => (questionRefs.current[item.questionIndex || 0] = ref)}
+        onPress={() => (disabled ? undefined : onOpenAnswerSheet(item.id))}
+        style={[
+          styles.row,
+          currentQuestion?.id === item.id && styles.activeRow,
+          { borderBottomWidth: item.questionOrder === lastQuestionIndex - 1 ? 0 : 1 }
+        ]}
       >
-        <CustomDropDown
-          styleCard={styles.styleCard}
-          styleExpand={styles.styleExpand}
-          title={
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Text style={{ fontSize: 14, fontWeight: '500' }}>{t('question')}</Text>
-              <Text style={{ fontSize: 16, fontWeight: '700' }}>{question.questionOrder + 1}</Text>
-            </View>
-          }
-          subHeader={
-            <View style={{ width: '100%' }}>
-              {expandedId !== question.id && !!question.selectedAnswers?.length && (
-                <View style={{ width: '100%' }}>
-                  <TouchableOpacity
-                    style={{
-                      width: '100%',
-                      borderWidth: 1,
-                      borderRadius: 8,
-                      marginBottom: 10,
-                      paddingVertical: 8,
-                      alignItems: 'center',
-                      backgroundColor: question.isStar ? palette.warning.light : palette.main[500],
-                      borderColor: question.isStar ? palette.warning.light : palette.main[500]
-                    }}
-                  >
-                    <View
-                      style={{
-                        borderRadius: 255,
-                        borderWidth: question.textualAnswers ? 0 : 1,
-                        paddingHorizontal: 5,
-                        paddingVertical: question.isStar ? 5 : 0,
-                        alignItems: question.textualAnswers ? 'flex-start' : 'center',
-                        justifyContent: 'center',
-                        borderColor: '#FFF',
-                        backgroundColor: question.isStar ? '#FFF' : palette.main[500]
-                      }}
-                    >
-                      <Text style={{ fontSize: 13, color: '#FFF' }}>
-                        {question.isStar ? (
-                          <Ionicons name="star" size={14} color={palette.warning.light} />
-                        ) : (
-                          question.textualAnswers?.join(', ') || question?.selectedAnswers?.sort().join(', ') || '-'
-                        )}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                  <StarSwitch
-                    isStar={question.isStar}
-                    isDisable={isEnd || (status === ExamStatus.Paused)}
-                    onSwitch={() => updateQuestionStar(question.id, !question.isStar)}
-                  />
-                </View>
-              )}
-            </View>
-          }
-          expanded={expandedId === question.id}
-          onPress={() => toggleExpand(question.id)}
+        {item.isStar && (
+          <View style={{ position: 'absolute', top: 0, right: 0, zIndex: 1 }}>
+            <StarRating />
+          </View>
+        )}
+        <View
+          style={[
+            styles.questionCol,
+            {
+              borderRightWidth: currentQuestion?.id === item.id ? 0 : 1,
+              borderColor: palette.grey[200]
+            }
+          ]}
         >
-          <ExamAnswer
-            t={t}
-            isDisable={isEnd || (status === ExamStatus.Paused)}
-            question={question}
-            updateQuestionAnswer={({ questionId, answer, textualAnswers }) => {
-              updateQuestionAnswer({ questionId, answer, textualAnswers })
-              question.questionAnswerType !== QuestionAnswerType.MultipleChoice &&
-                scrollToNextQuestion(question.questionIndex || 0)
-              ;(question.questionIndex || 0) === questionList?.length - 1 && toggleExpand(null)
-            }}
-            updateQuestionStar={updateQuestionStar}
-          />
-        </CustomDropDown>
-      </View>
+          <Text style={[styles.questionText, currentQuestion?.id === item.id && styles.activeQuestionText]}>
+            {item.questionOrder + 1}번
+          </Text>
+        </View>
+
+        <View style={{ flex: 3 }}>
+          <View style={styles.answerCol}>{renderAnswer(item)}</View>
+        </View>
+      </TouchableOpacity>
     )
-  })
+  }
+
+  const totalScore = useMemo(() => {
+    return questions.reduce((sum, question) => {
+      return sum + (question.score || 0)
+    }, 0)
+  }, [questions])
+
+  return (
+    <View>
+      <View style={{ flexDirection: 'row', marginBottom: 8, gap: 4 }}>
+        {questionContent && (
+          <Text style={{ fontSize: 14, fontWeight: 500, color: palette.grey[500] }}>{questionContent}</Text>
+        )}
+        {questionContent && <View style={{ backgroundColor: palette.grey[300], paddingVertical: 7, width: 2 }} />}
+        <Text style={{ fontSize: 14, fontWeight: 500, color: palette.grey[500] }}>{totalScore}p</Text>
+      </View>
+
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View style={{ borderRightWidth: 1, borderColor: palette.grey[300], flex: 1 }}>
+            <Text style={styles.headerText}>문번</Text>
+          </View>
+          <View style={{ flex: 3 }}>
+            <Text style={styles.headerText}>답란</Text>
+          </View>
+        </View>
+
+        <FlatList
+          data={questions}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => renderRow(item, questions.length)}
+        />
+      </View>
+    </View>
+  )
 }
 
-const styles = ScaledSheet.create({
-  container: {},
-  styleCard: {
-    backgroundColor: palette.grey[50],
-    marginVertical: 10,
-    paddingHorizontal: '16@ms',
-    paddingVertical: '12@ms'
+const styles = StyleSheet.create({
+  container: {
+    borderWidth: 1,
+    borderColor: palette.grey[300],
+    borderRadius: 8,
+    flex: 1
   },
-  styleExpand: {
-    marginTop: 10
+  header: {
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderColor: palette.grey[300],
+    backgroundColor: palette.grey[100]
   },
-  currentQuestion: {
-    fontWeight: 'bold',
-    fontSize: 14
+  headerText: {
+    flex: 1,
+    fontWeight: '600',
+    textAlign: 'center',
+    paddingVertical: 7,
+    color: '#222222'
   },
-  scrollContainer: {
-    paddingBottom: 80
+  row: {
+    position: 'relative',
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    borderBottomWidth: 1,
+    borderColor: palette.grey[200]
   },
-  accordionBox: {
-    marginBottom: '16@ms'
+  activeRow: {
+    backgroundColor: palette.main[50]
   },
-  accordionTitle: {
-    fontWeight: 'bold',
-    fontSize: 14,
-    paddingVertical: '12@ms',
-    paddingHorizontal: '16@ms'
-  },
-  answerBox: {
-    padding: 12,
-    borderRadius: 6,
-    marginVertical: 6,
+  questionCol: {
+    flex: 1,
+    justifyContent: 'center',
+    textAlign: 'center',
     alignItems: 'center'
   },
-  answerText: {
-    color: '#fff',
-    fontWeight: 'bold'
-  },
-  bookmarkBox: {
-    backgroundColor: '#eee',
-    padding: 6,
-    borderRadius: 12,
-    width: 40,
-    alignItems: 'center',
-    marginTop: 4
-  },
-  bookmarkText: {
-    color: '#aaa'
-  },
-  footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderTopWidth: 1,
-    borderColor: '#eee',
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#fff',
-    justifyContent: 'space-between'
-  },
-  timeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: '8@ms'
-  },
-  timeText: {
-    color: palette.main[700],
-    fontWeight: 'bold',
+  questionText: {
     fontSize: 16,
-    width: '100@ms'
+    color: '#333'
   },
-  totalTime: {
-    color: palette.grey[500],
-    fontSize: 14,
-    fontWeight: 500
+  activeQuestionText: {
+    color: palette.main[600],
+    fontWeight: '600'
+  },
+  answerCol: {
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+    gap: 4,
+    flexDirection: 'row',
+    flexWrap: 'nowrap',
+    justifyContent: 'space-around',
+    alignItems: 'center'
+  },
+  option: {
+    width: 30,
+    height: 30,
+    borderRadius: 999,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  selectedOption: {
+    borderRadius: 255,
+    backgroundColor: palette.main[600]
+  },
+  optionText: {
+    color: '#333',
+    fontWeight: '500'
+  },
+  selectedText: {
+    color: '#fff'
   }
 })
-
-export default ExamQuestionGroup
+export default React.memo(ExamQuestionGroup)
