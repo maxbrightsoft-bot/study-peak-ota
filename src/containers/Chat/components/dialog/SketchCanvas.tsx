@@ -131,9 +131,7 @@ const styles = ScaledSheet.create({
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: '16@ms',
-    borderTopWidth: 1,
-    borderTopColor: palette.grey[200]
+    paddingVertical: '16@ms',
   },
   iconButton: {
     width: 36,
@@ -146,7 +144,7 @@ const styles = ScaledSheet.create({
   button: {
     paddingVertical: '12@ms',
     paddingHorizontal: '24@ms',
-    borderRadius: '8@ms',
+    borderRadius: '12@ms',
     minWidth: '120@ms',
     alignItems: 'center'
   },
@@ -154,7 +152,7 @@ const styles = ScaledSheet.create({
     backgroundColor: palette.grey[100]
   },
   confirmButton: {
-    backgroundColor: palette.main[500]
+    backgroundColor: palette.main[600]
   },
   cancelButtonText: {
     ...TYPO.button2,

@@ -19,7 +19,7 @@ interface Props {
 const useChatContainer = (props: Props) => {
   const { conversation, student } = props;
   const { t } = useTranslation()
-  const { user } = useAuthStore()
+  const { user, setLoadingWithoutOverlay } = useAuthStore()
 
   const isReceivedMessage = useRef(false)
   const roles = user?.roles || []
@@ -27,7 +27,6 @@ const useChatContainer = (props: Props) => {
   const [selectedConversation, setSelectedConversation] = useState<ConversationsResponse>();
   const [message, setMessage] = useState<MessageRequest>();
   const [isScrollToEnd, setScrollToEnd] = useState<boolean>(false)
-  const [loading, setLoading] = useState(false)
   const [openSketchCanvasDialog, setOpenSketchCanvasDialog] = useState(false)
 
   const handleOpenSketchCanvasDialog = () => {
@@ -57,7 +56,7 @@ const useChatContainer = (props: Props) => {
   }
 
   const handleAddMessage = async (url?: string) => {
-    setLoading(true);
+    setLoadingWithoutOverlay(true);
     if (!selectedConversation?.id) return;
     setScrollToEnd(true)
     setSending(true)
@@ -104,7 +103,7 @@ const useChatContainer = (props: Props) => {
     }
     finally {
       setSending(false)
-      setLoading(false)
+      setLoadingWithoutOverlay(false)
       handleChangeInput('')
     }
 
@@ -117,7 +116,7 @@ const useChatContainer = (props: Props) => {
         allowVirtualFiles: true
       })
 
-      setLoading(true)
+      setLoadingWithoutOverlay(true)
       const formData = new FormData();
       formData.append("upload", result as any);
       const res = await apiUploadImageFile(formData);
@@ -128,7 +127,9 @@ const useChatContainer = (props: Props) => {
       })
       toast.error(getErrorMessage(t, error))
     }
-    setLoading(false);
+    finally {
+      setLoadingWithoutOverlay(false);
+    }
   }
 
   const saveBase64ToFile = async (base64Data: string, fileName = 'signature.png') => {
@@ -142,7 +143,7 @@ const useChatContainer = (props: Props) => {
 
   const handleUploadImageCanvas = async (data: string, callback: any) => {
     try {
-      setLoading(true)
+      setLoadingWithoutOverlay(true)
       const fileName = `signature_${new Date().getTime()}.png`
       // const filePath = await saveBase64ToFile(data, fileName);
 
@@ -161,12 +162,12 @@ const useChatContainer = (props: Props) => {
       })
       toast.error(getErrorMessage(t, error))
     }
-    setLoading(false);
+    setLoadingWithoutOverlay(false);
   }
 
   useEffect(() => {
     if (!selectedConversation?.id) return
-    setLoading(false)
+    setLoadingWithoutOverlay(false)
 
   }, [selectedConversation?.id])
 
@@ -291,7 +292,7 @@ const useChatContainer = (props: Props) => {
       handleOpenSketchCanvasDialog,
       handleCloseSketchCanvasDialog
     },
-    isLoadingMessages: isLoadingMessages || loading,
+    isLoadingMessages: isLoadingMessages,
     messageList,
     selectedConversation,
     messageFilter,

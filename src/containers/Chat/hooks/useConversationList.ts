@@ -16,15 +16,44 @@ const useConversationList = () => {
   const academyDomain = user?.academyDomain
   const channel1 = useRef('')
   const channel2 = useRef('')
+  const [search, setSearch] = useState<string>("");
   const [selectedConversation, setSelectedConversation] = useState<ConversationsResponse>();
   const [conversations, setConversations] = useState<ConversationsResponse[]>([])
-  const [textSearch, setTextSearch] = useState("");
+  const [openFilterModal, setOpenFilterModal] = useState(false)
   const [conversationFilter, setConversationFilter] = useState<ConversationFilter>(CONVERSATION_DEFAULT_FILTER);
   const [courses, setCourses] = useState<Array<Course>>()
   const [isVisibleCreateConversationDialog, setVisibleCreateConversationDialog] = useState(false)
   const { t } = useTranslation()
   const inputSearch = useRef<any>(null);
   const socket = getSocket()
+
+  const onChangeSearch = (value: string) => {
+    setSearch(value);
+  };
+
+  useEffect(() => {
+    if (inputSearch.current) {
+      clearTimeout(inputSearch.current);
+    }
+
+    inputSearch.current = setTimeout(() => {
+      getConversationList(search);
+    }, 500);
+
+    return () => {
+      if (inputSearch.current) {
+        clearTimeout(inputSearch.current);
+      }
+    };
+  }, [search]);
+
+  const handleCloseFilterModal = () => {
+    setOpenFilterModal(false)
+  }
+
+  const handleOpenFilterModal = () => {
+    setOpenFilterModal(true)
+  }
 
   const handleChangeSelectedConversation = (val: ConversationsResponse) => {
     setSelectedConversation(val)
@@ -67,17 +96,6 @@ const useConversationList = () => {
     const conversationCount: any = JSON.parse(data)
     setConversations((conversations) => conversations.map(i => ({ ...i, totalUnReadMessage: conversationCount.conversationId === i.id ? conversationCount.totalUnReadMessage : i.totalUnReadMessage })))
   }
-
-  const handleChangeTextSearch = (value: string) => {
-    setTextSearch(value);
-
-    if (!!inputSearch.current) {
-      clearTimeout(inputSearch.current);
-    }
-    inputSearch.current = setTimeout(async() => {
-      await getConversationList(value)
-    }, 500);
-  };
 
   const getListCourseByStudent = async () => {
     setLoading(true)
@@ -131,7 +149,7 @@ const useConversationList = () => {
       getConversationList()
       return () => {
         setSelectedConversation(undefined)
-        setTextSearch('')
+        setSearch('')
       };
     }, [])
   );
@@ -147,11 +165,13 @@ const useConversationList = () => {
     conversationFilter,
     selectedConversation,
     conversations,
+    search,
+    onChangeSearch,
+    handleCloseFilterModal,
+    handleOpenFilterModal,
     handleChangeFilter,
     handleCompletedConversation,
-    textSearch,
     handleChangeSelectedConversation,
-    handleChangeTextSearch,
     setSelectedConversation,
     getConversationList,
     isVisibleCreateConversationDialog,

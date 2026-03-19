@@ -26,6 +26,21 @@ export const UPDATE_MESSAGE_EVENT = 'update-message-event'
 export const MESSAGE_CONVERSATION_EVENT = 'message-conversation-event'
 export const MESSAGE_CONVERSATION_READ_EVENT = 'message-conversation-read-event'
 
+export const TabList = [
+    {
+        label: "전체",
+        value: 0,
+    },
+    {
+        label: "상담 중",
+        value: 1,
+    },
+    {
+        label: "상담 완료",
+        value: 2,
+    },
+]
+
 export const ConversationEvents = [
     COMPLETED_CONVERSATION_EVENT,
 ]

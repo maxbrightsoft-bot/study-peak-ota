@@ -2,7 +2,7 @@ import TextField from '@/components/Input/TextField'
 import { palette, TYPO } from '@/theme'
 import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import React, { useEffect, useMemo, useRef } from 'react'
-import { View, Text, FlatList, TouchableOpacity } from 'react-native'
+import { View, Text, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 import { IChatListProps, IInputChatProps } from '../configs/types'
 import { ActivityIndicator } from 'react-native-paper'
@@ -12,11 +12,17 @@ import { isHTMLContent } from '../configs/helpers'
 import useAuthStore from '@/store/useAuthStore'
 import _ from 'lodash'
 import SketchCanvas from './dialog/SketchCanvas'
+import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
+import useDialog from '../hooks/useDialog'
+import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
+import UpdateMessageDialog from './UpdateMessageDialog'
 
 type prevSender = string | undefined
 
 type Props = {
   t: any
+  open: boolean
+  onClose: () => void
   isLoadingMessages: boolean
   chatListProps: IChatListProps
   inputProps: IInputChatProps
@@ -25,6 +31,8 @@ type Props = {
 }
 const ChatContainer = ({
   t,
+  open,
+  onClose,
   chatListProps,
   inputProps,
   chatHeaderProps,
@@ -59,6 +67,8 @@ const ChatContainer = ({
     handleOpenSketchCanvasDialog,
     handleCloseSketchCanvasDialog
   } = inputProps
+  const { selectedItem, handleUploadImage : handleUpdateUploadImage, openDialog: openUpdateDialog, openConfirmDialog, toggleConfirmDialog,  toggleDialog: toggleUpdateDialog, selectedFile } = useDialog()
+
   const flatListRef = useRef<FlatList>(null)
   const disabled = isCompleted || isSending
   const filterMessage = useMemo(() => {
@@ -83,144 +93,193 @@ const ChatContainer = ({
   }, [isScrollToEnd])
 
   return (
-    <View style={styles.container}>
+    <SlideDrawerRoot visible={open}>
       <View style={styles.header}>
-        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-          <Text style={styles.examTitle}>{examTitle}</Text>
-          {studentTotalAttemptTime > 1 && (
-            <Text style={[TYPO.button4, { color: isSelected ? palette.main[500] : palette.red[900] }]}>
-              #{studentAttemptNumber + 1}/{studentTotalAttemptTime}
-            </Text>
-          )}
+        <TouchableOpacity style={styles.backButton} onPress={onClose}>
+          <Ionicons name="close" size={20} color={palette.grey[900]} />
+        </TouchableOpacity>
+        <View>
+          <Text style={{ fontSize: 16, fontWeight: 600, color: '#222222' }}>{t('ask_a_question')}</Text>
         </View>
-        <View style={{ justifyContent: 'flex-end', alignItems: 'flex-end' }}>
-          <View>
-            {courseId ? (
-              <Text
-                style={{
-                  fontWeight: '700',
-                  fontSize: 12,
-                  lineHeight: 14.32,
-                  color: '#1F2937'
-                }}
-              >
-                {questionOrder != undefined
-                  ? t('problem_number_question', {
-                      number: parentQuestionId
-                        ? `${(parentQuestionOrder || 0) + 1}.${questionOrder + 1}`
-                        : questionOrder + 1
-                    })
-                  : courseId
-                    ? t('class_inquiry')
-                    : t('exam_inquiry')}
-              </Text>
-            ) : (
-              !isOnlyConversationStudentWithTeacher && (
-                <View
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    gap: 4
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontWeight: '700',
-                      fontSize: 12,
-                      lineHeight: 14.32,
-                      color: '#4B5563'
-                    }}
-                  >
-                    {score || 0}
-                  </Text>
-                  <Text
-                    style={{
-                      fontWeight: '700',
-                      fontSize: 12,
-                      lineHeight: 14.32,
-                      color: '#D1D5DB'
-                    }}
-                  >
-                    /{totalScore || 0}
-                  </Text>
-                </View>
-              )
-            )}
-          </View>
-          <Text style={styles.dateTitle}>{utcToLocalTime(createdAt, t('date_format'))}</Text>
-        </View>
+        <View></View>
       </View>
-      <View style={{ height: '75%' }}>
-        {!isLoading && isLoadingMessages && (
-          <View style={[styles.overlay]}>
-            <ActivityIndicator style={{ paddingVertical: 12 }} animating={true} color={palette.primary.main} />
+      <KeyboardAvoidingView
+        keyboardVerticalOffset={80}
+        style={{ flex: 1, position: 'relative' }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+              <Text style={styles.examTitle}>{examTitle}</Text>
+              {studentTotalAttemptTime > 1 && (
+                <Text style={[TYPO.button4, { color: isSelected ? palette.main[600] : palette.red[900] }]}>
+                  #{studentAttemptNumber + 1}/{studentTotalAttemptTime}
+                </Text>
+              )}
+            </View>
+            <View style={{ justifyContent: 'flex-end', alignItems: 'flex-end' }}>
+              <View>
+                {courseId ? (
+                  <Text
+                    style={{
+                      fontWeight: '700',
+                      fontSize: 12,
+                      lineHeight: 14.32,
+                      color: '#1F2937'
+                    }}
+                  >
+                    {questionOrder != undefined
+                      ? t('problem_number_question', {
+                          number: parentQuestionId
+                            ? `${(parentQuestionOrder || 0) + 1}.${questionOrder + 1}`
+                            : questionOrder + 1
+                        })
+                      : courseId
+                        ? t('class_inquiry')
+                        : t('exam_inquiry')}
+                  </Text>
+                ) : (
+                  !isOnlyConversationStudentWithTeacher && (
+                    <View
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        gap: 4
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontWeight: '700',
+                          fontSize: 12,
+                          lineHeight: 14.32,
+                          color: '#4B5563'
+                        }}
+                      >
+                        {score || 0}
+                      </Text>
+                      <Text
+                        style={{
+                          fontWeight: '700',
+                          fontSize: 12,
+                          lineHeight: 14.32,
+                          color: '#D1D5DB'
+                        }}
+                      >
+                        /{totalScore || 0}
+                      </Text>
+                    </View>
+                  )
+                )}
+              </View>
+              <Text style={styles.dateTitle}>{utcToLocalTime(createdAt, t('date_format'))}</Text>
+            </View>
           </View>
-        )}
-        {!filterMessage?.length ? (
-          <View style={{ height: '100%', alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={styles.dateTitle}>{t('no_message')}</Text>
-          </View>
-        ) : (
-          <FlatList
-            ref={flatListRef}
-            data={filterMessage}
-            style={{
-              backgroundColor: palette.grey[50],
-              paddingHorizontal: 24
-            }}
-            renderItem={({ item }) => (
-              <ChatItem
-                t={t}
-                handleUpdateMessage={handleUpdateMessage}
-                handleDeleteMessage={handleDeleteMessage}
-                item={item}
+          <View style={{ flex: 1 }}>
+            {!isLoading && isLoadingMessages && (
+              <View style={[styles.overlay]}>
+                <ActivityIndicator style={{ paddingVertical: 12 }} animating={true} color={palette.primary.main} />
+              </View>
+            )}
+            {!filterMessage?.length ? (
+              <View style={{ height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={styles.dateTitle}>{t('no_message')}</Text>
+              </View>
+            ) : (
+              <FlatList
+                ref={flatListRef}
+                data={filterMessage}
+                style={{
+                  backgroundColor: palette.main[50],
+                  paddingHorizontal: 24
+                }}
+                renderItem={({ item }) => (
+                  <ChatItem
+                    t={t}
+                    toggleConfirmDialog={toggleConfirmDialog}
+                    toggleUpdateDialog={toggleUpdateDialog}
+                    handleUpdateMessage={handleUpdateMessage}
+                    handleDeleteMessage={handleDeleteMessage}
+                    item={item}
+                  />
+                )}
+                removeClippedSubviews={false}
+                keyboardDismissMode="interactive"
+                keyboardShouldPersistTaps="handled"
+                keyExtractor={(item) => `${item.id}${item.createdAt}`}
+                onEndReached={handleLoadMoreMessages}
+                inverted
+                initialNumToRender={20}
+                onEndReachedThreshold={0.1}
               />
             )}
-            removeClippedSubviews={true}
-            keyboardShouldPersistTaps="handled"
-            keyExtractor={(item) => `${item.id}${item.createdAt}`}
-            onEndReached={handleLoadMoreMessages}
-            inverted
-            initialNumToRender={20}
-            onEndReachedThreshold={0.1}
-          />
-        )}
-      </View>
+          </View>
 
-      <View style={styles.inputContainer}>
-        <View style={{ justifyContent: 'center', alignItems: 'center', gap: 4 }}>
-          <TouchableOpacity disabled={disabled} onPress={handleUploadImage}>
-            <Ionicons name="add-circle" size={32} color={palette.grey[500]} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{
-              backgroundColor: palette.main[500],
-              borderRadius: 255,
-              paddingVertical: 5,
-              paddingHorizontal: 12
-            }}
-            disabled={disabled}
-            onPress={handleOpenSketchCanvasDialog}
-          >
-            <MaterialIcons name="draw" size={25} color="#FFF" />
-          </TouchableOpacity>
+          <View style={styles.footerWrapper}>
+            <View style={styles.footer}>
+              <View style={styles.actionGroup}>
+                <TouchableOpacity disabled={disabled} onPress={handleUploadImage} style={styles.iconButton}>
+                  <Ionicons name="image-outline" size={22} color={palette.grey[600]} />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  disabled={disabled}
+                  onPress={handleOpenSketchCanvasDialog}
+                  style={styles.sketchButton}
+                >
+                  <MaterialIcons name="draw" size={20} color="#FFF" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.inputWrapper}>
+                <TextField disabled={disabled} value={text} style={styles.input} onChangeText={onChangeInput} />
+              </View>
+
+              <TouchableOpacity
+                disabled={disabled || !text?.trim()}
+                onPress={() => onSubmit()}
+                style={[styles.sendButton, { opacity: disabled || !text?.trim() ? 0.4 : 1 }]}
+              >
+                {isSending ? (
+                  <ActivityIndicator size={16} color="#FFF" />
+                ) : (
+                  <Ionicons name="send" size={18} color="#FFF" />
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+          {openSketchCanvasDialog && (
+            <SketchCanvas
+              t={t}
+              open={openSketchCanvasDialog}
+              onClose={handleCloseSketchCanvasDialog}
+              onSubmit={handleUploadImageCanvas}
+            />
+          )}
         </View>
-        <View style={{ flexGrow: 1 }}>
-          <TextField disabled={disabled} value={text} style={styles.input} onChangeText={onChangeInput} />
-        </View>
-        <TouchableOpacity disabled={disabled} onPress={() => onSubmit()}>
-          <Ionicons name="send" size={25} color={palette.main[500]} />
-        </TouchableOpacity>
-      </View>
-      {openSketchCanvasDialog && (
-        <SketchCanvas
-          t={t}
-          open={openSketchCanvasDialog}
-          onClose={handleCloseSketchCanvasDialog}
-          onSubmit={handleUploadImageCanvas}
+        <ConfirmDialog
+          open={openConfirmDialog}
+          toggle={toggleConfirmDialog}
+          text={t('confirm_delete_message')}
+          onConfirm={() => handleDeleteMessage(selectedItem?.conversationId || 0, selectedItem?.id || 0, toggleConfirmDialog)}
+          title={t('confirmation')}
+          okText={t('yes')}
+          cancelText={t('no')}
         />
-      )}
-    </View>
+
+        {openUpdateDialog && <UpdateMessageDialog
+          open={openUpdateDialog}
+          onClose={toggleUpdateDialog}
+          content={selectedItem?.content}
+          selectedFile={selectedFile}
+          handleUploadImage={handleUpdateUploadImage}
+          contentType={selectedItem?.contentType}
+          handleUpdateMessage={(newContent) =>
+            handleUpdateMessage(selectedItem?.conversationId || 0, selectedItem?.id || 0, newContent, toggleUpdateDialog)
+          }
+        />}
+      </KeyboardAvoidingView>
+    </SlideDrawerRoot>
   )
 }
 
@@ -228,9 +287,13 @@ const styles = ScaledSheet.create({
   container: {
     flex: 1
   },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
   header: {
     flexDirection: 'row',
-    paddingBottom: '16@ms',
+    paddingVertical: '16@ms',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: '24@ms'
@@ -270,7 +333,7 @@ const styles = ScaledSheet.create({
   },
   myMessage: {
     alignSelf: 'flex-end',
-    backgroundColor: palette.main[500]
+    backgroundColor: palette.main[600]
   },
   otherMessage: {
     alignSelf: 'flex-start',
@@ -293,7 +356,7 @@ const styles = ScaledSheet.create({
   },
   inputContainer: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 10,
     flexDirection: 'row',
     gap: 8,
     alignItems: 'center',
@@ -307,10 +370,63 @@ const styles = ScaledSheet.create({
     textAlign: 'center',
     marginBottom: 4
   },
+  footerWrapper: {
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderColor: palette.grey[100],
+    paddingHorizontal: '20@ms',
+    paddingTop: '10@ms',
+    paddingBottom: 20
+  },
+
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8
+  },
+
+  actionGroup: {
+    justifyContent: 'flex-end',
+    gap: 6
+  },
+
+  iconButton: {
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+
+  sketchButton: {
+    backgroundColor: palette.main[600],
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+
+  inputWrapper: {
+    flex: 1,
+    backgroundColor: palette.grey[100],
+    borderRadius: 20,
+    paddingHorizontal: '12@ms',
+    paddingVertical: '6@ms',
+    maxHeight: '120@ms'
+  },
+
   input: {
-    borderWidth: 1,
-    borderColor: palette.grey[300],
-    borderRadius: 6
+    borderWidth: 0,
+    backgroundColor: 'transparent'
+  },
+
+  sendButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: palette.main[600],
+    justifyContent: 'center',
+    alignItems: 'center'
   }
 })
 
