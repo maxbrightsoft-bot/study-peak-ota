@@ -21,7 +21,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   }
 }
 
-rootProject.name = 'touch-study-mobile'
+rootProject.name = 'Study Peak'
 
 dependencyResolutionManagement {
   versionCatalogs {
