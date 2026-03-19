@@ -19,6 +19,18 @@ export const diffFromNow = (time: string, unitOfTime: unitOfTime.Diff, targetTim
     }
 }
 
+export const formatMinutesToTime = (minutes: number) => {
+  const totalSeconds = Math.floor(minutes * 60)
+
+  const mins = Math.floor(totalSeconds / 60)
+  const secs = totalSeconds % 60
+
+  const paddedMins = String(mins).padStart(2, '0')
+  const paddedSecs = String(secs).padStart(2, '0')
+
+  return `${paddedMins}:${paddedSecs}`
+}
+
 export const isValidTime = (time?: string) => {
     if (!time || time === DATE_MIN_VALUE || time === DATE_TIME_MIN_VALUE) return false
     return true

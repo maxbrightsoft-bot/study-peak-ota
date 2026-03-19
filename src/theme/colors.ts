@@ -1,16 +1,25 @@
 export const grey = {
   0: '#FFFFFF',
-  50: "#F7F7F7",
+  50: "#FAFAFB",
   100: '#EAEAEA',
-  200: '#DFDFE0',
-  300: '#C7C7C8',
-  400: '#C4CDD5',
-  500: '#858588',
+  200: '#E4E4E7',
+  300: '#D4D4D8',
+  400: '#A1A1AA',
+  500: '#71717A',
   600: '#637381',
   700: '#47484C',
   800: '#212B36',
   900: '#171719',
 };
+
+export const bg = {
+  100: "#F7F7F7"
+}
+
+export const sub = {
+  50: '#F1FAFE',
+  400: '#36BFEC',
+}
 
 export const green = {
   0: '#FFFFFF',
@@ -23,17 +32,23 @@ export const green = {
 };
 
 export const purple = {
+  50: '#F4F3FF',
   100: '#DFD6EE',
-  300: '#AF97D5',
-  500: '#5F30AA',
+  300: '#C0B5FD',
+  400: '#A18BFA',
+  500: '#835CF6',
+  600: '#7036EC',
   700: '#391D66',
   900: '#1D0E33',
 };
 
 export const main = {
+  50: purple[50],
   100: purple[100],
   300: purple[300],
+  400: purple[400],
   500: purple[500],
+  600: purple[600],
   700: purple[700],
   900: purple[900]
 }
@@ -131,6 +146,8 @@ export const palette = {
   error,
   grey,
   main,
+  sub,
+  bg,
   common,
   red,
   yellow,

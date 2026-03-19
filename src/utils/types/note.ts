@@ -19,6 +19,10 @@ export type NoteResponse = {
   type?: NoteType
   sender: NoteUserInfo
   imageUrl?: string
+  title?: string
+  page?: number
+  score: number
+  subjectName?: string
   receiver?: NoteUserInfo
   receivers?: NoteUserInfo[]
   totalUsers: number
@@ -54,7 +58,7 @@ export type NoteRequest = {
   users?: any[]
   mentionIds?: number[]
   isMentionAll?: boolean
-  studentExamSessionId?: string
+  studentExamSessionId?: any
   imageUrl?: string
 }
 

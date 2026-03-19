@@ -5,10 +5,11 @@ export type UserResponse = {
   email: string
   avatar: string
   fullName: string
-  className: string
+  classes: string[]
   parentPhoneNumber: string
   parentName: string
   major: string
+  grade: number
   schoolName: string
   academyDomain: string
   isLearningSpace: boolean

@@ -11,11 +11,18 @@ import Loading from '@/components/Loading'
 import Toast from 'react-native-toast-message'
 import { PaperProvider } from 'react-native-paper'
 import { MainRoutes } from './RouteName'
-import RNBootSplash from "react-native-bootsplash";
+import RNBootSplash from 'react-native-bootsplash'
 import { audioToastConfig } from '@/layouts/partials/Alarm/AudioToastContent'
 import { BASE_URL } from '@/utils/constants'
+import { GoogleSignin } from '@react-native-google-signin/google-signin'
 
 const Stack = createNativeStackNavigator()
+
+GoogleSignin.configure({
+  iosClientId: process.env.EXPO_PUBLIC_IOS_GOOGLE_CLIENT_ID,
+  webClientId: process.env.EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID,
+  offlineAccess: false
+})
 
 const RootNavigation: React.FC = () => {
   const { language, user, isLoading, selectedAcademy, isLoadingWithoutOverlay, setLoading } = useAuthStore()
@@ -44,7 +51,7 @@ const RootNavigation: React.FC = () => {
             }
           }}
         >
-          <Stack.Navigator key={user?.id ? 'AUTH' : 'UNAUTH'} screenOptions={{ headerShown: false }}>
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
             {!user?.id ? (
               <Stack.Screen name={MainRoutes.UnAuthStack} component={UnAuthorized} />
             ) : (
@@ -54,11 +61,7 @@ const RootNavigation: React.FC = () => {
         </NavigationContainer>
         {isLoading && <Loading />}
         {isLoadingWithoutOverlay && <Loading isOverlay={false} />}
-        <Toast 
-          config={audioToastConfig} 
-          position="top" 
-          topOffset={10}
-        />
+        <Toast config={audioToastConfig} position="top" topOffset={10} />
       </PaperProvider>
     </SafeAreaProvider>
   )

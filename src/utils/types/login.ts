@@ -12,7 +12,8 @@ export type LoginRequest = {
   fullName: string;
   email: string;
   token: string;
-  googleId: string;
+  appleUserId?: string
+  googleId?: string;
   role: string;
   isMobile: boolean
 }
