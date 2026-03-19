@@ -3,11 +3,12 @@ import { Ionicons } from '@expo/vector-icons'
 import { Text, View, TouchableOpacity } from 'react-native'
 import { ScheduleResponse, ScheduleStatus, ScheduleType } from '../configs/type'
 import { timeSpanToLocalMoment } from '@/utils/helpers'
-import { Button } from 'react-native-paper'
 import { useTranslation } from 'react-i18next'
 import { ScaledSheet } from 'react-native-size-matters'
-import CustomTooltip from '@/components/Tooltip/CustomTooltip'
-import { Action } from '@/utils/types'
+import VerifyIcon from '@/assets/iconJSX/verify'
+import PencilIcon from '@/assets/iconJSX/pencil'
+import TrashIcon from '@/assets/iconJSX/trash'
+import BottomSheet from '@/components/ModalBase/BottomSheet'
 
 type Props = {
   schedule: ScheduleResponse
@@ -49,84 +50,78 @@ const NoteItem = ({
   const renderStatus = (schedule: ScheduleResponse) => {
     switch (schedule.status) {
       case ScheduleStatus.Completed:
-        return (
-          <Ionicons
-            style={{ width: 30, textAlign: 'center' }}
-            color={palette.main[500]}
-            size={20}
-            name="checkmark-circle"
-          />
-        )
-      case ScheduleStatus.Missed:
-        return <Ionicons style={{ width: 30, textAlign: 'center' }} color={palette.red[900]} size={20} name="warning" />
+        return <VerifyIcon color={palette.main[600]} />
       default:
-        return (
-          <View
-            style={{
-              borderWidth: 1,
-              borderColor: palette.grey[500],
-              borderStyle: 'dashed',
-              borderRadius: '50%',
-              width: 20,
-              height: 20
-            }}
-          />
-        )
+        return <VerifyIcon color={palette.grey[300]} />
     }
   }
 
-  const renderTextColor = (schedule: ScheduleResponse) => {
-    switch (schedule.status) {
-      case ScheduleStatus.Completed:
-        return palette.grey[500]
-      case ScheduleStatus.Missed:
-        return palette.red[900]
-      default:
-        return palette.grey[700]
-    }
-  }
+const renderTooltipMenu = () => {
+  if (!schedule.id) return null
 
-  const renderTooltipMenu = () => {
-    if (!schedule.id) return null
+  return (
+    <BottomSheet
+      isVisible={openTooltipList === idx}
+      onClose={handleCloseTooltip}
+      title="더보기"
+    >
+      <View style={styles.menuContainer}>
 
-    const actions: Action<ScheduleResponse>[] = [
-      {
-        label: t('edit_schedule'),
-        onPress: () => handleOpenScheduleDialog(schedule)
-      },
-      {
-        label: t('delete_schedule'),
-        onPress: () => handleOpenConfirmDeleteDialog(schedule),
-        textStyle: {
-          color: '#db4d4d'
-        }
-      }
-    ]
-    return (
-      <CustomTooltip actions={actions} isVisible={openTooltipList === idx} onClose={handleCloseTooltip}>
-        <TouchableOpacity onPress={() => handleOpenTooltip(idx)} style={styles.moreButton}>
-          <Ionicons name="ellipsis-horizontal-sharp" size={20} color={palette.grey[700]} />
+        <TouchableOpacity
+          onPress={() => handleOpenScheduleDialog(schedule)}
+          style={styles.menuItem}
+          activeOpacity={0.7}
+        >
+          <View style={styles.iconBox}>
+            <PencilIcon />
+          </View>
+
+          <Text style={styles.menuText}>
+            {t('edit_schedule')}
+          </Text>
         </TouchableOpacity>
-      </CustomTooltip>
-    )
-  }
+
+        <View style={styles.divider} />
+
+        <TouchableOpacity
+          onPress={() => handleOpenConfirmDeleteDialog(schedule)}
+          style={styles.menuItem}
+          activeOpacity={0.7}
+        >
+          <View style={styles.iconBox}>
+            <TrashIcon />
+          </View>
+
+          <Text style={[styles.menuText, styles.deleteText]}>
+            {t('delete_schedule')}
+          </Text>
+        </TouchableOpacity>
+
+      </View>
+    </BottomSheet>
+  )
+}
 
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Button onPress={handleCheckSchedule} disabled={!enableCheckSchedule}>
-          {renderStatus(schedule)}
-        </Button>
-        <View style={{ gap: 8 }}>
-          <Text style={styles.title}>{schedule.title}</Text>
+        <View style={{ gap: 12 }}>
+          <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
+            <TouchableOpacity style={{ padding: 4 }} onPress={handleCheckSchedule} disabled={!enableCheckSchedule}>
+              {renderStatus(schedule)}
+            </TouchableOpacity>
+            <Text style={[styles.title, { textDecorationLine: schedule.status === ScheduleStatus.Completed ? 'line-through' : 'none' }]}>{schedule.title}</Text>
+          </View>
           <View style={{ flexDirection: 'row', gap: 4 }}>
-            <Text style={styles.typeText}>{t(ScheduleType[schedule.type || 0].toString()?.toLocaleLowerCase())}</Text>
-            <Text style={{ ...TYPO.body1, color: renderTextColor(schedule) }}>
+            <Text style={{ fontSize: 13, color: palette.grey[400] }}>
               {startTime?.format('HH:mm')} ~ {endTime?.format('HH:mm')}
             </Text>
           </View>
         </View>
       </View>
+      <TouchableOpacity onPress={() => handleOpenTooltip(idx)} style={styles.moreButton}>
+        <Ionicons name="ellipsis-vertical-sharp" size={20} color={palette.grey[500]} />
+      </TouchableOpacity>
       {renderTooltipMenu()}
     </View>
   )
@@ -135,11 +130,12 @@ const NoteItem = ({
 const styles = ScaledSheet.create({
   container: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
-    padding: '12@ms',
-    backgroundColor: "#FFF",
-    borderRadius: 5
+    paddingVertical: '14@ms',
+    paddingHorizontal: '15@ms',
+    backgroundColor: palette.grey[100],
+    borderRadius: 14
   },
   content: {
     flexDirection: 'row',
@@ -147,7 +143,9 @@ const styles = ScaledSheet.create({
     gap: '8@ms'
   },
   title: {
-    ...TYPO.heading3
+    fontSize: 14, 
+    fontWeight: 600,
+    color: "#222222"
   },
   typeText: {
     ...TYPO.body4,
@@ -163,6 +161,12 @@ const styles = ScaledSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)'
+  },
+  textAction: {
+    fontSize: 16,
+    fontWeight: 600,
+    color: '#222222',
+    textAlign: 'center'
   },
   tooltipContainer: {
     position: 'absolute',
@@ -180,6 +184,11 @@ const styles = ScaledSheet.create({
     shadowRadius: 3.84,
     elevation: 5
   },
+  actionButton: {
+    flexDirection: 'row',
+    paddingVertical: '6@ms',
+    alignItems: 'center'
+  },
   tooltipItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -194,6 +203,41 @@ const styles = ScaledSheet.create({
     fontWeight: '700',
     fontSize: 14,
     color: palette.main[500]
+  },
+  menuContainer: {
+    paddingVertical: '12@vs'
+  },
+
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: '14@vs',
+    paddingHorizontal: '24@s'
+  },
+
+  iconBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: '12@s',
+    backgroundColor: '#F3F4F6'
+  },
+
+  menuText: {
+    fontSize: '15@ms',
+    fontWeight: '500',
+    color: '#222'
+  },
+
+  deleteText: {
+    color: '#EF4444'
+  },
+
+  divider: {
+    height: 1,
+    backgroundColor: '#F1F1F1',
   }
 })
 

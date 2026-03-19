@@ -1,160 +1,186 @@
 import { palette, TYPO } from '@/theme'
 import React from 'react'
-import { View, ScrollView, Image, TouchableOpacity, StyleSheet } from 'react-native'
-import { Text, Button, Title } from 'react-native-paper'
-import { Ionicons } from '@expo/vector-icons'
+import { View, ScrollView, TouchableOpacity, StyleSheet, Text } from 'react-native'
 import useRecentTextbook from '../hooks/useRecentTextbook'
 import { PreparedFilterType } from '../configs/type'
-import { getSafeUrl, utcToLocalTime } from '@/utils/helpers'
-import moment from 'moment'
-import { navigate } from '@/navigators/NavigationHelpers'
-import { Routes } from '@/navigators/RouteName'
-import { Textbook } from '@/utils/types'
+import { utcToLocalTime } from '@/utils/helpers'
+import ArrowRight from '@/assets/iconJSX/arrowRight'
 
-type Props = {
-  handleOpenTextbookResult: (textbook?: Textbook) => void
-}
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 40,
-    paddingHorizontal: 24
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    marginBottom: 16
-  },
-  headerTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline'
-  },
-  icon: {
-    padding: 2,
-    marginRight: 10
+    marginBottom: 16,
   },
   headerTitle: {
     ...TYPO.heading1,
-    color: palette.grey[700]
-  },
-  viewAllButton: {
-    ...TYPO.button3,
-    color: palette.grey[900]
-  },
-  scrollContainer: {
-    backgroundColor: palette.grey[50],
-    borderRadius: 6,
-    padding: 8,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: palette.grey[300],
-    maxHeight: 500
+    color: palette.grey[900],
   },
   contentContainer: {
+    gap: 12,
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
     gap: 12
   },
-  textbookItem: {
-    backgroundColor: '#FFF',
-    borderRadius: 6,
-    shadowColor: 'transparent'
-  },
-  textbookContent: {
+  cardTop: {
     flexDirection: 'row',
-    gap: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 16
+    alignItems: 'center',
+    gap: 12,
   },
-  textbookImage: {
-    width: 96,
-    height: 121,
-    marginRight: 12,
-    resizeMode: 'contain'
+  subjectBadge: {
+    backgroundColor: palette.grey[100],
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
   },
-  textbookInfo: {
-    flex: 1,
-    gap: 16
+  subjectBadgeDark: {
+    backgroundColor: palette.grey[900],
+  },
+  subjectBadgeText: {
+    ...TYPO.body4,
+    color: palette.grey[700],
+    fontWeight: '600',
+  },
+  subjectBadgeTextDark: {
+    color: '#FFFFFF',
   },
   textbookName: {
     ...TYPO.heading3,
     color: palette.grey[900],
-    width: '60%'
+    flex: 1,
   },
-  textbookMeta: {
+  deadline: {
+    fontSize: 12,
+    fontWeight: 400,
+    color: palette.grey[500],
+  },
+  progressRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16
-  },
-  textbookMetaText: {
-    ...TYPO.body4,
-    color: palette.grey[500]
-  },
-  progressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8
-  },
-  progressText: {
-    ...TYPO.body4,
-    color: palette.grey[900]
+    gap: 12,
   },
   progressPercent: {
-    ...TYPO.body4,
-    color: palette.main[500]
+    fontSize: 12,
+    fontWeight: 500,
+    color: palette.grey[500],
+    minWidth: 20,
+  },
+  progressBarWrapper: {
+    flex: 1,
+    height: 8,
+    backgroundColor: palette.grey[200],
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: palette.main[600],
+    borderRadius: 999,
+  },
+  startButton: {
+    backgroundColor: palette.main[600],
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingRight: 8,
+    paddingLeft: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  startButtonText: {
+    ...TYPO.button3,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   emptyText: {
     ...TYPO.caption,
     color: palette.grey[500],
-    textAlign: 'center'
-  }
+    textAlign: 'center',
+  },
 })
 
-const RecentTextbook = ({ handleOpenTextbookResult }: Props) => {
-  const { t, textbookList } = useRecentTextbook({
-    preparedFilterType: PreparedFilterType.recently_solved_questions
-  })
+const MOCK_TEXTBOOKS = [
+  {
+    id: 1,
+    name: '미적분 연습문제 1~20',
+    subject: { name: '수학' },
+    subjectName: '수학',
+    totalQuestions: 20,
+    completedQuestions: 12,
+    publicationDate: '2024-10-18T00:00:00Z',
+  },
+  {
+    id: 2,
+    name: '영어 독해 실전 모의고사',
+    subject: { name: '영어' },
+    subjectName: '영어',
+    totalQuestions: 30,
+    completedQuestions: 30,
+    publicationDate: '2024-10-25T00:00:00Z',
+  },
+  {
+    id: 3,
+    name: '물리학 개념 정리 문제',
+    subject: { name: '과학' },
+    subjectName: '과학',
+    totalQuestions: 15,
+    completedQuestions: 3,
+    publicationDate: '2024-11-01T00:00:00Z',
+  },
+] as any[]
+
+const RecentTextbook = () => {
+  const { t, textbookList, handleDoTextbook } = useRecentTextbook()
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.headerTitleContainer}>
-          <Ionicons name="bulb" size={20} color={palette.grey[700]} style={styles.icon} />
-          <Text style={styles.headerTitle}>문제집 이어 풀기</Text>
-        </View>
-        <Button onPress={() => navigate(Routes.Auth.Textbook)}>
-          <Text style={styles.viewAllButton}>전체 보기</Text>
-        </Button>
+        <Text style={styles.headerTitle}>문제집 이어 풀기</Text>
       </View>
-      <ScrollView style={styles.scrollContainer}>
+      <ScrollView scrollEnabled={false}>
         <View style={styles.contentContainer}>
-          {textbookList.map((textbook) => (
-            <TouchableOpacity
-              onPress={() => handleOpenTextbookResult(textbook)}
-              key={textbook.id}
-              style={styles.textbookItem}
-            >
-              <View style={styles.textbookContent}>
-                <Image source={{ uri: getSafeUrl(textbook?.coverImage || '') }} style={styles.textbookImage} />
-                <View style={styles.textbookInfo}>
-                  <Title numberOfLines={1} ellipsizeMode="tail" style={styles.textbookName}>
+          {textbookList.map((textbook, index) => {
+            const total = textbook?.totalQuestions || 1
+            const completed = textbook.completedQuestions || 0
+            const percent = Math.round((completed / total) * 100)
+
+            return (
+              <View key={textbook.id} style={styles.card}>
+                <View style={styles.cardTop}>
+                  <View style={[styles.subjectBadge, styles.subjectBadgeDark]}>
+                    <Text style={[styles.subjectBadgeText, styles.subjectBadgeTextDark]}>
+                      {textbook.subject?.name || textbook.subjectName || '—'}
+                    </Text>
+                  </View>
+                  <Text numberOfLines={1} ellipsizeMode="tail" style={styles.textbookName}>
                     {textbook.name}
-                  </Title>
-                  <View style={styles.textbookMeta}>
-                    <Text style={styles.textbookMetaText}>
-                      {moment().subtract(textbook.createdAt, 'hours').fromNow()}
-                    </Text>
-                    <Text style={styles.textbookMetaText}>{utcToLocalTime(textbook.createdAt, t('date_format'))}</Text>
+                  </Text>
+                </View>
+
+                <Text style={styles.deadline}>
+                  {utcToLocalTime(textbook.publicationDate, t('date_format'))}
+                </Text>
+
+                <View style={styles.progressRow}>
+                  <Text style={styles.progressPercent}>{percent}%</Text>
+                  <View style={styles.progressBarWrapper}>
+                    <View style={[styles.progressBarFill, { width: `${percent}%` as any }]} />
                   </View>
-                  <View style={styles.progressContainer}>
-                    <Text style={styles.progressText}>진행도</Text>
-                    <Text style={styles.progressPercent}>
-                      {Math.round((textbook.completedQuestions / (textbook?.totalQuestions || 1)) * 100)}%
-                    </Text>
-                  </View>
+                  <TouchableOpacity
+                    style={styles.startButton}
+                    onPress={() => handleDoTextbook(textbook)}
+                  >
+                    <Text style={styles.startButtonText}>시작</Text>
+                    <ArrowRight color='#FFF' />
+                  </TouchableOpacity>
                 </View>
               </View>
-            </TouchableOpacity>
-          ))}
+            )
+          })}
           {textbookList?.length === 0 && <Text style={styles.emptyText}>{t('no_data')}</Text>}
         </View>
       </ScrollView>
