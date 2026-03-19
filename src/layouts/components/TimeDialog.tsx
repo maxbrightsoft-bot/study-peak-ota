@@ -6,6 +6,7 @@ import AlarmClockTab, { AlarmClockTabProps } from '../partials/Alarm/AlarmClockT
 import TimerTabs from '../partials/Timer/TimerTabs'
 import { ScaledSheet } from 'react-native-size-matters'
 import TabPanel from '@/components/Tab/TabPanel'
+import BottomSheet from '@/components/ModalBase/BottomSheet'
 
 interface Props {
   studyTimerProps: StudyTimerTabProps
@@ -18,6 +19,8 @@ interface Props {
 }
 
 const TimerDialog: FC<Props> = ({
+  open,
+  onToggle,
   studyTimerProps,
   alarmClockProps,
   speaker,
@@ -28,17 +31,17 @@ const TimerDialog: FC<Props> = ({
   const [value, setValue] = useState(0)
 
   return (
-    <View style={styles.container}>
-      <TimerTabs value={value} onChange={setValue} />
+    <BottomSheet isVisible={open} onClose={onToggle} titleChildren={<TimerTabs value={value} onChange={setValue} />}>
+      <View style={styles.container}>
+        <TabPanel value={value} index={0}>
+          <StudyTimerTab {...studyTimerProps} />
+        </TabPanel>
 
-      <TabPanel value={value} index={0}>
-        <StudyTimerTab {...studyTimerProps} />
-      </TabPanel>
-
-      <TabPanel value={value} index={1}>
-        <AlarmClockTab {...alarmClockProps} />
-      </TabPanel>
-    </View>
+        <TabPanel value={value} index={1}>
+          <AlarmClockTab {...alarmClockProps} />
+        </TabPanel>
+      </View>
+    </BottomSheet>
   )
 }
 
@@ -46,6 +49,8 @@ export default TimerDialog
 
 const styles = ScaledSheet.create({
   container: {
-    padding: "16@ms",
-  },
+    paddingHorizontal: '24@ms',
+    paddingBottom: '24@ms',
+    paddingTop: '20@ms'
+  }
 })

@@ -5,10 +5,10 @@ import { useTranslation } from 'react-i18next'
 import { SubjectTimerResponse } from '../../../utils/types'
 import { palette } from '@/theme/colors'
 import TimerItem from './TimerItem'
-import { Ionicons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
-import { TYPO } from '@/theme'
 import Loading from '@/components/Loading'
+import { TimerStatus } from '@/utils/enums/subject'
+import TimerClock from './TimerClock'
 
 export interface StudyTimerTabProps {
   subjects: SubjectTimerResponse[]
@@ -33,6 +33,8 @@ const StudyTimerTab: FC<StudyTimerTabProps> = ({
 }) => {
   const { t } = useTranslation()
 
+  const itemStart = subjects.find((item) => item.status === TimerStatus.Started || item.status === TimerStatus.Paused)
+
   if (isFetching) {
     return (
       <View style={styles.center}>
@@ -51,43 +53,36 @@ const StudyTimerTab: FC<StudyTimerTabProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={{ maxHeight: 400, width: '100%' }}>
-        {loadingItem && <Loading isOverlay={false} />}
-        <FlatList
-          data={subjects}
-          keyExtractor={(item) => item?.id?.toString()}
-          style={{ maxHeight: loadingItem ? "auto" : 400, width: '100%' }}
-          renderItem={({ item }) => (
-            <TimerItem
-              data={item}
-              loading={loadingItem}
-              seconds={activeTimerId === item.id ? time : undefined}
-              activeTimerId={activeTimerId}
-              onStartOrPauseTimer={onStartOrPause}
-              onEditTimer={onEditTimer}
-              onStopTimer={onStopTimer}
-            />
-          )}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
-      </View>
-      <View style={styles.actionContainer}>
-        <Pressable>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 8,
-              paddingHorizontal: 14,
-              paddingVertical: 8,
-              justifyContent: 'center'
-            }}
-          >
-            <Ionicons name="pause-circle-sharp" size={17} color={palette.grey[900]} />
-            <Text style={{ color: palette.grey[900], ...TYPO.button3 }}>{t('pause')}</Text>
-          </View>
-        </Pressable>
+      <View style={{ width: '100%', gap: 11 }}>
+        {loadingItem && <Loading />}
+        {itemStart ? (
+          <TimerClock
+            isLoading={loadingItem}
+            time={time}
+            onStartOrPauseTimer={onStartOrPause}
+            onTerminate={onStopTimer}
+            data={itemStart}
+          />
+        ) : (
+          <FlatList
+            data={subjects}
+            keyExtractor={(item) => item?.id?.toString()}
+            style={{ maxHeight: loadingItem ? 'auto' : 400, width: '100%' }}
+            renderItem={({ item }) => (
+              <TimerItem
+                data={item}
+                loading={loadingItem}
+                seconds={activeTimerId === item.id ? time : undefined}
+                activeTimerId={activeTimerId}
+                onStartOrPauseTimer={onStartOrPause}
+                onEditTimer={onEditTimer}
+                onStopTimer={onStopTimer}
+              />
+            )}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
       </View>
     </View>
   )
@@ -97,11 +92,11 @@ export default StudyTimerTab
 
 const styles = ScaledSheet.create({
   container: {
-    flexDirection: 'column'
+    flexDirection: 'column',
+    paddingBottom: 34
   },
   listContent: {
-    gap: '8@ms',
-    paddingVertical: '16@ms'
+    gap: '8@ms'
   },
   center: {
     justifyContent: 'center',

@@ -1,14 +1,15 @@
 import React, { FC, useMemo } from 'react'
-import { View, StyleSheet, FlatList } from 'react-native'
-import { Button, Divider, IconButton, Text } from 'react-native-paper'
+import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native'
+import { Text } from 'react-native-paper'
 import { useTranslation } from 'react-i18next'
-import { MaterialIcons, Ionicons } from '@expo/vector-icons'
 
 import CircularTimer from '../CircularTimer'
 import { MAX_TIME_CIRCULAR_TIMER, QUICK_START_OPTIONS } from '../../configs/constants'
 import { SubjectTimerResponse } from '../../../utils/types'
 import { palette } from '@/theme/colors'
 import { AlarmType } from '@/utils/enums'
+import PlusIcon from '@/assets/iconJSX/plus'
+import ReduceIcon from '@/assets/iconJSX/reduce'
 
 export interface AlarmClockPanelProps {
   subjects: SubjectTimerResponse[]
@@ -51,102 +52,79 @@ const AlarmClockPanel: FC<AlarmClockPanelProps> = ({
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.topRow}>
-        <CircularTimer maxMinutes={max} value={value} onChange={onChange} edit />
-
-        <View style={styles.setTime}>
+    <View>
+      <View style={styles.container}>
+        <View style={styles.topRow}>
           <Text style={styles.setTimeLabel}>{t('set_time')}</Text>
 
           <View style={styles.counterRow}>
-            <IconButton
-              icon="minus"
-              size={18}
-              style={styles.counterBtn}
-              onPress={handleDecrease}
-              disabled={isLoading || value <= 0}
-            />
-
-            <Text style={styles.minutesText}>
-              {t('minutes_short_format', {
-                mins: value
-              })}
-            </Text>
-
-            <IconButton
-              icon="plus"
-              size={18}
-              style={styles.counterBtn}
-              onPress={handleIncrease}
-              disabled={isLoading || value >= max}
-            />
-          </View>
-
-          <Divider style={styles.divider} />
-
-          <Button
-            mode="contained"
-            icon={() => <MaterialIcons name="play-circle-filled" size={18} color={'#FFF'} />}
-            disabled={isLoading || !value}
-            buttonColor={palette.main[500]}
-            onPress={() => onStart(AlarmType.Default, value)}
-            contentStyle={styles.startBtnContent}
-            labelStyle={styles.startBtnLabel}
-          >
-            {t('start_alarm')}
-          </Button>
-        </View>
-      </View>
-
-      <FlatList
-        data={QUICK_START_OPTIONS}
-        horizontal
-        keyExtractor={(item, i) => `${item}_${i}`}
-        contentContainerStyle={styles.quickRow}
-        renderItem={({ item }) => (
-          <Button
-            mode="outlined"
-            disabled={isLoading}
-            onPress={() => onStart(AlarmType.Default, item)}
-            style={styles.quickBtn}
-            labelStyle={styles.quickBtnLabel}
-          >
-            {t('minutes_short_format', {
-              mins: item
-            })}
-          </Button>
-        )}
-      />
-
-      <FlatList
-        data={subjectOptions}
-        keyExtractor={(item, i) => `${item.value.id}_${i}`}
-        contentContainerStyle={styles.subjectList}
-        renderItem={({ item }) => (
-          <Button
-            mode="outlined"
-            disabled={isLoading}
-            onPress={() => handleStartSubjectAlarm(item.value)}
-            labelStyle={styles.subjectBtnLabel}
-          >
-            <View style={styles.subjectBtnContent}>
-              <View style={styles.subjectRow}>
-                <Text numberOfLines={1} style={styles.subjectText}>
-                  {item.label}
-                </Text>
-                <Text style={styles.subjectMinutes}>
-                  (
-                  {t('minutes_short_format', {
-                    mins: item.value.limitedTimeInMinutes
-                  })}
-                  )
-                </Text>
-              </View>
-              <Ionicons name="play-circle" size={18} color={palette.main[500]} />
+            <View style={styles.flex}>
+              <TouchableOpacity disabled={isLoading || value <= 0} style={styles.counterBtn} onPress={handleDecrease}>
+                <ReduceIcon />
+                <Text style={styles.minutesText}>1 {t('minutes')}</Text>
+              </TouchableOpacity>
             </View>
-          </Button>
-        )}
-      />
+            <View style={styles.flex}>
+              <CircularTimer value={value} edit isOnlyDisplay />
+            </View>
+            <View style={styles.flex}>
+              <TouchableOpacity onPress={handleIncrease} style={styles.counterBtn} disabled={isLoading || value >= max}>
+                <PlusIcon />
+                <Text style={styles.minutesText}>1 {t('minutes')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        <FlatList
+          data={subjectOptions}
+          numColumns={4}
+          columnWrapperStyle={{ gap: 8 }}
+          keyExtractor={(item, i) => `${item.value.id}_${i}`}
+          contentContainerStyle={styles.subjectList}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.subjectRow}
+              disabled={isLoading}
+              onPress={() => handleStartSubjectAlarm(item.value)}
+            >
+              <Text style={[styles.subjectMinutes, { fontSize: 16, fontWeight: '700' }]}>
+                {t('minutes_short_format', {
+                  mins: item.value.limitedTimeInMinutes
+                })}
+              </Text>
+              <Text style={styles.subjectMinutes}>{item.value.name}</Text>
+            </TouchableOpacity>
+          )}
+        />
+        <FlatList
+          numColumns={3}
+          columnWrapperStyle={{ gap: 8 }}
+          data={QUICK_START_OPTIONS}
+          contentContainerStyle={styles.subjectList}
+          keyExtractor={(item, i) => `${item}_${i}`}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              disabled={isLoading}
+              onPress={() => onStart(AlarmType.Default, item)}
+              style={styles.quickBtn}
+            >
+              <Text style={styles.quickBtnLabel}>
+                {t('minutes_short_format', {
+                  mins: item
+                })}
+              </Text>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
+      <TouchableOpacity
+        disabled={isLoading || !value}
+        onPress={() => onStart(AlarmType.Default, value)}
+        style={styles.startBtn}
+      >
+        <Text style={styles.startBtnLabel}>{t('start_alarm')}</Text>
+      </TouchableOpacity>
     </View>
   )
 }
@@ -155,12 +133,12 @@ export default AlarmClockPanel
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    paddingVertical: 20,
     gap: 16
   },
 
   topRow: {
-    gap: 8
+    gap: 12
   },
 
   setTime: {
@@ -172,44 +150,59 @@ const styles = StyleSheet.create({
   setTimeLabel: {
     textAlign: 'center',
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
+    lineHeight: 22,
     color: palette.grey[500]
+  },
+  flex: {
+    flex: 1
   },
 
   counterRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8
+    alignItems: 'center'
   },
 
   counterBtn: {
-    backgroundColor: palette.grey[50],
-    width: 34,
-    height: 34
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: palette.main[600],
+    borderRadius: 100,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    gap: 2
   },
 
   minutesText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: palette.grey[900]
+    fontWeight: '500',
+    lineHeight: 22,
+    color: palette.main[600]
   },
 
   divider: {
     backgroundColor: palette.grey[100]
   },
 
-  startBtnContent: {
-    paddingVertical: 8,
-    paddingHorizontal: 20,
+  startBtn: {
+    marginTop: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     justifyContent: 'center',
-    gap: 8
+    backgroundColor: palette.main[600],
+    borderRadius: 12
   },
 
   startBtnLabel: {
     fontSize: 13,
     fontWeight: '500',
-    color: "#FFF"
+    textAlign: 'center',
+    lineHeight: 22,
+    color: '#FFF'
   },
 
   quickRow: {
@@ -218,28 +211,23 @@ const styles = StyleSheet.create({
   },
 
   quickBtn: {
-    flexGrow: 1
+    flex: 1,
+    borderRadius: 8,
+    backgroundColor: palette.grey[100],
+    paddingVertical: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 12
   },
 
   quickBtnLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: palette.main[500]
+    lineHeight: 22,
+    color: palette.grey[900]
   },
 
-  subjectList: {
-    gap: 8
-  },
-
-  subjectBtn: {},
-
-  subjectBtnContent: {
-    display: "flex",
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: "center",
-    gap: 8
-  },
+  subjectList: {},
 
   subjectBtnLabel: {
     fontSize: 14,
@@ -247,22 +235,26 @@ const styles = StyleSheet.create({
   },
 
   subjectRow: {
-    flexDirection: 'row',
+    flex: 1,
     alignItems: 'center',
-    flexShrink: 1,
-    gap: 4
+    backgroundColor: palette.sub[50],
+    paddingVertical: 11,
+    justifyContent: 'center',
+    gap: 4,
+    borderRadius: 6
   },
 
   subjectText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '500',
     flexShrink: 1,
     color: palette.grey[500]
   },
 
   subjectMinutes: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: palette.grey[500]
+    fontSize: 12,
+    fontWeight: '500',
+    color: palette.sub[400],
+    textAlign: 'center'
   }
 })

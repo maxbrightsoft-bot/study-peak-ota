@@ -7,7 +7,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { palette } from '@/theme/colors';
 import { ScaledSheet } from 'react-native-size-matters';
-import ClockIcon from '@/assets/icons/clock-icon.svg';
+import { TYPO } from '@/theme';
 
 interface Props {
   value: number;
@@ -24,7 +24,6 @@ const TimerTabs: FC<Props> = ({ value, onChange }) => {
           onPress={() => onChange(0)}
           style={styles.tab}
         >
-          <ClockIcon />
           <Text
             style={[
               styles.tabText,
@@ -53,8 +52,6 @@ const TimerTabs: FC<Props> = ({ value, onChange }) => {
           {value === 1 && <View style={styles.indicator} />}
         </Pressable>
       </View>
-
-      <View style={styles.bottomLine} />
     </View>
   );
 };
@@ -67,35 +64,29 @@ const styles = ScaledSheet.create({
   },
   tabsRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 12,
     position: "relative"
   },
   indicator: {
     position: 'absolute',
-    bottom: 1,
+    bottom: -16,
     left: 0,
     right: 0,
-    height: 1,
-    backgroundColor: palette.main[500]
+    height: 2,
+    backgroundColor: palette.main[600]
   },
   tab: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     gap: '8@ms',
-    paddingBottom: "16@ms",
   },
   tabText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: palette.grey[900],
+    ...TYPO.heading3,
+    color: palette.grey[300],
   },
   activeText: {
     color: palette.main[700],
-  },
-  bottomLine: {
-    height: 1,
-    backgroundColor: palette.grey[100],
   },
 });
 

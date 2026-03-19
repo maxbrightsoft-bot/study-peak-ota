@@ -1,7 +1,5 @@
 import React, { FC, useMemo, useState } from 'react'
 import { View, Text, Pressable } from 'react-native'
-import { Menu, Button } from 'react-native-paper'
-import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons'
 import moment from 'moment'
 import { useTranslation } from 'react-i18next'
 import { getDisplayTime } from '../../configs/fn'
@@ -10,7 +8,7 @@ import { SubjectTimerResponse } from '@/utils/types'
 import { TimerStatus } from '@/utils/enums'
 import { ScaledSheet } from 'react-native-size-matters'
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
-import Svg, { Circle } from 'react-native-svg'
+import { Ionicons } from '@expo/vector-icons'
 
 interface Props {
   data: SubjectTimerResponse
@@ -63,66 +61,17 @@ const TimerItem: FC<Props> = ({
     setMenuVisible(false)
   }
 
-  if (isStarted) {
-    return (
-      <View style={styles.activeCard}>
-        <View style={styles.activeInfo}>
-          <Text style={styles.subject}>{data.name}</Text>
-          <Text style={styles.time}>{displayedTime}</Text>
-
-          <Button
-            mode="contained"
-            compact
-            onPress={handleMainAction}
-            style={styles.pauseBtn}
-            labelStyle={{ color: palette.grey[700] }}
-          >
-            {t('paused')}
-          </Button>
-        </View>
-
-        <View
-          style={{
-            width: 80,
-            height: 80,
-            borderRadius: 16,
-            backgroundColor: palette.main[300],
-            padding: 8,
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
-          <Ring progress={0.5} bgColor={palette.main[500]}>
-            <View
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 19,
-                backgroundColor: '#000',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              <Ionicons name="pause" size={16} color="#FFF" />
-            </View>
-          </Ring>
-        </View>
-      </View>
-    )
-  }
-
   return (
     <>
       <Pressable style={styles.row} disabled={loading} onPress={handleMainAction}>
-        <Text style={styles.subjectInactive}>{data.name}</Text>
-        <View style={styles.right}>
+        <View style={styles.left}>
+          <Text style={styles.subjectInactive}>{data.name}</Text>
           <Text style={[styles.timeInactive, { color: palette.grey[500] }]}>{displayedTime}</Text>
-          <Ionicons
-            name={isLimited || isStopped || !isPausedSameToday ? 'reload-circle' : 'play-circle'}
-            size={16}
-            color={palette.grey[500]}
-          />
-          {(isPaused || isStopped) && (
+        </View>
+        <View style={styles.right}>
+          <Text style={[styles.timeInactive, { color: palette.main[600] }]}>{t('press_to_start')}</Text>
+          <Ionicons name={'play'} size={16} color={palette.main[600]} />
+          {/* {(isPaused || isStopped) && (
             <Menu
               visible={menuVisible}
               onDismiss={() => setMenuVisible(false)}
@@ -133,7 +82,7 @@ const TimerItem: FC<Props> = ({
                   style={{ margin: 0, padding: 0 }}
                   name="dots-horizontal-circle-outline"
                   size={16}
-                  color={palette.grey[500]}
+                  color={palette.main[600]}
                   onPress={() => setMenuVisible(true)}
                 />
               }
@@ -163,9 +112,7 @@ const TimerItem: FC<Props> = ({
                 }}
               />
             </Menu>
-          )}
-
-          {isLimited && <MaterialIcons name="warning" size={18} color="orange" />}
+          )} */}
         </View>
       </Pressable>
       <ConfirmDialog
@@ -181,73 +128,35 @@ const TimerItem: FC<Props> = ({
 
 export default TimerItem
 
-const Ring = ({ size = 64, strokeWidth = 6, progress = 0.5, color = '#FFF', bgColor = '#999', children }: any) => {
-  const radius = (size - strokeWidth) / 2
-  const circumference = 2 * Math.PI * radius
-
-  return (
-    <View style={{ width: size, height: size }}>
-      <Svg width={size} height={size}>
-        <Circle stroke={bgColor} cx={size / 2} cy={size / 2} r={radius} strokeWidth={strokeWidth} fill="none" />
-
-        {/* progress */}
-        <Circle
-          stroke={color}
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          strokeWidth={strokeWidth}
-          fill="none"
-          strokeDasharray={circumference}
-          strokeDashoffset={circumference * (1 - progress)}
-          strokeLinecap="round"
-          rotation="-90"
-          origin={`${size / 2}, ${size / 2}`}
-        />
-      </Svg>
-
-      {/* center */}
-      <View
-        style={{
-          position: 'absolute',
-          inset: 0,
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
-      >
-        {children}
-      </View>
-    </View>
-  )
-}
-
 const styles = ScaledSheet.create({
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: '8@ms',
-    paddingHorizontal: '12@ms',
-    backgroundColor: '#FFF',
-    borderRadius: '6@ms',
+    paddingVertical: '6@ms',
+    paddingHorizontal: '15@ms',
+    backgroundColor: palette.grey[50],
+    borderRadius: '8@ms',
     justifyContent: 'space-between'
   },
   subjectInactive: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: palette.grey[500],
-    flex: 1
+    fontSize: 16,
+    fontWeight: '500',
+    lineHeight: 24,
+    color: '#222222',
+  },
+  left: {
+    flexDirection: 'row',
+    gap: 16
   },
   right: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8
+    gap: 6
   },
   timeInactive: {
     fontSize: 13,
     fontWeight: '700'
   },
 
-  /* ACTIVE */
   activeCard: {
     backgroundColor: palette.main[500],
     borderRadius: 8,

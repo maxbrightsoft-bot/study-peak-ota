@@ -2,31 +2,45 @@ import { getInfo, getSuperAdminInfoFromWeb } from '@/containers/Login/apiClients
 import useAuthStore from '@/store/useAuthStore'
 import { Role } from '@/utils/enums'
 import { getAcademyDomain, getAccessToken, getErrorMessage, getLearningSpace, toast } from '@/utils/helpers'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { switchAcademy } from '../apiClients/academyServices'
+import { getAcademyDetailApi, getUserAcademies, switchAcademy } from '../apiClients/academyServices'
 import { AcademyResponse, LoginAccessTokenRequest } from '@/utils/types'
 import useLogin from '@/containers/Login/hooks/useLogin'
-import { MainRoutes, Routes } from '@/navigators/RouteName'
-import { getDataStorage, removeDataStorage } from '@/utils/storage'
-import { ACADEMY_DOMAIN, ACCESS_TOKEN, REDIRECT_URL } from '@/utils/constants'
+import { getDataStorage } from '@/utils/storage'
+import { ACADEMY_DOMAIN, ACCESS_TOKEN } from '@/utils/constants'
 import { useNavigation } from '@react-navigation/native'
 import { useFocusEffect } from 'expo-router'
 import useTimers from './useTimer'
 import useAlarm from './useAlarm'
 import { getSocket, initSocket } from '@/services'
+import { AppState } from 'react-native'
+import { currentScreen, navigate } from '@/navigators/NavigationHelpers'
+import { Routes } from '@/navigators/RouteName'
+import { apiJoinExam } from '@/containers/DoExam/apiClients'
+import { PusherChannel } from '@pusher/pusher-websocket-react-native'
 
 const useLayoutApp = () => {
   const { t } = useTranslation()
   const navigation = useNavigation();
-  const { user, academies, setUser, setLoading, logout, setSelectAcademy, initializePusher, pusher, disconnectPusher } = useAuthStore()
+  const { user, academies, setUser, setLoading, logout, setAcademies, setLoadingWithoutOverlay, setSelectAcademy, initializePusher, pusher, subscribeChannel, disconnectPusher, redirectUrl, clearRedirectUrl } = useAuthStore()
   const { handleLoginAccessToken } = useLogin()
-
-  const isNotEnoughStatements = useMemo(() => user?.email && user?.isNotEnoughStatements, [user?.email, user?.isNotEnoughStatements])
-
+  const superId = user?.superId
   const [academyMenuVisible, setAcademyMenuVisible] = useState(false)
   const [userMenuVisible, setUserMenuVisible] = useState(false)
   const [openTimerDialog, setOpenTimerDialog] = useState<boolean>(false)
+  const [openNoticeDialog, setOpenNoticeDialog] = useState<boolean>(false)
+  const [openSettingDialog, setOpenSettingDialog] = useState<boolean>(false)
+  const appState = useRef(AppState.currentState)
+  const generalChannel = useRef<PusherChannel>();
+
+
+  const handleOpenSettingDialog = () => setOpenSettingDialog(true)
+  const handleCloseSettingDialog = () => setOpenSettingDialog(false)
+
+  const handleOpenNoticeDialog = () => setOpenNoticeDialog(true)
+  const handleCloseNoticeDialog = () => setOpenNoticeDialog(false)
+
   const handleTimerDialogToggle = () => {
     setOpenTimerDialog(state => !state)
   }
@@ -68,35 +82,99 @@ const useLayoutApp = () => {
     setLoading(false)
   }
 
-  const needRedirect = async () => {
-    const urlRedirect = await getDataStorage(REDIRECT_URL)
-    if (!urlRedirect) {
-      // if (user?.id && isNotEnoughStatements) navigation.navigate(MainRoutes.AuthStack, {
-      //   screen: Routes.Auth.Onboarding
-      // });
-      // else navigation.navigate(MainRoutes.AuthStack, {
-      //   screen: !!user?.academyDomain ? Routes.Auth.Home : Routes.Auth.SelectAcademy
-      // });
+  const getAcademies = async (isLoading: boolean = true) => {
+    if (!user) return
+    isLoading && setLoading(true)
+    try {
+      const res = await getUserAcademies(Role.Student, user.isLearningSpace)
+      const items: AcademyResponse[] = res.data.items || []
+      setAcademies(items)
+    } catch (error) {
+      toast.error(getErrorMessage(t, error))
     }
-    else {
-      if (urlRedirect === Routes.UnAuth.Login)
-        await logout()
-      else
-        navigation.navigate(MainRoutes.AuthStack, {
-          screen: urlRedirect
-        });
-    }
+    isLoading && setLoading(false)
+  }
 
-    await removeDataStorage(REDIRECT_URL)
+  const handleGetAcademyDetail = async () => {
+
+    setLoadingWithoutOverlay(true)
+    try {
+      const info = await getAcademyDetailApi()
+      if (info) {
+        setSelectAcademy(info.data)
+      }
+    } catch (err) {
+      console.log({ err })
+    }
+    setLoadingWithoutOverlay(false)
   }
 
   useEffect(() => {
-    needRedirect()
-  }, [user, isNotEnoughStatements])
+    if (academies.length) return
+    getAcademies()
+  }, [user?.academyDomain, user?.email])
 
   useEffect(() => {
-    loadInfo()
-  }, [user?.id])
+    if (redirectUrl) {
+      const timer = setTimeout(() => {
+        navigation.navigate(redirectUrl);
+        clearRedirectUrl();
+      }, 200);
+
+      return () => clearTimeout(timer);
+    }
+  }, [redirectUrl]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", nextAppState => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === "active"
+      ) {
+        loadInfo()
+      }
+
+      appState.current = nextAppState
+    })
+
+    return () => {
+      subscription.remove()
+    }
+  }, [])
+
+  const handleExamStart = async (data: any) => {
+    const { code, academy } = data;
+
+    if (currentScreen() === Routes.Auth.DoExam) return;
+    setLoading(true)
+    try {
+      if (user?.academyDomain !== academy.domain)
+        await handleSwitchAcademy(academy);
+      await apiJoinExam(code, true);
+      navigate(Routes.Auth.DoExam, { examCode: code });
+    } catch (error: any) {
+      toast.error(getErrorMessage(t, error));
+    }
+    setLoading(false)
+  };
+
+  const handleExamReStart = async (data: any) => {
+    const item = JSON.parse(data);
+
+    const { code, academy } = item;
+
+    if (currentScreen() === Routes.Auth.DoExam) return;
+    setLoading(true)
+    try {
+      if (user?.academyDomain !== academy.domain)
+        await handleSwitchAcademy(academy);
+      await apiJoinExam(code, true);
+      navigate(Routes.Auth.DoExam, { examCode: code });
+    } catch (error: any) {
+      toast.error(getErrorMessage(t, error));
+    }
+    setLoading(false)
+  };
 
   const handleSwitchAcademy = async (
     isLearningSpace: boolean,
@@ -135,6 +213,39 @@ const useLayoutApp = () => {
     closeAcademyMenu()
   }
 
+  const handleGeneralListener = async () => {
+    try {
+      if (!pusher || !superId) return;
+
+      const channelName = `GENERAL-${superId}-CHANNEL`;
+
+      const generalHandlers = {
+        "LOGOUT": logout,
+        "start-exam": handleExamStart,
+        "restart-exam": handleExamReStart,
+      };
+
+      const handlers = Object.entries(generalHandlers).map(
+        ([eventName, handler]) => ({
+          eventName,
+          handler,
+        })
+      );
+
+      generalChannel.current = await subscribeChannel(
+        pusher,
+        channelName,
+        handlers
+      );
+    } catch (err) {
+      console.error("General subscription failed", err);
+    }
+  };
+
+  useEffect(() => {
+    handleGeneralListener();
+  }, [pusher, superId, user?.academyDomain]);
+
   const handleLogOutAcademy = async (
     callback: any
   ) => {
@@ -162,21 +273,6 @@ const useLayoutApp = () => {
     callback()
   }
 
-  const handleGetSelectedAcademy = () => {
-    const academy = academies.find(
-      i =>
-        i.domain.trim().toLowerCase() ===
-        user?.academyDomain?.trim().toLowerCase()
-    )
-
-    if (academy) setSelectAcademy(academy)
-  }
-
-  useEffect(() => {
-    if (!user?.academyDomain) return
-    handleGetSelectedAcademy()
-  }, [user?.academyDomain])
-
   const cleanupPusherChannels = () => {
     if (!pusher) return;
     const channels = Array.from(pusher.channels.values());
@@ -201,13 +297,7 @@ const useLayoutApp = () => {
     };
   }, [pusher, user?.academyDomain]);
 
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        cleanupPusherChannels()
-      }
-    }, [])
-  )
+
 
   const {
     timers,
@@ -229,10 +319,17 @@ const useLayoutApp = () => {
     alarmClockProps,
   } = useAlarm(openTimerDialog, timers)
 
-  useEffect(() => {
-    getTimers()
-    getAlarm()
-  }, [])
+  useFocusEffect(
+    useCallback(() => {
+      getTimers()
+      getAlarm()
+      handleGetAcademyDetail()
+      return () => {
+        cleanupPusherChannels()
+      }
+    }, [user?.academyDomain])
+  )
+
   useEffect(() => {
     const startSocket = async () => {
       const socket = await initSocket()
@@ -250,11 +347,11 @@ const useLayoutApp = () => {
       socket.connect()
 
       socket.on('connect', () => {
-        console.log('✅ SOCKET CONNECTED', socket.id)
+        console.log('SOCKET CONNECTED', socket.id)
       })
 
       socket.on('connect_error', err => {
-        console.log('❌ CONNECT ERROR', err.message)
+        console.log('CONNECT ERROR', err.message)
       })
     }
 
@@ -284,6 +381,12 @@ const useLayoutApp = () => {
       handleTimerDialogToggle,
       handleToggleSpeaker,
       getAlarm,
+      openSettingDialog,
+      handleOpenSettingDialog,
+      handleCloseSettingDialog,
+      openNoticeDialog,
+      handleOpenNoticeDialog,
+      handleCloseNoticeDialog,
       academyMenuVisible,
       userMenuVisible,
       closeUserMenu,

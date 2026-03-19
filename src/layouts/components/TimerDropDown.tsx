@@ -1,12 +1,12 @@
 import React, { Fragment, useEffect, useState, useCallback } from 'react'
 import { Menu, TouchableRipple } from 'react-native-paper'
-import { InteractionManager } from 'react-native'
+import { InteractionManager, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
 
 import TimerIcon from '../../assets/icons/timer_icon.svg'
 import { palette } from '@/theme/colors'
-
+import Clock from '@/assets/iconJSX/clock'
 import TimerDialog from './TimeDialog'
 import AudioGuideModal from './AudioGuideModal'
 import TimeUpdateDialog from '@/layouts/partials/Timer/TimeUpdateDialog'
@@ -17,6 +17,7 @@ type Props = {
   isAlarmRunning: boolean
   studyTimerProps: any
   alarmClockProps: any
+  isTextbook?: boolean
   timeUpdateDialogProps: any
   audioGuideModalProps: any
   speaker: boolean
@@ -27,6 +28,7 @@ type Props = {
 
 const TimerDropdown = ({
   speaker,
+  isTextbook,
   disabledSpeaker,
   openTimerDialog,
   isTimerRunning,
@@ -36,9 +38,9 @@ const TimerDropdown = ({
   timeUpdateDialogProps,
   audioGuideModalProps,
   onToggleSpeaker,
-  onToggleTimerDialog,
+  onToggleTimerDialog
 }: Props) => {
-  const isRunning = isTimerRunning || isAlarmRunning
+  const isRunning = isTextbook && (isTimerRunning || isAlarmRunning)
 
   const [renderDialog, setRenderDialog] = useState(false)
 
@@ -61,46 +63,26 @@ const TimerDropdown = ({
   }, [onToggleTimerDialog])
 
   return (
-    <Fragment>
-      <Menu
-        visible={openTimerDialog}
-        onDismiss={handleToggle}
-        anchorPosition="bottom"
-        anchor={
-          <TouchableRipple onPress={handleToggle} style={styles.iconButton}>
-            {isRunning ? (
-              <Ionicons
-                name="timer"
-                size={40}
-                color={palette.main[500]}
-              />
-            ) : (
-              <TimerIcon />
-            )}
-          </TouchableRipple>
-        }
-        style={{
-          boxShadow: '0px 0px 4px 0px #00000040',
-          marginTop: 12,
-        }}
-        contentStyle={styles.menuContent}
-      >
-        {renderDialog && (
-          <TimerDialog
-            open={openTimerDialog}
-            speaker={speaker}
-            disabledSpeaker={disabledSpeaker}
-            studyTimerProps={studyTimerProps}
-            alarmClockProps={alarmClockProps}
-            onToggle={handleToggle}
-            onToggleSpeaker={onToggleSpeaker}
-          />
-        )}
-      </Menu>
+    <View>
+      <TouchableRipple onPress={handleToggle} style={styles.iconButton}>
+        {isRunning ? <Clock color={palette.main[600]}/> : <Clock color={isTextbook ? palette.grey[500]: "#FFF"}/>}
+      </TouchableRipple>
+
+      {renderDialog && (
+        <TimerDialog
+          open={openTimerDialog}
+          speaker={speaker}
+          disabledSpeaker={disabledSpeaker}
+          studyTimerProps={studyTimerProps}
+          alarmClockProps={alarmClockProps}
+          onToggle={handleToggle}
+          onToggleSpeaker={onToggleSpeaker}
+        />
+      )}
 
       <TimeUpdateDialog {...timeUpdateDialogProps} />
-      <AudioGuideModal {...audioGuideModalProps} />
-    </Fragment>
+      {!isTextbook && <AudioGuideModal {...audioGuideModalProps} />}
+    </View>
   )
 }
 
@@ -111,11 +93,11 @@ const styles = ScaledSheet.create({
     borderRadius: 6,
     padding: '16@ms',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'center'
   },
   menuContent: {
     backgroundColor: '#FFF',
     minWidth: 250,
-    borderRadius: 6,
-  },
+    borderRadius: 6
+  }
 })

@@ -7,6 +7,7 @@ import AlarmClock, { AlarmClockProps } from './AlarmClock'
 import AlarmClockNote from './AlarmClockNote'
 import AlarmClockPanelNote from './AlarmClockPanelNote'
 import { palette } from '@/theme/colors'
+import Loading from '@/components/Loading'
 
 export interface AlarmClockTabProps {
   isLoading: boolean
@@ -17,17 +18,15 @@ export interface AlarmClockTabProps {
 
 const AlarmClockTab: FC<AlarmClockTabProps> = ({ isLoading, isPlaying, panelProps, alarmProps }) => {
   return (
-    <View style={{ ...styles.container, maxHeight: isLoading ? "auto" : 400 }}>
+    <View style={styles.container}>
       <ScrollView>
         {isLoading && (
-          <View style={styles.loading}>
-            <ActivityIndicator size="small" color={palette.main[500]} />
-          </View>
+          <Loading isOverlay/>
         )}
 
-        {!isLoading && <>{!isPlaying ? <AlarmClockPanel {...panelProps} /> : <AlarmClock {...alarmProps} />}</>}
+        {!isPlaying ? <AlarmClockPanel {...panelProps} /> : <AlarmClock {...alarmProps} />}
 
-        {!isLoading && <View style={styles.note}>{!isPlaying ? <AlarmClockPanelNote /> : <AlarmClockNote />}</View>}
+        {/* {!isLoading && <View style={styles.note}>{!isPlaying ? <AlarmClockPanelNote /> : <AlarmClockNote />}</View>} */}
       </ScrollView>
     </View>
   )
@@ -38,7 +37,6 @@ export default AlarmClockTab
 const styles = StyleSheet.create({
   container: {
     gap: 16,
-    maxWidth: 200,
   },
   loading: {
     width: '100%',
