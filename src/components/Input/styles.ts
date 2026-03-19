@@ -2,7 +2,10 @@ import { palette, TYPO } from '@/theme';
 import { ScaledSheet } from 'react-native-size-matters';
 
 const styles = ScaledSheet.create({
-  container: {},
+  container: {
+    backgroundColor: palette.grey[100],
+    borderRadius: 10,
+  },
   labelView: {
     flexDirection: 'row',
   },
@@ -14,23 +17,18 @@ const styles = ScaledSheet.create({
   },
   inputContainer: {
     flexDirection: 'row',
-    height: '56@ms',
-    borderRadius: 4,
-    paddingHorizontal: '16@ms',
     alignItems: 'center',
     overflow: 'hidden',
-  
   },
   textInput: {
-    minHeight: '40@ms',
-    borderBottomWidth: 1,
     borderColor: palette.grey[300],
-    padding: '12@ms'
+    color: palette.grey[900]
   },
   error: {
     ...TYPO.body3,
     marginBottom: '10@ms',
     paddingTop: '10@ms',
+    paddingHorizontal: 8,
     color: 'red',
   },
   message: {

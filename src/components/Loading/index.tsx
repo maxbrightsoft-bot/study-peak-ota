@@ -18,7 +18,7 @@ type Props = {
 
 const Loading = ({
   fullScreen = true,
-  color = "#4F46E5",
+  color = "#FFC570",
   isOverlay = false,
   size = "large",
   text,
@@ -26,7 +26,7 @@ const Loading = ({
 }: Props) => {
   if (fullScreen) {
     return (
-      <View style={[ isOverlay ? styles.overlay: null, styles.overlay, style]}>
+      <View style={[isOverlay ? styles.overlay : null, styles.overlay, style]}>
         <View style={styles.center}>
           <ActivityIndicator color={color} size={size} />
           {text && <Text style={styles.text}>{text}</Text>}
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 999,
+    zIndex: 99999,
   },
   center: {
     alignItems: "center",
