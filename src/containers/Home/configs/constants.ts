@@ -1,5 +1,5 @@
 import moment from "moment"
-import { ScheduleFormData, ScheduleQuery, ScheduleSortBy, TextbookOrderBy, TextbookQuery, TextbookSortBy } from "./type"
+import { ExamSessionFilter, ExamSessionSortBy, ScheduleFormData, ScheduleQuery, ScheduleSortBy, TextbookOrderBy, TextbookQuery, TextbookSortBy } from "./type"
 import { ExamEvent } from "@/utils/enums"
 
 export enum ExamStatus {
@@ -69,7 +69,7 @@ export const DataLink = [
 
 export const DefaultTextbookFilter: TextbookQuery = {
     currentPage: 1,
-    pageSize: 5,
+    pageSize: -1,
     sortColumnDirection: TextbookOrderBy.DESC,
     sortColumnName: TextbookSortBy.CreatedAt
 };
@@ -79,6 +79,13 @@ export const DefaultScheduleFilter: ScheduleQuery = {
     pageSize: -1,
     sortColumnDirection: OrderBy.DESC,
     sortColumnName: ScheduleSortBy.CreatedAt
+};
+
+export const DefaultExamSessionFilter: ExamSessionFilter = {
+    currentPage: 1,
+    pageSize: 15,
+    sortColumnDirection: OrderBy.DESC,
+    sortColumnName: ExamSessionSortBy.StartTime,
 };
 
 export const DATE_TIME_FORMAT = "YYYY-MM-DD HH:mm:ss"

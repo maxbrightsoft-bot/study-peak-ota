@@ -1,26 +1,28 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { apiJoinExam, getInfoAcademyApi } from "../apiClients/index";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { apiJoinExam, getCheckInLessonsApi, getExamInfoApi, getInfoAcademyApi } from "../apiClients/index";
 import { EVENT_DELETED_MEMBER, ExamStatus, FormatDate } from "../configs/constants";
-import { InfoLesson } from "../configs/type";
-import { getScheduleCountApi } from "../apiClients/scheduleService";
+import { InfoLesson, ScheduleResponse, ScheduleSortBy, ScheduleStatus, ScheduleStatusRequest, ScheduleType } from "../configs/type";
+import { getScheduleCountApi, getSchedulesApi, updateScheduleStatusApi } from "../apiClients/scheduleService";
 import useAuthStore from "@/store/useAuthStore";
 import { useTranslation } from "react-i18next";
 import moment from "moment";
 import { navigate } from "@/navigators/NavigationHelpers";
-import { getErrorMessage, toast } from "@/utils/helpers";
+import { getErrorMessage, timeSpanToLocalMoment, toast } from "@/utils/helpers";
 import { ExamEvent } from "@/utils/enums/exam";
 import { PusherChannel } from "@pusher/pusher-websocket-react-native";
 import { EXAM_CHANNEL, EXAM_STUDENT_CHANNEL } from "@/utils/constants";
 import { Routes } from "@/navigators/RouteName";
-import { Textbook } from "@/utils/types";
+import { InfoExamSessionByCode, Textbook } from "@/utils/types";
 import { useFocusEffect } from "@react-navigation/native";
 import { startTextbook } from "@/containers/Textbook/apiClients/textbookService";
-import { AlarmType } from "@/utils/enums";
+import { AlarmType, OrderBy } from "@/utils/enums";
 import useAlarm from "@/layouts/hooks/useAlarm";
+import { ScrollView } from "react-native";
 
 const useProblemSolving = () => {
-  const { user, selectedAcademy: academy, setLoading, pusher, subscribeChannel, unsubscribeChannelSafe } = useAuthStore()
+  const { user, selectedAcademy: academy, setLoading, pusher, subscribeChannel, setLoadingWithoutOverlay } = useAuthStore()
   const [open, setOpen] = useState<boolean>(false);
+  const [openSchedule, setOpenSchedule] = useState<boolean>(false);
   const [codeExam, setCodeExam] = useState<string>("");
   const [isCheckTeacherStart, setIsCheckTeacherStart] =
     useState<boolean>(false);
@@ -30,8 +32,11 @@ const useProblemSolving = () => {
   const channelName = useRef<string>()
   const studentChannel = useRef<PusherChannel>();
   const studentChannelName = useRef<string>();
-  const [isLoadingCodeExam, setLoadingCodeExam] = useState(false)
   const isBelongAcademy = !!user && user.academyDomain && !user.isLearningSpace;
+  const [openConfirmDialog, setOpenConfirmDialog] = useState<boolean>(false);
+  const [openExamHistoryDialog, setOpenExamHistoryDialog] = useState<boolean>(false);
+  const [examSession, setExamSession] = useState<InfoExamSessionByCode>();
+  const [schedules, setSchedules] = useState<ScheduleResponse[]>();
   const [selectedDate, setSelectedDate] = useState<{
     startDate: string;
     endDate: string;
@@ -56,8 +61,50 @@ const useProblemSolving = () => {
   const [isOpenAudioGuide, setOpenAudioGuide] =
     useState<boolean>(false);
   const { alarmClockProps: { panelProps: { onStart } } } = useAlarm(false, [], true)
-
+  const scrollRef = useRef<ScrollView>(null)
   const academyDomain = user?.academyDomain
+
+
+  const handleOpenExamHistoryDialog = () => {
+    setOpenExamHistoryDialog(true);
+  }
+
+  const handleCloseExamHistoryDialog = () => {
+    setOpenExamHistoryDialog(false);
+  }
+
+  const handleOpenConfirmDialog = () => {
+    setOpenConfirmDialog(true);
+  }
+
+  const handleCloseConfirmDialog = () => {
+    setOpenConfirmDialog(false);
+  }
+
+  const handleGetInfoExam = async (code: string) => {
+    try {
+      setLoadingWithoutOverlay(true);
+      const response = await getExamInfoApi(code);
+      setExamSession(response.data);
+      setOpen(false)
+      handleOpenConfirmDialog();
+    } catch (error) {
+      toast.error(getErrorMessage(t, error));
+    } finally {
+      setLoadingWithoutOverlay(false);
+    }
+  };
+
+
+  const handleToggleSchedule = () => {
+    setOpenSchedule(prev => {
+      if (prev) {
+        getScheduleList()
+      }
+      return !prev
+    }
+    )
+  }
 
   const handleSelectDate = ({
     startDate,
@@ -90,9 +137,9 @@ const useProblemSolving = () => {
     setOpenAudioGuide(false)
   }
 
-  const openCloseModal = () => {
+  const openCloseModal = (bool?: boolean) => {
     setCodeExam("");
-    setOpen(!open);
+    setOpen(bool !== undefined ? bool : prev => !prev);
     setIsCheckTeacherStart(false);
   };
 
@@ -113,14 +160,15 @@ const useProblemSolving = () => {
     }
   };
 
-  const handleCodeExam = async (code: string) => {
-    setLoadingCodeExam(true)
+  const handleCodeExam = async (code: string, callback?: Function) => {
+    setLoadingWithoutOverlay(true)
     try {
       await callApiCheckExam(code);
+      callback && callback()
     } catch (error: any) {
       toast.error(getErrorMessage(t, error));
     }
-    setLoadingCodeExam(false)
+    setLoadingWithoutOverlay(false)
   };
 
   const handleGetInfoLesson = async (isLoading: boolean = true) => {
@@ -142,6 +190,7 @@ const useProblemSolving = () => {
   };
 
   const handleTeacherStartExam = (data: any) => {
+    openCloseModal(false)
     if (data.Status === ExamStatus.Pending) {
       setIsCheckTeacherStart(true);
     } else if (data.Status === ExamStatus.InProgress) {
@@ -200,12 +249,10 @@ const useProblemSolving = () => {
       if (
         !codeExam ||
         !isCheckTeacherStart ||
-        !open ||
         !academyDomain ||
         !userId ||
         !pusher
       ) return
-      // cleanupPusher()
 
       const examHandlers = {
         [ExamEvent.StartExam]: handleTeacherStartExam,
@@ -251,7 +298,6 @@ const useProblemSolving = () => {
     }
   }
 
-
   const handleStartTextbookFromGuideModal = (enable: boolean) => {
     if (!selectedTextbook) return
     handleStartTextbook(enable, selectedTextbook)
@@ -259,10 +305,12 @@ const useProblemSolving = () => {
 
   useFocusEffect(
     useCallback(() => {
+      scrollRef.current?.scrollTo({ y: 0, animated: true })
       return () => {
         setSelectedTextbook(undefined)
         handleCloseTextbookResult()
         setOpen(false)
+        handleCloseExamHistoryDialog()
       };
     }, [])
   );
@@ -277,7 +325,6 @@ const useProblemSolving = () => {
     // return cleanupPusher;
   }, [
     pusher,
-    open,
     codeExam,
     isCheckTeacherStart,
     userId,
@@ -293,24 +340,150 @@ const useProblemSolving = () => {
     }));
   };
 
+  const getScheduleList = async (isLoading = true) => {
+    if (!user?.academyDomain && !user?.isLearningSpace) {
+      setSchedules([])
+      return
+    }
+
+    isLoading && setLoading(true)
+    try {
+      const { data } = await getSchedulesApi({
+        currentPage: 1,
+        pageSize: 3,
+        sortColumnDirection: OrderBy.DESC,
+        sortColumnName: ScheduleSortBy.CreatedAt,
+        startDate: moment()
+          .startOf("day")
+          .utc()
+          .toISOString(),
+        endDate: moment()
+          .endOf("day")
+          .utc()
+          .toISOString(),
+      });
+
+      const { items = [] } = data;
+      setSchedules(items);
+    } catch (error) {
+      setSchedules([]);
+      toast.error(getErrorMessage(t, error));
+    }
+    setLoading(false)
+  };
+
+  const handleCheckInLesson = async (schedule: ScheduleResponse) => {
+    if (!schedule?.lessonId) return;
+    setLoading(true)
+    try {
+      await getCheckInLessonsApi(schedule?.lessonId);
+      await getScheduleList();
+      toast.success(t("check_in_lesson_successfully"));
+    } catch (error: any) {
+      toast.error(getErrorMessage(t, error));
+    }
+    setLoading(false)
+  };
+
+  const handleUpdateScheduleStatus = async (schedule: ScheduleResponse) => {
+    if (schedule.type !== ScheduleType.Personal || !schedule.id) return;
+    setLoading(true)
+    const endTime = timeSpanToLocalMoment(schedule.endTime, schedule.date);
+    const now = moment();
+    try {
+      const status =
+        schedule.status == ScheduleStatus.Completed
+          ? ScheduleStatusRequest.Default
+          : ScheduleStatusRequest.Completed;
+      await updateScheduleStatusApi(schedule.id, status);
+      setSchedules((schedules) =>
+        schedules?.map((s) =>
+          s.id === schedule.id
+            ? {
+              ...s,
+              status:
+                status === ScheduleStatusRequest.Default
+                  ? endTime?.isBefore(now)
+                    ? ScheduleStatus.Missed
+                    : ScheduleStatus.Default
+                  : ScheduleStatus.Completed
+            }
+            : s
+        )
+      );
+      handleGetScheduleCount();
+    } catch (error: any) {
+      toast.error(getErrorMessage(t, error));
+    }
+    setLoading(false)
+  };
+
+
+  const selectedSchedule = useMemo(() => {
+    if (!schedules?.length) return undefined;
+
+    const now = moment();
+
+    return schedules
+      .filter((i) => {
+        const start = timeSpanToLocalMoment(i.startTime, i.date);
+        const end = timeSpanToLocalMoment(i.endTime, i.date);
+
+        return (
+          start?.isSame(now, 'day') &&
+          now.isSameOrBefore(end)
+        );
+      })
+      .sort((a, b) =>
+        timeSpanToLocalMoment(a.startTime, a.date)!.valueOf() -
+        timeSpanToLocalMoment(b.startTime, b.date)!.valueOf()
+      )[0];
+
+  }, [schedules]);
+
+  const enableCheckSchedule = selectedSchedule?.type === ScheduleType.Personal || selectedSchedule?.status === ScheduleStatus.Default
+
+  const handleCheckSchedule = () => {
+    if (!enableCheckSchedule) return
+    if (selectedSchedule?.type === ScheduleType.Personal) {
+      handleUpdateScheduleStatus(selectedSchedule)
+    } else {
+      handleCheckInLesson(selectedSchedule)
+    }
+  }
+
   useEffect(() => {
-    if (!academy?.id) return;
-    handleGetInfoLesson();
-  }, [academy?.id]);
+    getScheduleList();
+  }, [user?.academyDomain, user?.isLearningSpace]);
 
   return {
     t,
     open,
-    isLoadingCodeExam,
+    user,
+    scrollRef,
     openCloseModal,
     handleCodeExam,
     codeExam,
+    schedules,
     selectedDate,
     handleSelectDate,
     setCodeExam,
+    handleGetInfoExam,
+    handleToggleSchedule,
+    openSchedule,
     isCheckTeacherStart,
     selectedTextbook,
     isOpenAudioGuide,
+    openConfirmDialog,
+    examSession,
+    getScheduleList,
+    openExamHistoryDialog,
+    handleOpenExamHistoryDialog,
+    handleCloseExamHistoryDialog,
+    selectedSchedule,
+    enableCheckSchedule,
+    handleCheckSchedule,
+    handleCloseConfirmDialog,
     handleOpenAudioGuide,
     handleCloseAudioGuide,
     isOpenTextbookResult,

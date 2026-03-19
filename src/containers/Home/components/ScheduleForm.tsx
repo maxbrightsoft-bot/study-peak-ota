@@ -1,15 +1,15 @@
-import { Field, Form, FormikProps } from 'formik'
+import { Field, FormikProps } from 'formik'
 import { FC, useEffect, useState } from 'react'
 import { View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native'
 import { palette, TYPO } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
-import DateTimePicker from '@react-native-community/datetimepicker'
 import moment from 'moment'
 import _ from 'lodash'
 import { useTranslation } from 'react-i18next'
 import { ScheduleFormData } from '../configs/type'
 import { DEFAULT_SCHEDULE_FORM_DATA } from '../configs/constants'
 import TextField from '@/components/Input/TextField'
+import DateTimePickerModal from 'react-native-modal-datetime-picker'
 
 interface Props {
   open: boolean
@@ -21,44 +21,51 @@ interface Props {
 const ScheduleForm: FC<Props> = ({ open, formikProp, scheduleRequest, onClose }) => {
   const { errors, values, setFieldValue, setValues, handleSubmit, touched, setTouched } = formikProp
   const { t } = useTranslation()
-  const [showDatePicker, setShowDatePicker] = useState(false)
-  const [showStartTimePicker, setShowStartTimePicker] = useState(false)
-  const [showEndTimePicker, setShowEndTimePicker] = useState(false)
+
+  const [pickerMode, setPickerMode] = useState<'date' | 'start' | 'end' | null>(null)
 
   const maxTime = values.endTime ? _.cloneDeep(values.endTime).add(-1, 'minutes') : undefined
   const minTime = values.startTime ? _.cloneDeep(values.startTime).add(1, 'minutes') : undefined
+
   const date = moment(values.date).local()
 
   useEffect(() => {
     if (open && scheduleRequest) setValues(scheduleRequest)
     else setValues(DEFAULT_SCHEDULE_FORM_DATA)
-  }, [open, JSON.stringify(scheduleRequest)])
+  }, [open, scheduleRequest])
 
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(false)
-    if (selectedDate) {
-      setFieldValue('date', moment(selectedDate))
-    }
-  }
+  const handleConfirm = (selected: Date) => {
+    const selectedMoment = moment(selected)
 
-  const handleStartTimeChange = (event: any, selectedTime?: Date) => {
-    setShowStartTimePicker(false)
-    if (selectedTime) {
-      setFieldValue('startTime', moment(selectedTime))
+    if (pickerMode === 'date') {
+      setFieldValue('date', selectedMoment)
+      setPickerMode(null)
+      return
     }
-  }
 
-  const handleEndTimeChange = (event: any, selectedTime?: Date) => {
-    setShowEndTimePicker(false)
-    if (selectedTime) {
-      setFieldValue('endTime', moment(selectedTime))
+    if (pickerMode === 'start') {
+      if (values.endTime && selectedMoment.isSameOrAfter(values.endTime)) {
+        setPickerMode(null)
+        return
+      }
+      setFieldValue('startTime', selectedMoment)
     }
+
+    if (pickerMode === 'end') {
+      if (values.startTime && selectedMoment.isSameOrBefore(values.startTime)) {
+        setPickerMode(null)
+        return
+      }
+      setFieldValue('endTime', selectedMoment)
+    }
+
+    setPickerMode(null)
   }
 
   return (
     <View>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={80}>
-        <ScrollView style={styles.container}>
+        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
           <View style={styles.formGroup}>
             <Text style={styles.label}>{t('title')}</Text>
             <Field name="title">
@@ -71,55 +78,25 @@ const ScheduleForm: FC<Props> = ({ open, formikProp, scheduleRequest, onClose })
 
           <View style={styles.formGroup}>
             <Text style={styles.label}>{t('date')}</Text>
-            <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
+            <TouchableOpacity style={styles.input} onPress={() => setPickerMode('date')}>
               <Text style={styles.inputText}>{date.format(t('date_format'))}</Text>
             </TouchableOpacity>
-            {showDatePicker && (
-              <DateTimePicker
-                value={date.toDate()}
-                mode="date"
-                display="default"
-                onChange={handleDateChange}
-                minimumDate={scheduleRequest ? undefined : moment().toDate()}
-                maximumDate={scheduleRequest ? moment().toDate() : moment().add(6, 'd').toDate()}
-              />
-            )}
             {!!errors?.date && <Text style={styles.errorText}>{errors?.date}</Text>}
           </View>
 
           <View style={styles.formGroup}>
             <Text style={styles.label}>{t('start_time')}</Text>
-            <TouchableOpacity style={styles.input} onPress={() => setShowStartTimePicker(true)}>
+            <TouchableOpacity style={styles.input} onPress={() => setPickerMode('start')}>
               <Text style={styles.inputText}>{values.startTime ? values.startTime.format('HH:mm') : ''}</Text>
             </TouchableOpacity>
-            {showStartTimePicker && (
-              <DateTimePicker
-                value={values.startTime?.toDate() || new Date()}
-                mode="time"
-                display="default"
-                onChange={handleStartTimeChange}
-                minimumDate={minTime?.toDate()}
-                maximumDate={maxTime?.toDate()}
-              />
-            )}
             {!!errors?.startTime && touched.startTime && <Text style={styles.errorText}>{errors?.startTime}</Text>}
           </View>
 
           <View style={styles.formGroup}>
             <Text style={styles.label}>{t('end_time')}</Text>
-            <TouchableOpacity style={styles.input} onPress={() => setShowEndTimePicker(true)}>
+            <TouchableOpacity style={styles.input} onPress={() => setPickerMode('end')}>
               <Text style={styles.inputText}>{values.endTime ? values.endTime.format('HH:mm') : ''}</Text>
             </TouchableOpacity>
-            {showEndTimePicker && (
-              <DateTimePicker
-                value={values.endTime?.toDate() || new Date()}
-                mode="time"
-                display="default"
-                onChange={handleEndTimeChange}
-                minimumDate={minTime?.toDate()}
-                maximumDate={maxTime?.toDate()}
-              />
-            )}
             {!!errors?.endTime && touched.endTime && <Text style={styles.errorText}>{errors?.endTime}</Text>}
           </View>
         </ScrollView>
@@ -129,72 +106,105 @@ const ScheduleForm: FC<Props> = ({ open, formikProp, scheduleRequest, onClose })
         <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>
           <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={[styles.button, styles.confirmButton]}
-          onPress={(e) => {
-            setTouched(touched, true)
+          onPress={() => {
+            setTouched(
+              {
+                title: true,
+                date: true,
+                startTime: true,
+                endTime: true
+              },
+              true
+            )
             handleSubmit()
           }}
         >
           <Text style={styles.confirmButtonText}>{t('next')}</Text>
         </TouchableOpacity>
       </View>
+
+      <DateTimePickerModal
+        isVisible={!!pickerMode}
+        mode={pickerMode === 'date' ? 'date' : 'time'}
+        date={
+          pickerMode === 'date'
+            ? date.toDate()
+            : pickerMode === 'start'
+            ? values.startTime?.toDate() || new Date()
+            : values.endTime?.toDate() || new Date()
+        }
+        minimumDate={pickerMode === 'end' ? minTime?.toDate() : undefined}
+        maximumDate={pickerMode === 'start' ? maxTime?.toDate() : undefined}
+        onConfirm={handleConfirm}
+        onCancel={() => setPickerMode(null)}
+      />
     </View>
   )
 }
 
+export default ScheduleForm
+
 const styles = ScaledSheet.create({
   container: {},
+
   formGroup: {
     marginBottom: '16@ms'
   },
+
   label: {
     ...TYPO.body2,
     color: palette.grey[700],
     marginBottom: '8@ms'
   },
+
   input: {
-    borderWidth: 1,
-    borderColor: palette.grey[300],
-    borderRadius: '8@ms',
-    padding: '12@ms',
-    backgroundColor: 'white'
+    borderRadius: '10@ms',
+    paddingHorizontal: '12@ms',
+    paddingVertical: '16@ms',
+    backgroundColor: palette.grey[100]
   },
+
   inputText: {
     ...TYPO.body1,
     color: palette.grey[900]
   },
+
   errorText: {
     ...TYPO.caption,
     color: palette.error.main,
     marginTop: '4@ms'
   },
+
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: '8@ms',
+    gap: '8@ms'
   },
+
   button: {
-    paddingVertical: '12@ms',
+    paddingVertical: '16@ms',
     paddingHorizontal: '24@ms',
-    borderRadius: '8@ms',
+    borderRadius: '12@ms',
     minWidth: '120@ms',
     alignItems: 'center'
   },
-  cancelButton: {
-    backgroundColor: palette.grey[100]
-  },
+
+  cancelButton: {},
+
   confirmButton: {
-    backgroundColor: palette.main[500]
+    backgroundColor: palette.main[600]
   },
+
   cancelButtonText: {
     ...TYPO.button2,
-    color: palette.grey[700]
+    color: palette.main[600]
   },
+
   confirmButtonText: {
     ...TYPO.button2,
     color: 'white'
   }
 })
-
-export default ScheduleForm

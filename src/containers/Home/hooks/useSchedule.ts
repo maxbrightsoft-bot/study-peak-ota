@@ -28,7 +28,6 @@ import { convertScheduleFormToRequest } from "../configs/helpers";
 const useSchedule = () => {
   const { user, setLoading } = useAuthStore()
   const [isOpenDialog, setOpenDialog] = useState<boolean>(false);
-  const [isOpenConfirmDialog, setOpenConfirmDialog] = useState<boolean>(false);
   const [isOpenConfirmDeleteDialog, setOpenConfirmDeleteDialog] =
     useState<boolean>(false);
   const [scheduleCount, setScheduleCount] = useState<{
@@ -39,9 +38,9 @@ const useSchedule = () => {
     false
   );
   const [selectedSchedule, setSelectedSchedule] = useState<ScheduleResponse>();
-  const [scheduleRequest, setScheduleRequest] = useState<ScheduleFormData>();
   const [scheduleList, setScheduleList] = useState<ScheduleResponse[]>();
   const [schedules, setSchedules] = useState<ScheduleResponse[]>();
+
   const [filter, setFilter] = useState<ScheduleQuery>(DefaultScheduleFilter);
   const textSearchRef = useRef<HTMLInputElement>(null);
   const [date, setDate] = useState<any>(moment());
@@ -57,7 +56,6 @@ const useSchedule = () => {
     currentDate: moment().toISOString(),
     isTotalMonth: false
   });
-  const [loadingConfirmDialog, setLoadingConfirmDialog] = useState(false)
 
   const handleSelectDate = ({
     startDate,
@@ -106,33 +104,26 @@ const useSchedule = () => {
   };
 
   const handleCloseDialog = () => {
+    setSelectedSchedule(undefined);
     setOpenDialog(false);
   };
 
   const handleOpenDialog = (schedule?: ScheduleResponse) => {
     if (schedule) setSelectedSchedule(schedule);
+    handleCloseTooltip();
     setOpenDialog(true);
-    handleCloseTooltip();
-  };
-
-  const handleCloseConfirmDialog = () => {
-    setOpenConfirmDialog(false);
-  };
-
-  const handleOpenConfirmDialog = (schedule?: ScheduleResponse) => {
-    if (schedule) setSelectedSchedule(schedule);
-    setOpenConfirmDialog(true);
-    handleCloseTooltip();
   };
 
   const handleCloseConfirmDeleteDialog = () => {
     setOpenConfirmDeleteDialog(false);
   };
 
-  const handleOpenConfirmDeleteDialog = (schedule?: ScheduleResponse) => {
-    if (schedule) setSelectedSchedule(schedule);
-    setOpenConfirmDeleteDialog(true);
+  const handleOpenConfirmDeleteDialog = (schedule?: any) => {
+    if (schedule) {
+      setSelectedSchedule(schedule);
+    }
     handleCloseTooltip();
+    setOpenConfirmDeleteDialog(true);
   };
 
   const handleGetScheduleCount = async () => {
@@ -212,38 +203,8 @@ const useSchedule = () => {
 
   const clearData = () => {
     setSelectedSchedule(undefined);
-    setScheduleRequest(undefined);
     setOpenDialog(false);
-    setOpenConfirmDialog(false)
     setOpenConfirmDeleteDialog(false)
-  };
-
-  const handleSubmitSchedule = async () => {
-    if (
-      !scheduleRequest ||
-      !scheduleRequest.date ||
-      !scheduleRequest.startTime ||
-      !scheduleRequest.endTime ||
-      !scheduleRequest.title
-    )
-      return;
-    setLoadingConfirmDialog(true)
-    try {
-      const schedule: ScheduleRequest = convertScheduleFormToRequest(scheduleRequest)
-      if (scheduleRequest.id)
-        await updateScheduleApi(scheduleRequest.id, schedule);
-      else
-        await createScheduleApi(schedule);
-      await getScheduleList(false);
-      await getScheduleListForNoteEvent();
-      handleGetScheduleCount();
-      toast.success(t(scheduleRequest.id ? "update_schedule_successfully" : "create_schedule_successfully"));
-    } catch (error: any) {
-      toast.error(getErrorMessage(t, error));
-    } finally {
-      setLoadingConfirmDialog(false)
-      clearData()
-    }
   };
 
   const handleUpdateScheduleStatus = async (schedule: ScheduleResponse) => {
@@ -296,6 +257,33 @@ const useSchedule = () => {
     clearData()
   };
 
+  const handleCreateSchedule = async (values: ScheduleFormData) => {
+    if (
+      !values.date ||
+      !values.startTime ||
+      !values.endTime ||
+      !values.title
+    )
+      return;
+    setLoading(true)
+    try {
+      const schedule: ScheduleRequest = convertScheduleFormToRequest(values)
+      if (values.id)
+        await updateScheduleApi(values.id, schedule);
+      else
+        await createScheduleApi(schedule);
+      await getScheduleList(false);
+      await getScheduleListForNoteEvent();
+      handleGetScheduleCount();
+      toast.success(t(values.id ? "update_schedule_successfully" : "create_schedule_successfully"));
+    } catch (error: any) {
+      toast.error(getErrorMessage(t, error));
+    }
+    finally {
+      setLoading(false)
+    }
+  };
+
   const handleCheckInLesson = async (schedule: ScheduleResponse) => {
     if (!schedule?.lessonId) return;
     setLoading(true)
@@ -341,9 +329,6 @@ const useSchedule = () => {
     );
   }, [JSON.stringify(scheduleList)]);
 
-  const handleChangeScheduleRequest = (val?: ScheduleFormData) => {
-    setScheduleRequest(val);
-  };
   const handleSetSchedule = (values?: ScheduleResponse) => {
     setSelectedSchedule(values);
   };
@@ -354,7 +339,6 @@ const useSchedule = () => {
     setDate,
     selectedDate,
     schedules,
-    loadingConfirmDialog,
     highlightedDays,
     selectedSchedule,
     isOpenDialog,
@@ -368,19 +352,14 @@ const useSchedule = () => {
     handleGetScheduleCount,
     handleCheckInLesson,
     getScheduleListForNoteEvent,
-    isOpenConfirmDialog,
-    handleCloseConfirmDialog,
-    handleOpenConfirmDialog,
+    handleCreateSchedule,
     isOpenConfirmDeleteDialog,
     handleCloseConfirmDeleteDialog,
     handleOpenConfirmDeleteDialog,
     handleSetSchedule,
-    handleSubmitSchedule,
     handleDeleteSchedule,
-    handleChangeScheduleRequest,
     handleUpdateScheduleStatus,
     handleUpdateGroupSchedule,
-    scheduleRequest
   };
 };
 

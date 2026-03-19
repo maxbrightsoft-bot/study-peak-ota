@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react'
+import React from 'react'
 import { View, TouchableOpacity } from 'react-native'
-import { Text, Button } from 'react-native-paper'
+import { Text } from 'react-native-paper'
 import { Calendar as CalendarLib, DateData } from 'react-native-calendars'
 import { MarkingProps } from 'react-native-calendars/src/calendar/day/marking'
 import { Ionicons } from '@expo/vector-icons'
@@ -8,8 +8,6 @@ import { palette, TYPO } from '@/theme'
 import useCalendar from '../hooks/useCalendar'
 import moment from 'moment'
 import { ScaledSheet } from 'react-native-size-matters'
-import CreateNewScheduleConfirmDialog from './Dialog/CreateNewScheduleConfirmDialog'
-import CreateNewScheduleDialog from './Dialog/CreateNewScheduleDialog'
 import { SelectedDateInfo } from '../configs/type'
 
 type Props = {
@@ -24,7 +22,7 @@ type Props = {
     currentDate: string
     isTotalMonth?: boolean
   }) => void
-  loading: boolean
+  loading?: boolean
   getScheduleList: () => void
   getScheduleListForNoteEvent: () => void
   selectedDate?: SelectedDateInfo
@@ -37,31 +35,18 @@ const Calendar = (calendarProps: Props) => {
     selectedDate,
     handleSelectDate,
     getScheduleList,
-    loading,
     getScheduleListForNoteEvent,
     highlightedDays,
     onScheduleCountChange
   } = calendarProps
 
   const {
-    t,
     goToNextMonth,
     goToPreviousMonth,
     marked,
     onDayPress,
     onVisibleMonthsChange,
     currentCalendarMonth,
-    isOpenDialog,
-    loadingConfirmDialog,
-    selectedSchedule,
-    handleCloseDialog,
-    handleOpenDialog,
-    handleCreateSchedule,
-    isOpenConfirmDialog,
-    handleCloseConfirmDialog,
-    handleOpenConfirmDialog,
-    handleSetScheduleRequest,
-    scheduleRequest
   } = useCalendar({
     selectedDate,
     handleSelectDate,
@@ -74,30 +59,17 @@ const Calendar = (calendarProps: Props) => {
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
-        <Button
-          mode="outlined"
-          style={styles.newScheduleButton}
-          labelStyle={styles.newScheduleButtonLabel}
-          contentStyle={styles.newScheduleButtonContent}
-          onPress={() => handleOpenDialog()}
-        >
-          <View style={{ flexDirection: 'row' }}>
-            <Ionicons name="add-circle" size={20} color={palette.main[500]} />
-            <Text style={styles.newScheduleButtonText}>새 스케줄</Text>
-          </View>
-        </Button>
-
         <View style={styles.navigationContainer}>
           <TouchableOpacity style={styles.navButton} onPress={goToPreviousMonth}>
-            <Ionicons name="chevron-back" size={20} color={palette.grey[700]} />
+            <Ionicons name="chevron-back" size={24} color={palette.grey[400]} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.dateDisplayButton}>
-            <Text style={styles.dateDisplayText}>{moment(selectedDate?.currentDate).format('MM월 DD일')}</Text>
+            <Text style={styles.dateDisplayText}>{moment(selectedDate?.currentDate).format('MM월')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.navButton} onPress={goToNextMonth}>
-            <Ionicons name="chevron-forward" size={20} color={palette.grey[700]} />
+            <Ionicons name="chevron-forward" size={24} color={palette.grey[400]} />
           </TouchableOpacity>
         </View>
       </View>
@@ -141,30 +113,7 @@ const Calendar = (calendarProps: Props) => {
           }}
         />
       </View>
-      <CreateNewScheduleDialog
-        open={isOpenDialog}
-        onClose={() => {
-          handleCloseDialog()
-          handleSetScheduleRequest()
-        }}
-        t={t}
-        onSubmit={(values) => {
-          handleOpenConfirmDialog(values)
-          handleCloseDialog()
-        }}
-        schedule={selectedSchedule}
-      />
-      <CreateNewScheduleConfirmDialog
-        open={isOpenConfirmDialog}
-        onClose={() => {
-          handleCloseConfirmDialog()
-          handleOpenDialog()
-        }}
-        t={t}
-        loading={loadingConfirmDialog || loading}
-        newSchedule={scheduleRequest}
-        onSubmit={handleCreateSchedule}
-      />
+      
     </View>
   )
 }
@@ -199,62 +148,34 @@ const styles = ScaledSheet.create({
     alignItems: 'center',
     marginBottom: '16@ms'
   },
-  newScheduleButton: {
-    borderRadius: 8,
-    borderColor: palette.main[500],
-    borderWidth: 1,
-    paddingHorizontal: '0@ms'
-  },
-  newScheduleButtonContent: {
-    paddingVertical: '6@ms',
-    paddingHorizontal: '10@ms',
-    height: 'auto'
-  },
-  newScheduleButtonLabel: {
-    marginVertical: 0,
-    marginHorizontal: 0
-  },
-  newScheduleButtonText: {
-    ...TYPO.button2,
-    color: palette.main[500],
-    marginLeft: '4@ms'
-  },
   navigationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    width: "100%",
+    justifyContent: "space-between",
     gap: '8@ms'
   },
   navButton: {
-    borderWidth: 1,
-    borderRadius: 6,
-    borderColor: palette.grey[300],
     padding: '6@ms',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center'
   },
   dateDisplayButton: {
-    borderWidth: 1,
-    borderRadius: 6,
-    borderColor: palette.grey[300],
-    paddingVertical: '7@ms',
-    paddingHorizontal: '12@ms',
-    minWidth: '80@ms',
     alignItems: 'center'
   },
   dateDisplayText: {
     ...TYPO.body1,
-    fontWeight: '600',
-    color: palette.grey[900]
+    fontWeight: 600,
+    color: "#222222"
   },
   calendarWrapper: {
     borderWidth: 1,
-    borderRadius: 8,
-    borderColor: palette.grey[300],
+    borderRadius: 12,
+    borderColor: palette.grey[100],
     overflow: 'hidden'
   },
   dayContainer: {
-    width: '32@ms',
     height: '32@ms',
     alignItems: 'center',
     justifyContent: 'center',
@@ -262,14 +183,14 @@ const styles = ScaledSheet.create({
   },
   dayText: {
     fontSize: 14,
+    fontWeight: 600,
     color: palette.grey[900]
   },
   selectedDayText: {
     fontWeight: 'bold',
-    color: palette.grey[900]
   },
   weekendText: {
-    color: 'red'
+    color: '#EC4A67'
   },
   outsideMonthText: {
     color: palette.grey[400]
@@ -278,7 +199,7 @@ const styles = ScaledSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: palette.main[500],
+    backgroundColor: palette.main[600],
     position: 'absolute',
     bottom: '2@ms'
   }

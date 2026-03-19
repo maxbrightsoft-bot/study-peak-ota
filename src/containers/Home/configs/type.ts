@@ -1,4 +1,4 @@
-import { OrderBy } from "./constants";
+import { ExamStatus, OrderBy } from "./constants";
 
 export type Task = {
   id: number;
@@ -13,7 +13,7 @@ export type Task = {
   isCheckedIn: boolean;
 };
 
-export interface TaskExtend extends Task  {
+export interface TaskExtend extends Task {
   startTimeFilter?: string
   endTimeFilter?: string
 };
@@ -62,23 +62,20 @@ export type AcademyResponse = {
   domain: string;
 };
 
-export enum ScheduleType
-{
-    Personal,
-    Group
+export enum ScheduleType {
+  Personal,
+  Group
 }
 
-export enum ScheduleStatus
-{
-    Default,
-    Completed,
-    Missed
+export enum ScheduleStatus {
+  Default,
+  Completed,
+  Missed
 }
 
-export enum ScheduleStatusRequest
-{
-    Default,
-    Completed
+export enum ScheduleStatusRequest {
+  Default,
+  Completed
 }
 
 export type ScheduleResponse = {
@@ -104,7 +101,7 @@ export enum ScheduleSortBy {
   CreatedAt = "CreatedAt"
 }
 
-export type ScheduleQuery =  {
+export type ScheduleQuery = {
   sortColumnName?: ScheduleSortBy
   startDate?: string
   endDate?: string
@@ -122,17 +119,16 @@ export type ScheduleRequest = {
   endTime: string
 };
 
-export enum PreparedType
-{
+export enum PreparedType {
   csat_past_questions = 1,
   official_mock_exam,
   private_mock_exam,
+  workbook
 }
 
-export enum PreparedFilterType
-{
-    recently_solved_questions = "RecentlySolvedQuestions",
-    academy_questions = "AcademyQuestions",
+export enum PreparedFilterType {
+  recently_solved_questions = "RecentlySolvedQuestions",
+  academy_questions = "AcademyQuestions",
 }
 
 export type TextbookQuery = {
@@ -162,4 +158,35 @@ export enum TextbookSortBy {
 export enum TextbookOrderBy {
   ASC = "ASC",
   DESC = "DESC"
+}
+
+export enum ExamSessionSortBy {
+  StartTime = "StartDate"
+}
+
+export type ExamSessionFilter = {
+  currentPage: number;
+  pageSize: number;
+  sortColumnName: ExamSessionSortBy;
+  textSearch?: string;
+  sortColumnDirection: OrderBy;
+  statuses?: ExamStatus[]
+  studentId?: string
+}
+
+export type CourseExamSession = {
+  id: number
+  courseId: number,
+  courseName: string
+  examId: number
+  title: string
+  subjectName: string
+  examCode: string
+  teacherName: string
+  startTime: string
+  endTime: string
+  isCompleted: boolean
+  isImComplete: boolean
+  isNotTaken: boolean
+  studentExamSessionId: number
 }
