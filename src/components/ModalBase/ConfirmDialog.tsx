@@ -1,6 +1,5 @@
 import React, { FC, useEffect, useState } from 'react'
 import { Text, View, TextInput, TouchableOpacity } from 'react-native'
-import { Button, Divider } from 'react-native-paper'
 import ModalBase from './ModalBase'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
@@ -42,10 +41,11 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
   return (
     <ModalBase isVisible={open} onClose={toggle} styleContainer={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>{title || t('confirmation')}</Text>
-        <Button onPress={toggle} compact>
-          <Ionicons name="close-outline" size={24} color="black" />
-        </Button>
+        <View></View>
+        <Text style={[styles.title]}>{title}</Text>
+        <TouchableOpacity onPress={toggle} style={styles.closeButton}>
+          <Ionicons name="close" size={20} color={palette.grey[900]} />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.content}>
@@ -62,16 +62,16 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
           </>
         )}
       </View>
-      <View style={styles.actions}>
+      <View style={[styles.footer]}>
         <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={toggle}>
-          <Text style={styles.cancelButtonText}> {cancelText || t('no')}</Text>
+          <Text style={styles.cancelButtonText}>{cancelText || t('cancel')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.button, styles.confirmButton, isDisableDelete && styles.disabledButton]}
+          style={[styles.button, styles.confirmButton, { borderRadius: 12 }]}
           disabled={isDisableDelete}
           onPress={onConfirm}
         >
-          <Text style={styles.confirmButtonText}>{okText || t('yes')}</Text>
+          <Text style={styles.confirmButtonText}>{okText || t('confirm')}</Text>
         </TouchableOpacity>
       </View>
     </ModalBase>
@@ -81,30 +81,31 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
 const styles = ScaledSheet.create({
   container: {
     backgroundColor: 'white',
-    borderRadius: '12@ms'
+    borderRadius: '20@ms'
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: '24@ms',
-    paddingVertical: '14@ms',
-    borderBottomWidth: 1,
-    borderBottomColor: palette.grey[200]
+    paddingVertical: '14@ms'
   },
   title: {
-    fontSize: 18,
-    fontWeight: 'bold'
+    fontSize: 16,
+    fontWeight: 600,
+    color: '#222222'
   },
   content: {
-    padding: '24@ms',
-    borderBottomWidth: 1,
-    borderColor: palette.grey[100]
+    padding: '24@ms'
+  },
+  closeButton: {
+    padding: '4@ms'
   },
   text: {
     fontWeight: '600',
     marginBottom: 10,
-    fontSize: 16
+    fontSize: 16,
+    color: '#222222'
   },
   confirmHint: {
     marginBottom: 8,
@@ -126,26 +127,35 @@ const styles = ScaledSheet.create({
     justifyContent: 'space-between',
     gap: '16@ms'
   },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: '16@ms',
+    gap: '8@ms'
+  },
   button: {
-    paddingVertical: '12@ms',
-    paddingHorizontal: '24@ms',
-    borderRadius: '8@ms',
+    paddingVertical: '14@ms',
+    paddingHorizontal: '16@ms',
     minWidth: '120@ms',
     alignItems: 'center'
   },
   cancelButton: {
-    backgroundColor: palette.grey[100]
+    borderWidth: 0,
+    borderRadius: 999
   },
   confirmButton: {
-    backgroundColor: palette.red[900]
+    backgroundColor: palette.main[600],
+    borderRadius: 6
   },
   cancelButtonText: {
     ...TYPO.button2,
-    color: palette.grey[700]
+    lineHeight: 22,
+    color: palette.main[600]
   },
   confirmButtonText: {
     ...TYPO.button2,
-    color: 'white'
+    lineHeight: 22,
+    color: '#FFF'
   },
   disabledButton: {
     backgroundColor: palette.red[500]

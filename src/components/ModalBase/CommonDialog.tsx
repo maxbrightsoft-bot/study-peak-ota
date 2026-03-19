@@ -1,15 +1,19 @@
-import React, { ReactNode } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { palette, TYPO } from '@/theme';
-import ModalBase from './ModalBase';
-import { Ionicons } from '@expo/vector-icons';
-import { ScaledSheet } from 'react-native-size-matters';
-import { PositionFlex } from '@/utils/enums';
+import React, { ReactNode } from 'react'
+import { View, Text, TouchableOpacity } from 'react-native'
+import { palette, TYPO } from '@/theme'
+import ModalBase from './ModalBase'
+import { Ionicons } from '@expo/vector-icons'
+import { ScaledSheet } from 'react-native-size-matters'
+import { PositionFlex } from '@/utils/enums'
+import { useTranslation } from 'react-i18next'
 
 interface CommonDialogProps {
-  isVisible: boolean;
-  onClose: () => void;
-  title?: string;
+  isVisible: boolean
+  onClose: () => void
+  title?: string
+  cancelText?: string
+  submitText?: string
+  onSubmit?: () => void
   children: ReactNode
   positionTitle?: PositionFlex
   isVisibleHeader?: boolean
@@ -18,56 +22,62 @@ interface CommonDialogProps {
 const CommonDialog: React.FC<CommonDialogProps> = ({
   isVisible,
   onClose,
+  cancelText,
   title = '',
   children,
-  positionTitle= PositionFlex.Center,
+  submitText,
+  onSubmit,
+  positionTitle = PositionFlex.Center,
   isVisibleHeader = true
 }) => {
-
+  const { t } = useTranslation()
   return (
-    <ModalBase 
-      isVisible={isVisible} 
-      onClose={onClose}
-      styleContainer={styles.container}
-    >
-      {isVisibleHeader && <View style={styles.header}>
-        <Text style={[styles.title,{ alignSelf: positionTitle}]}>{title}</Text>
-        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <Ionicons name="close" size={30} color={palette.grey[900]} />
+    <ModalBase isVisible={isVisible} onClose={onClose} styleContainer={styles.container}>
+      {isVisibleHeader && (
+        <View style={styles.header}>
+          <View></View>
+          <Text style={[styles.title, { alignSelf: positionTitle }]}>{title}</Text>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Ionicons name="close" size={20} color={palette.grey[900]} />
+          </TouchableOpacity>
+        </View>
+      )}
+
+      <View style={styles.content}>{children}</View>
+      {onSubmit && <View style={[styles.footer]}>
+        <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>
+          <Text style={styles.cancelButtonText}>{cancelText || t('cancel')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.button, styles.confirmButton, { borderRadius: 12 }]} onPress={onSubmit}>
+          <Text style={styles.confirmButtonText}>{submitText || t('submit')}</Text>
         </TouchableOpacity>
       </View>}
-
-      <View style={styles.content}>
-        {children}
-      </View>
-
     </ModalBase>
-  );
-};
+  )
+}
 
 const styles = ScaledSheet.create({
   container: {
     backgroundColor: 'white',
-    borderRadius: '12@ms',
+    borderRadius: '20@ms'
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: '24@ms',
-    paddingVertical: '14@ms',
-    borderBottomWidth: 1,
-    borderBottomColor: palette.grey[200],
+    paddingVertical: '14@ms'
   },
   title: {
-    ...TYPO.heading3,
-    color: palette.grey[900],
+    fontSize: 16,
+    fontWeight: 600,
+    color: '#222222'
   },
   closeButton: {
-    padding: '4@ms',
+    padding: '4@ms'
   },
   content: {
-    padding: '24@ms',
+    padding: '24@ms'
   },
   input: {
     borderWidth: 1,
@@ -75,35 +85,44 @@ const styles = ScaledSheet.create({
     borderRadius: '8@ms',
     padding: '12@ms',
     ...TYPO.body1,
-    color: palette.grey[900],
+    color: palette.grey[900]
   },
   footer: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     padding: '16@ms',
-    gap: '8@ms',
+    gap: '8@ms'
+  },
+  centerFooter: {
+    justifyContent: 'center'
+  },
+  betweenFooter: {
+    justifyContent: 'space-between'
   },
   button: {
-    paddingVertical: '8@ms',
+    paddingVertical: '14@ms',
     paddingHorizontal: '16@ms',
-    borderRadius: '8@ms',
-    minWidth: '80@ms',
-    alignItems: 'center',
+    minWidth: '120@ms',
+    alignItems: 'center'
   },
   cancelButton: {
-    backgroundColor: palette.grey[500],
+    borderWidth: 0,
+    borderRadius: 999,
   },
   confirmButton: {
-    backgroundColor: palette.primary.main,
+    backgroundColor: palette.main[600],
+    borderRadius: 6
   },
   cancelButtonText: {
     ...TYPO.button2,
-    color: "#FFF",
+    lineHeight: 22,
+    color: palette.main[600]
   },
   confirmButtonText: {
     ...TYPO.button2,
-    color: 'white',
-  },
-});
+    lineHeight: 22,
+    color: '#FFF'
+  }
+})
 
-export default CommonDialog;
+export default CommonDialog

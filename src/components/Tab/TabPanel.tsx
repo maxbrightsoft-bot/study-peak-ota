@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 
 interface Props {
   children?: React.ReactNode;
-  index: number;
+  index: any;
   value: number;
 }
 

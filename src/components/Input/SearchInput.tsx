@@ -1,39 +1,40 @@
 import { palette, TYPO } from '@/theme'
 import { Ionicons } from '@expo/vector-icons'
-import { TextInput, View } from 'react-native'
+import { StyleProp, TextInput, View, ViewStyle } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   placeholder?: string
   value: string
   ref?: any
+  style?: StyleProp<ViewStyle>
   onChangeText: (text: string) => void
 }
 
-const SearchInput = ({ ref, value, placeholder, onChangeText }: Props) => {
+const SearchInput = ({ ref, style, value, placeholder, onChangeText }: Props) => {
   return (
-    <View style={styles.searchBox}>
+    <View style={[styles.searchBox, style]}>
       <View style={styles.container}>
         <View
           style={{
             justifyContent: 'center',
             alignItems: 'center',
-            width: 40,
-            height: 40
+            width: 50,
+            height: 50
           }}
         >
-          <Ionicons name="search-outline" size={24} color={palette.grey[700]} />
+          <Ionicons name="search" size={18} color={palette.grey[700]} />
         </View>
-        <TextInput ref={ref} value={value} onChangeText={onChangeText} placeholder={placeholder} />
+        <TextInput ref={ref} value={value} onChangeText={onChangeText} placeholderTextColor={palette.grey[400]} placeholder={placeholder} />
       </View>
       {value?.length > 0 && (
         <View
           style={{
             justifyContent: 'center',
-            alignItems: 'center'
+            alignItems: 'center', marginRight: 4
           }}
         >
-          <Ionicons onPress={() => onChangeText('')} name="close-circle" size={24} color={palette.grey[700]} />
+          <Ionicons onPress={() => onChangeText('')} name="close-circle" size={18} color={palette.grey[700]} />
         </View>
       )}
     </View>
@@ -46,11 +47,10 @@ const styles = ScaledSheet.create({
   searchBox: {
     flexDirection: 'row',
     alignContent: 'center',
-    borderWidth: 1,
-    borderColor: palette.grey[100],
+    backgroundColor: palette.grey[100],
     borderRadius: '255@ms',
-    paddingHorizontal: '12@ms',
-    paddingVertical: '8@ms',
+    paddingVertical: '2@ms',
+    paddingHorizontal: "4@ms",
     justifyContent: 'space-between'
   },
   container: {

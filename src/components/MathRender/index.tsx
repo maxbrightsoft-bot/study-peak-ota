@@ -1,6 +1,5 @@
-import { palette } from '@/theme'
 import React from 'react'
-import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native'
+import { View, StyleSheet, ViewStyle } from 'react-native'
 import { WebView } from 'react-native-webview'
 
 interface Props {
@@ -8,9 +7,10 @@ interface Props {
   isMathML?: boolean
   style?: ViewStyle
   textColor?: string
+  fontSize?: number
 }
 
-const MathRender = ({ content, style, textColor }: Props) => {
+const MathRender = ({ content, fontSize, style, textColor }: Props) => {
   const mathHTML = `
     <!DOCTYPE html>
     <html>
@@ -21,7 +21,7 @@ const MathRender = ({ content, style, textColor }: Props) => {
         src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
       <style>
         body {
-          font-size: 48px;
+          font-size: ${fontSize ? `${fontSize}px` : '48px'};
           line-height: 1;
           color: ${textColor ?? '#000'};
           margin: 0;

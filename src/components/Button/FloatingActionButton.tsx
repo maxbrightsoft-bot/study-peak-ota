@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { View, StyleSheet, Animated, TouchableOpacity, Text } from 'react-native'
-import { Button, FAB, useTheme } from 'react-native-paper'
+import { FAB } from 'react-native-paper'
 import { ExamStatus } from '@/utils/enums'
 import { palette } from '@/theme'
 import { Ionicons } from '@expo/vector-icons'
+import { useFocusEffect } from '@react-navigation/native'
 
 type Props = {
   t: (key: string) => string
@@ -28,7 +29,6 @@ const FloatingActionButton: React.FC<Props> = ({
   keys,
   ariaLabel = 'more-actions'
 }) => {
-  const theme = useTheme()
   const [menuOpen, setMenuOpen] = useState(false)
   const scaleAnim = React.useRef(new Animated.Value(0.9)).current
   const opacityAnim = React.useRef(new Animated.Value(0)).current
@@ -81,6 +81,23 @@ const FloatingActionButton: React.FC<Props> = ({
     toggleMenu()
   }
 
+  useFocusEffect(
+    useCallback(() => {
+      return () => Animated.parallel([
+        Animated.timing(scaleAnim, {
+          toValue: 0.9,
+          duration: 250,
+          useNativeDriver: true
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: true
+        })
+      ]).start(() => setMenuOpen(false))
+    }, [])
+  )
+
   return (
     <View style={styles.container}>
       <Animated.View
@@ -110,7 +127,6 @@ const FloatingActionButton: React.FC<Props> = ({
 
         <View style={styles.buttonWrapper}>
           <TouchableOpacity
-            disabled={isCompleted}
             onPress={handleRestart}
             style={[styles.menuButton, styles.buttonLabel, styles.restartButton]}
           >
@@ -123,7 +139,7 @@ const FloatingActionButton: React.FC<Props> = ({
       </Animated.View>
 
       <FAB
-        style={[styles.fab, menuOpen && styles.fabOpen, { backgroundColor: palette.main[300] }]}
+        style={[styles.fab, menuOpen && styles.fabOpen, { backgroundColor: palette.main[600] }]}
         icon={menuOpen ? 'close' : 'dots-vertical'}
         onPress={toggleMenu}
         animated={true}
@@ -138,7 +154,7 @@ const FloatingActionButton: React.FC<Props> = ({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 24,
+    bottom: 200,
     right: 24,
     zIndex: 10,
     alignItems: 'flex-end',

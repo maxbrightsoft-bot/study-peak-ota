@@ -1,64 +1,85 @@
-import { palette, TYPO } from '@/theme';
-import React from 'react';
-import { View, StyleSheet, StyleProp } from 'react-native';
-import { Dropdown } from 'react-native-element-dropdown';
-import Icon  from '@expo/vector-icons/Ionicons';
-import { useTranslation } from 'react-i18next';
+import { palette, TYPO } from '@/theme'
+import React from 'react'
+import { View, StyleSheet } from 'react-native'
+import { Dropdown } from 'react-native-element-dropdown'
+import { useTranslation } from 'react-i18next'
+import Ionicons from '@expo/vector-icons/Ionicons'
 
 type Props = {
   value: any
   onValueChange?: (value: any) => void
   options: any
   style?: any
+  disabled?: boolean
   placeholder?: string
 }
 
-const CustomSelect = ({ value, onValueChange, style, options, placeholder }: Props) => {
+const CustomSelect = ({ value, onValueChange, style, options, disabled, placeholder }: Props) => {
   const { t } = useTranslation()
+
   return (
     <View>
       <Dropdown
         data={options}
         labelField="label"
         valueField="value"
-        value={value} 
+        value={value ?? null}
+        disable={disabled}
         onChange={(item) => onValueChange?.(item.value)}
         placeholder={placeholder ?? t('select_placeholder')}
         style={[styles.dropdown, style]}
-        selectedTextStyle={styles.selectedText}
+        selectedTextStyle={styles.selectedTextStyle}
+        placeholderStyle={styles.placeholderStyle}
+        itemTextStyle={styles.itemTextStyle}
         iconStyle={styles.iconStyle}
         containerStyle={styles.dropdownContainer}
-        itemTextStyle={styles.text}
-        renderRightIcon={() => (
-          <Icon name='chevron-down-outline' size={18} color={palette.grey[500]}  />
-        )}
+        renderRightIcon={() => <Ionicons name="caret-down-outline" size={20} color="#222222" />}
       />
     </View>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
-  dropdown: {
-    borderBottomWidth: 0.5,
-    borderColor: palette.grey[500],
-    paddingRight: 15,
-    height: 44,
-    paddingVertical: 12,
-    paddingHorizontal: 10
+  container: {
+    paddingHorizontal: 20,
+    paddingTop: 40
   },
-  selectedText: {
-    ... TYPO.body3
-  },
-  text: {
-    overflow: 'hidden',
-    wordWrap: "unset"
-  },
-  iconStyle: {
-    paddingRight: 10
-  },
-  dropdownContainer: {
-    borderRadius: 4,
-  },
-});
 
-export default CustomSelect;
+  dropdown: {
+    height: 50,
+    backgroundColor: palette.grey[100],
+    borderRadius: 10,
+    overflow: 'hidden',
+    paddingHorizontal: 12,
+    justifyContent: 'center'
+  },
+
+  dropdownContainer: {
+    borderRadius: 12,
+    overflow: 'hidden'
+  },
+
+  placeholderStyle: {
+    fontSize: 14,
+    color: '#222222'
+  },
+
+  itemTextStyle: {
+    fontSize: 14,
+    color: palette.grey[900]
+  },
+
+  selectedTextStyle: {
+    fontSize: 14,
+    flex: 1,
+    fontWeight: '500',
+    color: '#222222'
+  },
+
+  iconStyle: {
+    width: 24,
+    height: 24
+  }
+})
+
+export default CustomSelect
