@@ -1,80 +1,82 @@
 import { palette, TYPO } from '@/theme'
 import React from 'react'
-import { View, StyleSheet, FlatList } from 'react-native'
-import { Text } from 'react-native-paper'
-import useTextbook from '../hooks/useTextbook'
-import TextbookItem from '../components/TextbookItem'
-import FilterModal from '../components/Dialog/FilterModal'
-import TextbookDrawer from '../components/Dialog/TextbookDrawer'
-import AudioGuideModal from '@/layouts/components/AudioGuideModal'
+import { View, StyleSheet, TouchableOpacity, ScrollView, Text } from 'react-native'
+import { TabList } from '../configs/constants'
+import useTab from '@/hooks/useTab'
+import { useTranslation } from 'react-i18next'
+import TabPanel from '@/components/Tab/TabPanel'
+import TextbookList from '../components/TextbookList'
+import { PreparedFilterType, PreparedType } from '../configs/type'
 
 const Textbook = () => {
-  const {
-    t,
-    textbookList,
-    openFilterModal,
-    isOpenAudioGuide,
-    handleCloseAudioGuide,
-    handleCloseFilterModal,
-    handleOpenAudioGuide,
-    selectedTextbook,
-    isOpenDialog,
-    handleStartTextbookFromGuideModal,
-    handleCloseDialog,
-    handleOpenDialog
-  } = useTextbook({})
+  const { t } = useTranslation()
+  const { selected, handleChangeTab } = useTab(TabList)
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={textbookList}
-        renderItem={({ item }) => <TextbookItem textbook={item} t={t} handleOpenDialog={handleOpenDialog} />}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={[styles.scrollView, { gap: 24, paddingBottom: 40 }]}
-        ListEmptyComponent={<Text style={styles.emptyText}>{t('no_data')}</Text>}
-        showsVerticalScrollIndicator={false}
-      />
-      {/* <Button
-        mode="contained"
-        style={styles.filterButton}
-        buttonColor={palette.main[500]}
-        onPress={handleOpenFilterModal}
-      >
-        <View style={styles.buttonContent}>
-          <FontAwesome name="filter" size={24} color="#FFF" />
-          <Text style={styles.buttonText}>필터로 검색</Text>
-        </View>
-      </Button> */}
-      {isOpenDialog && (
-        <TextbookDrawer
-          isOpen={isOpenDialog}
-          onClose={handleCloseDialog}
-          textbookId={selectedTextbook?.id}
-          onOpenAudioGuide={handleOpenAudioGuide}
-        />
-      )}
-      {isOpenAudioGuide && (
-        <AudioGuideModal
-          open={isOpenAudioGuide}
-          audioUrls={selectedTextbook?.subject?.audioUrls ?? []}
-          onClose={handleCloseAudioGuide}
-          onStart={handleStartTextbookFromGuideModal}
-        />
-      )}
-      <FilterModal t={t} open={openFilterModal} onClose={handleCloseFilterModal} title="필터로 검색" />
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>{t('question_bank')}</Text>
+      </View>
+      <View style={{ marginTop: 18 }}>
+        <ScrollView
+          showsHorizontalScrollIndicator={false}
+          horizontal
+          style={{ flexDirection: 'row', paddingLeft: 20 }}
+          contentContainerStyle={{ gap: 16, paddingRight: 30, height: 30 }}
+        >
+          {TabList.map(({ label, value }, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[styles.tabButton, value === selected ? styles.activeTab : styles.inactiveTab]}
+              onPress={() => handleChangeTab(value)}
+            >
+              <Text style={[styles.tabText, { color: value === selected ? palette.main[600] : palette.grey[900] }]}>
+                {t(label)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+        <TabPanel value={selected} index={TabList[0].value}>
+          <TextbookList preparedFilterType={PreparedFilterType.recently_solved_questions} />
+        </TabPanel>
+        <TabPanel value={selected} index={TabList[1].value}>
+          <TextbookList />
+        </TabPanel>
+        <TabPanel value={selected} index={TabList[2].value}>
+          <TextbookList preparedType={PreparedType.csat_past_questions} />
+        </TabPanel>
+        <TabPanel value={selected} index={TabList[3].value}>
+          <TextbookList preparedType={PreparedType.official_mock_exam} />
+        </TabPanel>
+        <TabPanel value={selected} index={TabList[4].value}>
+          <TextbookList preparedType={PreparedType.private_mock_exam} />
+        </TabPanel>
+        <TabPanel value={selected} index={TabList[5].value}>
+          <TextbookList preparedType={PreparedType.workbook} />
+        </TabPanel>
+        <TabPanel value={selected} index={TabList[6].value}>
+          <TextbookList preparedFilterType={PreparedFilterType.academy_questions} />
+        </TabPanel>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFF',
-    flex: 1
+    flex: 1,
+    backgroundColor: '#FFF'
+  },
+  header: {
+    paddingVertical: 18,
+    paddingHorizontal: 20
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 600,
+    color: '#222222'
   },
   scrollView: {
-    backgroundColor: '#FFF',
-    borderRadius: 6,
-    margin: 24,
     gap: 24,
     padding: 8
   },
@@ -84,13 +86,28 @@ const styles = StyleSheet.create({
     maxWidth: 200
   },
   filterButton: {
-    paddingVertical: 6,
-    borderRadius: 6,
-    position: 'fixed',
-    bottom: 20,
-    left: 0,
-    marginHorizontal: 32,
-    right: 0
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderRadius: 100,
+    backgroundColor: palette.grey[100]
+  },
+  tabButton: {},
+  activeTab: {
+    borderBottomColor: palette.main[500]
+  },
+  inactiveTab: {
+    borderBottomColor: '#D0D5DD'
+  },
+  tabText: {
+    fontSize: 16,
+    fontWeight: '700',
+    textAlign: 'center'
+  },
+  tabContent: {
+    flex: 1
   },
   buttonContent: {
     display: 'flex',

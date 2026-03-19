@@ -1,9 +1,9 @@
 import { palette, TYPO } from '@/theme'
-import { getSafeUrl, utcToLocalTime } from '@/utils/helpers'
+import { getSafeUrl } from '@/utils/helpers'
 import { Textbook } from '@/utils/types'
-import { Ionicons } from '@expo/vector-icons'
-import { Image, StyleSheet, Text, View } from 'react-native'
-import { Button, Divider, Title } from 'react-native-paper'
+import { Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native'
+import { formatTime } from '../configs/helpers'
+import moment from 'moment'
 
 type Props = {
   textbook: Textbook
@@ -12,119 +12,105 @@ type Props = {
 }
 
 const TextbookItem = ({ textbook, t, handleOpenDialog }: Props) => {
+
   return (
-    <View style={styles.textbookItem}>
-      <View style={styles.textbookContent}>
-        <View style={styles.textbookHeader}>
-          <Image
-            source={{ uri: getSafeUrl(textbook?.coverImage || '') }}
-            style={styles.coverImage}
-            onError={(e) => console.log('Error:', e.nativeEvent.error)}
-          />
-          <View style={styles.textbookInfo}>
-            <Title numberOfLines={1} ellipsizeMode="tail" style={styles.textbookTitle}>
-              {textbook.name}
-            </Title>
-            <View style={styles.metaInfo}>
-              <Text style={styles.metaText}>{t('total_people', { number: textbook.totalUses || 0 })}</Text>
-              <Text style={[styles.metaText, styles.dateText]}>
-                {utcToLocalTime(textbook.createdAt, t('date_format'))}
-              </Text>
+    <View>
+      <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={() => handleOpenDialog(textbook)}>
+        <Image source={{ uri: getSafeUrl(textbook?.coverImage || '') }} style={styles.cover} />
+
+        <View style={styles.content}>
+          <View style={styles.topRow}>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{textbook?.subject?.name || '국어'}</Text>
             </View>
+
+            <Text style={styles.timeText}>{moment(textbook.createdAt).fromNow()}</Text>
+          </View>
+
+          <Text numberOfLines={2} style={styles.title}>
+            {textbook.name}
+          </Text>
+
+          <View style={styles.progressRow}>
+            <Text style={styles.progressText}>{textbook.progress || 0}%</Text>
+            <Text style={styles.durationText}>{formatTime(t, textbook.totalAnswerTime)}</Text>
           </View>
         </View>
-        <Divider />
-        <Button
-          mode="contained"
-          style={styles.startButton}
-          buttonColor={palette.main[500]}
-          onPress={() => handleOpenDialog(textbook)}
-        >
-          <View style={styles.buttonContent}>
-            <Ionicons name="book" size={20} color="#FFF" />
-            <Text style={styles.buttonText}>시험 시작하기</Text>
-          </View>
-        </Button>
-      </View>
+      </TouchableOpacity>
+      <View style={styles.divider} />
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  textbookItem: {
-    backgroundColor: '#FFF',
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: palette.grey[100]
-  },
-  textbookContent: {
-    flexDirection: 'column',
-    gap: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 16
-  },
-  textbookHeader: {
+  card: {
     flexDirection: 'row',
-    gap: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 16
+    backgroundColor: '#FFF'
   },
-  coverImage: {
-    width: 96,
-    height: 121,
-    objectFit: 'contain',
-    marginRight: 12
-  },
-  textbookInfo: {
-    gap: 16,
+  divider: {
+    height: 1,
     flex: 1,
-    width: '100%'
+    backgroundColor: '#E6E6E6',
+    marginVertical: 20
   },
-  textbookTitle: {
-    ...TYPO.heading3,
-    color: palette.grey[900]
+  cover: {
+    width: 62,
+    height: 78,
+    borderRadius: 8,
+    marginRight: 16
   },
-  metaInfo: {
+
+  content: {
+    flex: 1,
+    justifyContent: 'space-between'
+  },
+
+  topRow: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 16
+    alignItems: 'center'
   },
-  metaText: {
-    ...TYPO.body4,
-    color: palette.grey[900]
+
+  badge: {
+    backgroundColor: '#E6F2FF',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12
   },
-  dateText: {
+
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#36BFEC'
+  },
+
+  timeText: {
+    fontSize: 12,
     color: palette.grey[500]
   },
-  startButton: {
-    paddingVertical: 6,
-    borderRadius: 6,
-    maxWidth: 180
+
+  title: {
+    ...TYPO.body1,
+    fontWeight: '600',
+    color: palette.grey[900],
+    marginVertical: 6
   },
-  filterButton: {
-    paddingVertical: 6,
-    borderRadius: 6,
-    position: 'absolute',
-    bottom: 10,
-    left: 24,
-    right: 24
-  },
-  buttonContent: {
-    display: 'flex',
+
+  progressRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
     gap: 8
   },
-  buttonText: {
-    ...TYPO.button1,
-    color: '#FFF'
+
+  progressText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: palette.grey[900]
   },
-  emptyText: {
-    ...TYPO.caption,
-    color: palette.grey[500],
-    textAlign: 'center'
+
+  durationText: {
+    fontSize: 13,
+    color: palette.grey[500]
   }
 })
 

@@ -1,6 +1,4 @@
-import { ChapterResponse, Profile, Subject } from "@/utils/types";
 import { OrderBy } from "./constants";
-import { ExamStatus } from "@/utils/enums";
 
 export type Task = {
   id: number;
@@ -86,6 +84,13 @@ export type ScheduleResponse = {
   lessonId?: number
 };
 
+export interface FilterValues {
+  subjectIds: number[]
+  startYear?: number
+  endYear?: number
+  months: number[]
+}
+
 export type ScheduleFormData = {
   id?: number
   title: string
@@ -121,6 +126,7 @@ export enum PreparedType
   csat_past_questions = 1,
   official_mock_exam,
   private_mock_exam,
+  workbook
 }
 
 export enum PreparedFilterType
@@ -135,8 +141,8 @@ export type TextbookQuery = {
   sortColumnName: TextbookSortBy;
   textSearch?: string;
   sortColumnDirection: TextbookOrderBy;
-  startYear?: string;
-  endYear?: string;
+  startYear?: number;
+  endYear?: number;
   subjectIds?: number[];
   months?: number[];
   preparedType?: PreparedType;

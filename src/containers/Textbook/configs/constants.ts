@@ -1,5 +1,5 @@
 import moment from "moment"
-import { ScheduleFormData, ScheduleQuery, ScheduleSortBy, TextbookOrderBy, TextbookQuery, TextbookSortBy } from "./type"
+import { PreparedFilterType, PreparedType, ScheduleFormData, ScheduleQuery, ScheduleSortBy, TextbookOrderBy, TextbookQuery, TextbookSortBy } from "./type"
 import { ExamEvent } from "@/utils/enums"
 
 export enum ExamStatus {
@@ -15,6 +15,37 @@ export enum TypeNotificationEnum {
     Class,
     Student
 }
+
+export const TabList = [
+    {
+        label: "recently_solved_questions",
+        value: PreparedFilterType.recently_solved_questions
+    },
+    {
+        label: "entire",
+        value: null
+    },
+    {
+        label: "csat_past_questions",
+        value: PreparedType.csat_past_questions
+    },
+    {
+        label: "official_mock_exam",
+        value: PreparedType.official_mock_exam
+    },
+    {
+        label: "private_mock_exam",
+        value: PreparedType.private_mock_exam
+    },
+    {
+        label: "workbook",
+        value: PreparedType.workbook
+    },
+    {
+        label: "academy_questions",
+        value: PreparedFilterType.academy_questions
+    },
+];
 
 export const daysInWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 export const daysInWeekSortByValue = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -33,24 +64,6 @@ export enum OrderBy {
     ASC = "ASC",
     DESC = "DESC"
 }
-
-export const TabList = [
-    {
-        label: "institute_notice",
-        value: 0,
-        type: [TypeNotificationEnum.Academy]
-    },
-    {
-        label: "class_notice",
-        value: 1,
-        type: [TypeNotificationEnum.Class]
-    },
-    {
-        label: "student_notice_notes",
-        value: 2,
-        type: [TypeNotificationEnum.Student]
-    }
-]
 
 export const DataLink = [
     {
@@ -119,7 +132,7 @@ export const TextbookTabList = [
         value: 0,
     },
     {
-        label: "category",
+        label: "statistics",
         value: 1,
     },
 ]

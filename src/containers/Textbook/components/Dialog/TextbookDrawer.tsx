@@ -1,31 +1,28 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { TextbookTabList } from '../../configs/constants'
-import { palette, TYPO } from '@/theme'
-import SlideDrawer from '@/components/ModalBase/SlideDrawer'
+import { palette } from '@/theme'
+import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 import useTextbookDrawer from '../../hooks/useTextbookDrawer'
 import { getSafeUrl, utcToLocalTime } from '@/utils/helpers'
-import StartPageDialog from './StartPageDialog'
-import Statistic from '../Statistic'
-import ChapterDetail from '../ChapterDetail'
 import { ScaledSheet } from 'react-native-size-matters'
-import ExamResult from '@/containers/ExamResult/views'
-import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
-import { ExamStatus } from '@/utils/enums'
+import { formatTime } from '../../configs/helpers'
+import { TextbookTabList } from '../../configs/constants'
+import ChapterDetail from '../ChapterDetail'
+import Statistic from '../Statistic'
 import RestartPageDialog from './RestartPageDialog'
+import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
+import StartPageDialog from './StartPageDialog'
+import TextbookChapterResultDialog from './TextbookChapterResultDialog'
 
 type Props = {
   isOpen: boolean
   onClose?: () => void
   textbookId?: number
-  studentId?: number
-  role?: string
-  onViewQA?: (studentId: number, sessionId?: number, questionId?: number, isTextbook?: boolean) => void
   onOpenAudioGuide?: () => void
 }
 
-const TextbookDrawer = ({ isOpen, textbookId, studentId, onClose, onViewQA, onOpenAudioGuide }: Props) => {
+const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props) => {
   const {
     t,
     loading,
@@ -51,40 +48,117 @@ const TextbookDrawer = ({ isOpen, textbookId, studentId, onClose, onViewQA, onOp
     handleCloseStartPageDialog,
     handleOpenStartPageDialog,
     handleStartFromPage
-  } = useTextbookDrawer({
-    textbookId,
-    studentId,
-    onClose,
-    onOpenAudioGuide
-  })
+  } = useTextbookDrawer({ textbookId, onOpenAudioGuide, onClose })
 
-  const progressTextLeft = useMemo(() => {
-    const progress = textbook?.progress || 0
-    return Math.max(progress > 7 ? progress - 20 : progress + 3, 20)
-  }, [textbook?.progress])
-
-  const isDone = !!textbook && textbook.status === ExamStatus.Completed
+  const progress = textbook?.progress ?? 0
   const isMockTextbook = !!textbook?.isMock
 
   return (
-    <SlideDrawer visible={isOpen}>
-      <ScrollView style={styles.drawerContainer} showsVerticalScrollIndicator={false}>
+    <SlideDrawerRoot visible={isOpen}>
+      <View style={styles.wrapper}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={onClose}>
-            <Ionicons name="chevron-back-outline" size={24} color={palette.main[500]} />
-            <Text style={[styles.backText]}>티로 가기</Text>
+          <TouchableOpacity onPress={onClose}>
+            <Ionicons name="chevron-back" size={24} color="#B8B8B8" />
           </TouchableOpacity>
-          <View style={styles.actionButtons}>
-            <TouchableOpacity style={[styles.button, styles.primaryButton]} onPress={handleDoTextbook}>
-              <Ionicons name="book" size={16} color="white" />
-              <Text style={styles.buttonText}>{t('learning')}</Text>
-            </TouchableOpacity>
+          <Text style={styles.headerTitle}>문제집 상세</Text>
+          <View style={{ width: 24 }} />
+        </View>
 
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={{ paddingBottom: 120 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.bookCard}>
+            <Image source={{ uri: getSafeUrl(textbook?.coverImage || '') }} style={styles.cover} />
+
+            <View style={{ flex: 1 }}>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{textbook?.subjectName}</Text>
+              </View>
+
+              <Text style={styles.title} numberOfLines={2}>
+                {textbook?.name}
+              </Text>
+
+              <View style={styles.metaRow}>
+                <Text style={{ color: '#222222' }}>{t('publication_date')}</Text>
+                <Text style={styles.meta}>{utcToLocalTime(textbook?.publicationDate, 'YYYY.MM.DD')}</Text>
+              </View>
+
+              <View style={styles.metaRow}>
+                <Text style={{ color: '222222' }}>{t('publisher')}</Text>
+                <Text style={styles.meta}>{textbook?.publisher}</Text>
+              </View>
+
+              <View style={styles.metaRow}>
+                <Text style={{ color: '#222222' }}>{t('number_of_questions')}</Text>
+                <Text style={styles.meta}>{textbook?.totalQuestions ?? 0} 문제</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.progressSection}>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <Text style={styles.progressText}>{progress}%</Text>
+              <Text style={styles.progressSub}>{formatTime(t, textbook?.totalAnswerTime || 0)}</Text>
+            </View>
+
+            <View style={styles.progressBar}>
+              <View style={[styles.progressFill, { width: `${progress}%` }]} />
+            </View>
+          </View>
+
+          <View style={styles.contentContainer}>
+            <View style={styles.tabContainer}>
+              {TextbookTabList.map(({ label, value }) => (
+                <TouchableOpacity
+                  key={value}
+                  style={[styles.tabBtn, value === selected && styles.activeTab]}
+                  onPress={() => handleChangeTab(value)}
+                >
+                  <Text style={[styles.tabText, value === selected && styles.activeTabText]}>{t(label)}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {selected === 0 && (
+              <View style={styles.chapterList}>
+                {textbook?.chapters?.map((chapter, index) => (
+                  <ChapterDetail
+                    key={index}
+                    t={t}
+                    isEnglish={isEnglish}
+                    chapter={chapter}
+                    isMock={textbook.isMock}
+                    handleStartFromPage={handleStartFromPage}
+                    isStudying={!!textbook?.isStudying}
+                    handleOpenChapterDialog={handleOpenChapterDialog}
+                  />
+                ))}
+              </View>
+            )}
+
+            {selected === 1 && (
+              <View style={styles.chapterList}>
+                {textbook?.chapters?.map((chapter, index) => (
+                  <Statistic key={index} t={t} isEnglish={isEnglish} chapter={chapter} />
+                ))}
+              </View>
+            )}
+          </View>
+        </ScrollView>
+        <View style={styles.bottomBar}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.bottomBarContent}>
             {!isMockTextbook && (
-              <TouchableOpacity style={[styles.button, styles.outlineButton]} onPress={handleOpenStartPageDialog}>
-                <Text style={styles.outlineButtonText}>{t('unravel_from_page')}</Text>
+              <TouchableOpacity style={[styles.button, styles.pageBtn]} onPress={handleOpenStartPageDialog}>
+                <Text style={styles.outlineButtonText}>페이지 이동</Text>
               </TouchableOpacity>
             )}
+
+            <TouchableOpacity style={[styles.button, styles.continueBtn]} onPress={handleDoTextbook}>
+              <Text style={styles.buttonText}>이어서 풀기</Text>
+            </TouchableOpacity>
 
             {!!textbook && textbook.isStudying && (
               <TouchableOpacity
@@ -95,119 +169,9 @@ const TextbookDrawer = ({ isOpen, textbookId, studentId, onClose, onViewQA, onOp
                 <Text style={styles.outlineButtonText}>{t('restart_textbook')}</Text>
               </TouchableOpacity>
             )}
-          </View>
+          </ScrollView>
         </View>
-
-        <View style={styles.contentContainer}>
-          <View style={styles.bookInfoContainer}>
-            <View style={styles.bookCover}>
-              <Image
-                source={{ uri: getSafeUrl(textbook?.coverImage || '') }}
-                style={styles.coverImage}
-                resizeMode="contain"
-              />
-            </View>
-            <View style={styles.bookDetails}>
-              <View style={styles.titleRow}>
-                <Text style={styles.bookTitle} numberOfLines={2}>
-                  {textbook?.name}
-                </Text>
-                {isMockTextbook && isDone && <Ionicons name="checkmark-circle" size={20} color="#12B76A" />}
-              </View>
-
-              <View style={styles.divider} />
-
-              <View style={styles.detailsSection}>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{t('subject')}</Text>
-                  <Text style={styles.detailValue}>{textbook?.subjectName}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{t('publication_date')}</Text>
-                  <Text style={styles.detailValue}>{utcToLocalTime(textbook?.publicationDate, t('date_format'))}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{t('publisher')}</Text>
-                  <Text style={styles.detailValue}>{textbook?.publisher}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{t('number_of_questions')}</Text>
-                  <Text style={styles.detailValue}>{`${textbook?.totalQuestions ?? 0} ${t('questions')}`}</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          {(!isMockTextbook || (isMockTextbook && isDone)) && (
-            <View style={styles.progressContainer}>
-              <Text style={styles.progressLabel}>{t('progress')}</Text>
-              <View style={styles.progressBar}>
-                <View style={[styles.progressFill, { width: `${textbook?.progress || 0}%` }]} />
-                <View style={[styles.progressText, { left: `${progressTextLeft}%` }]}>
-                  <Text
-                    style={[
-                      styles.progressPercentage,
-                      {
-                        color: textbook?.progress === 0 ? palette.main[900] : 'white'
-                      }
-                    ]}
-                  >
-                    {`${(textbook?.progress || 0).toFixed(2)}%`}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          )}
-
-          {!!textbook?.chapters?.length && (!isMockTextbook || (isMockTextbook && isDone)) && (
-            <View style={styles.tabSection}>
-              <View style={styles.tabContainer}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {TextbookTabList.map(({ label, value }, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={[styles.tabButton, value === selected ? styles.activeTab : styles.inactiveTab]}
-                      onPress={() => handleChangeTab(value)}
-                    >
-                      <Text style={[styles.tabText, { color: value === selected ? palette.main[500] : '#667085' }]}>
-                        {t(label)}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-
-              {selected === 0 && (
-                <View style={styles.tabContent}>
-                  <View style={styles.chapterListContainer}>
-                    {textbook?.chapters?.map((chapter, index) => (
-                      <ChapterDetail
-                        key={index}
-                        t={t}
-                        isEnglish={isEnglish}
-                        chapter={chapter}
-                        isStudying={!!textbook?.isStudying}
-                        handleOpenChapterDialog={handleOpenChapterDialog}
-                      />
-                    ))}
-                  </View>
-                </View>
-              )}
-
-              {selected === 1 && (
-                <View style={styles.tabContent}>
-                  <View style={styles.chapterListContainer}>
-                    {textbook?.chapters?.map((chapter, index) => (
-                      <Statistic key={index} t={t} isEnglish={isEnglish} chapter={chapter} />
-                    ))}
-                  </View>
-                </View>
-              )}
-            </View>
-          )}
-        </View>
-      </ScrollView>
-
+      </View>
       <StartPageDialog
         options={startPageOptions}
         t={t}
@@ -235,211 +199,213 @@ const TextbookDrawer = ({ isOpen, textbookId, studentId, onClose, onViewQA, onOp
         onConfirm={isMockTextbook ? handleRestartMockTextbook : handleRestartTextbook}
       />
 
-      {isOpenChapterDialog && (
-        <ExamResult
-          chapterId={chapterSelected?.id}
-          onClose={handleCloseChapterDialog}
-          studentId={studentId}
-          onViewQA={onViewQA}
-        />
-      )}
-    </SlideDrawer>
+      <TextbookChapterResultDialog
+        open={isOpenChapterDialog}
+        chapterId={chapterSelected?.id}
+        onClose={handleCloseChapterDialog}
+      />
+    </SlideDrawerRoot>
   )
 }
 
+export default TextbookDrawer
+
 const styles = ScaledSheet.create({
-  drawerContainer: {
+  wrapper: {
+    flex: 1
+  },
+
+  container: {
     flex: 1,
     backgroundColor: '#F9FAFB'
   },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  backText: {
-    ...TYPO.button2,
-    color: palette.main[500]
-  },
+
   header: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E4E7EC',
-    backgroundColor: '#F9FAFB'
-  },
-  headerRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center'
-  },
-  closeButton: {
-    padding: 4
-  },
-  contentContainer: {
-    paddingTop: 40
-  },
-  bookInfoContainer: {
-    flexDirection: 'row',
-    gap: 16,
-    marginHorizontal: 16,
-    marginBottom: 24
-  },
-  bookCover: {
-    borderWidth: 1,
-    borderRadius: 6,
-    borderColor: '#F2F4F7',
-    padding: 8,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: '20@ms',
+    paddingVertical: '16@ms',
     backgroundColor: 'white'
   },
-  coverImage: {
-    width: 100,
-    height: 140,
-    borderRadius: 4
+
+  headerTitle: {
+    fontSize: '16@ms',
+    fontWeight: '700',
+    color: "#222222"
   },
-  bookDetails: {
-    flex: 1,
-    gap: 16
+
+  bookCard: {
+    flexDirection: 'row',
+    margin: '20@ms',
+    gap: '16@ms'
   },
-  titleRow: {
+
+  cover: {
+    width: '95@ms',
+    height: '120@ms',
+    borderRadius: '8@ms'
+  },
+
+  badge: {
+    backgroundColor: '#E0F2FE',
+    paddingHorizontal: '10@ms',
+    paddingVertical: '4@ms',
+    borderRadius: '12@ms',
+    alignSelf: 'flex-start',
+    marginBottom: '6@ms'
+  },
+
+  badgeText: {
+    fontSize: '12@ms',
+    fontWeight: '600',
+    color: '#36BFEC'
+  },
+
+  title: {
+    fontSize: '16@ms',
+    fontWeight: '700',
+    color: '#212121',
+    marginBottom: '6@ms'
+  },
+
+  metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8
+    gap: 16
   },
-  bookTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#101828',
-    flex: 1
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#F2F4F7'
-  },
-  detailsSection: {
-    gap: 12
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start'
-  },
-  detailLabel: {
-    fontSize: 13,
-    fontWeight: '600',
+
+  meta: {
+    fontSize: '13@ms',
     color: '#667085',
-    width: 100
+    marginTop: '2@ms'
   },
-  detailValue: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#101828',
-    flex: 1
+
+  progressSection: {
+    marginHorizontal: '20@ms'
   },
-  actionButtons: {
+
+  progressText: {
+    fontSize: '14@ms',
+    fontWeight: '600',
+    color: palette.grey[900]
+  },
+
+  progressSub: {
+    paddingLeft: 8,
+    fontSize: '12@ms',
+    color: palette.grey[900]
+  },
+
+  progressBar: {
+    height: '8@ms',
+    backgroundColor: '#E6E6E6',
+    borderRadius: '4@ms',
+    marginTop: '8@ms'
+  },
+
+  progressFill: {
+    height: '100%',
+    backgroundColor: palette.main[600],
+    borderRadius: '4@ms'
+  },
+
+  contentContainer: {
+    marginTop: '30@ms',
+    paddingHorizontal: '20@ms',
+    paddingVertical: '12@ms',
+    gap: 24,
+    borderTopWidth: 1,
+    borderColor: palette.grey[100],
+    backgroundColor: palette.bg[100]
+  },
+
+  tabContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    marginTop: 16
+    justifyContent: 'center',
+    gap: 10
   },
+
+  tabBtn: {
+    paddingVertical: '8@ms',
+    paddingHorizontal: '12@ms'
+  },
+
+  tabText: {
+    fontSize: '16@ms',
+    fontWeight: '600',
+    color: palette.grey[400]
+  },
+
+  activeTab: {
+    borderBottomWidth: 2,
+    borderBottomColor: '#222222'
+  },
+
+  activeTabText: {
+    color: '#222222',
+    fontWeight: '700'
+  },
+
+  chapterList: {
+    gap: '16@ms'
+  },
+
+  bottomBar: {
+    borderTopWidth: 1,
+    borderColor: palette.grey[100],
+    backgroundColor: '#FFF'
+  },
+
+  bottomBarContent: {
+    flexDirection: 'row',
+    gap: '12@ms',
+    paddingHorizontal: '24@ms',
+    paddingTop: '12@ms',
+    paddingBottom: '46@ms'
+  },
+
   button: {
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 14,
     borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8
   },
-  primaryButton: {
-    backgroundColor: palette.main[500]
+
+  pageBtn: {
+    borderWidth: 1,
+    borderColor: '#C7C7C8',
+    borderRadius: '6@ms',
+    alignItems: 'center',
+    minWidth: '120@ms',
+    justifyContent: 'center'
   },
+
+  continueBtn: {
+    backgroundColor: palette.main[600],
+    borderRadius: '6@ms',
+    alignItems: 'center',
+    minWidth: '210@ms',
+    justifyContent: 'center'
+  },
+
   outlineButton: {
     borderWidth: 1,
-    borderColor: palette.main[500],
+    borderColor: palette.main[600],
     backgroundColor: 'white'
   },
+
   buttonText: {
     fontSize: 14,
     fontWeight: '600',
     color: 'white'
   },
+
   outlineButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: palette.main[500]
-  },
-  progressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 24,
-    marginHorizontal: 24,
-    marginBottom: 24
-  },
-  progressLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: palette.main[500],
-    minWidth: 50
-  },
-  progressBar: {
-    flex: 1,
-    height: 22,
-    backgroundColor: '#F2F4F7',
-    borderRadius: 10,
-    overflow: 'hidden',
-    position: 'relative'
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: palette.main[500],
-    borderRadius: 10
-  },
-  progressText: {
-    position: 'absolute',
-    height: '100%',
-    justifyContent: 'center'
-  },
-  progressPercentage: {
-    fontSize: 12,
-    fontWeight: '500'
-  },
-  tabSection: {
-    flex: 1
-  },
-  tabContainer: {
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F7',
-    paddingHorizontal: 16
-  },
-  tabButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    minWidth: 100,
-    borderBottomWidth: 2,
-    marginRight: 8
-  },
-  activeTab: {
-    borderBottomColor: palette.main[500]
-  },
-  inactiveTab: {
-    borderBottomColor: '#D0D5DD'
-  },
-  tabText: {
-    fontSize: 16,
-    fontWeight: '700',
-    textAlign: 'center'
-  },
-  tabContent: {
-    flex: 1
-  },
-  chapterListContainer: {
-    margin: 16,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#D0D5DD',
-    backgroundColor: 'white',
-    padding: 12,
-    gap: 16
+    color: palette.main[600]
   }
 })
-
-export default TextbookDrawer

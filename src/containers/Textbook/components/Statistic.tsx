@@ -1,160 +1,114 @@
-import { palette } from "@/theme";
-import { ChapterResponse } from "@/utils/types";
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import DonutProgress from '@/components/Progress/DonutProgress'
+import { palette } from '@/theme'
+import { ChapterResponse } from '@/utils/types'
+import React from 'react'
+import { View, Text, StyleSheet } from 'react-native'
 
 type Props = {
-  t: any;
-  isEnglish: boolean;
-  chapter: ChapterResponse;
-};
+  t: any
+  isEnglish: boolean
+  chapter: ChapterResponse
+}
 
 const Statistic = ({ t, isEnglish, chapter }: Props) => {
-  const accuracyRate = chapter.accuracyRate || 0;
-  const total = chapter.totalChapterQuestions || 0;
-  const completed = chapter.completedChapterQuestions || 0;
-  const progress = total !== 0 ? (completed / total) * 100 : 0;
-
-  const getLabelPosition = (percent: number) => {
-    return percent > 90 ? `${percent - 7}%` : `${percent + 5}%`;
-  };
+  const accuracyRate = chapter.accuracyRate || 0
+  const isCompleted = chapter.completedChapterQuestions === chapter.totalChapterQuestions
+  const total = chapter.totalChapterQuestions || 0
+  const completed = chapter.completedChapterQuestions || 0
+  const progress = total !== 0 ? (completed / total) * 100 : 0
 
   return (
-    <View style={styles.container}>
+    <View style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.chapterName}>{chapter.name}</Text>
-        <View style={styles.row}>
-          {isEnglish ? (
-            <>
-              <Text style={styles.lightText}>
-                {`${completed} ${t("questions")}`}
-              </Text>
-              <Text style={styles.grayText}>
-                {t("chapter_progress", { total })}
-              </Text>
-            </>
-          ) : (
-            <>
-              <Text style={styles.grayText}>
-                {t("chapter_progress", { total })}
-              </Text>
-              <Text style={styles.lightText}>
-                {`${completed} ${t("questions")}`}
-              </Text>
-            </>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          {isCompleted && (
+            <View style={styles.doneBadge}>
+              <Text style={styles.doneText}>완료</Text>
+            </View>
           )}
-        </View>
-      </View>
 
-      <View style={styles.barContainer}>
-        {/* Accuracy Rate */}
-        <View style={styles.barRow}>
-          <Text style={styles.label}>{t("correct_answer_rate")}</Text>
-          <View style={styles.barWrapper}>
-            <View
-              style={[styles.bar, { width: `${accuracyRate}%`, backgroundColor: palette.main[500] }]}
-            />
-            <View style={styles.barLine} />
-            <Text style={[styles.barLabel, { left: getLabelPosition(accuracyRate) }]}>
-              {`${accuracyRate}%`}
-            </Text>
-            <View
-              style={[styles.barLine, { left: `${progress}%` }]}
-            />
+          <Text style={styles.title}>{chapter.name}</Text>
+        </View>
+
+        <Text style={styles.total}>{`${completed}/${total} 문제`}</Text>
+      </View>
+      <View style={styles.statsRow}>
+        <View style={styles.statBox}>
+          <Text style={styles.statLabel}>정답률</Text>
+          <View style={{ alignSelf: 'flex-end' }}>
+            <DonutProgress percentage={accuracyRate} />
           </View>
         </View>
 
-        {/* Progress */}
-        <View style={styles.barRow}>
-          <Text style={styles.label}>{t("progress")}</Text>
-          <View style={styles.barWrapper}>
-            <View
-              style={[styles.bar, { width: `${progress}%`, backgroundColor: palette.main[500] }]}
-            />
-            <View style={styles.barLine} />
-            <Text style={[styles.barLabel, { left: getLabelPosition(progress) }]}>
-              {`${progress.toFixed(2)}%`}
-            </Text>
-            <View style={[styles.barLine, { left: `${progress}%` }]} />
+        <View style={styles.statBox}>
+          <Text style={styles.statLabel}>진행도</Text>
+          <View style={{ alignSelf: 'flex-end' }}>
+            <DonutProgress percentage={progress} />
           </View>
         </View>
       </View>
     </View>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#fff",
-    padding: 16,
-    gap: 16,
+  card: {
+    backgroundColor: 'white',
+    borderRadius: 14,
+    padding: 16
   },
-  header: {
-    flexDirection: "row",
-    gap: 16,
-    alignItems: "center",
-    flexWrap: "wrap",
-  },
-  chapterName: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#333",
-  },
-  row: {
-    flexDirection: "row",
-    gap: 4,
-    alignItems: "center",
-  },
-  lightText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#999",
-  },
-  grayText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#666",
-  },
-  barContainer: {
-    width: "100%",
-  },
-  barRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginBottom: 12,
-  },
-  label: {
-    width: 140,
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  barWrapper: {
-    flex: 1,
-    height: 20,
-    backgroundColor: "#eee",
-    position: "relative",
-    justifyContent: "center",
-  },
-  bar: {
-    height: "100%",
-    position: "absolute",
-    left: 0,
-  },
-  barLine: {
-    position: "absolute",
-    width: 1,
-    height: "100%",
-    backgroundColor: "#333",
-    left: 0,
-  },
-  barLabel: {
-    position: "absolute",
-    fontSize: 12,
-    fontWeight: "500",
-    color: "#333",
-    top: -20,
-  },
-});
 
-export default Statistic;
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14
+  },
+
+  title: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: palette.grey[900]
+  },
+
+  total: {
+    fontSize: 12,
+    color: palette.grey[500],
+    fontWeight: '500'
+  },
+
+  doneBadge: {
+    backgroundColor: '#D7FFE7',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12
+  },
+
+  doneText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#3DC674'
+  },
+
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10
+  },
+
+  statBox: {
+    flex: 1,
+    backgroundColor: palette.grey[100],
+    borderRadius: 12,
+    padding: 12
+  },
+
+  statLabel: {
+    fontSize: 12,
+    color: palette.grey[900],
+    marginBottom: 2,
+    fontWeight: '500'
+  }
+})
+
+export default Statistic

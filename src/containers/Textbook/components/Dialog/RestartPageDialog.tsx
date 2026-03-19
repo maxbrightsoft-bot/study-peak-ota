@@ -50,7 +50,6 @@ const RestartPageDialog = ({ t, loading, onClose, title, open, options, onSubmit
                   options={values.endPage ? options.filter((option) => option.value <= values.endPage!) : options}
                   value={values.startPage}
                   onValueChange={(value) => setFieldValue('startPage', value)}
-                  style={styles.dropdown}
                 />
               </View>
 
@@ -60,7 +59,6 @@ const RestartPageDialog = ({ t, loading, onClose, title, open, options, onSubmit
                   options={values.startPage ? options.filter((option) => option.value >= values.startPage!) : options}
                   value={values.endPage}
                   onValueChange={(value) => setFieldValue('endPage', value)}
-                  style={styles.dropdown}
                 />
               </View>
             </ScrollView>
@@ -76,7 +74,10 @@ const RestartPageDialog = ({ t, loading, onClose, title, open, options, onSubmit
                   styles.submitButton,
                   (!values.startPage || !values.endPage || isSubmitting) && styles.disabledButton
                 ]}
-                onPress={() => handleSubmit()}
+                onPress={() => { 
+                  onClose () 
+                  handleSubmit()
+                }}
                 disabled={!values.startPage || !values.endPage || isSubmitting}
               >
                 <Text style={styles.submitButtonText}>{t('restart')}</Text>
@@ -110,8 +111,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: palette.grey[200]
   },
   modalTitle: {
     ...TYPO.h4,
@@ -157,27 +156,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: "space-between",
     paddingVertical: 16,
-    borderTopWidth: 1,
-    borderColor: palette.grey[200]
   },
   button: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12
   },
   cancelButton: {
-    backgroundColor: 'white',
     borderWidth: 1,
-    borderColor: palette.main[500],
-    marginRight: 8
+    borderColor: palette.main[600],
   },
   cancelButtonText: {
-    ...TYPO.button2,
-    color: palette.main[500]
+    color: palette.main[600]
   },
   submitButton: {
-    backgroundColor: palette.main[500],
-    marginLeft: 8
+    backgroundColor: palette.main[600],
   },
   submitButtonText: {
     ...TYPO.button2,

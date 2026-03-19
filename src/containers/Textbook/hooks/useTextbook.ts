@@ -7,7 +7,7 @@ import {
 
 import { DefaultTextbookFilter } from "../configs/constants";
 
-import { PreparedFilterType, PreparedType, TextbookQuery } from "../configs/type";
+import { FilterValues, PreparedFilterType, PreparedType, TextbookQuery } from "../configs/type";
 import { useTranslation } from "react-i18next";
 import useAuthStore from "@/store/useAuthStore";
 import { getErrorMessage, toast } from "@/utils/helpers";
@@ -19,7 +19,7 @@ import { Routes } from "@/navigators/RouteName";
 import { AlarmType } from "@/utils/enums";
 import useAlarm from "@/layouts/hooks/useAlarm";
 import { Textbook } from "@/utils/types";
-
+import { FlatList } from "react-native";
 
 type Props = {
   preparedType?: PreparedType
@@ -29,11 +29,12 @@ type Props = {
 const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
   const { selectedAcademy, setLoading } = useAuthStore()
   const { t } = useTranslation();
-  const textSearchRef = useRef<HTMLInputElement>(null);
   const [textbookList, setTextbookList] = useState<Textbook[]>([]);
   const [textbookFilter, setTextbookFilter] = useState<TextbookQuery>(
     { ...DefaultTextbookFilter, preparedType, preparedFilterType }
   );
+  const [search, setSearch] = useState<string>("");
+  const inputSearch = useRef<any>(null);
   const [selectedTextbook, setSelectedTextbook] = useState<Textbook>()
   const [openFilterModal, setOpenFilterModal] = useState(false)
   const [openConfirmDialog, setOpenConfirmDialog] = useState<boolean>(false)
@@ -41,6 +42,7 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
   const [isOpenAudioGuide, setOpenAudioGuide] =
     useState<boolean>(false);
   const { alarmClockProps: { panelProps: { onStart } } } = useAlarm(false, [], true)
+  const scrollViewRef = useRef<FlatList>(null)
 
   const handleOpenAudioGuide = () => {
     handleCloseDialog()
@@ -53,6 +55,26 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
+
+  const onChangeSearch = (value: string) => {
+    setSearch(value);
+  };
+
+  useEffect(() => {
+    if (inputSearch.current) {
+      clearTimeout(inputSearch.current);
+    }
+
+    inputSearch.current = setTimeout(() => {
+      getTextbookList(search);
+    }, 500);
+
+    return () => {
+      if (inputSearch.current) {
+        clearTimeout(inputSearch.current);
+      }
+    };
+  }, [search]);
 
   const handleOpenDialog = (textbook: Textbook) => {
     if (textbook) setSelectedTextbook(textbook)
@@ -75,12 +97,12 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
     setOpenFilterModal(true)
   }
 
-  const getTextbookList = async () => {
+  const getTextbookList = async (textSearch?: string) => {
     setLoading(true)
     try {
       const { data } = await getTextbookListApi({
         ...textbookFilter,
-        textSearch: textSearchRef.current?.value
+        textSearch
       });
 
       const { items = [] } = data;
@@ -113,7 +135,7 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
       toast.error(getErrorMessage(t, error));
     }
     finally {
-      navigate(Routes.Auth.DoTextbook, { textbookId: selectedTextbook?.id, restart: true  })
+      navigate(Routes.Auth.DoTextbook, { textbookId: selectedTextbook?.id, restart: true })
       setLoading(false)
     }
   }
@@ -122,8 +144,16 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
     setTextbookFilter({ ...textbookFilter, currentPage: page });
   };
 
+  const handleChangeFilter = (filter: FilterValues) => {
+    setTextbookFilter((state: TextbookQuery) => ({
+      ...state,
+      ...filter
+    }));
+    handleCloseFilterModal()
+  };
+
   const handleStartTextbookFromGuideModal = (enable: boolean) => {
-    if(!selectedTextbook ) return
+    if (!selectedTextbook) return
     handleStartTextbook(enable, selectedTextbook)
   }
 
@@ -145,40 +175,43 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
       .format(t("month_format"));
   };
 
-  useEffect(() => {
-    getTextbookList();
-  }, [selectedAcademy?.id]);
-
   useFocusEffect(
     useCallback(() => {
-      getTextbookList()
+      getTextbookList();
+
+      scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true })
+
       return () => {
         setSelectedTextbook(undefined);
-        handleCloseDialog()
+        handleCloseDialog();
       };
-    }, [])
+    }, [selectedAcademy?.id, textbookFilter])
   );
 
   return {
     t,
+    search,
+    onChangeSearch,
     selectedTextbook,
     isOpenDialog,
     handleCloseDialog,
     handleOpenDialog,
     openConfirmDialog,
     isOpenAudioGuide,
+    scrollViewRef,
     handleOpenAudioGuide,
     handleCloseAudioGuide,
     handleOpenConfirmDialog,
     handleCloseConfirmDialog,
     handleChangePage,
     openFilterModal,
+    textbookFilter,
     handleStartTextbook,
     handleCloseFilterModal,
     handleOpenFilterModal,
     textbookList,
+    handleChangeFilter,
     numberToMonth,
-    textSearchRef,
     handleDoTextbook,
     handleStartTextbookFromGuideModal
   };
