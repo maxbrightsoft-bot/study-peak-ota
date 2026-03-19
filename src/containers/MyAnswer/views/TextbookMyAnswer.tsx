@@ -4,29 +4,18 @@ import { useTranslation } from 'react-i18next'
 import _ from 'lodash'
 import { EffectSize, StudentQuestionResult, TextbookResult } from '@/utils/types'
 import { formatTextbookDataMyAnswer } from '../configs/helpers'
+import { formatTimeSecond, formatTimeDiffV2 } from '@/utils/helpers'
 import AnswerItem from '../components/TextbookAnswerItem'
-import { FormatTextbookDataMyAnswer } from '../configs/types'
-import { red } from '@/theme/colors'
+import { palette, red, primary } from '@/theme/colors'
 
 interface Props {
   data: TextbookResult
   effectSize?: EffectSize[]
-  isStudent?: boolean
-  openContextMenu?: boolean
-  onOpenContextMenu?: (data: any) => void
-  onCloseContextMenu?: (data: any) => void
-  menuContextActions?: any[]
 }
 
-const TextbookMyAnswer: FC<Props> = ({
-  data,
-  effectSize,
-  isStudent = true,
-  openContextMenu,
-  onOpenContextMenu,
-  onCloseContextMenu,
-  menuContextActions = []
-}) => {
+const TextbookMyAnswer: FC<Props> = ({ data, effectSize }) => {
+  const { t } = useTranslation()
+
   const questionGroupIds = useMemo(
     () => Array.from(new Set(data.studentQuestionResults.map((i) => i.questionGroupId))).sort((a, b) => a - b),
     [data.studentQuestionResults]
@@ -34,7 +23,31 @@ const TextbookMyAnswer: FC<Props> = ({
 
   const formattedData = useMemo(() => formatTextbookDataMyAnswer(data, questionGroupIds), [data, questionGroupIds])
 
-  const { t } = useTranslation()
+  const newFormattedData = useMemo(() => {
+    return formattedData.map((group) => {
+      const solvedTime = group.questions.some((q) => q.duration)
+        ? formatTimeSecond(Math.round(group.questions.reduce((acc, cur) => acc + (cur.duration || 0), 0)), t)
+        : '-'
+
+      const diffTime = group.questions.some((q) => q.duration && q.topDuration)
+        ? formatTimeDiffV2(
+            group.questions.reduce((acc, cur) => {
+              if (cur.duration && cur.topDuration) {
+                return acc + Math.round(cur.duration - cur.topDuration)
+              }
+              return acc
+            }, 0),
+            t
+          )
+        : '-'
+
+      return {
+        ...group,
+        solvedTime,
+        diffTime
+      }
+    })
+  }, [formattedData, t])
 
   const renderAnswer = (
     item: StudentQuestionResult,
@@ -42,9 +55,11 @@ const TextbookMyAnswer: FC<Props> = ({
     questions: StudentQuestionResult[],
     questionGroupId: number
   ) => {
-    const nextItem: StudentQuestionResult | undefined = index < questions.length - 1 ? questions[index + 1] : undefined
+    const nextItem = index < questions.length - 1 ? questions[index + 1] : undefined
+
     const isLast = index === questions.length - 1
     const isFirst = index === 0
+
     const effectSizeItem = effectSize?.find((i) => i.id === item.id)
 
     return (
@@ -63,64 +78,50 @@ const TextbookMyAnswer: FC<Props> = ({
   const renderHeader = () => (
     <View style={styles.headerRow}>
       <View style={styles.column1}>
-        <Text style={styles.headerText} numberOfLines={2}>
-          {t('problem_number')}
-        </Text>
+        <Text style={styles.headerText}>{t('problem_number')}</Text>
       </View>
       <View style={styles.column2}>
-        <Text style={styles.headerText} numberOfLines={2}>
-          {t('answer')}
-        </Text>
+        <Text style={styles.headerText}>{t('answer')}</Text>
       </View>
       <View style={styles.column3}>
-        <Text style={styles.headerText} numberOfLines={2}>
-          {t('solve_time')}
-        </Text>
+        <Text style={styles.headerText}>{t('solve_time')}</Text>
       </View>
       <View style={styles.column4}>
-        <Text style={styles.headerText} numberOfLines={3}>
-          {t('comparison_of_top_rankings')}
-        </Text>
+        <Text style={styles.headerText}>{t('comparison_of_top_rankings')}</Text>
       </View>
       <View style={styles.column5}>
-        <Text style={styles.headerText} numberOfLines={3}>
-          {t('total_correct_rate')}
-          <Text style={styles.skipRateText}>{`\n(${t('not_selected')})`}</Text>
-        </Text>
+        <Text style={styles.headerText}>{t('total_correct_rate')}</Text>
+        <Text style={styles.skipRateText}>{`(${t('not_selected')})`}</Text>
       </View>
     </View>
   )
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        horizontal={false}
-        showsVerticalScrollIndicator={true}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 200 }}
-      >
-        {formattedData &&
-          formattedData.length > 0 &&
-          formattedData.map((item: FormatTextbookDataMyAnswer) => (
-            <View key={item.questionGroupId} style={styles.categorySection}>
-              {renderHeader()}
+      <ScrollView>
+        {newFormattedData.map((item) => (
+          <View key={item.questionGroupId} style={styles.categorySection}>
+            {renderHeader()}
 
-              <View style={styles.categoryHeader}>
-                <View style={styles.categoryColumn}>
-                  <Text style={styles.categoryLabel}>{t('_category')}</Text>
-                  <Text style={styles.categoryName} numberOfLines={1}>
-                    {item.categories?.map((i) => i.name).join(' / ')}
-                  </Text>
-                </View>
+            <View style={styles.groupHeader}>
+              <View style={styles.groupColumn1}>
+                <Text style={styles.subcategoryText}>{item.categories?.map((i) => i.name).join(' / ')}</Text>
               </View>
-
-              <View style={styles.questionsContainer}>
-                {item.questions.map((question, index) =>
-                  renderAnswer(question, index, item.questions, item.questionGroupId)
-                )}
+              <View style={styles.groupColumn2} />
+              <View style={styles.groupColumn3}>
+                <Text style={styles.groupHeaderTime}>{item.solvedTime}</Text>
               </View>
+              <View style={styles.groupColumn4}>
+                <Text style={styles.groupHeaderTime}>{item.diffTime}</Text>
+              </View>
+              <View style={styles.groupColumn5} />
             </View>
-          ))}
+
+            <View style={styles.questionsContainer}>
+              {item.questions.map((q, index) => renderAnswer(q, index, item.questions, item.questionGroupId))}
+            </View>
+          </View>
+        ))}
       </ScrollView>
     </View>
   )
@@ -130,9 +131,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#FFFFFF'
   },
-  categorySection: {
-    marginBottom: 16
-  },
+  categorySection: {},
   headerRow: {
     flexDirection: 'row',
     backgroundColor: '#F9FAFB',
@@ -214,6 +213,53 @@ const styles = StyleSheet.create({
   },
   questionsContainer: {
     backgroundColor: '#FFFFFF'
+  },
+  groupHeader: {
+    flexDirection: 'row',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#F9FAFB'
+  },
+  groupColumn1: {
+    flex: 1.2,
+    justifyContent: 'center'
+  },
+  groupColumn2: {
+    flex: 1
+  },
+  groupColumn3: {
+    flex: 1,
+    alignItems: 'center'
+  },
+  groupColumn4: {
+    flex: 1,
+    alignItems: 'center'
+  },
+  groupColumn5: {
+    flex: 1.5
+  },
+  subcategoryText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: primary.main
+  },
+  groupHeaderTime: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: primary.main
+  },
+  titleBox: {
+    borderRadius: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    paddingVertical: 8,
+    marginBottom: 10
+  },
+  titleText: {
+    color: palette.main[600],
+    fontSize: 16,
+    fontWeight: '600'
   }
 })
 

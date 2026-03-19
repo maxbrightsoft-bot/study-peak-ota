@@ -79,6 +79,8 @@ const useOverallChartContainer = (
         t("low_level")
     ]
 
+    const shortCategories = categories.map(i => i.slice(0, 4) + "...")
+
     const xAxisLabelFormatter = useCallback(
         (_: string, data: any) => {
             const dataPointIndex = data?.dataPointIndex
@@ -184,6 +186,7 @@ const useOverallChartContainer = (
         myData,
         avgData,
         categories,
+        shortCategories,
         xAxisLabelFormatter,
         formatTooltip
     }

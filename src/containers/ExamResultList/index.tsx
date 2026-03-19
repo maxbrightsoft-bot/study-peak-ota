@@ -15,6 +15,7 @@ const ExamResultList = () => {
     listExam,
     groupExams,
     search,
+    scrollViewRef,
     expandedId,
     handleBack,
     toggleExpand,
@@ -23,75 +24,72 @@ const ExamResultList = () => {
     onChangeSearch
   } = useExamResultList()
 
-  const renderSearchItem = ({ item }: { item: ExamSessionResponse }) => (
-    <TouchableOpacity onPress={() => handleViewResult(item)} activeOpacity={0.8}>
-      <View style={styles.examItem}>
-        <View style={styles.examContent}>
-          <View style={styles.examHeader}>
-            <Text style={styles.examTitle}>{highlightText(item?.title || '', search)}</Text>
-            {(item.studentTotalAttemptTime || 0) > 1 && (
+  const renderExamCard = (exam: ExamSessionResponse, highlight = false) => (
+    <TouchableOpacity onPress={() => handleViewResult(exam)} activeOpacity={0.85}>
+      <View style={styles.examCard}>
+        <View style={styles.examTopRow}>
+          <Text numberOfLines={2} style={styles.examTitle}>
+            {highlight ? highlightText(exam?.title || '', search) : exam?.title || ''}
+          </Text>
+
+          {(exam.studentTotalAttemptTime || 0) > 1 && (
+            <View
+              style={[
+                styles.attemptBadge,
+                {
+                  backgroundColor: exam.isSelected ? palette.main[100] : palette.red[100]
+                }
+              ]}
+            >
               <Text
-                style={{
-                  fontWeight: 500,
-                  fontSize: 12,
-                  color: item.isSelected ? palette.main[700] : palette.red[900]
-                }}
+                style={[
+                  styles.attemptText,
+                  {
+                    color: exam.isSelected ? palette.main[700] : palette.red[900]
+                  }
+                ]}
               >
-                {`#${item.studentAttemptNumber + 1}/${item.studentTotalAttemptTime}`}
+                {`#${exam.studentAttemptNumber + 1}/${exam.studentTotalAttemptTime}`}
               </Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.examBottomRow}>
+          <Text style={styles.examDate}>
+            {utcToLocalTime(
+              isValidTime(exam.studentStartTime) ? exam.studentStartTime : exam.startTime,
+              t('date_format')
             )}
-          </View>
-          <View style={styles.examFooter}>
-            <Text style={styles.examDate}>{utcToLocalTime(item.startTime, t('date_format'))}</Text>
-            <Text style={styles.examScore}>{t('score_format', { score: item?.score })}</Text>
+          </Text>
+
+          <View style={styles.scoreBadge}>
+            <Text style={styles.scoreText}>{t('score_format', { score: exam?.score })}</Text>
           </View>
         </View>
       </View>
     </TouchableOpacity>
   )
 
+  const renderSearchItem = ({ item }: { item: ExamSessionResponse }) => renderExamCard(item, true)
+
   const renderGroupItem = ({ item, index }: { item: [string, ExamSessionResponse[]]; index: number }) => {
     const [key, exams] = item
+
     return (
       <View style={styles.groupExamContainer}>
         <CustomDropDown
           title={
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Text style={styles.titleText}>{moment(key).format(t('date_format_exam'))}</Text>
-              <Text style={styles.scoreText}>{t('cases', { number: exams.length })}</Text>
+            <View style={styles.groupHeader}>
+              <Text style={styles.groupDate}>{moment(key).format(t('date_format_exam'))}</Text>
+              <Text style={styles.groupCase}>{t('cases', { number: exams.length })}</Text>
             </View>
           }
           expanded={expandedId === index}
           onPress={() => toggleExpand(index)}
         >
-          {exams.map((exam, index) => (
-            <TouchableOpacity key={`${key}_${index}`} onPress={() => handleViewResult(exam)} activeOpacity={0.8}>
-              <View style={styles.examItem}>
-                <View style={styles.examContent}>
-                  <View style={styles.examHeader}>
-                    <Text style={styles.examTitle}>{exam?.title || ''}</Text>
-                    {(exam.studentTotalAttemptTime || 0) > 1 && (
-                      <Text
-                        style={{
-                          fontWeight: 500,
-                          fontSize: 12,
-                          color: exam.isSelected ? palette.main[700] : palette.red[900]
-                        }}
-                      >
-                        {`#${exam.studentAttemptNumber + 1}/${exam.studentTotalAttemptTime}`}
-                      </Text>
-                    )}
-                  </View>
-                  <View style={styles.examFooter}>
-                    <Text style={styles.examDate}>{utcToLocalTime(
-                                isValidTime(exam.studentStartTime) ? exam.studentStartTime : exam.startTime,
-                                t("date_format")
-                            )}</Text>
-                    <Text style={styles.examScore}>{t('score_format', { score: exam?.score })}</Text>
-                  </View>
-                </View>
-              </View>
-            </TouchableOpacity>
+          {exams.map((exam, idx) => (
+            <View key={`${key}_${idx}`}>{renderExamCard(exam)}</View>
           ))}
         </CustomDropDown>
       </View>
@@ -100,9 +98,13 @@ const ExamResultList = () => {
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>내 성적</Text>
+      </View>
       <View style={styles.searchBox}>
         <SearchInput value={search} onChangeText={onChangeSearch} placeholder={t('search_placeholder')} />
       </View>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={80}
@@ -111,20 +113,32 @@ const ExamResultList = () => {
         {search.length ? (
           <FlatList
             data={listExam}
+            ref={scrollViewRef}
             renderItem={renderSearchItem}
             keyExtractor={(item, index) => `search_${index}`}
             contentContainerStyle={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
           />
         ) : (
           <FlatList
+            ref={scrollViewRef}
             data={Object.entries(groupExams || {})}
             renderItem={renderGroupItem}
             keyExtractor={(item) => item[0]}
             contentContainerStyle={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
           />
         )}
       </KeyboardAvoidingView>
-      {!!selectedExam && <ExamResult onClose={handleBack} examCode={selectedExam?.code || ''} examSessionId={selectedExam.id} studentExamSessionId={selectedExam?.studentExamSessionId}/>}
+
+      {!!selectedExam && (
+        <ExamResult
+          onClose={handleBack}
+          examCode={selectedExam?.code || ''}
+          examSessionId={selectedExam.id}
+          studentExamSessionId={selectedExam?.studentExamSessionId}
+        />
+      )}
     </View>
   )
 }
@@ -136,72 +150,111 @@ const styles = ScaledSheet.create({
     flex: 1,
     backgroundColor: palette.grey[50]
   },
-  searchBox: {
+  header: {
+    paddingVertical: 20,
+    paddingHorizontal: 18,
     borderBottomWidth: 1,
-    paddingTop: '24@ms',
-    paddingHorizontal: '24@ms',
-    paddingBottom: '24@ms',
     backgroundColor: '#FFF',
     borderColor: palette.grey[100]
   },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 600,
+    color: '#222222'
+  },
+  searchBox: {
+    paddingTop: '24@ms',
+    paddingHorizontal: '20@ms'
+  },
+
   scrollContainer: {
-    gap: '8@ms',
-    paddingBottom: '20@vs'
+    paddingHorizontal: '20@ms',
+    paddingTop: '16@ms',
+    paddingBottom: '28@vs',
+    gap: '16@ms'
   },
-  titleText: {
-    ...TYPO.button3,
-    color: palette.grey[300]
-  },
-  scoreText: {
-    ...TYPO.button3,
-    color: palette.grey[900]
-  },
+
   groupExamContainer: {
     backgroundColor: '#FFF',
-    paddingHorizontal: '24@ms',
-    paddingVertical: '12@ms'
+    borderRadius: '14@ms',
+    paddingVertical: '8@ms',
   },
-  examItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingHorizontal: '24@ms',
-    paddingVertical: '12@ms',
-    gap: '8@ms',
-    borderRadius: '4@ms',
-    marginBottom: '8@vs'
+
+  groupHeader: {
+    paddingHorizontal: '20@ms',
+    paddingVertical: '10@ms'
   },
-  checkboxContainer: {
-    paddingTop: '2@vs'
+
+  groupDate: {
+    ...TYPO.button3,
+    color: palette.grey[900],
+    fontWeight: '600'
   },
-  checkbox: {
-    width: '20@ms',
-    height: '20@ms'
+
+  groupCase: {
+    fontSize: '12@ms',
+    color: palette.grey[400],
+    marginTop: '2@ms'
   },
-  examContent: {
-    flex: 1
+
+  examCard: {
+    backgroundColor: '#FFF',
+    borderRadius: '14@ms',
+    padding: '18@ms',
+    marginHorizontal: '16@ms',
+    marginBottom: '14@ms',
+    borderWidth: 1,
+    borderColor: palette.grey[100]
   },
-  examHeader: {
+
+  examTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: '4@vs'
+    alignItems: 'flex-start',
+    marginBottom: '12@ms'
   },
+
   examTitle: {
+    fontSize: '15@ms',
     fontWeight: '600',
-    fontSize: '14@ms',
-    flexShrink: 1
+    flex: 1,
+    marginRight: '10@ms',
+    color: palette.grey[900]
   },
-  examScore: {
-    fontWeight: '600',
-    fontSize: '14@ms',
-    marginLeft: '8@ms'
+
+  attemptBadge: {
+    paddingHorizontal: '8@ms',
+    paddingVertical: '4@ms',
+    borderRadius: '20@ms'
   },
-  examFooter: {
+
+  attemptText: {
+    fontSize: '11@ms',
+    fontWeight: '600'
+  },
+
+  examBottomRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
+    alignItems: 'center'
   },
+
   examDate: {
-    fontWeight: '500',
-    fontSize: '10@ms',
-    color: palette.grey[500]
+    fontSize: '12@ms',
+    color: palette.grey[500],
+    fontWeight: '500'
+  },
+
+  scoreBadge: {
+    backgroundColor: palette.main[100],
+    paddingHorizontal: '14@ms',
+    paddingVertical: '6@ms',
+    borderRadius: '20@ms'
+  },
+
+  scoreText: {
+    fontSize: '13@ms',
+    fontWeight: '600',
+    color: palette.main[700]
   }
 })

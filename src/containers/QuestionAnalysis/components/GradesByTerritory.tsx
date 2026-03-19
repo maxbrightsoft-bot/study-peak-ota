@@ -1,175 +1,162 @@
 import React, { FC } from 'react'
-import { View, TouchableOpacity } from 'react-native'
-import { Text, DataTable } from 'react-native-paper'
+import { View, Text, ScrollView, useWindowDimensions } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { CategoryResponse, ExamResult } from '@/utils/types'
-import { ProblemKey } from '@/utils/enums'
-import { totalSolveTimeCategories } from '../configs/helpers'
-import { CategoryFormat } from '../configs/types'
-import { Ionicons } from '@expo/vector-icons'
+import { CategoryResponse } from '@/utils/types'
 import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
 import { formatDuration } from '@/utils/helpers'
 
 type Props = {
   data: CategoryResponse[]
-  keyOpen: ProblemKey
-  resultData: ExamResult
-  openProblem?: ProblemKey
-  changeOpen?: (key?: ProblemKey) => void
   isPrint: boolean
 }
 
-const GradesByTerritory = ({ data, keyOpen, openProblem, changeOpen, resultData, isPrint }: Props) => {
+const GradesByTerritory = ({ data, isPrint }: Props) => {
   const { t } = useTranslation()
-  // const formattedData = totalSolveTimeCategories(resultData, data)
-  const isOpen = openProblem === ProblemKey.GradesByTerritory || isPrint
+  const { width } = useWindowDimensions()
+  const tableWidth = width - 40
+
+  const styles = ScaledSheet.create({
+    wrapper: {
+      borderRadius: 14,
+      overflow: 'hidden',
+      backgroundColor: '#FFF'
+    },
+    header: {
+      justifyContent: 'center',
+      backgroundColor: palette.bg[100],
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderColor: palette.grey[100]
+    },
+    headerText: {
+      fontSize: 14,
+      fontWeight: 'bold',
+      color: '#171719',
+      textAlign: 'center'
+    },
+    contentContainer: {
+      backgroundColor: '#FFF'
+    },
+    row: {
+      flexDirection: 'row',
+      minHeight: 44,
+      backgroundColor: '#FFF'
+    },
+    headerRow: {
+      backgroundColor: palette.bg[100],
+      borderBottomWidth: 1,
+      borderBottomColor: palette.grey[100]
+    },
+    rowBorder: {
+      borderBottomWidth: 1,
+      borderBottomColor: palette.grey[200]
+    },
+    cell: {
+      padding: 12,
+      justifyContent: 'center',
+      borderRightWidth: 1,
+      borderRightColor: palette.grey[100]
+    },
+    cellCategory: {
+      width: tableWidth / 3
+    },
+    cellNumeric: {
+      width: tableWidth / 3,
+      alignItems: 'flex-end'
+    },
+    cellLast: {
+      borderRightWidth: 1,
+      borderRightColor: palette.grey[100]
+    },
+    headerCell: {
+      backgroundColor: palette.bg[100],
+      justifyContent: 'center',
+      alignItems: 'center'
+    },
+    headerCellText: {
+      fontSize: 13,
+      fontWeight: 600,
+      color: palette.grey[500]
+    },
+    cellText: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: palette.grey[700]
+    },
+    boldText: {
+      fontWeight: '700',
+      color: palette.grey[900]
+    },
+    textCenter: {
+      textAlign: 'center'
+    },
+    noDataContainer: {
+      paddingVertical: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#FFF'
+    },
+    noDataText: {
+      color: palette.grey[500],
+      textAlign: 'center',
+      fontSize: 14
+    }
+  })
 
   const renderTableRows = (data: CategoryResponse[]) => {
-    return data.map((item) => (
-      <DataTable.Row key={item.id} style={styles.row}>
-        <DataTable.Cell style={styles.column1}>
-          <Text style={[styles.cellText, styles.boldText]}>{item.name}</Text>
-        </DataTable.Cell>
-        <DataTable.Cell numeric>
+    return data.map((item, index) => (
+      <View key={item.id} style={[styles.row, index < data.length - 1 && styles.rowBorder]}>
+        <View style={[styles.cell, styles.cellCategory]}>
+          <Text style={[styles.cellText, styles.boldText, { paddingLeft: 8 }]} numberOfLines={1}>
+            {item.name}
+          </Text>
+        </View>
+
+        <View style={[styles.cell, styles.cellNumeric, { borderRightWidth: 0 }]}>
           <Text style={[styles.cellText, styles.boldText]}>{item?.percentageAmongStudents?.toFixed(2)}%</Text>
-        </DataTable.Cell>
-        <DataTable.Cell numeric>
+        </View>
+
+        <View style={[styles.cell, styles.cellNumeric]}>
           <Text style={styles.cellText}>{item.totalSolvedTime ? formatDuration(t, item.totalSolvedTime) : ''}</Text>
-        </DataTable.Cell>
-      </DataTable.Row>
+        </View>
+      </View>
     ))
   }
 
   return (
     <View style={styles.wrapper}>
-      <TouchableOpacity
-        style={[
-          styles.header,
-          !isOpen ? styles.closedHeader : { borderBottomWidth: 1, borderColor: palette.grey[100] }
-        ]}
-        onPress={() => changeOpen?.(isOpen ? undefined : keyOpen)}
-      >
-        <Text style={[styles.headerText, !isOpen && { color: palette.grey[500] }]}>{t('grades_by_area')}</Text>
-        {isOpen ? (
-          <Ionicons name="chevron-up" size={24} color="#E0E0E0" />
-        ) : (
-          <Ionicons name="chevron-down" size={24} color="#E0E0E0" />
-        )}
-      </TouchableOpacity>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>{t('grades_by_area')}</Text>
+      </View>
 
-      {isOpen && (
-        <View style={styles.contentContainer}>
-          {data.length ? (
-            <DataTable>
-              <DataTable.Header style={{ backgroundColor: palette.grey[50] }}>
-                <DataTable.Title style={{ borderRightWidth: 1, borderColor: palette.grey[300] }}>
-                  <Text style={styles.cellText}>{t('categories')}</Text>
-                </DataTable.Title>
-                <DataTable.Title numeric>
-                  <Text style={styles.cellText}>{t('correct_rate')}</Text>
-                </DataTable.Title>
-                {/* <DataTable.Title numeric>
-                  <Text style={styles.cellText}>{t('number_of_correct_answers')}</Text>
-                </DataTable.Title>
-                <DataTable.Title numeric>
-                  <Text style={styles.cellText}>{t('total_number_of_problems')}</Text>
-                </DataTable.Title> */}
-                <DataTable.Title numeric>
-                  <Text style={styles.cellText}>{t('total_solve_time')}</Text>
-                </DataTable.Title>
-              </DataTable.Header>
-              {renderTableRows(data)}
-            </DataTable>
-          ) : (
-            <View style={styles.noDataContainer}>
-              <Text style={styles.noDataText}>{t('no_data')}</Text>
+      <View style={styles.contentContainer}>
+        {data.length ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={true}>
+            <View>
+              <View style={[styles.row, styles.headerRow]}>
+                <View style={[styles.cell, styles.cellCategory, styles.headerCell]}>
+                  <Text style={[styles.headerCellText]}>{t('categories')}</Text>
+                </View>
+                <View style={[styles.cellNumeric, styles.headerCell]}>
+                  <Text style={[styles.headerCellText, styles.textCenter]}>{t('correct_rate')}</Text>
+                </View>
+                <View style={[styles.cell, styles.cellNumeric, styles.headerCell]}>
+                  <Text style={[styles.headerCellText, styles.textCenter]}>{t('total_solve_time')}</Text>
+                </View>
+              </View>
+
+              <ScrollView showsVerticalScrollIndicator={true}>{renderTableRows(data)}</ScrollView>
             </View>
-          )}
-        </View>
-      )}
+          </ScrollView>
+        ) : (
+          <View style={styles.noDataContainer}>
+            <Text style={styles.noDataText}>{t('no_data')}</Text>
+          </View>
+        )}
+      </View>
     </View>
   )
 }
-
-const styles = ScaledSheet.create({
-  wrapper: {
-    marginBottom: 150,
-    backgroundColor: '#FFF'
-  },
-  header: {
-    paddingHorizontal: '24@ms',
-    paddingVertical: '12@ms',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: palette.grey[50]
-  },
-  closedHeader: {
-    backgroundColor: '#FAFAFA'
-  },
-  headerText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: palette.grey[700]
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  },
-  titleText: {
-    fontSize: 14,
-    fontWeight: '700'
-  },
-  contentContainer: {},
-  column1: {
-    borderRightWidth: 1,
-    borderColor: palette.grey[100]
-  },
-  boldText: {
-    color: palette.grey[900]
-  },
-  cellText: {
-    fontWeight: 600,
-    color: palette.grey[700]
-  },
-  categoryContainer: {
-    marginBottom: 12
-  },
-  labelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between'
-  },
-  categoryName: {
-    fontWeight: '600',
-    fontSize: 14
-  },
-  percentText: {
-    fontWeight: '500',
-    textAlign: 'right'
-  },
-  trackContainer: {
-    height: 6,
-    backgroundColor: '#FFF',
-    marginTop: 6
-  },
-  row: {},
-  track: {
-    height: 6,
-    backgroundColor: '#FFF',
-    borderRadius: 3
-  },
-  noDataContainer: {
-    paddingVertical: '12@ms',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFF'
-  },
-  noDataText: {
-    color: palette.grey[500],
-    textAlign: 'center'
-  }
-})
 
 export default GradesByTerritory

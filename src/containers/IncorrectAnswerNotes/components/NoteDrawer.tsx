@@ -69,20 +69,12 @@ const NoteDrawer: FC<Props> = (props) => {
       flexDirection: 'row',
       alignItems: 'center'
     },
-    backText: {
-      ...TYPO.button2,
-      color: palette.main[500]
-    },
-    backContainer: {
-      paddingVertical: '16@ms',
-      paddingHorizontal: '16@ms',
-    },
     header: {
-      backgroundColor: palette.grey[50],
-      paddingTop: 8,
-      paddingBottom: 8,
-      borderBottomWidth: 1,
-      borderBottomColor: palette.grey[200]
+      flexDirection: 'row',
+      paddingVertical: '16@ms',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: '24@ms'
     },
     headerContent: {
       paddingHorizontal: 16
@@ -93,7 +85,7 @@ const NoteDrawer: FC<Props> = (props) => {
     },
     studentInfo: {
       paddingHorizontal: 40,
-      paddingVertical: "24@ms"
+      paddingVertical: '24@ms'
     },
     studentRow: {
       flexDirection: 'row',
@@ -103,7 +95,7 @@ const NoteDrawer: FC<Props> = (props) => {
     studentName: {
       fontSize: 18,
       fontWeight: '700',
-      color: palette.main[500],
+      color: palette.main[500]
     },
     studentDetails: {
       flexDirection: 'row',
@@ -175,11 +167,14 @@ const NoteDrawer: FC<Props> = (props) => {
 
   return (
     <SlideDrawer visible={open}>
-      <View style={styles.backContainer}>
+      <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={onClose}>
-          <Ionicons name="chevron-back-outline" size={20} color={palette.main[500]} />
-          <Text style={[styles.backText]}>티로 가기</Text>
+          <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />
         </TouchableOpacity>
+        <View>
+          <Text style={{ fontSize: 16, fontWeight: 600, color: '#222222' }}>오답노트 상세</Text>
+        </View>
+        <View></View>
       </View>
       {showStudentInfo && (note?.type === NoteType.ToAcademy || note?.type === NoteType.ToStudent) && (
         <View style={styles.studentInfo}>

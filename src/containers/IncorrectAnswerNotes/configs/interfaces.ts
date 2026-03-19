@@ -1,10 +1,11 @@
-import { Action, NoteResponse, QuestionData } from "@/utils/types"
+import { Action, ExamResult, NoteResponse, QuestionData } from "@/utils/types"
 import { MouseEvent, RefObject } from "react"
 
 export interface NotesContainerProps{
     isLoading?: boolean
     noteIdContextMenu?: number
     data: NoteResponse[]
+    examResultData?: ExamResult
     itemActions: Action<NoteResponse>[]
     listHeight?: number
     containerListProps?: any

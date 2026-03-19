@@ -1,15 +1,17 @@
 import React, { FC } from 'react'
-import { Image, KeyboardAvoidingView, Platform, ScrollView, TextInput, TouchableOpacity, View } from 'react-native'
+import { Image, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, View } from 'react-native'
 import { Text, useTheme } from 'react-native-paper'
 import { Formik } from 'formik'
 import * as Yup from 'yup'
 import { useTranslation } from 'react-i18next'
-import CommonDialog from '@/components/ModalBase/CommonDialog'
 import { palette, TYPO } from '@/theme'
 import Select from '@/components/Select/CustomSelect'
 import { ScaledSheet } from 'react-native-size-matters'
 import Loading from '@/components/Loading'
 import { Ionicons } from '@expo/vector-icons'
+import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
+import TextField from '@/components/Input/TextField'
+import { ExamResult, QuestionData } from '@/utils/types'
 
 interface ExamNoteDialogProps {
   open: boolean
@@ -17,9 +19,10 @@ interface ExamNoteDialogProps {
   selectedNote?: any
   handleUploadImage: () => Promise<void>
   isLoadingNotes: boolean
-  selectedQuestion?: any
+  selectedQuestion?: QuestionData
   questionOptions?: { label: string; value: number }[]
   onClose: () => void
+  examResultData?: ExamResult
   onSaveNote: (content: string, questionId: number) => void
 }
 
@@ -34,6 +37,7 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
   handleUploadImage,
   isLoadingNotes,
   selectedNote,
+  examResultData,
   selectedQuestion,
   questionOptions = [],
   onClose,
@@ -45,11 +49,18 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
   const initialQuestionId = selectedNote ? selectedNote.questionId || 0 : selectedQuestion ? selectedQuestion.id : 0
 
   return (
-    <CommonDialog
-      isVisible={open}
-      onClose={onClose}
-      title={t(selectedNote ? 'correct_incorrect_answer_notes' : 'write_a_note_of_incorrect_answers')}
-    >
+    <SlideDrawerRoot onClose={onClose} visible={open}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={onClose}>
+          <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />
+        </TouchableOpacity>
+        <View>
+          <Text style={{ fontSize: 16, fontWeight: 600, color: '#222222' }}>
+            {t('write_a_note_of_incorrect_answers')}
+          </Text>
+        </View>
+        <View></View>
+      </View>
       {isLoadingNotes && <Loading isOverlay={false} />}
       <Formik
         initialValues={{
@@ -59,14 +70,15 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
         validationSchema={schema}
         onSubmit={(values) => onSaveNote(values.content, values.questionId)}
       >
-        {({ handleChange, handleSubmit, values, setFieldValue }) => (
+        {({ handleChange, handleSubmit, values, setFieldValue }) => 
+        {
+          const question = examResultData?.questions.find(i => i.id === values.questionId)
+          return (
           <>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={80}>
-              <ScrollView>
-                <View style={{ marginBottom: 16 }}>
-                  <Text variant="labelLarge" style={{ color: palette.grey[700] }}>
-                    {t('problem_number')}
-                  </Text>
+              <ScrollView style={styles.contentWrapper}>
+                <View>
+                  <Text style={styles.labelText}>{t('problem_number')}</Text>
                   {selectedNote || selectedQuestion ? (
                     <Text style={{ color: theme.colors.primary, fontWeight: 'bold' }}>
                       {t('number_question', {
@@ -83,33 +95,43 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
                     />
                   )}
                 </View>
+                {question && <View style={{ marginTop: 12 }}>
+                  <View style={styles.headerRow}>
+                    <Text style={styles.headerText}>{question?.questionTypeCategories?.[0]?.category?.name}</Text>
+                    <View style={styles.separator} />
+                    <Text style={styles.headerText}>{question?.questionTypeCategories?.[0]?.subcategory?.name}</Text>
+                    <View style={styles.separator} />
+                    <Text style={styles.headerText}>{question?.score}p</Text>
 
-                <View>
-                  <Text variant="labelLarge" style={{ color: palette.grey[700] }}>
-                    {t('incorrect_answer_note_contents')}
-                  </Text>
-                  <TextInput
+                  </View>
+
+                  <View style={styles.metaRow}>
+                    <View style={styles.metaLeft}>
+                      <Text style={styles.metaText}>{examResultData?.title}</Text>
+                    </View>
+                  </View>
+                </View>}
+                <View style={{ marginTop: 20 }}>
+                  <Text style={styles.labelText}>{t('incorrect_answer_note_contents')}</Text>
+                  <TextField
                     multiline
-                    numberOfLines={3}
-                    style={{
-                      borderColor: '#ccc',
-                      borderWidth: 1,
-                      borderRadius: 4,
-                      padding: 8,
-                      marginTop: 4,
-                      minHeight: 64,
-                      textAlignVertical: 'top'
-                    }}
-                    placeholder={t('the_problem_is_difficult')}
+                    numberOfLines={10}
+                    placeholder="(예시) 다른 문제에서 시간을 절약해서 부족한 현대문학에 시간을 좀 더 써야겠다."
                     value={values.content}
                     onChangeText={handleChange('content')}
                   />
                 </View>
-                <View style={{ marginTop: 12 }}>
+                <View style={{ marginTop: 20 }}>
                   {imageUrl ? (
                     <Image
                       source={{ uri: imageUrl }}
-                      style={{ width: 120, height: 120, borderRadius: 8, borderWidth: 1, borderColor: palette.grey[500] }}
+                      style={{
+                        width: 120,
+                        height: 120,
+                        borderRadius: 8,
+                        borderWidth: 1,
+                        borderColor: palette.grey[500]
+                      }}
                       resizeMode="cover"
                     />
                   ) : (
@@ -121,17 +143,14 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
               </ScrollView>
             </KeyboardAvoidingView>
             <View style={styles.footer}>
-              <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>
-                <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
-              </TouchableOpacity>
               <TouchableOpacity style={[styles.button, styles.confirmButton]} onPress={handleSubmit as any}>
-                <Text style={styles.confirmButtonText}>{t('registration')}</Text>
+                <Text style={styles.confirmButtonText}>등록</Text>
               </TouchableOpacity>
             </View>
           </>
-        )}
+        )}}
       </Formik>
-    </CommonDialog>
+    </SlideDrawerRoot>
   )
 }
 
@@ -140,39 +159,102 @@ const styles = ScaledSheet.create({
     paddingVertical: '16@ms',
     paddingHorizontal: '24@ms'
   },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  backText: {
+    ...TYPO.button2,
+    color: palette.main[500]
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: '16@ms',
+    paddingHorizontal: '20@ms',
+    borderBottomWidth: 1,
+    borderColor: palette.grey[100]
+  },
   formGroup: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: '8@ms'
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap'
+  },
+  headerText: {
+    fontSize: 12,
+    lineHeight: 20,
+    color: '#222222',
+    fontWeight: 500
+  },
+  metaLeft: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+
+  number: {
+    fontSize: 16,
+    fontWeight: '700',
+    lineHeight: 25,
+    color: palette.grey[900],
+    marginRight: 12
+  },
+
+  metaText: {
+    fontSize: 12,
+    lineHeight: 20,
+    color: palette.grey[400]
+  },
+  separator: {
+    width: 1,
+    height: 10,
+    backgroundColor: palette.grey[400],
+    marginHorizontal: 10
+  },
+
+  metaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 6
+  },
+
   labelText: {
-    fontSize: '13@ms',
-    fontWeight: 600,
-    color: palette.grey[700],
-    width: '100@ms'
+    fontSize: '12@ms',
+    fontWeight: 400,
+    color: '#222222',
+    lineHeight: 20,
+    marginBottom: 10
   },
   titleText: {
     fontSize: '14@ms',
     fontWeight: 700,
     color: palette.main[700]
   },
+  contentWrapper: {
+    paddingVertical: '16@ms',
+    paddingHorizontal: '20@ms'
+  },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: '16@ms'
+    marginTop: 52,
+    paddingHorizontal: '20@ms'
   },
   button: {
-    paddingVertical: '12@ms',
-    paddingHorizontal: '24@ms',
-    borderRadius: '8@ms',
-    minWidth: '120@ms',
+    paddingVertical: '14@ms',
+    paddingHorizontal: '16@ms',
+    borderRadius: '12@ms',
     alignItems: 'center'
   },
   cancelButton: {
     backgroundColor: palette.grey[100]
   },
   confirmButton: {
-    backgroundColor: palette.main[500]
+    backgroundColor: palette.main[600]
   },
   cancelButtonText: {
     ...TYPO.button2,

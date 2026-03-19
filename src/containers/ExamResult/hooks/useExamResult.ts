@@ -6,8 +6,7 @@ import { ProblemKey } from "@/utils/enums"
 import { captureRef } from 'react-native-view-shot'
 import RNFS from 'react-native-fs';
 import { useTranslation } from "react-i18next"
-import { examStatusViewOptions } from "../../ExamResultList/configs/constants"
-import useExamResultNote from "../../ExamResultList/hooks/useExamResultNote"
+import useExamResultNote from "./useExamResultNote"
 import useCreateQuestionDialog from "../../ExamResultList/hooks/useQADialog"
 import { getChapterResultsApi, getChapterResultsCategoriesApi, getChapterResultsEffectSizeApi, getChapterResultsLongTimeSpendApi, getChapterResultsTimeOrderQuestionApi, getResults, getResultsCategories, getResultsEffectSize, getResultsLongTimeSpend, getResultsTimeOrderQuestion } from "../apiClients"
 import { Platform, View } from "react-native"
@@ -16,6 +15,8 @@ import { useFocusEffect } from "@react-navigation/native"
 import { navigate } from "@/navigators/NavigationHelpers"
 import { restartExamApi } from "@/containers/DoExam/apiClients"
 import { Routes } from "@/navigators/RouteName"
+import { examStatusViewOptions } from "../configs/constants"
+import _ from "lodash"
 
 type Props = {
   chapterId?: number
@@ -249,19 +250,19 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
     , [resultData?.startTime, resultData?.finishTime])
 
   const handlePrint = async () => {
-  if (!contentRef.current) return;
+    if (!contentRef.current) return;
 
-  setLoading(true)
-  try {
-    const uri = await captureRef(contentRef, {
-      format: 'png',
-      quality: 1,
-      result: 'base64',
-    });
+    setLoading(true)
+    try {
+      const uri = await captureRef(contentRef, {
+        format: 'png',
+        quality: 1,
+        result: 'base64',
+      });
 
-    const sanitizedFileName = fileName.replace(/[ \(\):]/g, '_');
+      const sanitizedFileName = fileName.replace(/[ \(\):]/g, '_');
 
-    const htmlContent = `
+      const htmlContent = `
       <!DOCTYPE html>
       <html>
         <head>
@@ -277,32 +278,32 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
       </html>
     `;
 
-    const pdf = await RNHTMLtoPDF.convert({
-      html: htmlContent,
-      fileName: sanitizedFileName,
-      width: 595,
-      height: 842,
-      bgColor: '#FFFFFF',
-    });
+      const pdf = await RNHTMLtoPDF.convert({
+        html: htmlContent,
+        fileName: sanitizedFileName,
+        width: 595,
+        height: 842,
+        bgColor: '#FFFFFF',
+      });
 
-    if (!pdf.filePath) return;
+      if (!pdf.filePath) return;
 
-    const targetPath =
-      Platform.OS === 'android'
-        ? `${RNFS.DownloadDirectoryPath}/${sanitizedFileName}.pdf`
-        : `${RNFS.DocumentDirectoryPath}/${sanitizedFileName}.pdf`;
+      const targetPath =
+        Platform.OS === 'android'
+          ? `${RNFS.DownloadDirectoryPath}/${sanitizedFileName}.pdf`
+          : `${RNFS.DocumentDirectoryPath}/${sanitizedFileName}.pdf`;
 
-    await RNFS.copyFile(pdf.filePath, targetPath);
+      await RNFS.copyFile(pdf.filePath, targetPath);
 
-    toast.success(`${t('file_saved_at')} ${targetPath}`)
+      toast.success(`${t('file_saved_at')} ${targetPath}`)
 
-  } catch (err) {
-    console.error('Print error:', err);
-  }
-  finally {
-    setLoading(false)
-  }
-};
+    } catch (err) {
+      console.error('Print error:', err);
+    }
+    finally {
+      setLoading(false)
+    }
+  };
 
   const onContentLayout = (event: any) => {
     const { width, height } = event.nativeEvent.layout;

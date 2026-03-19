@@ -96,6 +96,7 @@ const useQuestionTypesOverallChartContainer = (
         myData,
         avgData,
         categories,
+        shortCategories,
         xAxisLabelFormatter,
         formatTooltip
     }

@@ -1,7 +1,6 @@
 import { t } from 'i18next'
 import React, { Dispatch, FC, RefObject, SetStateAction } from 'react'
 import { Text, View } from 'react-native'
-import ExamOverView from '../components/ExamOverView'
 import ExamMyAnswer from '@/containers/MyAnswer/views/ExamMyAnswer'
 import TextbookMyAnswer from '@/containers/MyAnswer/views/TextbookMyAnswer'
 import {
@@ -15,7 +14,6 @@ import { ScaledSheet } from 'react-native-size-matters'
 import ExamQuestionAnalysis from '@/containers/QuestionAnalysis/views/ExamQuestionAnalysis'
 import TextbookQuestionAnalysis from '@/containers/QuestionAnalysis/views/TextbookQuestionAnalysis'
 import { ProblemKey } from '@/utils/enums'
-import TextbookOverView from '../components/TextbookOverView'
 import { palette, TYPO } from '@/theme'
 import MyOverall from '@/containers/MyOverall'
 
@@ -82,9 +80,6 @@ const PrintExamResult: FC<Props> = ({
           </View>
         )}
         {chapterId
-          ? textbookResult && <TextbookOverView t={t} resultData={textbookResult} />
-          : resultData && <ExamOverView t={t} resultData={resultData} />}
-        {chapterId
           ? null
           : resultData && (
               <MyOverall
@@ -112,8 +107,6 @@ const PrintExamResult: FC<Props> = ({
           : resultData && (
               <ExamQuestionAnalysis
                 longTimeSpend={longTimeSpend}
-                openProblem={openProblem}
-                setOpenProblem={setOpenProblem}
                 categoryResponses={categoryResponses}
                 resultData={resultData}
                 isPrint={true}
