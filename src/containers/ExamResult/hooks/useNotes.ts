@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next"
 import _ from "lodash"
 import { NoteResponse, NoteSearchQuery } from "@/utils/types"
 import { getErrorMessage, toast } from "@/utils/helpers"
-import { getNotesApi } from "../apiClients/noteService"
+import { getNotesApi } from "../../ExamResultList/apiClients/noteService"
 import { useFocusEffect } from "@react-navigation/native"
 
 const useNotes = (

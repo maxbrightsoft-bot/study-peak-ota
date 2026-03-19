@@ -7,7 +7,7 @@ import { SubjectType } from '@/utils/enums'
 import { formatDataMyAnswer } from '../configs/helpers'
 import { formatTimeDiffV2, formatTimeSecond } from '@/utils/helpers'
 import AnswerItem from '../components/AnswerItem'
-import { primary, red } from '@/theme/colors'
+import { palette, primary, red } from '@/theme/colors'
 
 interface Props {
   data: ExamResult
@@ -157,21 +157,33 @@ const MyAnswer: FC<Props> = ({ data, categories, effectSize }) => {
         </Text>
       </View>
       <View style={styles.column5}>
-        <Text style={styles.headerText} numberOfLines={3}>
-          {t('total_correct_rate')}
-          <Text style={styles.skipRateText}>{`\n(${t('not_selected')})`}</Text>
-        </Text>
+        <Text style={styles.headerText}>{t('total_correct_rate')}</Text>
+        <Text style={styles.skipRateText}>{`(${t('not_selected')})`}</Text>
       </View>
     </View>
   )
 
   return (
     <View style={styles.container}>
+      <View
+        style={{
+          borderRadius: 6,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: '#FFF',
+          paddingVertical: 8,
+          marginBottom: 10
+        }}
+      >
+        <Text style={{ color: palette.main[600], fontSize: 16, fontWeight: 600 }}>{t('my_answers')}</Text>
+      </View>
       <ScrollView
         horizontal={false}
         showsVerticalScrollIndicator={true}
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 200 }}
+        contentContainerStyle={{
+          paddingBottom: 200
+        }}
       >
         {newFormattedData &&
           newFormattedData.length > 0 &&
@@ -197,14 +209,12 @@ const MyAnswer: FC<Props> = ({ data, categories, effectSize }) => {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#FFFFFF'
-  },
-  categorySection: {
-    marginBottom: 16
-  },
+  container: {},
+  categorySection: {},
   headerRow: {
     flexDirection: 'row',
+    borderTopRightRadius: 14,
+    borderTopLeftRadius: 14,
     backgroundColor: '#F9FAFB',
     paddingVertical: 12,
     paddingHorizontal: 12,
@@ -277,16 +287,17 @@ const styles = StyleSheet.create({
     flex: 1
   },
   questionsContainer: {
-    backgroundColor: '#FFFFFF'
+    backgroundColor: '#FFFFFF',
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
+    overflow: 'hidden'
   },
   groupHeader: {
     flexDirection: 'row',
     paddingVertical: 4,
     paddingHorizontal: 12,
-    backgroundColor: '#F3F4F6',
     minHeight: 32
   },
-  // Cùng flex ratios với header
   groupHeaderColumn1: {
     flex: 1.2,
     justifyContent: 'center',

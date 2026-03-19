@@ -52,6 +52,11 @@ const useCategoriesOverallChartContainer = (
         return overallData.map(i => i.categoryName)
     }, [overallData])
 
+    const shortCategories = useMemo(() => {
+        if (!overallData) return ["", "", "", "", "", ""]
+        return overallData.map(i => i.categoryName.slice(0, 4) + "...")
+    }, [overallData])
+
     const xAxisLabelFormatter = useCallback(
         (_: string, { dataPointIndex }: any) => {
             if(dataPointIndex === 0 || dataPointIndex === 3) return categories[dataPointIndex]
@@ -112,6 +117,7 @@ const useCategoriesOverallChartContainer = (
         isLoading,
         myData,
         avgData,
+        shortCategories,
         categories,
         xAxisLabelFormatter,
         formatTooltip

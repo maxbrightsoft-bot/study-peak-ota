@@ -28,7 +28,7 @@ const Vulnerable: FC<Props> = ({ data, keyOpen, openProblem, isPrint, changeOpen
     return data.studentQuestionResults
       .filter(
         (i) =>
-          i.selectedAnswers !== '' &&
+          (i.selectedAnswers?.length || i.textualAnswers?.length) &&
           i.isCorrect === false &&
           i.isStar === false &&
           i.overallCorrectRate >= correctRateThreshHold

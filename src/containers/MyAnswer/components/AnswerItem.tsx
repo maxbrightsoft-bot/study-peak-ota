@@ -231,6 +231,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     minHeight: 60,
     justifyContent: 'center',
+    borderBottomWidth: 1,
+    borderColor: palette.grey[100]
   },
   row: {
     flexDirection: 'row',
@@ -238,7 +240,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
-  // Khớp với MyAnswer: 5 cột với flex ratios
   column1: {
     flex: 1.2,
   },

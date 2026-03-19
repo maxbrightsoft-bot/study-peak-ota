@@ -1,11 +1,8 @@
-import SlideDrawer from '@/components/ModalBase/SlideDrawer'
-import StartArrowSelect from '@/components/Select/StartArrowSelect'
 import { palette, TYPO } from '@/theme'
-import { isValidTime, utcToLocalTime } from '@/utils/helpers'
 import { Action, NoteResponse, Question } from '@/utils/types'
 import { Ionicons } from '@expo/vector-icons'
 import { useState } from 'react'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { Pressable, Text, TouchableOpacity, View } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 import { ExamStatusView } from '@/utils/enums'
 import ExamMyAnswer from '@/containers/MyAnswer/views/ExamMyAnswer'
@@ -17,17 +14,18 @@ import { NotesContainerProps } from '@/containers/IncorrectAnswerNotes/configs/i
 import ExamNoteDialog from '@/containers/IncorrectAnswerNotes/components/ExamNoteDialog'
 import CreateNewQuestionDialog from '../components/CreateNewQuestionDialog'
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
-import ExamOverView from '../components/ExamOverView'
 import { examStatusViewOptions } from '../configs/constants'
 import useExamResult from '../hooks/useExamResult'
 import PrintExamResult from './PrintExamResult'
-import TextbookOverView from '../components/TextbookOverView'
 import useCategoriesOverallChartContainer from '../hooks/useCategoriesOverallChartContainer'
 import useOverallChartContainer from '../hooks/useOverallChartContainer'
 import useOverallTimeChartContainer from '../hooks/useOverallTimeChartContainer'
 import MyOverall from '@/containers/MyOverall'
 import useQuestionTypesOverallChartContainer from '../hooks/useQuestionTypesOverallChartContainer'
 import NoteDrawer from '@/containers/IncorrectAnswerNotes/components/NoteDrawer'
+import CompareSolution from '@/containers/CompareSolution'
+import SolutionOrderChart from '../components/SolutionOrderChart'
+import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 
 type Props = {
   examCode?: string
@@ -64,6 +62,7 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
   const {
     examStatusView,
     resultData,
+    timelyOrderQuestions,
     longTimeSpend,
     openProblem,
     effectSize,
@@ -92,34 +91,40 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
     handleCloseDeleteDialog
   } = examResultNotes
 
-  const { loading: loadingCreateConversation, isOpenQuestionDialog, handleCloseQuestionDialog, handleCreateQuestion, handleOpenQuestionDialog } = QADialog
+  const {
+    loading: loadingCreateConversation,
+    isOpenQuestionDialog,
+    handleCloseQuestionDialog,
+    handleCreateQuestion,
+    handleOpenQuestionDialog
+  } = QADialog
 
   const questionActions: Action<Question>[] = chapterId
     ? [
-        {
-          label: 'ask_a_question',
-          textStyle: {
-            color: '#3dc674'
-          },
-          onPress: handleOpenQuestionDialog
-        }
-      ]
-    : [
-        {
-          label: 'write_a_note_of_incorrect_answers',
-          textStyle: {
-            color: '#3dc674'
-          },
-          onPress: handleOpenNoteDialogFromQuestion
+      {
+        label: 'ask_a_question',
+        textStyle: {
+          color: '#3dc674'
         },
-        {
-          label: 'ask_a_question',
-          textStyle: {
-            color: '#3dc674'
-          },
-          onPress: handleOpenQuestionDialog
-        }
-      ]
+        onPress: handleOpenQuestionDialog
+      }
+    ]
+    : [
+      {
+        label: 'write_a_note_of_incorrect_answers',
+        textStyle: {
+          color: '#3dc674'
+        },
+        onPress: handleOpenNoteDialogFromQuestion
+      },
+      {
+        label: 'ask_a_question',
+        textStyle: {
+          color: '#3dc674'
+        },
+        onPress: handleOpenQuestionDialog
+      }
+    ]
 
   const [selectedNoteView, setSelectedNoteView] = useState<NoteResponse>()
 
@@ -195,6 +200,7 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
 
   const notesContainerProps: NotesContainerProps = {
     data: notes,
+    examResultData: resultData,
     noteIdContextMenu: noteIdContextMenu,
     itemActions: noteItemActions,
     onCloseTooltip: handleCloseTooltip,
@@ -206,23 +212,21 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
 
   const renderBody = () => {
     switch (examStatusView) {
-      case ExamStatusView.ExamOverview:
-        return chapterId
-          ? textbookResult && <TextbookOverView t={t} resultData={textbookResult} />
-          : resultData && <ExamOverView t={t} resultData={resultData} />
       case ExamStatusView.MyOverall:
         return chapterId
           ? null
           : resultData && (
-              <MyOverall
-                resultData={resultData}
-                subcategoriesOverallChartContainerProps={subcategoriesOverallChartContainer}
-                overallChartContainerProps={overallChartContainer}
-                categoriesOverallChartContainerProps={categoriesOverallChartContainer}
-                overallTimeChartContainerProps={overallTimeChartContainer}
-                questionTypesOverallChartContainerProps={questionTypesOverallChartContainer}
-              />
-            )
+            <MyOverall
+              resultData={resultData}
+              subcategoriesOverallChartContainerProps={subcategoriesOverallChartContainer}
+              overallChartContainerProps={overallChartContainer}
+              categoriesOverallChartContainerProps={categoriesOverallChartContainer}
+              overallTimeChartContainerProps={overallTimeChartContainer}
+              questionTypesOverallChartContainerProps={questionTypesOverallChartContainer}
+            />
+          )
+      case ExamStatusView.CompareSolution:
+        return effectSize && <CompareSolution effectSize={effectSize} data={resultData} />
       case ExamStatusView.MyAnswers:
         return chapterId
           ? textbookResult && <TextbookMyAnswer data={textbookResult} effectSize={effectSize} />
@@ -230,23 +234,23 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
       case ExamStatusView.QuestionAnalysis:
         return chapterId
           ? textbookResult && (
-              <TextbookQuestionAnalysis
-                longTimeSpend={longTimeSpend}
-                openProblem={openProblem}
-                setOpenProblem={setOpenProblem}
-                categoryResponses={categoryResponses}
-                resultData={textbookResult}
-              />
-            )
+            <TextbookQuestionAnalysis
+              longTimeSpend={longTimeSpend}
+              openProblem={openProblem}
+              setOpenProblem={setOpenProblem}
+              categoryResponses={categoryResponses}
+              resultData={textbookResult}
+            />
+          )
           : resultData && (
-              <ExamQuestionAnalysis
-                longTimeSpend={longTimeSpend}
-                openProblem={openProblem}
-                setOpenProblem={setOpenProblem}
-                categoryResponses={categoryResponses}
-                resultData={resultData}
-              />
-            )
+            <ExamQuestionAnalysis
+              longTimeSpend={longTimeSpend}
+              categoryResponses={categoryResponses}
+              resultData={resultData}
+            />
+          )
+      case ExamStatusView.SolutionOrder:
+        return <SolutionOrderChart data={timelyOrderQuestions} />
       case ExamStatusView.IncorrectAnswerNotes:
         return chapterId ? null : (
           <>
@@ -264,7 +268,7 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
               cancelText={t('cancel')}
               isDelete
             />
-            <ExamNoteDialog {...noteDialogProps} selectedQuestion={selectedQuestion} />
+            <ExamNoteDialog examResultData={resultData} {...noteDialogProps} selectedQuestion={selectedQuestion} />
           </>
         )
       default:
@@ -273,69 +277,40 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
   }
 
   return (
-    <SlideDrawer visible={!!resultData || !!textbookResult}>
-      <View style={styles.container}>
-        <View style={{ paddingVertical: 16 }}>
-          <View style={styles.header}>
-            <TouchableOpacity style={styles.backButton} onPress={onClose}>
-              <Ionicons name="chevron-back-outline" size={20} color={palette.main[500]} />
-              <Text style={[styles.backText]}>티로 가기</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.printButton} onPress={handlePrint}>
-              <Text style={[styles.printText]}>{t('print')}</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.action}>
-            <TouchableOpacity style={styles.restartButton} onPress={handleOpenQuestionDialog}>
-              <View style={styles.iconWrapper}>
-                <Ionicons name="chatbubble-ellipses-sharp" size={14} color={palette.main[500]} />
-              </View>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: palette.main[500] }}>{t('ask_a_question2')}</Text>
-            </TouchableOpacity>
-            {!chapterId && (
-              <TouchableOpacity style={styles.restartButton} onPress={handleOpenConfirmRestartExamDialog}>
-                <View style={styles.iconWrapper}>
-                  <Ionicons name="refresh-outline" size={14} color="#3498db" />
-                </View>
-                <Text style={styles.restartText}>{t('restart_exam')}</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-        <View style={styles.titleContainer}>
-          <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-            <Text style={styles.examTitle}>{chapterId ? textbookResult?.chapterName : resultData?.title}</Text>
-            {(resultData?.studentTotalAttemptTime || 0) > 1 && (
-              <Text
-                style={{
-                  fontWeight: 500,
-                  fontSize: 12,
-                  color: resultData?.isSelected ? palette.main[700] : palette.red[900]
-                }}
-              >
-                {`#${(resultData?.studentAttemptNumber || 0) + 1}/${resultData?.studentTotalAttemptTime}`}
-              </Text>
-            )}
-          </View>
-          <Text style={styles.examDate}>
-            {chapterId
-              ? utcToLocalTime(textbookResult?.startTime, t('date_format'))
-              : utcToLocalTime(
-                  isValidTime(resultData?.studentStartTime) ? resultData?.studentStartTime : resultData?.startTime,
-                  t('date_format')
-                )}
+    <SlideDrawerRoot visible={!!resultData || !!textbookResult}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={onClose}>
+          <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />
+        </TouchableOpacity>
+        <View>
+          <Text style={{ fontSize: 16, fontWeight: 600, color: '#222222' }}>
+            {t('exam_results')}
           </Text>
         </View>
+        <View></View>
+      </View>
+      <View style={styles.container}>
+        <View style={styles.tabs}>
+          {examStatusViewOptions(t, chapterId).map(({ label, value }, index) => {
+            const active = value === examStatusView
 
-        <View style={styles.section}>
-          <View style={styles.dropdownContainer}>
-            <StartArrowSelect
-              items={examStatusViewOptions(t, chapterId)}
-              value={examStatusView}
-              onValueChange={handleChangeExamStatusView}
-            />
-          </View>
+            return (
+              <Pressable
+                key={index}
+                onPress={() => handleChangeExamStatusView(value)}
+                style={[styles.tabButton, active && styles.tabButtonActive]}
+              >
+                <Text style={[styles.tabText, active && styles.tabTextActive]}>{t(label)}</Text>
+              </Pressable>
+            )
+          })}
+        </View>
+        <View
+          style={{ flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 8, gap: 10, alignItems: 'center' }}
+        >
+          <Text style={{ color: '#222222', fontSize: 12, fontWeight: 600 }}>{resultData?.subjectName}</Text>
+          <View style={{ height: 12, width: 2, backgroundColor: palette.grey[300] }} />
+          <Text style={{ color: '#222222', fontSize: 12, fontWeight: 400 }}>{resultData?.title}</Text>
         </View>
         <View style={styles.contentContainer}>{renderBody()}</View>
       </View>
@@ -381,7 +356,7 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
           handleRestartExam?.()
         }}
       />
-    </SlideDrawer>
+    </SlideDrawerRoot>
   )
 }
 
@@ -396,7 +371,34 @@ const styles = ScaledSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: '24@ms'
+    paddingHorizontal: '20@ms',
+    paddingVertical: '16@ms'
+  },
+  tabs: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    borderBottomWidth: 1,
+    borderTopWidth: 1,
+    borderColor: palette.grey[100]
+  },
+  tabButton: {
+    width: '30%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: '8@ms'
+  },
+  tabButtonActive: {
+    backgroundColor: palette.main[600]
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 22,
+    color: palette.grey[400]
+  },
+  tabTextActive: {
+    color: '#FFFF'
   },
   backButton: {
     flexDirection: 'row',
@@ -482,6 +484,8 @@ const styles = ScaledSheet.create({
     width: '48%'
   },
   contentContainer: {
+    padding: 20,
+    backgroundColor: palette.grey[100],
     paddingBottom: '40@ms'
   }
 })

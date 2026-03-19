@@ -11,16 +11,12 @@ import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   data: LongTimeSpendQuestion[]
-  keyOpen: ProblemKey
   examResult: ExamResult
-  openProblem?: ProblemKey
-  changeOpen?: (key?: ProblemKey) => void
   isPrint: boolean
 }
 
-const ProtractedProblem: FC<Props> = ({ keyOpen, data, openProblem, changeOpen, examResult, isPrint }) => {
+const ProtractedProblem: FC<Props> = ({ data, examResult, isPrint }) => {
   const { t } = useTranslation()
-  const isOpen = openProblem === keyOpen || isPrint
 
   const renderRow = ({ item }: { item: LongTimeSpendQuestion }) => {
     const timeDiff = item.topDuration - item.duration
@@ -63,39 +59,32 @@ const ProtractedProblem: FC<Props> = ({ keyOpen, data, openProblem, changeOpen, 
 
   return (
     <View style={styles.wrapper}>
-      <TouchableOpacity
-        style={[
-          styles.header,
-          !isOpen ? styles.closedHeader : { borderBottomWidth: 1, borderColor: palette.grey[100] }
-        ]}
-        onPress={() => changeOpen?.(isOpen ? undefined : keyOpen)}
+      <View
+        style={{
+          justifyContent: 'center',
+          backgroundColor: palette.bg[100],
+          paddingVertical: 8,
+          borderBottomWidth: 1,
+          borderColor: palette.grey[100]
+        }}
       >
-        <Text style={[styles.headerText, !isOpen && { color: palette.grey[500] }]}>
-          {t('problems_that_took_a_long_time')}
-        </Text>
-        {isOpen ? (
-          <Ionicons name="chevron-up" size={24} color="#E0E0E0" />
-        ) : (
-          <Ionicons name="chevron-down" size={24} color="#E0E0E0" />
-        )}
-      </TouchableOpacity>
+        <Text style={[styles.headerText]}>{t('problems_that_took_a_long_time')}</Text>
+      </View>
 
-      {isOpen && (
-        <>
-          {data.length > 0 ? (
-            <FlatList
-              data={data}
-              renderItem={renderRow}
-              keyExtractor={(item) => `${item.id}`}
-              contentContainerStyle={{ paddingBottom: 120 }}
-            />
-          ) : (
-            <View style={styles.noDataContainer}>
-              <Text style={styles.noDataText}>{t('no_data')}</Text>
-            </View>
-          )}
-        </>
-      )}
+      <View>
+        {data.length > 0 ? (
+          <FlatList
+            data={data}
+            renderItem={renderRow}
+            keyExtractor={(item) => `${item.id}`}
+            contentContainerStyle={{ paddingBottom: 120 }}
+          />
+        ) : (
+          <View style={styles.noDataContainer}>
+            <Text style={styles.noDataText}>{t('no_data')}</Text>
+          </View>
+        )}
+      </View>
     </View>
   )
 }
@@ -104,9 +93,8 @@ export default ProtractedProblem
 
 const styles = ScaledSheet.create({
   wrapper: {
-    borderWidth: 1,
-    borderColor: palette.grey[100],
-    backgroundColor: palette.grey[50]
+    borderRadius: 14,
+    overflow: 'hidden'
   },
   header: {
     flexDirection: 'row',
@@ -121,7 +109,8 @@ const styles = ScaledSheet.create({
   headerText: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: palette.grey[700]
+    color: '#171719',
+    textAlign: 'center'
   },
   itemContainer: {
     flexDirection: 'row',

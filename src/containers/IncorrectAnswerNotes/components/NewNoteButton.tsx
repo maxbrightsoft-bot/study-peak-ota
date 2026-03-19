@@ -1,9 +1,8 @@
 import React, { FC, PropsWithChildren } from 'react'
-import { Ionicons } from '@expo/vector-icons'
 import { GestureResponderEvent, Text, TouchableOpacity, View } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 import { useTranslation } from 'react-i18next'
-import { palette } from '@/theme'
+import EditIcon from '@/assets/iconJSX/edit'
 
 interface Props extends PropsWithChildren {
   onPress: (event: GestureResponderEvent) => void
@@ -14,8 +13,8 @@ const NewNoteButton: FC<Props> = ({ onPress }) => {
   return (
     <TouchableOpacity onPress={onPress}>
       <View style={styles.container}>
-        <Ionicons name='add-circle' size={13} color="#5d5d5b" />
-        <Text>{t('write_a_note_of_incorrect_answers')}</Text>
+        <Text style={{ color: "#222222"}}>{t('write_a_note_of_incorrect_answers')}</Text>
+        <EditIcon />
       </View>
     </TouchableOpacity>
   )
@@ -23,17 +22,15 @@ const NewNoteButton: FC<Props> = ({ onPress }) => {
 
 const styles = ScaledSheet.create({
   container: {
-    width: 'auto',
-    alignSelf: "flex-start",
+    alignSelf: "flex-end",
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderRadius: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 20,
+    borderRadius: 26,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
     gap: 8,
-    marginTop: 12,
-    borderColor: palette.grey[300]
+    borderColor: "#222222"
   }
 })
 

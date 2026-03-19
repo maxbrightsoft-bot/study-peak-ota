@@ -2,33 +2,28 @@ import React, { FC, Fragment, useMemo } from 'react'
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native'
 import _ from 'lodash'
 import { useTranslation } from 'react-i18next'
-import { ProblemKey, QuestionAnswerType } from '@/utils/enums'
+import { QuestionAnswerType } from '@/utils/enums'
 import { ExamResult, Question } from '@/utils/types'
-import { Ionicons } from '@expo/vector-icons'
 import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
 import MathRender from '@/components/MathRender'
 interface Props {
-  keyOpen: ProblemKey
   data: ExamResult
   isPrint: boolean
-  openProblem?: ProblemKey
-  changeOpen?: (key?: ProblemKey) => void
   isMyStoryStudent?: boolean
 }
 
 const limitQuestions = 5
 const correctRateThreshHold = 70
 
-const Vulnerable: FC<Props> = ({ data, keyOpen, openProblem, isPrint, changeOpen, isMyStoryStudent }) => {
+const Vulnerable: FC<Props> = ({ data, isPrint, isMyStoryStudent }) => {
   const { t } = useTranslation()
-  const isOpen = openProblem === keyOpen || isPrint
 
   const incorrectQuestions = useMemo(() => {
     return data.questions
       .filter(
         (i) =>
-          i.selectedAnswers !== '' &&
+          (i.selectedAnswers?.length || i.textualAnswers?.length) &&
           i.isCorrect === false &&
           i.isStar === false &&
           i.overallCorrectRate >= correctRateThreshHold
@@ -50,7 +45,7 @@ const Vulnerable: FC<Props> = ({ data, keyOpen, openProblem, isPrint, changeOpen
     switch (type) {
       case QuestionAnswerType.ShortAnswer:
       case QuestionAnswerType.SynonymProcessing:
-        return isCorrect ? textualAnswers?.join(' | ') : textualAnswers?.[0] ?? ''
+        return isCorrect ? textualAnswers?.join(' | ') : (textualAnswers?.[0] ?? '')
       case QuestionAnswerType.SingleChoice:
       case QuestionAnswerType.MultipleChoice:
         if (!answers?.length) return ''
@@ -190,28 +185,26 @@ const Vulnerable: FC<Props> = ({ data, keyOpen, openProblem, isPrint, changeOpen
 
   return (
     <View style={styles.wrapper}>
-      <TouchableOpacity
-        style={[styles.header, !isOpen ? styles.closedHeader : { borderBottomWidth: 1, borderColor: palette.grey[100]}]}
-        onPress={() => changeOpen?.(isOpen ? undefined : keyOpen)}
+      <View
+        style={{
+          justifyContent: 'center',
+          backgroundColor: palette.bg[100],
+          paddingVertical: 8,
+          borderBottomWidth: 1,
+          borderColor: palette.grey[100]
+        }}
       >
-        <Text style={[styles.headerText, !isOpen && { color: palette.grey[500] }]}>{t('issues_vulnerable')}</Text>
-        {isOpen ? (
-          <Ionicons name="chevron-up" size={24} color="#E0E0E0" />
-        ) : (
-          <Ionicons name="chevron-down" size={24} color="#E0E0E0" />
-        )}
-      </TouchableOpacity>
-
-      {isOpen && <ScrollView style={styles.content}>{renderBody()}</ScrollView>}
+        <Text style={[styles.headerText]}>{t('issues_vulnerable')}</Text>
+      </View>
+      <ScrollView style={styles.content}>{renderBody()}</ScrollView>
     </View>
   )
 }
 
 const styles = ScaledSheet.create({
   wrapper: {
-    borderWidth: 1,
-    borderColor: palette.grey[100],
-    backgroundColor: palette.grey[50]
+    borderRadius: 14,
+    overflow: 'hidden'
   },
   header: {
     flexDirection: 'row',
@@ -226,7 +219,8 @@ const styles = ScaledSheet.create({
   headerText: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: palette.grey[700]
+    color: '#171719',
+    textAlign: 'center'
   },
   content: {
     maxHeight: 300
@@ -264,7 +258,7 @@ const styles = ScaledSheet.create({
     color: '#97A1AF'
   },
   tableContainer: {
-    maxHeight: 400,
+    maxHeight: 400
   },
   table: {
     width: '100%',

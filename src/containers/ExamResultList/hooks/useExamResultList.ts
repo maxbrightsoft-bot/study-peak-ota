@@ -8,6 +8,8 @@ import { ExamSessionResponse } from "@/utils/types";
 import { GroupExamSession } from "../configs/types";
 import { useFocusEffect } from "@react-navigation/native";
 import { groupMonthV2 } from "@/containers/ExamResult/configs/helpers";
+import { FlatList } from "react-native";
+import { getErrorMessage, toast } from "@/utils/helpers";
 
 const useExamResultList = () => {
   const { setLoading, selectedAcademy } = useAuthStore()
@@ -17,9 +19,14 @@ const useExamResultList = () => {
   const inputSearch = useRef<any>(null);
   const [selectedExam, setSelectedExam] = useState<ExamSessionResponse>();
   const [expandedId, setExpandedId] = useState<number | null>(null)
+  const scrollViewRef = useRef<FlatList>(null)
 
   useFocusEffect(
     useCallback(() => {
+      scrollViewRef.current?.scrollToOffset({
+        offset: 0,
+        animated: true
+      })
       getListExam()
       return () => {
         setSelectedExam(undefined);
@@ -38,13 +45,13 @@ const useExamResultList = () => {
     try {
       const res = await getListExamApi({
         pageSize: 15,
-        sortColumnName: "StartTime",
+        sortColumnName: "StudentExamSession.StartTime",
         sortColumnDirection: "DESC",
         statuses: [ExamStatus.Completed]
       });
       setListExam(res.data?.items);
     } catch (error) {
-      console.log({ error });
+      toast.error(getErrorMessage(t, error))
     }
     setLoading(false)
   };
@@ -54,7 +61,7 @@ const useExamResultList = () => {
       const res = await getListExamApi({
         textSearch: search,
         pageSize: -1,
-        sortColumnName: "StartTime",
+        sortColumnName: "StudentExamSession.StartTime",
         sortColumnDirection: "ASC",
         statuses: [ExamStatus.Completed]
       });
@@ -102,6 +109,7 @@ const useExamResultList = () => {
     // examCodeActive,
     handleViewResult,
     search,
+    scrollViewRef,
     expandedId,
     handleBack,
     toggleExpand,

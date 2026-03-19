@@ -1,6 +1,6 @@
 import { MouseEvent, useRef } from "react"
 import { useState, useEffect } from "react"
-import { DEFAULT_NOTE_FILTER } from "../configs/constants"
+import { DEFAULT_NOTE_FILTER } from "../../ExamResultList/configs/constants"
 import { NoteRequest, NoteResponse, NoteSearchQuery } from "../../../utils/types/note"
 import { ExamResult, Question, QuestionData } from "../../../utils/types"
 import { useTranslation } from "react-i18next"
@@ -8,7 +8,7 @@ import useAuthStore from "@/store/useAuthStore"
 import { getErrorMessage, toast } from "@/utils/helpers"
 import { apiUploadImageFile } from "@/containers/Chat/apiClient/conversationService"
 import useNotes from "./useNotes"
-import { createNoteApi, deleteNoteApi, updateNoteApi } from "../apiClients/noteService"
+import { createNoteApi, deleteNoteApi, updateNoteApi } from "../../ExamResultList/apiClients/noteService"
 import { ExamNoteDialogProps } from "@/containers/IncorrectAnswerNotes/configs/interfaces"
 import { pick } from "@react-native-documents/picker"
 
@@ -49,7 +49,6 @@ const useExamResultNote = ({
             const formData = new FormData();
             formData.append("upload", result as any);
             const res = await apiUploadImageFile(formData);
-            console.log({ url: res?.data?.url });
             setImageUrl(res?.data?.url)
         } catch (error) {
             toast.error(getErrorMessage(t, error))
@@ -111,7 +110,6 @@ const useExamResultNote = ({
                 imageUrl
             }
 
-            console.log({ data });
             if (selectedNote) {
                 const res = await updateNoteApi(selectedNote.id, data)
                 handleNoteUpdated(res.data)

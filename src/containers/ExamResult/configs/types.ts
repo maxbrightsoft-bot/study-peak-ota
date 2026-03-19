@@ -26,6 +26,6 @@ export type OverallQuestionTypeData = {
 }
 
 export type ExamResultRequest = {
-    studentExamSessionId?: string
+    studentExamSessionId?: any
     useSubcategories?: boolean
 }
