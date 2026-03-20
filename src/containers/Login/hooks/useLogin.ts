@@ -3,6 +3,7 @@ import { GoogleSignin, isErrorWithCode, isSuccessResponse, statusCodes } from '@
 import { LoginAccessTokenRequest, LoginRequest, LoginResponse } from '@/utils/types';
 import { Role } from '@/utils/enums';
 import {
+  APPLE_USER_KEY,
   ACADEMY_DOMAIN,
   ACCESS_TOKEN,
   LEARNING_SPACE,
@@ -162,25 +163,32 @@ const useLogin = () => {
     try {
       const appleAuthRequestResponse = await appleAuth.performRequest({
         requestedOperation: appleAuth.Operation.LOGIN,
-        requestedScopes: [
-          appleAuth.Scope.EMAIL,
-          appleAuth.Scope.FULL_NAME,
-        ],
+        requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
       });
 
-      if (!appleAuthRequestResponse.identityToken) {
+      const { identityToken, email, fullName, user } = appleAuthRequestResponse;
+
+      if (!identityToken) {
         throw new Error('Apple Sign-In failed - no identity token returned');
       }
 
-      console.log({ appleAuthRequestResponse })
+      const base64Url = identityToken.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const decoded = JSON.parse(atob(base64));
+
+      const finalEmail = email || decoded?.email || '';
+
+      const nameFromResponse =
+        fullName?.givenName || fullName?.familyName
+          ? `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim()
+          : '';
+
+      await setDataStorage(APPLE_USER_KEY, user);
 
       const infoLogin: LoginRequest = {
-        imageUrl: '',
-        fullName: appleAuthRequestResponse.fullName
-          ? `${appleAuthRequestResponse.fullName.givenName || ''} ${appleAuthRequestResponse.fullName.familyName || ''}`
-          : '',
-        email: appleAuthRequestResponse.email || '',
-        token: appleAuthRequestResponse.identityToken,
+        fullName: nameFromResponse,
+        email: finalEmail,
+        token: identityToken,
         role: Role.Student,
         isMobile: true,
       };
@@ -192,7 +200,7 @@ const useLogin = () => {
       console.log('Apple login error:', error);
       toast.error(getErrorMessage(t, error || ''));
     }
-  }
+  };
 
   const handleLoginAccessToken = async (
     data: LoginAccessTokenRequest,
