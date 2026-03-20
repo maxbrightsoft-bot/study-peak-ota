@@ -22,7 +22,7 @@ export const TOAST_EXAM_STATUS = 'TOAST_EXAM_STATUS'
 export const STATUS_BAR_HEIGHT = Platform.OS === 'ios' ? 44 : StatusBar.currentHeight || 0;
 export const HEADER_HEIGHT = Platform.OS === 'ios' ? 100 : 90;
 export const TAB_BAR_HEIGHT = 104;
-
+export const APPLE_USER_KEY = `apple_user_id`;
 export const DATE_MIN_VALUE = '0001-01-01T00:00:00+00:00'
 export const DATE_TIME_MIN_VALUE = '0001-01-01T00:00:00'
 

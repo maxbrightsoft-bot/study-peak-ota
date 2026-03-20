@@ -8,7 +8,7 @@ export type LoginResponse = {
 }
 
 export type LoginRequest = {
-  imageUrl: string;
+  imageUrl?: string;
   fullName: string;
   email: string;
   token: string;

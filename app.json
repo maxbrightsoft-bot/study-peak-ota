@@ -28,7 +28,8 @@
             ]
           }
         ]
-      }
+      },
+      "appleTeamId": "9PC7DVBBJ8"
     },
     "android": {
       "package": "com.max.britghtsoft.touchstudymobile",

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { GRADE_OPTIONS } from "../configs/constants";
 import { navigate } from "@/navigators/NavigationHelpers";
@@ -6,9 +6,8 @@ import { getErrorMessage, toast } from "@/utils/helpers";
 import useAuthStore from "@/store/useAuthStore";
 import { updateInfoLogin } from "../apiClients/authService";
 import { Routes } from "@/navigators/RouteName";
-import { REDIRECT_URL } from "@/utils/constants";
-import { setDataStorage } from "@/utils/storage";
-import { useFocusEffect } from "expo-router";
+import { APPLE_USER_KEY } from "@/utils/constants";
+import { getDataStorage } from "@/utils/storage";
 
 const steps = [
   "fullName",
@@ -48,7 +47,9 @@ const useStepItem = ({ values, errors, setFieldTouched }: Props) => {
   const handleUpdateInfo = async () => {
     setLoading(true)
     try {
-      const res = await updateInfoLogin({ ...values, isMobile: true });
+      const isAppleLogin = !!(await getDataStorage(APPLE_USER_KEY))
+
+      const res = await updateInfoLogin({ ...values, isMobile: true, isAppleLogin });
 
       if (res.data?.academyDomain) {
         setHasEnteredSelectAcademy(true)

@@ -5,6 +5,8 @@ import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { UserInfo } from "../configs/types"
 import { GRADE_OPTIONS } from "@/containers/StepLogin/configs/constants"
+import { getDataStorage } from "@/utils/storage"
+import { APPLE_USER_KEY } from "@/utils/constants"
 
 const useSetting = () => {
   const [openNoticeDialog, setOpenNoticeDialog] = useState<boolean>(false)
@@ -24,8 +26,10 @@ const useSetting = () => {
   const handleUpdateInfo = async (values: UserInfo) => {
     setLoading(true)
     try {
+      const isAppleLogin = !!(await getDataStorage(APPLE_USER_KEY))
 
-      const res = await updateInfoLogin({ ...values, isMobile: true });
+      const res = await updateInfoLogin({ ...values, isMobile: true, isAppleLogin });
+      
       setUser(res.data)
       toast.success(t('updated_user'))
     } catch (error: any) {
