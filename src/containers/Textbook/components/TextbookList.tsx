@@ -37,14 +37,14 @@ const TextbookList = ({ preparedType, preparedFilterType }: Props) => {
 
   const filterCount =
     (textbookFilter.subjectIds?.length ? 1 : 0) +
-    (textbookFilter.months?.length ? 1 : 0) +
-    (textbookFilter.endYear || textbookFilter.startYear ? 1 : 0)
+    (textbookFilter.fromMonths?.length || textbookFilter.toMonths?.length ? 1 : 0) +
+    (textbookFilter.fromDate || textbookFilter.toDate ? 1 : 0)
 
   return (
     <View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 37, marginBottom: 9, paddingHorizontal: 20 }}>
         <View style={{ flex: 1 }}>
-          <SearchInput value={search} onChangeText={onChangeSearch} placeholder="오답노트 검색" />
+          <SearchInput value={search} onChangeText={onChangeSearch} placeholder="검색" />
         </View>
         <TouchableOpacity style={styles.filterButton} onPress={handleOpenFilterModal}>
           {!!filterCount && <View style={styles.filterCountButton}>
@@ -88,7 +88,10 @@ const TextbookList = ({ preparedType, preparedFilterType }: Props) => {
         textbookFilter={textbookFilter}
         open={openFilterModal}
         onClose={handleCloseFilterModal}
-        handleChangeFilter={handleChangeFilter}
+        handleChangeFilter={(values) => {
+          console.log('handleChangeFilter', values)
+          handleChangeFilter(values)
+        }}
         title="필터"
       />
     </View>

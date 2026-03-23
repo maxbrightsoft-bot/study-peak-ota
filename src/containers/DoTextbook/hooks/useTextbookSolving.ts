@@ -23,6 +23,7 @@ interface Props {
   questionList?: PreparedQuestionResponse[];
   updateQuestionList?: (questions: PreparedQuestionResponse[]) => void;
   handleUpdateSlider?: (questionId: number) => void;
+  handleNextQuestion: (isError?: boolean) => void
 }
 const useTextbookSolving = (props: Props) => {
   const {
@@ -32,7 +33,8 @@ const useTextbookSolving = (props: Props) => {
     updateTextbook,
     questionList = [],
     updateQuestionList,
-    handleUpdateSlider
+    handleUpdateSlider,
+    handleNextQuestion
   } = props;
   const { user, selectedAcademy } = useAuthStore()
   const academyId = selectedAcademy?.id
@@ -96,6 +98,7 @@ const useTextbookSolving = (props: Props) => {
       }
     } catch (err: any) {
       error = err;
+      handleNextQuestion(true)
     } finally {
       if (
         (error && error.code !== "ERR_NETWORK") ||
@@ -158,6 +161,8 @@ const useTextbookSolving = (props: Props) => {
       })
     );
     updateQuestionList?.(arrQuestionNew);
+
+    handleNextQuestion()
 
     const body: StudentTextbookAnswerRequest = {
       lastAnswerTime: lastAnswerTimeNum,

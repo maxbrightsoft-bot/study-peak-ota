@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { View, TouchableOpacity } from 'react-native'
 import { Text } from 'react-native-paper'
 import _ from 'lodash'
@@ -13,6 +13,7 @@ import { ScaledSheet } from 'react-native-size-matters'
 interface Props {
   t: any
   onClose: () => void
+  isLastQuestion: boolean
   question: PreparedQuestionResponse
   updateQuestionAnswer: ({ questionId, textualAnswers, answer }: TextbookQuestion) => void
 }
@@ -26,8 +27,30 @@ const schema = (t: any) => {
   })
 }
 
-const TextbookAnswer = ({ t, question, onClose, updateQuestionAnswer }: Props) => {
+const TextbookAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer }: Props) => {
+  const [selectedAnswers, setSelectedAnswers] = useState<number[]>(question?.selectedAnswers ?? [])
   const answers = question.textualAnswers?.length ? question.textualAnswers : ['']
+
+  useEffect(() => {
+    setSelectedAnswers(question?.selectedAnswers ?? [])
+  }, [question.id])
+
+  const handleSelectAnswer = (num: number, type: QuestionAnswerType) => {
+    let nextSelected: number[]
+
+    if (type === QuestionAnswerType.MultipleChoice) {
+      if (selectedAnswers.includes(num)) {
+        nextSelected = selectedAnswers.filter((a) => a !== num)
+      } else {
+        nextSelected = [...selectedAnswers, num]
+      }
+    } else {
+      nextSelected = [num]
+    }
+
+    setSelectedAnswers(nextSelected)
+    updateQuestionAnswer({ questionId: question?.id || 0, answer: num })
+  }
 
   const renderAnswer = (question: PreparedQuestionResponse, type: QuestionAnswerType) => {
     switch (type) {
@@ -46,7 +69,7 @@ const TextbookAnswer = ({ t, question, onClose, updateQuestionAnswer }: Props) =
                 questionId: question.id,
                 textualAnswers: values.textualAnswers
               })
-              onClose()
+              isLastQuestion && onClose()
             }}
             enableReinitialize
           >
@@ -64,7 +87,7 @@ const TextbookAnswer = ({ t, question, onClose, updateQuestionAnswer }: Props) =
                     styles.button,
                     styles.confirmButton,
                     !values.textualAnswers.length ||
-                      (values.textualAnswers.some((i: string) => !i.trim().length) && { opacity: 0.5 })
+                    (values.textualAnswers.some((i: string) => !i.trim().length) && { opacity: 0.5 })
                   ]}
                   disabled={
                     !values.textualAnswers.length || values.textualAnswers.some((i: string) => !i.trim().length)
@@ -83,12 +106,15 @@ const TextbookAnswer = ({ t, question, onClose, updateQuestionAnswer }: Props) =
         return (
           <View style={styles.answerRow}>
             {Array.from({ length: question?.answerCount || 0 }).map((_, num) => {
-              const isSelected = question?.selectedAnswers?.includes(num + 1)
+              const isSelected = selectedAnswers?.includes(num + 1)
               return (
                 <TouchableOpacity
                   key={num}
                   style={[styles.answerButton, isSelected && styles.selectedAnswerButton]}
-                  onPress={() => updateQuestionAnswer({ questionId: question?.id || 0, answer: num + 1 })}
+                  onPress={() => {
+                    handleSelectAnswer(num + 1, question.questionAnswerType)
+                    isLastQuestion && onClose()
+                  }}
                 >
                   <Text style={{ color: isSelected ? '#FFF' : '#222222' }}>{num + 1}</Text>
                 </TouchableOpacity>

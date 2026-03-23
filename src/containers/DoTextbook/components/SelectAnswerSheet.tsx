@@ -31,8 +31,8 @@ const SelectAnswerSheet = ({
   onFishedExam
 }: Props) => {
   const { t } = useTranslation()
-    const [isReady, setIsReady] = useState(false)
-  
+  const [isReady, setIsReady] = useState(false)
+
   useEffect(() => {
     if (visible) {
       const timer = setTimeout(() => {
@@ -80,77 +80,77 @@ const SelectAnswerSheet = ({
 
   return (
     <BottomSheet isVisible={visible} onClose={onClose} titleChildren={titleChildren} closeChildren={closeChildren}>
-        {isReady && (
-          <>
-      <View style={styles.sheetContent}>
-        <Text style={styles.title}>정답을 입력하면 다음 문제로 넘어갑니다.</Text>
+      {isReady && (
+        <>
+          <View style={styles.sheetContent}>
+            <Text style={styles.title}>정답을 입력하면 다음 문제로 넘어갑니다.</Text>
 
-        <TextbookAnswer t={t} question={currentQuestion} updateQuestionAnswer={updateQuestionAnswer} onClose={onClose}/>
-      </View>
-      <View style={styles.navRow}>
-        <View style={{ flexDirection: 'row', gap: 12 }}>
-          <TouchableOpacity
-            disabled={currentQuestion?.id === questionList[0]?.id}
-            style={[styles.navButton, currentQuestion?.id === questionList[0]?.id && { borderColor: palette.grey[300] }]}
-            onPress={() => scrollToQuestion(ScrollType.FIRST)}
-          >
-            <View style={{ transform: 'rotate(180deg)' }}>
-              <LastIcon color={currentQuestion?.id === questionList[0]?.id ? palette.grey[300] : '#222222'} />
-            </View>
-          </TouchableOpacity>
+            <TextbookAnswer t={t} isLastQuestion={currentQuestion?.id === questionList[questionList.length - 1]?.id} question={currentQuestion} updateQuestionAnswer={updateQuestionAnswer} onClose={onClose} />
+          </View>
+          <View style={styles.navRow}>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <TouchableOpacity
+                disabled={currentQuestion?.id === questionList[0]?.id}
+                style={[styles.navButton, currentQuestion?.id === questionList[0]?.id && { borderColor: palette.grey[300] }]}
+                onPress={() => scrollToQuestion(ScrollType.FIRST)}
+              >
+                <View style={{ transform: 'rotate(180deg)' }}>
+                  <LastIcon color={currentQuestion?.id === questionList[0]?.id ? palette.grey[300] : '#222222'} />
+                </View>
+              </TouchableOpacity>
 
-          <TouchableOpacity
-            disabled={currentQuestion?.id === questionList[0]?.id}
-            style={[styles.navButton, currentQuestion?.id === questionList[0]?.id && { borderColor: palette.grey[300] }]}
-            onPress={() => scrollToQuestion(ScrollType.PREV)}
-          >
-            <View style={{ transform: 'rotate(180deg)', padding: 4 }}>
-              <NextIcon color={currentQuestion?.id === questionList[0]?.id ? palette.grey[300] : '#222222'} />
+              <TouchableOpacity
+                disabled={currentQuestion?.id === questionList[0]?.id}
+                style={[styles.navButton, currentQuestion?.id === questionList[0]?.id && { borderColor: palette.grey[300] }]}
+                onPress={() => scrollToQuestion(ScrollType.PREV)}
+              >
+                <View style={{ transform: 'rotate(180deg)', padding: 4 }}>
+                  <NextIcon color={currentQuestion?.id === questionList[0]?.id ? palette.grey[300] : '#222222'} />
+                </View>
+                <Text style={[styles.actionTitle, currentQuestion?.id === questionList[0]?.id && { color: palette.grey[300] }]}>
+                  이전 문항
+                </Text>
+              </TouchableOpacity>
             </View>
-            <Text style={[styles.actionTitle, currentQuestion?.id === questionList[0]?.id && { color: palette.grey[300] }]}>
-              이전 문항
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <View style={{ flexDirection: 'row', gap: 12 }}>
-          <TouchableOpacity
-            disabled={currentQuestion?.id === questionList[questionList.length - 1]?.id}
-            style={[
-              styles.navButton,
-              currentQuestion?.id === questionList[questionList.length - 1]?.id && { borderColor: palette.grey[300] }
-            ]}
-            onPress={() => scrollToQuestion(ScrollType.NEXT)}
-          >
-            <Text
-              style={[
-                styles.actionTitle,
-                currentQuestion?.id === questionList[questionList.length - 1]?.id && { color: palette.grey[300] }
-              ]}
-            >
-              다음 문항
-            </Text>
-            <View style={{ padding: 4 }}>
-              <NextIcon
-                color={currentQuestion?.id === questionList[questionList.length - 1]?.id ? palette.grey[300] : '#222222'}
-              />
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <TouchableOpacity
+                disabled={currentQuestion?.id === questionList[questionList.length - 1]?.id}
+                style={[
+                  styles.navButton,
+                  currentQuestion?.id === questionList[questionList.length - 1]?.id && { borderColor: palette.grey[300] }
+                ]}
+                onPress={() => scrollToQuestion(ScrollType.NEXT)}
+              >
+                <Text
+                  style={[
+                    styles.actionTitle,
+                    currentQuestion?.id === questionList[questionList.length - 1]?.id && { color: palette.grey[300] }
+                  ]}
+                >
+                  다음 문항
+                </Text>
+                <View style={{ padding: 4 }}>
+                  <NextIcon
+                    color={currentQuestion?.id === questionList[questionList.length - 1]?.id ? palette.grey[300] : '#222222'}
+                  />
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                disabled={currentQuestion?.id === questionList[questionList.length - 1]?.id}
+                style={[
+                  styles.navButton,
+                  currentQuestion?.id === questionList[questionList.length - 1]?.id && { borderColor: palette.grey[300] }
+                ]}
+                onPress={() => scrollToQuestion(ScrollType.LAST)}
+              >
+                <LastIcon
+                  color={currentQuestion?.id === questionList[questionList.length - 1]?.id ? palette.grey[300] : '#222222'}
+                />
+              </TouchableOpacity>
             </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            disabled={currentQuestion?.id === questionList[questionList.length - 1]?.id}
-            style={[
-              styles.navButton,
-              currentQuestion?.id === questionList[questionList.length - 1]?.id && { borderColor: palette.grey[300] }
-            ]}
-            onPress={() => scrollToQuestion(ScrollType.LAST)}
-          >
-            <LastIcon
-              color={currentQuestion?.id === questionList[questionList.length - 1]?.id ? palette.grey[300] : '#222222'}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
+          </View>
         </>
-        )}
+      )}
     </BottomSheet>
   )
 }

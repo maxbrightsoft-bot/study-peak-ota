@@ -29,7 +29,6 @@ type Props = {
 const DoExam = ({ examCode }: Props) => {
   const {
     t,
-    page,
     exam,
     isEnding,
     endExam,

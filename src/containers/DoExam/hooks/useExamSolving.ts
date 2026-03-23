@@ -31,6 +31,7 @@ interface Props {
   updateExamLastTimeAnswer?: (lastTimeAnswer: string) => void;
   handleExamEnded?: () => void;
   handleUpdateSlider?: (questionId: number) => void;
+  handleNextQuestion: (isError?: boolean) => void
 }
 const useExamSolving = (props: Props) => {
   const {
@@ -44,7 +45,8 @@ const useExamSolving = (props: Props) => {
     updateExamLastTimeAnswer,
     updateQuestionList,
     handleExamEnded,
-    handleUpdateSlider
+    handleUpdateSlider,
+    handleNextQuestion
   } = props;
 
   const { user, selectedAcademy } = useAuthStore()
@@ -106,6 +108,7 @@ const useExamSolving = (props: Props) => {
       }
     } catch (err: any) {
       error = err;
+      handleNextQuestion(true)
     } finally {
       if (res && res?.status === 1) {
         updateExamLastTimeAnswer?.(lastAnswerTime);
@@ -269,6 +272,8 @@ const useExamSolving = (props: Props) => {
         return item;
       });
 
+      handleNextQuestion()
+
       handleUpdateAnswer(arrQuestionNew, now, nowTime, totalRunningTime, questionId);
     } catch (error) {
       console.log({ error });
@@ -344,7 +349,7 @@ const useExamSolving = (props: Props) => {
     }
   };
 
-  const handleClearStorage = async() => {
+  const handleClearStorage = async () => {
     recoverKey && await removeDataStorage(recoverKey);
     rollbackKey && await removeDataStorage(rollbackKey);
   };
@@ -367,7 +372,7 @@ const useExamSolving = (props: Props) => {
 
   useEffect(() => {
     if (!recoverKey || !examId) return;
-    const endExam = async() => {
+    const endExam = async () => {
       if (isEnding) {
         await removeDataStorage(recoverKey);
         handleExamEnded?.();
@@ -382,20 +387,20 @@ const useExamSolving = (props: Props) => {
   }, [recoverKey, isProgressing])
 
   useEffect(() => {
-  let unsubscribe: any;
+    let unsubscribe: any;
 
-  if (isProgressing) {
-    unsubscribe = NetInfo.addEventListener(state => {
-      if (state.isConnected && state.isInternetReachable) {
-        recoverAnswers();
-      }
-    });
-  }
+    if (isProgressing) {
+      unsubscribe = NetInfo.addEventListener(state => {
+        if (state.isConnected && state.isInternetReachable) {
+          recoverAnswers();
+        }
+      });
+    }
 
-  return () => {
-    unsubscribe?.();
-  };
-}, [isProgressing, recoverKey]);
+    return () => {
+      unsubscribe?.();
+    };
+  }, [isProgressing, recoverKey]);
 
   useEffect(() => {
     ltAnswerTime.current = undefined
