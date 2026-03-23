@@ -10,13 +10,12 @@ type Props = {
   t: any
   data: PreparedQuestionGroupResponse
   questionRefs: React.MutableRefObject<(View | null)[]>
-  questionList: PreparedQuestionResponse[]
   isEnd: boolean
   type?: SubjectType
   status?: ExamStatus
   isMock?: boolean
   onOpenAnswerSheet: (id?: number) => void
-  currentQuestion?: PreparedQuestionResponse
+  currentQuestionId?: number
 }
 
 const TextbookQuestionGroup = ({
@@ -24,14 +23,11 @@ const TextbookQuestionGroup = ({
   isEnd,
   status,
   type,
-  isMock,
   onOpenAnswerSheet,
-  currentQuestion,
+  currentQuestionId,
   questionRefs,
-  questionList
 }: Props) => {
-  const questions = questionList.filter((q) => q.questionGroupId === data.id)
-
+  const questions = data.questions
   const disabled = isEnd || status === ExamStatus.Paused
   const questionContent = useMemo(() => {
     const title = data.articles?.[0].title
@@ -69,7 +65,7 @@ const TextbookQuestionGroup = ({
         onPress={() => (disabled ? undefined : onOpenAnswerSheet(item.id))}
         style={[
           styles.row,
-          currentQuestion?.id === item.id && styles.activeRow,
+          currentQuestionId === item.id && styles.activeRow,
           { borderBottomWidth: item.questionOrder === lastIndex - 1 ? 0 : 1 }
         ]}
       >
@@ -82,12 +78,12 @@ const TextbookQuestionGroup = ({
           style={[
             styles.questionCol,
             {
-              borderRightWidth: currentQuestion?.id === item.id ? 0 : 1,
+              borderRightWidth: currentQuestionId === item.id ? 0 : 1,
               borderColor: palette.grey[200]
             }
           ]}
         >
-          <Text style={[styles.questionText, currentQuestion?.id === item.id && styles.activeQuestionText]}>
+          <Text style={[styles.questionText, currentQuestionId === item.id && styles.activeQuestionText]}>
             {item.questionOrder + 1}번
           </Text>
         </View>

@@ -64,6 +64,7 @@ export type QuestionResponse = {
     isStar: boolean
     duration: number
     score: number
+    questionIndex?: number
     classAverageTime?: number
     answerTime: string
     questionOrder: number
@@ -105,7 +106,7 @@ export enum ResolveType {
     VeryHigh = 10
 }
 
-export enum AnswerResponseSignal{
+export enum AnswerResponseSignal {
     Purple,
     Red,
     Yellow,

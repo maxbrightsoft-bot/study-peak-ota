@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { View, Text, Platform, KeyboardAvoidingView, TouchableOpacity, FlatList } from 'react-native'
 import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -73,7 +73,18 @@ const DoExam = ({ examCode }: Props) => {
     handleFinishExam
   } = useExam({ examCode })
 
-  const currentQuestion = questionList.find((question) => question.id === currentQuestionId)
+  const currentQuestion = useMemo(
+    () => questionList.find((q) => q.id === currentQuestionId),
+    [questionList, currentQuestionId]
+  )
+
+  const groupedQuestions = useMemo(() => {
+    return questionListMapped.map((group) => ({
+      ...group,
+      questions: questionList.filter((q) => q.questionGroupId === group.id)
+    }))
+  }, [questionListMapped, questionList])
+
   const disabled = exam?.isLate
     ? exam?.lateStatus === ExamStatus.Paused || exam.lateStatus === ExamStatus.Completed
     : exam?.status === ExamStatus.Paused || exam?.status === ExamStatus.Completed
@@ -131,7 +142,7 @@ const DoExam = ({ examCode }: Props) => {
         )}
         <FlatList
           ref={scrollViewRef}
-          data={questionListMapped}
+          data={groupedQuestions}
           keyExtractor={(item) => `group-${item.id}`}
           ListHeaderComponent={
             <View
@@ -183,13 +194,12 @@ const DoExam = ({ examCode }: Props) => {
             <ExamQuestionGroup
               t={t}
               type={exam?.type}
-              currentQuestion={currentQuestion}
               onOpenAnswerSheet={handleOpenAnswerSheet}
               data={item}
               questionRefs={questionRefs}
               isEnd={exam?.isLate ? exam?.lateStatus === ExamStatus.Completed : exam?.status === ExamStatus.Completed}
               status={exam?.isLate ? exam.lateStatus : exam?.status}
-              questionList={questionList}
+              currentQuestionId={currentQuestionId}
             />
           )}
           initialNumToRender={3}

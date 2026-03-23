@@ -1,12 +1,8 @@
 import React, { FC } from 'react'
 import { View, StyleSheet, ScrollView } from 'react-native'
-import { ActivityIndicator } from 'react-native-paper'
 
 import AlarmClockPanel, { AlarmClockPanelProps } from './AlarmClockPanel'
 import AlarmClock, { AlarmClockProps } from './AlarmClock'
-import AlarmClockNote from './AlarmClockNote'
-import AlarmClockPanelNote from './AlarmClockPanelNote'
-import { palette } from '@/theme/colors'
 import Loading from '@/components/Loading'
 
 export interface AlarmClockTabProps {
@@ -21,7 +17,7 @@ const AlarmClockTab: FC<AlarmClockTabProps> = ({ isLoading, isPlaying, panelProp
     <View style={styles.container}>
       <ScrollView>
         {isLoading && (
-          <Loading isOverlay/>
+          <Loading isOverlay={false} />
         )}
 
         {!isPlaying ? <AlarmClockPanel {...panelProps} /> : <AlarmClock {...alarmProps} />}

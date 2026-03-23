@@ -1,7 +1,16 @@
 import useAuthStore from '@/store/useAuthStore'
 import { palette } from '@/theme'
 import React, { useEffect, useRef, useState } from 'react'
-import { View, Animated, TouchableOpacity, StyleSheet, Dimensions, Modal, NativeModules, Platform } from 'react-native'
+import {
+  View,
+  Animated,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+  NativeModules,
+  Platform
+} from 'react-native'
+import { Portal } from 'react-native-paper'
 import Loading from '../Loading'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
@@ -18,10 +27,15 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({ visible, children, positi
   const slideAnim = useRef(new Animated.Value(position === 'right' ? SCREEN_WIDTH : -SCREEN_WIDTH)).current
   const { StatusBarManager } = NativeModules
   const [statusBarHeight, setStatusBarHeight] = useState(0)
-
   const backdropOpacity = useRef(new Animated.Value(0)).current
 
+  const [mounted, setMounted] = useState(visible)
+
   useEffect(() => {
+    if (visible) {
+      setMounted(true)
+    }
+
     Animated.parallel([
       Animated.timing(slideAnim, {
         toValue: visible ? 0 : position === 'right' ? SCREEN_WIDTH : -SCREEN_WIDTH,
@@ -33,7 +47,9 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({ visible, children, positi
         duration: 300,
         useNativeDriver: true
       })
-    ]).start()
+    ]).start(() => {
+      if (!visible) setMounted(false)
+    })
   }, [visible, position])
 
   useEffect(() => {
@@ -44,10 +60,16 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({ visible, children, positi
     }
   }, [])
 
+  if (!mounted) return null
+
   return (
-    <Modal visible={visible} transparent animationType="none">
-      <View style={styles.container}>
-        <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose}>
+    <Portal>
+      <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+        <TouchableOpacity
+          style={StyleSheet.absoluteFill}
+          activeOpacity={1}
+          onPress={onClose}
+        >
           <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]} />
         </TouchableOpacity>
 
@@ -67,18 +89,15 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({ visible, children, positi
           {isLoadingWithoutOverlay && <Loading isOverlay={false} />}
         </Animated.View>
       </View>
-    </Modal>
+    </Portal>
   )
 }
 
 export default SlideDrawerRoot
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1
-  },
   backdrop: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: palette.grey[900]
   },
   drawer: {

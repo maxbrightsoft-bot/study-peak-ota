@@ -129,7 +129,8 @@ const useTextbookSolving = (props: Props) => {
     questions: PreparedQuestionResponse[],
     lastAnswerTime: string,
     lastAnswerTimeNum: number,
-    questionId?: number
+    questionId?: number,
+    isStar?: boolean
   ) => {
     if (!textbook || !recoverKey) return;
     await setDataStorage(
@@ -142,13 +143,14 @@ const useTextbookSolving = (props: Props) => {
 
     questionId && handleUpdateSlider?.(questionId);
 
-    callApiUpdateAnswers(questions, lastAnswerTime, lastAnswerTimeNum);
+    callApiUpdateAnswers(questions, lastAnswerTime, lastAnswerTimeNum, isStar);
   };
 
   const callApiUpdateAnswers = async (
     arrQuestionNew: PreparedQuestionResponse[],
     lastAnswerTime: string,
     lastAnswerTimeNum: number,
+    isStar?: boolean,
     callback?: Function
   ) => {
     if ((!textbookId && !callback) || !rollbackKey) return;
@@ -162,7 +164,7 @@ const useTextbookSolving = (props: Props) => {
     );
     updateQuestionList?.(arrQuestionNew);
 
-    handleNextQuestion()
+    !isStar && handleNextQuestion()
 
     const body: StudentTextbookAnswerRequest = {
       lastAnswerTime: lastAnswerTimeNum,
@@ -290,7 +292,7 @@ const useTextbookSolving = (props: Props) => {
         return item;
       });
 
-      handleUpdateAnswer(arrQuestionNew, now, nowTime, questionId);
+      handleUpdateAnswer(arrQuestionNew, now, nowTime, questionId, true);
     } catch (error) {
       console.log({ error });
     }
@@ -324,6 +326,7 @@ const useTextbookSolving = (props: Props) => {
         data.questions,
         lastAnswerTime,
         data.lastAnswerTime,
+        false,
         callback
       );
     } else {

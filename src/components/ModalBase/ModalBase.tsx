@@ -12,6 +12,8 @@ import {
 import { ReactNode, useEffect } from 'react'
 import { ScaledSheet } from 'react-native-size-matters'
 import useAuthStore from '@/store/useAuthStore'
+import { toast } from '@/utils/helpers'
+import { useFocusEffect } from 'expo-router'
 
 interface PropsModalClose {
   isVisible: boolean
@@ -23,7 +25,6 @@ interface PropsModalClose {
 
 function ModalBase(props: PropsModalClose) {
   const { isVisible, onClose, children, styleContainer } = props
-  const { isLoading, isLoadingWithoutOverlay } = useAuthStore()
 
   useEffect(() => {
     if (!isVisible) return
@@ -69,7 +70,7 @@ const styles = ScaledSheet.create({
     right: 0,
     bottom: 0,
     zIndex: 9999,
-    elevation: 9999 // Android
+    elevation: 9999
   },
   backdrop: {
     position: 'absolute',

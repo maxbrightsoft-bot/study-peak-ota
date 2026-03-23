@@ -140,7 +140,8 @@ const useExamSolving = (props: Props) => {
     lastAnswerTime: string,
     lastAnswerTimeNum: number,
     runningTime: number,
-    questionId?: number
+    questionId?: number,
+    isStar?: boolean
   ) => {
     if (!exam || !recoverKey) return;
     await setDataStorage(
@@ -153,7 +154,7 @@ const useExamSolving = (props: Props) => {
 
     questionId && handleUpdateSlider?.(questionId);
 
-    callApiUpdateAnswers(questions, lastAnswerTime, lastAnswerTimeNum, runningTime);
+    callApiUpdateAnswers(questions, lastAnswerTime, lastAnswerTimeNum, runningTime, isStar);
   };
 
   const callApiUpdateAnswers = async (
@@ -161,6 +162,7 @@ const useExamSolving = (props: Props) => {
     lastAnswerTime: string,
     lastAnswerTimeNum: number,
     runningTime: number,
+    isStar?: boolean,
     callback?: Function
   ) => {
     if ((!examId && !callback) || !rollbackKey) return;
@@ -176,6 +178,8 @@ const useExamSolving = (props: Props) => {
     if (ltAnswerTime.current && (diffFromNow(lastAnswerTime, "milliseconds", ltAnswerTime.current) || 0) > 0)
       ltAnswerTime.current = lastAnswerTime;
     updateQuestionList?.(arrQuestionNew);
+
+    !isStar && handleNextQuestion()
 
     const body: StudentAnswerRequest = {
       lastAnswerTime: lastAnswerTimeNum,
@@ -272,8 +276,6 @@ const useExamSolving = (props: Props) => {
         return item;
       });
 
-      handleNextQuestion()
-
       handleUpdateAnswer(arrQuestionNew, now, nowTime, totalRunningTime, questionId);
     } catch (error) {
       console.log({ error });
@@ -305,7 +307,7 @@ const useExamSolving = (props: Props) => {
         return item;
       });
 
-      handleUpdateAnswer(arrQuestionNew, now, nowTime, totalRunningTime, questionId);
+      handleUpdateAnswer(arrQuestionNew, now, nowTime, totalRunningTime, questionId, true);
     } catch (error) {
       console.log({ error });
     }
@@ -342,6 +344,7 @@ const useExamSolving = (props: Props) => {
         lastAnswerTime,
         data.lastAnswerTime,
         data.runningTime || 0,
+        false,
         callback
       );
     } else {

@@ -65,7 +65,6 @@ const CalendarSchedule = ({ isVisible, onClose }: Props) => {
           getScheduleListForNoteEvent={getScheduleListForNoteEvent}
           onScheduleCountChange={handleGetScheduleCount}
         />
-        {/* Schedule List */}
         <NoteEvent
           t={t}
           schedules={schedules}

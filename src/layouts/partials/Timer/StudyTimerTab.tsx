@@ -54,7 +54,7 @@ const StudyTimerTab: FC<StudyTimerTabProps> = ({
   return (
     <View style={styles.container}>
       <View style={{ width: '100%', gap: 11 }}>
-        {loadingItem && <Loading />}
+        {loadingItem && <Loading isOverlay={false} />}
         {itemStart ? (
           <TimerClock
             isLoading={loadingItem}
