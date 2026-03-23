@@ -1,7 +1,7 @@
 import useAuthStore from '@/store/useAuthStore'
 import { palette, TYPO } from '@/theme'
 import { useTranslation } from 'react-i18next'
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, Platform } from 'react-native'
 import { Menu, Avatar, TouchableRipple } from 'react-native-paper'
 import TimerDropdown from './components/TimerDropDown'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -76,7 +76,8 @@ const Header = ({ headerProps }: Props) => {
               paddingVertical: 4,
               borderRadius: 12,
               overflow: 'hidden',
-              minWidth: 250
+              minWidth: 250,
+              top: Platform.OS === 'ios' ? -50 : 10
             }}
           >
             <TouchableRipple
