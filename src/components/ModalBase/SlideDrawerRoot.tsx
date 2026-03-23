@@ -77,8 +77,7 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({ visible, children, positi
           style={[
             styles.drawer,
             {
-              transform: [{ translateX: slideAnim }],
-              top: statusBarHeight,
+              top: 0,
               bottom: 0,
               [position]: 0
             }
