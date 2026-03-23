@@ -110,6 +110,33 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     setOpenAnswerSheet(false);
   }
 
+  const handleNextQuestion = (isError?: boolean) => {
+    if (!questionList?.length) return
+
+    const currentIndex = questionList.findIndex(
+      (q) => q.id === currentQuestionId
+    )
+
+    if (currentIndex === -1) return
+
+    let targetIndex = currentIndex
+
+    if (!isError) {
+      targetIndex = Math.min(
+        questionList.length - 1,
+        currentIndex + 1
+      )
+    }
+    else {
+      targetIndex = Math.max(0, currentIndex - 1)
+    }
+
+    if (targetIndex === currentIndex) return
+
+    setCurrentQuestionId(questionList[targetIndex].id)
+    onScrollToIndex(targetIndex)
+  }
+
   const scrollToQuestion = useCallback(
     (type: ScrollType) => {
       if (!questionList?.length) return
@@ -456,6 +483,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     updateQuestionList: handleUpdateQuestionList,
     updateExamLastTimeAnswer: handleExamLastAnswerTime,
     handleExamEnded: handleExamEnded,
+    handleNextQuestion
   });
 
   const handleListenerEvent = async () => {

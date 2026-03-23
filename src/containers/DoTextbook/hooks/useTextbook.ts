@@ -110,6 +110,33 @@ const useTextbook = ({
     setOpenRestartTextbookDialog(true);
   };
 
+  const handleNextQuestion = (isError?: boolean) => {
+    if (!questionList?.length) return
+
+    const currentIndex = questionList.findIndex(
+      (q) => q.id === currentQuestionId
+    )
+
+    if (currentIndex === -1) return
+
+    let targetIndex = currentIndex
+
+    if (!isError) {
+      targetIndex = Math.min(
+        questionList.length - 1,
+        currentIndex + 1
+      )
+    }
+    else {
+      targetIndex = Math.max(0, currentIndex - 1)
+    }
+
+    if (targetIndex === currentIndex) return
+
+    setCurrentQuestionId(questionList[targetIndex].id)
+    onScrollToIndex(targetIndex)
+  }
+
   const scrollToQuestion = useCallback(
     (type: ScrollType) => {
       if (!questionList?.length) return
@@ -292,6 +319,7 @@ const useTextbook = ({
       updateTextbook: setTextbook,
       questionList,
       updateQuestionList: handleUpdateQuestionList,
+      handleNextQuestion
     });
 
   const questionPage = questionGroupList.length;

@@ -16,6 +16,7 @@ import YearPicker from '@/components/Input/DatePicker'
 import RefreshIcon from '@/assets/iconJSX/refresh'
 import { FilterValues, TextbookQuery } from '../configs/type'
 import CalendarIcon from '@/assets/iconJSX/calendar'
+import moment from 'moment'
 
 interface FilterFormProps {
   onSubmit?: (values: FilterValues) => void
@@ -59,6 +60,7 @@ const FilterForm: React.FC<FilterFormProps> = ({
     values: FilterValues,
     _helpers: FormikHelpers<FilterValues>
   ) => {
+    console.log(values, { onSubmit })
     onSubmit?.(values)
   }
 
@@ -66,10 +68,10 @@ const FilterForm: React.FC<FilterFormProps> = ({
     <SafeAreaView style={styles.safe}>
       <Formik<FilterValues>
         initialValues={{
-          endYear: textbookFilter.endYear,
-          startYear: textbookFilter.startYear,
+          endYear: !!textbookFilter.fromDate ? moment(textbookFilter.fromDate).year() : undefined,
+          startYear: !!textbookFilter.toDate ? moment(textbookFilter.toDate).year() : undefined,
           subjectIds: textbookFilter.subjectIds || [],
-          months: textbookFilter.months || []
+          months: textbookFilter.fromMonths?.map(i => moment.utc(i).local().month() + 1) || []
         }}
         onSubmit={handleSubmit}
       >

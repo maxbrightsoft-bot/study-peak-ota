@@ -5,7 +5,7 @@ import {
   useState
 } from "react";
 
-import { DefaultTextbookFilter } from "../configs/constants";
+import { DATE_TIME_FORMAT, DefaultTextbookFilter } from "../configs/constants";
 
 import { FilterValues, PreparedFilterType, PreparedType, TextbookQuery } from "../configs/type";
 import { useTranslation } from "react-i18next";
@@ -100,6 +100,7 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
   const getTextbookList = async (textSearch?: string) => {
     setLoading(true)
     try {
+      console.log({ textbookFilter, textSearch })
       const { data } = await getTextbookListApi({
         ...textbookFilter,
         textSearch
@@ -145,10 +146,54 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
   };
 
   const handleChangeFilter = (filter: FilterValues) => {
-    setTextbookFilter((state: TextbookQuery) => ({
-      ...state,
-      ...filter
-    }));
+    let fromDate: string | undefined
+    let toDate: string | undefined
+    let fromMonths: string[] | undefined
+    let toMonths: string[] | undefined
+
+    if (filter.startYear && filter.endYear) {
+      fromDate = moment(filter.startYear, "YYYY")
+        .startOf("year")
+        .utc()
+        .format(DATE_TIME_FORMAT)
+      toDate = moment(filter.endYear, "YYYY")
+        .endOf("year")
+        .utc()
+        .format(DATE_TIME_FORMAT)
+    }
+
+    if (filter.months && filter.months.length > 0) {
+      const currentYear = moment().year()
+      fromMonths = filter.months.map((month: number) =>
+        moment()
+          .year(currentYear)
+          .month(month - 1)
+          .startOf("month")
+          .utc()
+          .format(DATE_TIME_FORMAT)
+      )
+      toMonths = filter.months.map((month: number) =>
+        moment()
+          .year(currentYear)
+          .month(month - 1)
+          .endOf("month")
+          .utc()
+          .format(DATE_TIME_FORMAT)
+      )
+    }
+
+    const { startYear, endYear, months, ...restValues } = filter
+
+    setTextbookFilter(prev => ({
+      ...prev,
+      ...restValues,
+      fromDate,
+      toDate,
+      fromMonths,
+      toMonths,
+      currentPage: 1
+    }))
+
     handleCloseFilterModal()
   };
 
@@ -178,6 +223,7 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
   useFocusEffect(
     useCallback(() => {
       getTextbookList();
+      // setTextbookFilter({ ...DefaultTextbookFilter, preparedType, preparedFilterType })
 
       scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true })
 
@@ -186,6 +232,12 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
         handleCloseDialog();
       };
     }, [selectedAcademy?.id, textbookFilter])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      setTextbookFilter({ ...DefaultTextbookFilter, preparedType, preparedFilterType })
+    }, [])
   );
 
   return {

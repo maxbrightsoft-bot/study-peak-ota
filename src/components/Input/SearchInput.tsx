@@ -25,7 +25,7 @@ const SearchInput = ({ ref, style, value, placeholder, onChangeText }: Props) =>
         >
           <Ionicons name="search" size={18} color={palette.grey[700]} />
         </View>
-        <TextInput ref={ref} value={value} onChangeText={onChangeText} placeholderTextColor={palette.grey[400]} placeholder={placeholder} />
+        <TextInput style={{ color: "#222222" }} ref={ref} value={value} onChangeText={onChangeText} placeholderTextColor={palette.grey[400]} placeholder={placeholder} />
       </View>
       {value?.length > 0 && (
         <View
