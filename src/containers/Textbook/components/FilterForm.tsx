@@ -60,7 +60,6 @@ const FilterForm: React.FC<FilterFormProps> = ({
     values: FilterValues,
     _helpers: FormikHelpers<FilterValues>
   ) => {
-    console.log(values, { onSubmit })
     onSubmit?.(values)
   }
 
@@ -68,8 +67,8 @@ const FilterForm: React.FC<FilterFormProps> = ({
     <SafeAreaView style={styles.safe}>
       <Formik<FilterValues>
         initialValues={{
-          endYear: !!textbookFilter.fromDate ? moment(textbookFilter.fromDate).year() : undefined,
-          startYear: !!textbookFilter.toDate ? moment(textbookFilter.toDate).year() : undefined,
+          endYear: !!textbookFilter.toDate ? moment.utc(textbookFilter.toDate).year() : undefined,
+          startYear: !!textbookFilter.fromDate ? moment.utc(textbookFilter.fromDate).local().year() : undefined,
           subjectIds: textbookFilter.subjectIds || [],
           months: textbookFilter.fromMonths?.map(i => moment.utc(i).local().month() + 1) || []
         }}

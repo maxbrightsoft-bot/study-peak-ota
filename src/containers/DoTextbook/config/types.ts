@@ -24,15 +24,15 @@ export interface SimplePreparedTextbookResponse {
 }
 
 export enum ScrollType {
-    FIRST,
-    PREV,
-    NEXT,
-    LAST
+  FIRST,
+  PREV,
+  NEXT,
+  LAST
 }
 
 export type StudentTextbookAnswerRequest = {
-    lastAnswerTime: number
-    questions: AnswerRequest[]
+  lastAnswerTime: number
+  questions: AnswerRequest[]
 }
 
 export interface PreparedTextbookResponse {

@@ -1,7 +1,7 @@
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { palette } from '@/theme'
 import { ExamStatus, QuestionAnswerType, SubjectType } from '@/utils/enums'
-import { Question, QuestionGroupResponse } from '../config/types'
+import { QuestionGroupResponse, QuestionResponse } from '../config/types'
 import React, { useMemo } from 'react'
 import StarRating from '@/assets/iconJSX/starRating'
 import MathRender from '@/components/MathRender'
@@ -10,11 +10,10 @@ type Props = {
   t: any
   data: QuestionGroupResponse
   questionRefs: React.MutableRefObject<(View | null)[]>
-  questionList: Question[]
   isEnd: boolean
   type?: SubjectType
   status?: ExamStatus
-  currentQuestion?: Question
+  currentQuestionId?: number
   onOpenAnswerSheet: (id?: number) => void
 }
 const ExamQuestionGroup = ({
@@ -23,11 +22,10 @@ const ExamQuestionGroup = ({
   status,
   type,
   questionRefs,
-  currentQuestion,
+  currentQuestionId,
   onOpenAnswerSheet,
-  questionList
 }: Props) => {
-  const questions = questionList.filter((q) => q.questionGroupId === data.id)
+  const questions = data.questions
   const disabled = isEnd || status === ExamStatus.Paused
   const questionContent = useMemo(() => {
     const title = data.articles?.[0].title
@@ -45,7 +43,7 @@ const ExamQuestionGroup = ({
     data.articles?.[0]?.subcategory?.name
   ])
 
-  const renderAnswer = (question: Question) => {
+  const renderAnswer = (question: QuestionResponse) => {
     switch (question.questionAnswerType) {
       case QuestionAnswerType.ShortAnswer:
       case QuestionAnswerType.OrderMatters:
@@ -64,7 +62,7 @@ const ExamQuestionGroup = ({
     }
   }
 
-  const renderRow = (item: Question, lastQuestionIndex: number) => {
+  const renderRow = (item: QuestionResponse, lastQuestionIndex: number) => {
     const answerCount = item.answerCount
 
     return (
@@ -73,7 +71,7 @@ const ExamQuestionGroup = ({
         onPress={() => (disabled ? undefined : onOpenAnswerSheet(item.id))}
         style={[
           styles.row,
-          currentQuestion?.id === item.id && styles.activeRow,
+          currentQuestionId === item.id && styles.activeRow,
           { borderBottomWidth: item.questionOrder === lastQuestionIndex - 1 ? 0 : 1 }
         ]}
       >
@@ -86,12 +84,12 @@ const ExamQuestionGroup = ({
           style={[
             styles.questionCol,
             {
-              borderRightWidth: currentQuestion?.id === item.id ? 0 : 1,
+              borderRightWidth: currentQuestionId === item.id ? 0 : 1,
               borderColor: palette.grey[200]
             }
           ]}
         >
-          <Text style={[styles.questionText, currentQuestion?.id === item.id && styles.activeQuestionText]}>
+          <Text style={[styles.questionText, currentQuestionId === item.id && styles.activeQuestionText]}>
             {item.questionOrder + 1}번
           </Text>
         </View>

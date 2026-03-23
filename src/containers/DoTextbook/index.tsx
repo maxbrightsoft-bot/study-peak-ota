@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { View, Text, Platform, KeyboardAvoidingView, TouchableOpacity, FlatList } from 'react-native'
 import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -99,7 +99,17 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
   })
   const disabled = textbook?.status === ExamStatus.Completed || textbook?.status === ExamStatus.Paused
 
-  const currentQuestion = questionList.find((question) => question.id === currentQuestionId)
+  const currentQuestion = useMemo(
+    () => questionList.find((q) => q.id === currentQuestionId),
+    [questionList, currentQuestionId]
+  )
+
+  const groupedQuestions = useMemo(() => {
+    return questionGroupList.map((group) => ({
+      ...group,
+      questions: questionList.filter((q) => q.questionGroupId === group.id)
+    }))
+  }, [questionGroupList, questionList])
 
   if (isNotFoundTextbook) {
     return <NotFoundExam title={t('textbook_not_found')} />
@@ -108,12 +118,12 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
   const audioTextbookProp = !textbook
     ? undefined
     : {
-        ...textbook,
-        createdAt: '',
-        coverImage: '',
-        limitedTimeInMinutes: 0,
-        totalUses: 0
-      }
+      ...textbook,
+      createdAt: '',
+      coverImage: '',
+      limitedTimeInMinutes: 0,
+      totalUses: 0
+    }
 
   const handleStartTextbookFromGuideModal = (enable: boolean) => {
     if (!audioTextbookProp) return
@@ -204,7 +214,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
           </View>
         )}
         <FlatList
-          data={questionGroupList}
+          data={groupedQuestions}
           keyExtractor={(item) => `group-${item.id}`}
           ref={scrollViewRef}
           initialNumToRender={5}
@@ -217,12 +227,11 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
               data={item}
               questionRefs={questionRefs}
               type={textbook?.type}
-              currentQuestion={currentQuestion}
+              currentQuestionId={currentQuestionId}
               onOpenAnswerSheet={handleOpenAnswerSheet}
               isEnd={textbook?.status === ExamStatus.Completed}
               isMock={textbook?.isMock}
               status={textbook?.status}
-              questionList={questionList}
             />
           )}
           contentContainerStyle={styles.scrollContainer}

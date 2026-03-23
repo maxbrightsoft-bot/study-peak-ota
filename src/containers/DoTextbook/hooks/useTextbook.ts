@@ -471,6 +471,8 @@ const useTextbook = ({
     setStartTime(undefined);
     setOpenAnswerSheet(false);
     setOpenConfirmDialog(false);
+    handleCloseLeaveDialog()
+    handleCloseConfirmDialog()
     setOpenRestartTextbookDialog(false);
     setOpenTimerDialog(false);
     questionRefs.current = [];

@@ -35,7 +35,7 @@ const useTimeUpdate = (
   onClose: () => void,
   data?: SubjectTimerResponse
 ) => {
-  const { user, setLoading } = useAuthStore()
+  const { user, setLoadingWithoutOverlay } = useAuthStore()
   const [currentTimeLines, setCurrentTimeLines] = useState<Timer[]>([])
   const [loading, setIsLoading] = useState(false)
   const [value, setValue] = useState(0)
@@ -92,7 +92,7 @@ const useTimeUpdate = (
 
   const updateTimer = async () => {
     if (!data || !currentTimeLines[0]) return
-    setLoading(true)
+    setLoadingWithoutOverlay(true)
     try {
       const reqData: SubjectTimerRequest = {
         id: data.timerId,
@@ -109,13 +109,13 @@ const useTimeUpdate = (
     } catch (error) {
       toast.error(getErrorMessage(t, error))
     } finally {
-      setLoading(false)
+      setLoadingWithoutOverlay(false)
     }
   }
 
   const updateTimers = async () => {
     if (!data || !selectedDate) return
-    setLoading(true)
+    setLoadingWithoutOverlay(true)
     try {
       const reqData: SubjectTimersRequest = {
         startDate: selectedDate.clone().startOf("day").utc().valueOf(),
@@ -138,7 +138,7 @@ const useTimeUpdate = (
     } catch (error) {
       toast.error(getErrorMessage(t, error))
     } finally {
-      setLoading(false)
+      setLoadingWithoutOverlay(false)
     }
   }
 
@@ -281,7 +281,7 @@ const useTimeUpdate = (
             timerIndex,
             status:
               recordIndex === timer.records.length - 1 &&
-              (timer.status === TimerStatus.Stopped || timer.limitedTimeReached)
+                (timer.status === TimerStatus.Stopped || timer.limitedTimeReached)
                 ? TimerStatus.Stopped
                 : TimerStatus.Paused,
             isStart: false

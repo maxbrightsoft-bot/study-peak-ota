@@ -243,6 +243,7 @@ const useSchedule = () => {
   const handleDeleteSchedule = async () => {
     if (!selectedSchedule?.id) return;
     setLoading(true)
+    clearData()
 
     try {
       await deleteScheduleApi(selectedSchedule?.id);
@@ -254,7 +255,6 @@ const useSchedule = () => {
       toast.error(getErrorMessage(t, error));
     }
     setLoading(false)
-    clearData()
   };
 
   const handleCreateSchedule = async (values: ScheduleFormData) => {

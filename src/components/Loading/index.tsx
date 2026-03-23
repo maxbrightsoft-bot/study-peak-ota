@@ -26,7 +26,7 @@ const Loading = ({
 }: Props) => {
   if (fullScreen) {
     return (
-      <View style={[isOverlay ? styles.overlay : null, styles.overlay, style]}>
+      <View style={[isOverlay ? styles.overlayColor : null, styles.overlay, style]}>
         <View style={styles.center}>
           <ActivityIndicator color={color} size={size} />
           {text && <Text style={styles.text}>{text}</Text>}

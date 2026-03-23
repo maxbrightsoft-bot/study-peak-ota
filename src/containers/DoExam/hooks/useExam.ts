@@ -460,6 +460,10 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
       navigate(Routes.Auth.Home);
     } else {
       getCheckStatus();
+      handleCloseAnswerSheet()
+      handleCloseConfirmDialog()
+      handleCloseFinishConfirmDialog()
+      handleCloseLeaveDialog()
     }
   };
 
@@ -514,6 +518,9 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
   const handleClear = () => {
     handleCloseLiveResultDialog()
     handleCloseResultDialog()
+    handleCloseLeaveDialog()
+    handleCloseFinishConfirmDialog()
+    handleCloseConfirmDialog()
     setQuestionList([])
     setEnding(false)
     firstLoadRef.current = true

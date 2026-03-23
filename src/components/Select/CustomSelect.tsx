@@ -12,9 +12,10 @@ type Props = {
   style?: any
   disabled?: boolean
   placeholder?: string
+  icon?: any
 }
 
-const CustomSelect = ({ value, onValueChange, style, options, disabled, placeholder }: Props) => {
+const CustomSelect = ({ value, onValueChange, style, options, disabled, placeholder, icon }: Props) => {
   const { t } = useTranslation()
 
   return (
@@ -33,7 +34,7 @@ const CustomSelect = ({ value, onValueChange, style, options, disabled, placehol
         itemTextStyle={styles.itemTextStyle}
         iconStyle={styles.iconStyle}
         containerStyle={styles.dropdownContainer}
-        renderRightIcon={() => <Ionicons name="caret-down-outline" size={20} color="#222222" />}
+        renderRightIcon={icon ?? (() => <Ionicons name="caret-down-outline" size={20} color="#222222" />)}
       />
     </View>
   )

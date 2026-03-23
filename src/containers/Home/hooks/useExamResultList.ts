@@ -1,18 +1,16 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import _ from "lodash";
 import { useTranslation } from "react-i18next";
 import useAuthStore from "@/store/useAuthStore";
 import { getListExamApi, joinExamApi } from "../apiClients";
-import { ExamSessionResponse } from "@/utils/types";
 import { useFocusEffect } from "@react-navigation/native";
 import { FlatList } from "react-native";
 import { getErrorMessage, toast } from "@/utils/helpers";
 import { navigate } from "@/navigators/NavigationHelpers";
 import { Routes } from "@/navigators/RouteName";
-import { restartExamApi } from "@/containers/DoExam/apiClients";
 import { DefaultExamSessionFilter } from "../configs/constants";
 import { CourseExamSession, ExamSessionSortBy } from "../configs/type";
-import { ExamStatus, OrderBy } from "@/utils/enums";
+import { OrderBy } from "@/utils/enums";
 
 const useExamResultList = ({ onClose }: { onClose: () => void }) => {
   const { setLoading } = useAuthStore()
