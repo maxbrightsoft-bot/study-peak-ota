@@ -51,8 +51,8 @@ const ChapterDetail = ({ t, isEnglish, isMock, chapter, isStudying, handleStartF
         </View>
       </View>
       {!isCompleted && !isMock && (
-        <View>
-          <TouchableOpacity onPress={() => handleStartFromPage({ startPage: chapter.pageFrom })}>
+        <View style={{ marginBottom: 8 }}>
+          <TouchableOpacity onPress={() => handleOpenChapterDialog(chapter)}>
             <Ionicons name="chevron-forward" size={20} color={palette.grey[300]} />
           </TouchableOpacity>
         </View>

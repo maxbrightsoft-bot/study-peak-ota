@@ -266,7 +266,7 @@ const DoExam = ({ examCode }: Props) => {
                   styles.navButton,
                   currentQuestion?.id === questionList[0]?.id && { borderColor: palette.grey[300] }
                 ]}
-                onPress={() => scrollToQuestion(ScrollType.FIRST)}
+                onPress={disabled ? undefined : () => scrollToQuestion(ScrollType.FIRST)}
               >
                 <View style={{ transform: 'rotate(180deg)' }}>
                   <LastIcon color={currentQuestion?.id === questionList[0]?.id ? palette.grey[300] : '#222222'} />
@@ -279,7 +279,7 @@ const DoExam = ({ examCode }: Props) => {
                   styles.navButton,
                   currentQuestion?.id === questionList[0]?.id && { borderColor: palette.grey[300] }
                 ]}
-                onPress={() => scrollToQuestion(ScrollType.PREV)}
+                onPress={disabled ? undefined : () => scrollToQuestion(ScrollType.PREV)}
               >
                 <View style={{ transform: 'rotate(180deg)', padding: 4 }}>
                   <NextIcon color={currentQuestion?.id === questionList[0]?.id ? palette.grey[300] : '#222222'} />
@@ -303,7 +303,7 @@ const DoExam = ({ examCode }: Props) => {
                     borderColor: palette.grey[300]
                   }
                 ]}
-                onPress={() => scrollToQuestion(ScrollType.NEXT)}
+                onPress={disabled ? undefined : () => scrollToQuestion(ScrollType.NEXT)}
               >
                 <Text
                   style={[
@@ -329,7 +329,7 @@ const DoExam = ({ examCode }: Props) => {
                     borderColor: palette.grey[300]
                   }
                 ]}
-                onPress={() => scrollToQuestion(ScrollType.LAST)}
+                onPress={disabled ? undefined : () => scrollToQuestion(ScrollType.LAST)}
               >
                 <LastIcon
                   color={

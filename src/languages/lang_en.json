@@ -1648,5 +1648,6 @@
   "conversation_created_success": "Conversation created successfully",
   "add_new_incorrect_note_prompt": "Try adding a new incorrect answer note",
   "review_wrong_answer_notes": "View all wrong answer notes",
-  "are_you_sure_you_want_to_leave": "Are you sure you want to leave?"
+  "are_you_sure_you_want_to_leave": "Are you sure you want to leave?",
+  "expired_question_prompt": "This question has expired. Would you like to view the results page?"
 }

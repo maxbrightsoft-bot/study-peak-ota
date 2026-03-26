@@ -1,10 +1,7 @@
-import React, { Fragment, useEffect, useState, useCallback } from 'react'
-import { Menu, TouchableRipple } from 'react-native-paper'
+import React, { useEffect, useState, useCallback } from 'react'
+import { TouchableRipple } from 'react-native-paper'
 import { InteractionManager, View } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
-
-import TimerIcon from '../../assets/icons/timer_icon.svg'
 import { palette } from '@/theme/colors'
 import Clock from '@/assets/iconJSX/clock'
 import TimerDialog from './TimeDialog'
@@ -19,7 +16,7 @@ type Props = {
   alarmClockProps: any
   isTextbook?: boolean
   timeUpdateDialogProps: any
-  audioGuideModalProps: any
+  audioGuideModalProps?: any
   speaker: boolean
   disabledSpeaker: boolean
   onToggleSpeaker: () => void
@@ -65,7 +62,7 @@ const TimerDropdown = ({
   return (
     <View>
       <TouchableRipple onPress={handleToggle} style={styles.iconButton}>
-        {isRunning ? <Clock color={palette.main[600]}/> : <Clock color={isTextbook ? palette.grey[500]: "#FFF"}/>}
+        {isRunning ? <Clock color={palette.main[600]} /> : <Clock color={isTextbook ? palette.grey[500] : "#FFF"} />}
       </TouchableRipple>
 
       {renderDialog && (
@@ -81,7 +78,7 @@ const TimerDropdown = ({
       )}
 
       <TimeUpdateDialog {...timeUpdateDialogProps} />
-      {!isTextbook && <AudioGuideModal {...audioGuideModalProps} />}
+      {audioGuideModalProps && !isTextbook && <AudioGuideModal {...audioGuideModalProps} />}
     </View>
   )
 }

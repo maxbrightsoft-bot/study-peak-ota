@@ -35,16 +35,6 @@ const Authorized = ({ route }: { route: any }) => {
       </Tab.Navigator>
     )
 
-  // if (!hasEnteredSelectAcademy)
-  // return (
-  //   <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={() => null}>
-  //     <Tab.Screen
-  //       name={Routes.Auth.SelectAcademy}
-  //       component={SelectAcademyScreen}
-  //     />
-  //   </Tab.Navigator>
-  // )
-
   return (
     <LayoutApp headerProps={headerProps}>
       <Tab.Navigator

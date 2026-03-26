@@ -13,6 +13,7 @@ export interface ConfirmDialogProps {
   onConfirm: (e?: any) => void
   open: boolean
   toggle: (e?: any) => void
+  onCancel?: (e?: any) => void
   isDelete?: boolean
   title?: string
   confirmText?: string
@@ -24,6 +25,7 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
   cancelText,
   okText,
   title,
+  onCancel,
   confirmText,
   toggle,
   onConfirm
@@ -63,7 +65,7 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
         )}
       </View>
       <View style={[styles.footer]}>
-        <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={toggle}>
+        <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onCancel ?? toggle}>
           <Text style={styles.cancelButtonText}>{cancelText || t('cancel')}</Text>
         </TouchableOpacity>
         <TouchableOpacity

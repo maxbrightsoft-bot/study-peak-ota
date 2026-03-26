@@ -67,6 +67,25 @@ const useTextbook = ({
   const [openAnswerSheet, setOpenAnswerSheet] = useState(false);
   const [openTimerDialog, setOpenTimerDialog] = useState<boolean>(false)
   const [openLeaveDialog, setOpenLeaveDialog] = useState<boolean>(false)
+  const [openExpiredQuestionDialog, setOpenExpiredQuestionDialog] = useState<boolean>(false)
+  const [openTextbookResultDialog, setOpenTextbookResultDialog] = useState(false)
+
+  const handleCloseTextbookResultDialog = () => {
+    setOpenTextbookResultDialog(false)
+  }
+
+  const handleOpenTextbookResultDialog = () => {
+    handleCloseExpiredQuestionDialog()
+    setOpenTextbookResultDialog(true)
+  }
+
+  const handleCloseExpiredQuestionDialog = () => {
+    setOpenExpiredQuestionDialog(false)
+  }
+
+  const handleOpenExpiredQuestionDialog = () => {
+    setOpenExpiredQuestionDialog(true)
+  }
 
   const handleOpenLeaveDialog = () => {
     setOpenLeaveDialog(true)
@@ -466,6 +485,7 @@ const useTextbook = ({
   const clearData = () => {
     setTextbook(undefined);
     setQuestionList([]);
+    handleCloseExpiredQuestionDialog()
     setQuestionGroupList([]);
     setCurrentQuestionId(undefined);
     setStartTime(undefined);
@@ -590,7 +610,13 @@ const useTextbook = ({
     updateQuestionStar,
     nav1,
     nav2,
+    openTextbookResultDialog,
+    handleCloseTextbookResultDialog,
+    handleOpenTextbookResultDialog,
     questionList,
+    openExpiredQuestionDialog,
+    handleCloseExpiredQuestionDialog,
+    handleOpenExpiredQuestionDialog,
     remainTimeString,
     scrollToQuestion,
     totalTimeString,

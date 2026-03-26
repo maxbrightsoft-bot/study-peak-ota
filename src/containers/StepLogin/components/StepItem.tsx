@@ -7,7 +7,6 @@ import GridContainer from '@/components/Grid/GridContainer'
 import GridItem from '@/components/Grid/GridItem'
 import Select from '@/components/Select/CustomSelect'
 import useStepItem from '../hooks/useStepItem'
-import { Button } from 'react-native-paper'
 import { Ionicons } from '@expo/vector-icons'
 
 type Props = {
@@ -62,6 +61,39 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
         )
       case 2:
         return (
+          <View style={{ flexDirection: 'column' }}>
+            <Text style={styles.title}>보호자 이름을 입력해주세요.</Text>
+            <Field name="parentName">
+              {() => (
+                <TextField
+                  error={touched.parentName && errors.parentName && '보호자 이름은 필수입니다'}
+                  value={values.parentName}
+                  style={styles.input}
+                  onChangeText={(value: string) => setFieldValue('parentName', value)}
+                />
+              )}
+            </Field>
+          </View>
+        )
+      case 3:
+        return (
+          <View>
+            <Text style={styles.title}>보호자 전화번호를 입력해주세요.</Text>
+            <Field name="parentPhoneNumber">
+              {() => (
+                <TextField
+                  style={styles.input}
+                  value={values.parentPhoneNumber}
+                  keyboardType="phone-pad"
+                  error={touched.parentPhoneNumber && errors.parentPhoneNumber && '보호자 전화번호는 필수입니다'}
+                  onChangeText={(value: string) => setFieldValue('parentPhoneNumber', value)}
+                />
+              )}
+            </Field>
+          </View>
+        )
+      case 4:
+        return (
           <View>
             <Text style={styles.title}>재학 중인 학교를 선택해주세요.</Text>
             <Field name="schoolName">
@@ -77,13 +109,13 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
             <Text style={styles.helperText}>안내 텍스트입니다.</Text>
           </View>
         )
-      case 3:
+      case 5:
         return (
           <>
             <Text style={styles.title}>학과와 학년을 선택해주세요.</Text>
             <GridContainer spacing={12}>
               <GridItem xs={4} style={{ justifyContent: 'space-between' }}>
-                <Text style={[styles.label, { marginBottom: 8} ]}>{t('select_liberal_arts/science')}</Text>
+                <Text style={[styles.label, { marginBottom: 8 }]}>{t('select_liberal_arts/science')}</Text>
                 <Field name="major">
                   {() => (
                     <Select
@@ -95,7 +127,7 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
                 </Field>
               </GridItem>
               <GridItem xs={4} style={{ justifyContent: 'space-between' }}>
-                <Text style={[styles.label, { marginBottom: 8} ]}>{t('current_grade')}</Text>
+                <Text style={[styles.label, { marginBottom: 8 }]}>{t('current_grade')}</Text>
                 <Field name="grade">
                   {() => (
                     <Select

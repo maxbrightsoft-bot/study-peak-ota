@@ -264,6 +264,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     paddingRight: 8,
+    flexWrap: 'wrap'
   },
   questionOrder: {
     fontSize: 12,
@@ -279,10 +280,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
+    flexWrap: 'wrap'
   },
   statusText: {
     fontSize: 11,
     fontWeight: '500',
+    textAlign: 'center'
   },
   correctText: {
     color: '#10B981',
@@ -314,8 +317,10 @@ const styles = StyleSheet.create({
   },
   overallContainer: {
     flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 2,
+    flexWrap: 'wrap'
   },
   overallRate: {
     fontSize: 11,

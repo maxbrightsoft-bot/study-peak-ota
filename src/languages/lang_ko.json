@@ -1648,5 +1648,6 @@
   "conversation_created_success": "대화가 성공적으로 생성되었습니다",
   "add_new_incorrect_note_prompt": "새로운 오답노트를 추가해보세요",
   "review_wrong_answer_notes": "오답노트 모아보기",
-  "are_you_sure_you_want_to_leave": "정말로 나가시겠습니까?"
+  "are_you_sure_you_want_to_leave": "정말로 나가시겠습니까?",
+  "expired_question_prompt": "사용 기한이 지난 문제입니다. 결과 페이지를 보시겠습니까?"
 }

@@ -19,6 +19,15 @@ type Props = {
 
 const NoticeDrawer = ({ t, open, onClose, notification }: Props) => {
   const { width } = useWindowDimensions()
+
+  const htmlSource = React.useMemo(() => {
+    return {
+      html: `<div style="color: ${palette.grey[700]}; font-size: 14px;">
+      ${notification?.content || ''}
+    </div>`
+    }
+  }, [notification?.content])
+
   const renderBodyModal = () => {
     return (
       <View style={style.viewContainer}>
@@ -65,9 +74,7 @@ const NoticeDrawer = ({ t, open, onClose, notification }: Props) => {
           <ScrollView>
             <RenderHtml
               contentWidth={width}
-              source={{
-                html: `<div style=${{ ...TYPO.button3, color: palette.grey[700] }}>${notification?.content || ''}</div>`
-              }}
+              source={htmlSource}
             />
           </ScrollView>
         </View>

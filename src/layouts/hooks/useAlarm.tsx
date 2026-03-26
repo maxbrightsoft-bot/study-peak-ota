@@ -237,34 +237,34 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
   }
 
   const handleResumeOrPauseAlarm = async () => {
-        if (!alarm || !alarm.id || alarm.status == TimerStatus.Stopped) return
-        const isPaused = alarm.status === TimerStatus.Paused
-        if (isPaused) soundRef.current?.pauseAsync()
+    if (!alarm || !alarm.id || alarm.status == TimerStatus.Stopped) return
+    const isPaused = alarm.status === TimerStatus.Paused
+    if (isPaused) soundRef.current?.pauseAsync()
 
-        setLoadingItem(true)
-        try {
-            const pause = onAcademy
-                ? pauseStudentAlarmApi
-                : pauseSuperStudentAlarmApi
-            const res = await pause({
-                id: alarm.id,
-                status: isPaused ? TimerStatus.Started : TimerStatus.Paused,
-                pauseTime: !isPaused ? moment().utc().valueOf() : 0,
-                rowVersion: alarm.rowVersion
-            })
-            handleUpdateAlarm(res.data)
-        } catch (error) {
-            toast.error(
-                t(
-                    isPaused
-                        ? "failed_to_start_the_alarm"
-                        : "failed_to_pause_the_alarm",
-                    { message: getErrorMessage(t, error) }
-                )
-            )
-        }
-        setLoadingItem(false)
+    setLoadingItem(true)
+    try {
+      const pause = onAcademy
+        ? pauseStudentAlarmApi
+        : pauseSuperStudentAlarmApi
+      const res = await pause({
+        id: alarm.id,
+        status: isPaused ? TimerStatus.Started : TimerStatus.Paused,
+        pauseTime: !isPaused ? moment().utc().valueOf() : 0,
+        rowVersion: alarm.rowVersion
+      })
+      handleUpdateAlarm(res.data)
+    } catch (error) {
+      toast.error(
+        t(
+          isPaused
+            ? "failed_to_start_the_alarm"
+            : "failed_to_pause_the_alarm",
+          { message: getErrorMessage(t, error) }
+        )
+      )
     }
+    setLoadingItem(false)
+  }
 
   const getAlarm = async () => {
     if (!user?.superId || isFetching) return

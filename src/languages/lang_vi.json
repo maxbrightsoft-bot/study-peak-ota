@@ -1662,5 +1662,6 @@
     "conversation_created_success": "Tạo cuộc hội thoại thành công",
     "add_new_incorrect_note_prompt": "Hãy thử thêm một ghi chú đáp án sai mới",
     "review_wrong_answer_notes": "Xem tất cả ghi chú câu sai",
-    "are_you_sure_you_want_to_leave": "Bạn có chắc chắn muốn rời đi không?"
+    "are_you_sure_you_want_to_leave": "Bạn có chắc chắn muốn rời đi không?",
+    "expired_question_prompt": "Đây là câu hỏi đã hết thời hạn. Bạn có muốn xem trang kết quả không?"
 }

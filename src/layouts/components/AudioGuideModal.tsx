@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Modal, Alert } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { Audio } from 'expo-av'
 import { DEFAULT_AUDIO_URL } from '../../layouts/configs/constants'
 import useAudioTimer from '../hooks/useAudioTimer'
 import { palette } from '@/theme'
 import { getErrorMessage, toast } from '@/utils/helpers'
+import Loading from '@/components/Loading'
 
 export type AudioGuideModalProps = {
   open: boolean
@@ -173,12 +174,12 @@ const AudioGuideModal: React.FC<AudioGuideModalProps> = ({ open, audioUrls, onCl
 
   return (
     <Modal visible={open} transparent animationType="fade" onRequestClose={handleCloseDialog}>
+      {isLoading && <Loading isOverlay={false} />}
       <View style={styles.overlay}>
         <View style={styles.container}>
           <View style={styles.header}>
             <Text style={styles.title}>{t('voice_guidance_settings')}</Text>
           </View>
-
           <View style={styles.content}>
             <View style={styles.contentInner}>
               {startTime === null ? (

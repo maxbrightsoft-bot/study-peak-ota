@@ -11,6 +11,7 @@ import SettingIcon from '@/assets/iconJSX/setting'
 import Notice from '@/containers/Notice/view'
 import Setting from '@/containers/Setting/view'
 import SignOut from '@/assets/iconJSX/signOut'
+import AudioGuideModal from './components/AudioGuideModal'
 
 type Props = {
   headerProps: any
@@ -179,7 +180,6 @@ const Header = ({ headerProps }: Props) => {
               disabledSpeaker={disabledSpeaker}
               openTimerDialog={openTimerDialog}
               alarmClockProps={alarmClockProps}
-              audioGuideModalProps={audioGuideModalProps}
               isAlarmRunning={isAlarmRunning}
               isTimerRunning={isTimerRunning}
               studyTimerProps={studyTimerProps}
@@ -195,6 +195,7 @@ const Header = ({ headerProps }: Props) => {
       </View>
       <Notice open={openNoticeDialog} onClose={handleCloseNoticeDialog} />
       <Setting open={openSettingDialog} onClose={handleCloseSettingDialog} />
+      <AudioGuideModal {...audioGuideModalProps} />
     </View>
   )
 }

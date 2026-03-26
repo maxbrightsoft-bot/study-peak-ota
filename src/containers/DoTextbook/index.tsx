@@ -16,13 +16,14 @@ import LastIcon from '@/assets/iconJSX/last'
 import NextIcon from '@/assets/iconJSX/next'
 import ArrowDown from '@/assets/iconJSX/arrowDown'
 import ArrowRight from '@/assets/iconJSX/arrowRight'
-import { Routes } from '@/navigators/RouteName'
-import { navigate } from '@/navigators/NavigationHelpers'
 import TimerDropDown from '@/layouts/components/TimerDropDown'
 import SelectAnswerSheet from './components/SelectAnswerSheet'
 import MuteIcon from '@/assets/iconJSX/mute'
 import { Ionicons } from '@expo/vector-icons'
 import AudioGuideModal from '@/layouts/components/AudioGuideModal'
+import TextbookDrawer from '../Textbook/components/Dialog/TextbookDrawer'
+import { navigate } from '@/navigators/NavigationHelpers'
+import { Routes } from '@/navigators/RouteName'
 
 type Props = {
   textbookId: string
@@ -53,6 +54,9 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
     remainTimeString,
     totalTasks,
     speaker,
+    openExpiredQuestionDialog,
+    handleCloseExpiredQuestionDialog,
+    handleOpenExpiredQuestionDialog,
     disabledSpeaker,
     openTimerDialog,
     handleOpenAnswerSheet,
@@ -62,6 +66,9 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
     isAlarmRunning,
     isTimerRunning,
     studyTimerProps,
+    openTextbookResultDialog,
+    handleCloseTextbookResultDialog,
+    handleOpenTextbookResultDialog,
     timeUpdateDialogProps,
     handleToggleSpeaker,
     currentQuestionId,
@@ -95,7 +102,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
 
   const { isOpenAudioGuide, handleOpenAudioGuide, handleCloseAudioGuide, handleStartTextbook } = useAlarmTextbook({
     onStart: alarmClockProps.panelProps.onStart,
-    handleCloseDialog
+    handleCloseDialog,
   })
   const disabled = textbook?.status === ExamStatus.Completed || textbook?.status === ExamStatus.Paused
 
@@ -227,6 +234,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
               data={item}
               questionRefs={questionRefs}
               type={textbook?.type}
+              handleOpenExpiredQuestionDialog={handleOpenExpiredQuestionDialog}
               currentQuestionId={currentQuestionId}
               onOpenAnswerSheet={handleOpenAnswerSheet}
               isEnd={textbook?.status === ExamStatus.Completed}
@@ -263,7 +271,13 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
             }}
           >
             <TouchableOpacity
-              onPress={disabled ? undefined : () => handleOpenAnswerSheet()}
+              onPress={
+                disabled
+                  ? textbook?.status === ExamStatus.Completed
+                    ? handleOpenExpiredQuestionDialog
+                    : undefined
+                  : () => handleOpenAnswerSheet()
+              }
               style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -294,7 +308,11 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
                   styles.navButton,
                   currentQuestion?.id === questionList[0]?.id && { borderColor: palette.grey[300] }
                 ]}
-                onPress={() => scrollToQuestion(ScrollType.FIRST)}
+                onPress={disabled
+                  ? textbook?.status === ExamStatus.Completed
+                    ? handleOpenExpiredQuestionDialog
+                    : undefined
+                  : () => scrollToQuestion(ScrollType.FIRST)}
               >
                 <View style={{ transform: 'rotate(180deg)' }}>
                   <LastIcon color={currentQuestion?.id === questionList[0]?.id ? palette.grey[300] : '#222222'} />
@@ -306,7 +324,11 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
                   styles.navButton,
                   currentQuestion?.id === questionList[0]?.id && { borderColor: palette.grey[300] }
                 ]}
-                onPress={() => scrollToQuestion(ScrollType.PREV)}
+                onPress={disabled
+                  ? textbook?.status === ExamStatus.Completed
+                    ? handleOpenExpiredQuestionDialog
+                    : undefined
+                  : () => scrollToQuestion(ScrollType.PREV)}
               >
                 <View style={{ transform: 'rotate(180deg)', padding: 4 }}>
                   <NextIcon color={currentQuestion?.id === questionList[0]?.id ? palette.grey[300] : '#222222'} />
@@ -330,7 +352,11 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
                     borderColor: palette.grey[300]
                   }
                 ]}
-                onPress={() => scrollToQuestion(ScrollType.NEXT)}
+                onPress={disabled
+                  ? textbook?.status === ExamStatus.Completed
+                    ? handleOpenExpiredQuestionDialog
+                    : undefined
+                  : () => scrollToQuestion(ScrollType.NEXT)}
               >
                 <Text
                   style={[
@@ -356,7 +382,11 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
                     borderColor: palette.grey[300]
                   }
                 ]}
-                onPress={() => scrollToQuestion(ScrollType.LAST)}
+                onPress={disabled
+                  ? textbook?.status === ExamStatus.Completed
+                    ? handleOpenExpiredQuestionDialog
+                    : undefined
+                  : () => scrollToQuestion(ScrollType.LAST)}
               >
                 <LastIcon
                   color={
@@ -387,11 +417,28 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
           } else handleRestartTextbook()
         }}
       />
+      {openTextbookResultDialog && (
+        <TextbookDrawer
+          isOpen={openTextbookResultDialog}
+          onClose={() => {
+            navigate(Routes.Auth.Textbook)
+            handleCloseTextbookResultDialog()
+          }}
+          textbookId={+textbookId}
+        />
+      )}
       <ConfirmDialog
         open={openLeaveDialog}
         toggle={handleCloseLeaveDialog}
         text={t('are_you_sure_you_want_to_leave')}
         onConfirm={onFinishedTextbook}
+      />
+      <ConfirmDialog
+        open={openExpiredQuestionDialog}
+        toggle={handleCloseExpiredQuestionDialog}
+        onCancel={() => navigate(Routes.Auth.Textbook)}
+        text={t('expired_question_prompt')}
+        onConfirm={handleOpenTextbookResultDialog}
       />
       {currentQuestion && (
         <SelectAnswerSheet
@@ -411,6 +458,14 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
           audioUrls={audioTextbookProp.subject?.audioUrls ?? []}
           onClose={handleCloseAudioGuide}
           onStart={handleStartTextbookFromGuideModal}
+        />
+      )}
+      {audioGuideModalProps.open && (
+        <AudioGuideModal
+          open={audioGuideModalProps.open}
+          audioUrls={audioGuideModalProps.audioUrls}
+          onClose={audioGuideModalProps.onClose}
+          onStart={audioGuideModalProps.onStart}
         />
       )}
     </View>
