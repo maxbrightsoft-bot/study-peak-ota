@@ -25,7 +25,7 @@ const NoteCard = ({
       <View style={styles.metaLeft}>
         <Text style={styles.number}>
           {t('number_question', {
-            number: item?.questionOrder
+            number: (item?.questionOrder || 0) + 1
           })}
         </Text>
         <Text style={styles.metaText}>{item.categoryName}</Text>
