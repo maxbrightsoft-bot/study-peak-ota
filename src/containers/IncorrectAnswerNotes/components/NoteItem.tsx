@@ -91,7 +91,7 @@ const NoteItem: FC<NoteItemProps> = ({
         <View style={styles.metaLeft}>
           <Text style={styles.number}>
             {t('number_question', {
-              number: data?.questionOrder
+              number: (data?.questionOrder || 0) + 1
             })}
           </Text>
           <Text style={styles.metaText}>{data.categoryName}</Text>

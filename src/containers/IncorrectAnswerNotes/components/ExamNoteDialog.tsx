@@ -70,85 +70,88 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
         validationSchema={schema}
         onSubmit={(values) => onSaveNote(values.content, values.questionId)}
       >
-        {({ handleChange, handleSubmit, values, setFieldValue }) => 
-        {
+        {({ handleChange, handleSubmit, values, setFieldValue }) => {
           const question = examResultData?.questions.find(i => i.id === values.questionId)
+
           return (
-          <>
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={80}>
-              <ScrollView style={styles.contentWrapper}>
-                <View>
-                  <Text style={styles.labelText}>{t('problem_number')}</Text>
-                  {selectedNote || selectedQuestion ? (
-                    <Text style={{ color: theme.colors.primary, fontWeight: 'bold' }}>
-                      {t('number_question', {
-                        number: selectedNote
-                          ? (selectedNote.questionOrder || 0) + 1
-                          : (selectedQuestion?.questionOrder || 0) + 1
-                      })}
-                    </Text>
-                  ) : (
-                    <Select
-                      onValueChange={(value) => setFieldValue('questionId', value)}
-                      value={values.questionId}
-                      options={questionOptions}
-                    />
-                  )}
-                </View>
-                {question && <View style={{ marginTop: 12 }}>
-                  <View style={styles.headerRow}>
-                    <Text style={styles.headerText}>{question?.questionTypeCategories?.[0]?.category?.name}</Text>
-                    <View style={styles.separator} />
-                    <Text style={styles.headerText}>{question?.questionTypeCategories?.[0]?.subcategory?.name}</Text>
-                    <View style={styles.separator} />
-                    <Text style={styles.headerText}>{question?.score}p</Text>
-
+            <>
+              <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={80}>
+                <ScrollView style={styles.contentWrapper}>
+                  <View>
+                    <Text style={styles.labelText}>{t('problem_number')}</Text>
+                    {selectedNote || selectedQuestion ? (
+                      <Text style={{ color: theme.colors.primary, fontWeight: 'bold' }}>
+                        {t('number_question', {
+                          number: selectedNote
+                            ? (selectedNote.questionOrder || 0) + 1
+                            : (selectedQuestion?.questionOrder || 0) + 1
+                        })}
+                      </Text>
+                    ) : (
+                      <Select
+                        onValueChange={(value) => setFieldValue('questionId', value)}
+                        value={values.questionId}
+                        options={questionOptions}
+                      />
+                    )}
                   </View>
+                  {question && <View style={{ marginTop: 12 }}>
+                    <View style={styles.headerRow}>
+                      {!!question?.questionTypeCategories?.length && <>
+                        <Text style={styles.headerText}>{question?.questionTypeCategories?.[0]?.category?.name}</Text>
+                        <View style={styles.separator} />
+                        <Text style={styles.headerText}>{question?.questionTypeCategories?.[0]?.subcategory?.name}</Text>
+                        <View style={styles.separator} />
+                      </>}
+                      <Text style={styles.headerText}>{question?.score}p</Text>
 
-                  <View style={styles.metaRow}>
-                    <View style={styles.metaLeft}>
-                      <Text style={styles.metaText}>{examResultData?.title}</Text>
                     </View>
-                  </View>
-                </View>}
-                <View style={{ marginTop: 20 }}>
-                  <Text style={styles.labelText}>{t('incorrect_answer_note_contents')}</Text>
-                  <TextField
-                    multiline
-                    numberOfLines={10}
-                    placeholder="(예시) 다른 문제에서 시간을 절약해서 부족한 현대문학에 시간을 좀 더 써야겠다."
-                    value={values.content}
-                    onChangeText={handleChange('content')}
-                  />
-                </View>
-                <View style={{ marginTop: 20 }}>
-                  {imageUrl ? (
-                    <Image
-                      source={{ uri: imageUrl }}
-                      style={{
-                        width: 120,
-                        height: 120,
-                        borderRadius: 8,
-                        borderWidth: 1,
-                        borderColor: palette.grey[500]
-                      }}
-                      resizeMode="cover"
+
+                    <View style={styles.metaRow}>
+                      <View style={styles.metaLeft}>
+                        <Text style={styles.metaText}>{examResultData?.title}</Text>
+                      </View>
+                    </View>
+                  </View>}
+                  <View style={{ marginTop: 20 }}>
+                    <Text style={styles.labelText}>{t('incorrect_answer_note_contents')}</Text>
+                    <TextField
+                      multiline
+                      numberOfLines={10}
+                      placeholder="(예시) 다른 문제에서 시간을 절약해서 부족한 현대문학에 시간을 좀 더 써야겠다."
+                      value={values.content}
+                      onChangeText={handleChange('content')}
                     />
-                  ) : (
-                    <TouchableOpacity onPress={handleUploadImage}>
-                      <Ionicons name="image" size={32} color={palette.grey[500]} />
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </ScrollView>
-            </KeyboardAvoidingView>
-            <View style={styles.footer}>
-              <TouchableOpacity style={[styles.button, styles.confirmButton]} onPress={handleSubmit as any}>
-                <Text style={styles.confirmButtonText}>등록</Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        )}}
+                  </View>
+                  <View style={{ marginTop: 20 }}>
+                    {imageUrl ? (
+                      <Image
+                        source={{ uri: imageUrl }}
+                        style={{
+                          width: 120,
+                          height: 120,
+                          borderRadius: 8,
+                          borderWidth: 1,
+                          borderColor: palette.grey[500]
+                        }}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <TouchableOpacity onPress={handleUploadImage}>
+                        <Ionicons name="image" size={32} color={palette.grey[500]} />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </ScrollView>
+              </KeyboardAvoidingView>
+              <View style={styles.footer}>
+                <TouchableOpacity style={[styles.button, styles.confirmButton]} onPress={handleSubmit as any}>
+                  <Text style={styles.confirmButtonText}>등록</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )
+        }}
       </Formik>
     </SlideDrawerRoot>
   )
