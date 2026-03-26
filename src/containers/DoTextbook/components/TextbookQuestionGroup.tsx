@@ -14,6 +14,7 @@ type Props = {
   type?: SubjectType
   status?: ExamStatus
   isMock?: boolean
+  handleOpenExpiredQuestionDialog: () => void
   onOpenAnswerSheet: (id?: number) => void
   currentQuestionId?: number
 }
@@ -23,6 +24,8 @@ const TextbookQuestionGroup = ({
   isEnd,
   status,
   type,
+  isMock,
+  handleOpenExpiredQuestionDialog,
   onOpenAnswerSheet,
   currentQuestionId,
   questionRefs,
@@ -62,7 +65,7 @@ const TextbookQuestionGroup = ({
     return (
       <TouchableOpacity
         ref={(ref) => (questionRefs.current[item.questionIndex || 0] = ref)}
-        onPress={() => (disabled ? undefined : onOpenAnswerSheet(item.id))}
+        onPress={() => (disabled ? isEnd ? handleOpenExpiredQuestionDialog() : undefined : onOpenAnswerSheet(item.id))}
         style={[
           styles.row,
           currentQuestionId === item.id && styles.activeRow,

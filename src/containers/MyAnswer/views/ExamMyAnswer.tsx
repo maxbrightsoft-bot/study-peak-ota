@@ -92,7 +92,7 @@ const MyAnswer: FC<Props> = ({ data, categories, effectSize }) => {
           <View style={styles.groupHeader}>
             <View style={styles.groupHeaderColumn1}>
               {subcategory && (
-                <Text style={styles.subcategoryText} numberOfLines={1}>
+                <Text style={styles.subcategoryText}>
                   {subcategory.name}
                 </Text>
               )}
@@ -111,7 +111,7 @@ const MyAnswer: FC<Props> = ({ data, categories, effectSize }) => {
         {isMath && item?.questionTypeCategories && (
           <View style={styles.questionTypeContainer}>
             <View style={styles.questionTypeColumn}>
-              <Text style={styles.questionTypeText} numberOfLines={1}>
+              <Text style={styles.questionTypeText}>
                 {item?.questionTypeCategories?.map((i) => i?.questionType?.name).join(', ')}
               </Text>
             </View>
@@ -137,22 +137,22 @@ const MyAnswer: FC<Props> = ({ data, categories, effectSize }) => {
   const renderHeader = () => (
     <View style={styles.headerRow}>
       <View style={styles.column1}>
-        <Text style={styles.headerText} numberOfLines={2}>
+        <Text style={styles.headerText}>
           {t('problem_number')}
         </Text>
       </View>
       <View style={styles.column2}>
-        <Text style={styles.headerText} numberOfLines={2}>
+        <Text style={styles.headerText}>
           {t('answer')}
         </Text>
       </View>
       <View style={styles.column3}>
-        <Text style={styles.headerText} numberOfLines={2}>
+        <Text style={styles.headerText}>
           {t('solve_time')}
         </Text>
       </View>
       <View style={styles.column4}>
-        <Text style={styles.headerText} numberOfLines={3}>
+        <Text style={styles.headerText}>
           {t('comparison_of_top_rankings')}
         </Text>
       </View>
@@ -193,7 +193,7 @@ const MyAnswer: FC<Props> = ({ data, categories, effectSize }) => {
               <View style={styles.categoryHeader}>
                 <View style={styles.categoryColumn}>
                   <Text style={styles.categoryLabel}>{t('_category')}</Text>
-                  <Text style={styles.categoryName} numberOfLines={1}>
+                  <Text style={styles.categoryName}>
                     {item.category.name}
                   </Text>
                 </View>
@@ -273,7 +273,8 @@ const styles = StyleSheet.create({
   categoryColumn: {
     flex: 1,
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    flexWrap: 'wrap'
   },
   categoryLabel: {
     fontSize: 12,

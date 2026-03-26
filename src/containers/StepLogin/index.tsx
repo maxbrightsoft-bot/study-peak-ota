@@ -1,5 +1,4 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
 
 import * as yup from "yup";
 import { Formik } from "formik";
@@ -19,19 +18,29 @@ const schema = (t: any) =>
         message: "Phone number is not valid",
       })
       .required(),
+    parentName: yup.string().required("ParentName is required!"),
+    parentPhoneNumber: yup
+      .string()
+      .trim()
+      .matches(phoneRegExp, {
+        message: "Parent phone number is not valid",
+      })
+      .required(),
     grade: yup.number(),
     major: yup.string(),
     schoolName: yup.string().required(),
   });
 
 const StepLogin = () => {
-  const { t, handleSubmit } = useStep();
+  const { t, user, handleSubmit } = useStep();
   const initValues = {
-    fullName: "",
-    phoneNumber: "",
-    schoolName: "",
-    grade: 1,
-    major: t("liberal_arts"),
+    fullName: user?.fullName || "",
+    phoneNumber: user?.phoneNumber || "",
+    parentName: user?.parentName || "",
+    parentPhoneNumber: user?.parentPhoneNumber || "",
+    schoolName: user?.schoolName || "",
+    grade: user?.grade || 1,
+    major: user?.major || t("liberal_arts"),
   };
 
   return (

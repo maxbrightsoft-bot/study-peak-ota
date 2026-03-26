@@ -28,13 +28,13 @@ const CustomSelect = ({ value, onValueChange, style, options, disabled, placehol
         disable={disabled}
         onChange={(item) => onValueChange?.(item.value)}
         placeholder={placeholder ?? t('select_placeholder')}
-        style={[styles.dropdown, style]}
+        style={[styles.dropdown, style, disabled && styles.disabledDropdown]}
         selectedTextStyle={styles.selectedTextStyle}
         placeholderStyle={styles.placeholderStyle}
         itemTextStyle={styles.itemTextStyle}
         iconStyle={styles.iconStyle}
         containerStyle={styles.dropdownContainer}
-        renderRightIcon={icon ?? (() => <Ionicons name="caret-down-outline" size={20} color="#222222" />)}
+        renderRightIcon={icon ?? (() => <Ionicons name="caret-down-outline" size={20} color={disabled ? palette.grey[300] : "#222222"} />)}
       />
     </View>
   )
@@ -53,6 +53,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     paddingHorizontal: 12,
     justifyContent: 'center'
+  },
+  disabledDropdown: {
+    opacity: 0.6,
+    backgroundColor: palette.grey[200]
   },
 
   dropdownContainer: {

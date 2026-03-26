@@ -237,7 +237,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingRight: 8
+    paddingRight: 8,
+    flexWrap: 'wrap'
   },
   questionOrder: {
     fontSize: 13,
@@ -248,11 +249,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4
+    gap: 4,
+    flexWrap: 'wrap'
   },
   statusText: {
     fontSize: 13,
-    fontWeight: '500'
+    fontWeight: '500',
+    textAlign: 'center'
   },
   correctText: {
     color: '#1EE288'
@@ -284,8 +287,10 @@ const styles = StyleSheet.create({
   },
   overallContainer: {
     flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 2
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    flexWrap: 'wrap'
   },
   overallRate: {
     fontSize: 13,

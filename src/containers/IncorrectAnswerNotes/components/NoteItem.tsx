@@ -90,17 +90,17 @@ const NoteItem: FC<NoteItemProps> = ({
       <View style={styles.metaRow}>
         <View style={styles.metaLeft}>
           <Text style={styles.number}>
-            {t('score_format', {
-              score: examResultData?.score
+            {t('number_question', {
+              number: data?.questionOrder
             })}
           </Text>
           <Text style={styles.metaText}>{data.categoryName}</Text>
           <View style={styles.separator} />
-          <Text style={styles.metaText}>{question?.score}p</Text>
+          <Text style={styles.metaText}>p.{question?.score}</Text>
         </View>
         <FontAwesome6 name="angle-right" size={20} color={palette.grey[300]} />
       </View>
-      <MathRender fontSize={70} content={data.content} textColor={palette.grey[700]} />
+      <MathRender fontSize={50} content={data.content} textColor={palette.grey[700]} />
     </Pressable>
   )
 }

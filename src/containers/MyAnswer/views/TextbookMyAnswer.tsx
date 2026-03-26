@@ -198,7 +198,8 @@ const styles = StyleSheet.create({
   categoryColumn: {
     flex: 1,
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    flexWrap: 'wrap'
   },
   categoryLabel: {
     fontSize: 12,

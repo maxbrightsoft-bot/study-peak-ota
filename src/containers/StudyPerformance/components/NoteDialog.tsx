@@ -61,7 +61,7 @@ const NoteDialog: FC<ExamNoteDialogProps> = ({
         <View></View>
       </View>
       {isLoadingNotes && <Loading isOverlay={false} />}
-      <View style={{ backgroundColor: palette.bg[100], paddingBottom: 200 }}>
+      <View style={{ backgroundColor: palette.bg[100], flex: 1 }}>
         <Formik
           initialValues={{
             content: selectedNote?.content || '',
@@ -74,10 +74,15 @@ const NoteDialog: FC<ExamNoteDialogProps> = ({
             return (
               <>
                 <KeyboardAvoidingView
+                  style={{ flex: 1 }}
                   behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                   keyboardVerticalOffset={80}
                 >
-                  <ScrollView style={styles.contentWrapper}>
+                  <ScrollView
+                    style={styles.contentWrapper}
+                    contentContainerStyle={{ paddingBottom: 50 }}
+                    showsVerticalScrollIndicator={false}
+                  >
                     <View style={{ marginTop: 12 }}>
                       <View style={styles.headerRow}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -99,7 +104,7 @@ const NoteDialog: FC<ExamNoteDialogProps> = ({
                         <View style={{ flexDirection: 'row', alignSelf: 'flex-end', alignItems: 'center' }}>
                           <Text style={styles.headerText}>{selectedNote?.categoryName}</Text>
                           <View style={styles.separator} />
-                          <Text style={styles.headerText}>p.{selectedNote?.page}</Text>
+                          <Text style={styles.headerText}>p.{selectedNote?.score}</Text>
                         </View>
                       </View>
                     </View>

@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import moment from 'moment'
 import RenderHTML from 'react-native-render-html'
 import { Notification } from '../configs/types'
+import { useMemo } from 'react'
 
 type Props = {
   open: boolean
@@ -34,6 +35,14 @@ const NoticeDetailDialog = ({ open, onClose, notification }: Props) => {
     )
   }
 
+  const htmlSource = useMemo(() => ({
+    html: notification?.content || ''
+  }), [notification?.content])
+
+  const baseStyle = useMemo(() => ({
+    color: "#222222"
+  }), [])
+
   return (
     <SlideDrawerRoot visible={open} onClose={onClose}>
       <View style={styles.header}>
@@ -49,7 +58,7 @@ const NoticeDetailDialog = ({ open, onClose, notification }: Props) => {
         {renderHeaderContent(notification)}
         <View style={{ padding: 20 }}>
           <View>
-            <RenderHTML contentWidth={width - 40} source={{ html: notification?.content || '' }} baseStyle={{ color: "#222222" }} />
+            <RenderHTML contentWidth={width - 40} source={htmlSource} baseStyle={baseStyle} />
           </View>
         </View>
       </View>

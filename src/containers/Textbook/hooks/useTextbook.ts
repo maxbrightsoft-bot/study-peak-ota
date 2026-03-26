@@ -100,7 +100,6 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
   const getTextbookList = async (textSearch?: string) => {
     setLoading(true)
     try {
-      console.log({ textbookFilter, textSearch })
       const { data } = await getTextbookListApi({
         ...textbookFilter,
         textSearch

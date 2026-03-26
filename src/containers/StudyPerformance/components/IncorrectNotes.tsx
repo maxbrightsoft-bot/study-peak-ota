@@ -1,6 +1,6 @@
 import SearchInput from '@/components/Input/SearchInput'
 import { palette } from '@/theme'
-import React, { useState } from 'react'
+import React from 'react'
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, SafeAreaView, StatusBar, Pressable } from 'react-native'
 import CustomSelect from '@/components/Select/CustomSelect'
 import useNotes from '../hooks/useNotes'
@@ -9,7 +9,6 @@ import { FontAwesome6 } from '@expo/vector-icons'
 import MathRender from '@/components/MathRender'
 import SortIcon from '@/assets/iconJSX/sort'
 import NoteDialog from './NoteDialog'
-import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
 import { OrderBy } from '@/utils/enums'
 
 const NoteCard = ({
@@ -22,25 +21,25 @@ const NoteCard = ({
   onOpenDialog: (item?: NoteResponse | undefined) => void
 }) => (
   <Pressable style={({ pressed }) => [styles.container, pressed && styles.pressed]} onPress={() => onOpenDialog(item)}>
-    <View style={styles.headerRow}>
-      <Text style={styles.headerText}>{item?.title}</Text>
-      <View style={styles.separator} />
-      <Text style={styles.headerText}>{item?.subjectName}</Text>
-    </View>
     <View style={styles.metaRow}>
       <View style={styles.metaLeft}>
         <Text style={styles.number}>
-          {t('score_format', {
-            score: item?.score
+          {t('number_question', {
+            number: item?.questionOrder
           })}
         </Text>
         <Text style={styles.metaText}>{item.categoryName}</Text>
         <View style={styles.separator} />
-        <Text style={styles.metaText}>p.{item?.page}</Text>
+        <Text style={styles.metaText}>p.{item?.score}</Text>
       </View>
       <FontAwesome6 name="angle-right" size={20} color={palette.grey[300]} />
     </View>
-    <MathRender fontSize={70} content={item.content} textColor={palette.grey[700]} />
+    <MathRender fontSize={45} content={item.content} textColor={palette.grey[700]} />
+    <View style={styles.headerRow}>
+      <Text style={styles.headerText}>{item?.subjectName}</Text>
+      <View style={styles.separator} />
+      <Text style={styles.headerText}>{item?.title}</Text>
+    </View>
   </Pressable>
 )
 
@@ -235,9 +234,9 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexWrap: 'wrap'
+    flexWrap: 'wrap',
+    marginTop: -10
   },
-
   headerText: {
     fontSize: 12,
     lineHeight: 20,

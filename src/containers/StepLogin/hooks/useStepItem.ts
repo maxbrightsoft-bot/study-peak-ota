@@ -12,6 +12,8 @@ import { getDataStorage } from "@/utils/storage";
 const steps = [
   "fullName",
   "phoneNumber",
+  "parentName",
+  "parentPhoneNumber",
   "schoolName",
   "grade",
 ];
@@ -49,7 +51,7 @@ const useStepItem = ({ values, errors, setFieldTouched }: Props) => {
     try {
       const isAppleLogin = !!(await getDataStorage(APPLE_USER_KEY))
 
-      const res = await updateInfoLogin({ ...values, isMobile: true, isAppleLogin });
+      const res = await updateInfoLogin({ ...values, isAppleLogin });
 
       if (res.data?.academyDomain) {
         setHasEnteredSelectAcademy(true)
@@ -93,6 +95,7 @@ const useStepItem = ({ values, errors, setFieldTouched }: Props) => {
     step,
     onNext,
     onPrev,
+    user,
     subjectOptions,
     gradeOptions,
     stepCount: steps.length
