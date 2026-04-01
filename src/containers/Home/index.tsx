@@ -161,6 +161,7 @@ const Home = () => {
           </View>
         </View>
         {openSchedule && <CalendarSchedule isVisible={openSchedule} onClose={handleToggleSchedule} />}
+
       </ScrollView>
       <ModalExamCode
         codeExam={codeExam}

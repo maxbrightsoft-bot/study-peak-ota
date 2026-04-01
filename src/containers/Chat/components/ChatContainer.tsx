@@ -1,4 +1,3 @@
-import TextField from '@/components/Input/TextField'
 import { palette, TYPO } from '@/theme'
 import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import React, { useEffect, useMemo, useRef } from 'react'
@@ -16,6 +15,7 @@ import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 import useDialog from '../hooks/useDialog'
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
 import UpdateMessageDialog from './UpdateMessageDialog'
+import MathRichInput, { MathRichInputRef } from '@/components/Input/MathRichInput'
 
 type prevSender = string | undefined
 
@@ -61,14 +61,14 @@ const ChatContainer = ({
     onSubmit,
     handleUploadImage,
     text,
+    inputRef,
     isSending,
     handleUploadImageCanvas,
     openSketchCanvasDialog,
     handleOpenSketchCanvasDialog,
     handleCloseSketchCanvasDialog
   } = inputProps
-  const { selectedItem, handleUploadImage : handleUpdateUploadImage, openDialog: openUpdateDialog, openConfirmDialog, toggleConfirmDialog,  toggleDialog: toggleUpdateDialog, selectedFile } = useDialog()
-
+  const { selectedItem, handleUploadImage: handleUpdateUploadImage, openDialog: openUpdateDialog, openConfirmDialog, toggleConfirmDialog, toggleDialog: toggleUpdateDialog, selectedFile } = useDialog()
   const flatListRef = useRef<FlatList>(null)
   const disabled = isCompleted || isSending
   const filterMessage = useMemo(() => {
@@ -131,10 +131,10 @@ const ChatContainer = ({
                   >
                     {questionOrder != undefined
                       ? t('problem_number_question', {
-                          number: parentQuestionId
-                            ? `${(parentQuestionOrder || 0) + 1}.${questionOrder + 1}`
-                            : questionOrder + 1
-                        })
+                        number: parentQuestionId
+                          ? `${(parentQuestionOrder || 0) + 1}.${questionOrder + 1}`
+                          : questionOrder + 1
+                      })
                       : courseId
                         ? t('class_inquiry')
                         : t('exam_inquiry')}
@@ -232,7 +232,7 @@ const ChatContainer = ({
               </View>
 
               <View style={styles.inputWrapper}>
-                <TextField disabled={disabled} value={text} style={styles.input} onChangeText={onChangeInput} />
+                <MathRichInput ref={inputRef} disabled={disabled} style={styles.input} onChange={(value) => onChangeInput(value)} />
               </View>
 
               <TouchableOpacity
@@ -410,9 +410,7 @@ const styles = ScaledSheet.create({
     flex: 1,
     backgroundColor: palette.grey[100],
     borderRadius: 20,
-    paddingHorizontal: '12@ms',
-    paddingVertical: '6@ms',
-    maxHeight: '120@ms'
+    height: '120@ms'
   },
 
   input: {

@@ -1,3 +1,4 @@
+import { MathRichInputRef } from "@/components/Input/MathRichInput"
 import { ConversationsResponse, MessageRequest, StudentsConversationResponse } from "@/utils/types"
 
 export type Course = {
@@ -39,6 +40,7 @@ export interface IInputChatProps {
     onSubmit: (url?: string) => Promise<void>
     onChangeInput: (text: string) => void
     isCompleted?: boolean
+    inputRef: React.RefObject<MathRichInputRef>
     handleUploadImage: () => void
     handleUploadImageCanvas: (data: string, callback: any) => void,
     openSketchCanvasDialog: boolean,

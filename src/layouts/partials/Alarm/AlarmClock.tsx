@@ -41,20 +41,20 @@ const AlarmClock: FC<AlarmClockProps> = ({
   return (
     <View style={styles.container}>
       <CircularTimer maxMinutes={totalMinutes} remainSeconds={remainTime} edit={false} size={232} />
-        <View style={styles.actions}>
-          <TouchableOpacity style={[styles.button]} onPress={handlePauseOrResume} disabled={isLoading}>
-            {isPlaying ? <PauseIcon /> : <Ionicons name="play" size={24} color="black" />}
-            <Text style={[styles.buttonLabel]}>{t(isPlaying ? 'pause' : 'resume')}</Text>
-          </TouchableOpacity>
+      <View style={styles.actions}>
+        <TouchableOpacity style={[styles.button]} onPress={handlePauseOrResume} disabled={isLoading}>
+          {isPlaying ? <PauseIcon /> : <Ionicons name="play" size={24} color="black" />}
+          <Text style={[styles.buttonLabel]}>{t(isPlaying ? 'pause' : 'resume')}</Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => onTerminate(alarm)} disabled={isLoading} style={[styles.button]}>
-            <StopIcon />
-            <Text style={[styles.buttonLabel]}>{t('end')}</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.note}>
-          <AlarmClockNote />
-        </View>
+        <TouchableOpacity onPress={() => onTerminate(alarm)} disabled={isLoading} style={[styles.button]}>
+          <StopIcon />
+          <Text style={[styles.buttonLabel]}>{t('end')}</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.note}>
+        <AlarmClockNote />
+      </View>
     </View>
   )
 }
@@ -67,6 +67,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingTop: 50,
     alignItems: 'center',
+    paddingBottom: 60
   },
   actions: {
     flex: 1,

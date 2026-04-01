@@ -61,7 +61,6 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
     }
 
     const handleStopTimer = async (data: SubjectTimerResponse) => {
-        console.log("handleStopTimer", data)
         const isActive = activeTimerId === data.id
         const isStarted = data.status === TimerStatus.Started
         const timerKey = `${TIMER_KEY}.${user?.superId}.${data.id}.${data.timerId}`

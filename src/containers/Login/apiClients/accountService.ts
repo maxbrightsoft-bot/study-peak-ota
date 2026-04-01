@@ -1,6 +1,7 @@
 import { api } from "@/services/api/apiClient";
 import { AcademyHeaders, BASE_URL, NoAcademyHeaders, SUPER_ADMIN_BASE_URL } from "@/utils/constants";
-import { LoginAccessTokenRequest, LoginRequest } from "@/utils/types";
+import { LoginAccessTokenRequest, LoginEmailRequest, LoginRequest } from "@/utils/types";
+
 
 const AUTH_URL = `${BASE_URL}/api/auth`;
 const AUTH_SUPER_ADMIN_URL = `${SUPER_ADMIN_BASE_URL}/api/auth`
@@ -52,5 +53,13 @@ export const apiLoginWithAccessToken = (
       [NoAcademyHeaders]: isLearningSpace,
     },
   });
+
+export const apiLoginEmail = (body: LoginEmailRequest) =>
+  api.post(`${AUTH_URL}/login/demo`, body, {
+    headers: {
+      [NoAcademyHeaders]: true,
+    },
+  });
+
 
 export const getSuperAdminInfoFromWeb = () => api.get(`${AUTH_SUPER_ADMIN_URL}/info`)

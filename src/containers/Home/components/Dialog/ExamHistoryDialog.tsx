@@ -43,7 +43,7 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
     selectedExam,
     handleOpenResultDialog,
     handleCloseResultDialog
-  } = useExamResultList({ onClose })
+  } = useExamResultList({ onClose, open })
   const [activeTab, setActiveTab] = useState<TabKey>('all')
 
   const getStatus = (item: CourseExamSession): 'incomplete' | 'not_taken' | 'done' => {
@@ -88,7 +88,7 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
           </Text>
           <View style={styles.divider} />
           <Text numberOfLines={1} style={styles.examTitle}>
-            {item?.courseName ||  ''}
+            {item?.courseName || ''}
           </Text>
           <View style={styles.divider} />
           <Text numberOfLines={1} style={styles.examTitle}>
@@ -100,8 +100,8 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
               {item?.title || ''}
             </Text>
           </View>
-        </View>
 
+        </View>
         <Text style={styles.examMeta}>{item?.teacherName || ''}</Text>
 
         {!isDone && (
@@ -294,14 +294,13 @@ const styles = ScaledSheet.create({
   },
   examTitle: {
     fontSize: '16@ms',
-    fontWeight: '700',
-    color: '#111',
-    lineHeight: '22@ms',
+    fontWeight: '600',
+    color: palette.grey[900],
     marginBottom: '6@ms'
   },
   examMeta: {
-    fontSize: '13@ms',
-    color: palette.grey[500]
+    fontSize: '12@ms',
+    color: palette.grey[700]
   },
   attemptBadge: {
     alignSelf: 'flex-start',

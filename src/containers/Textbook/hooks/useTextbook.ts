@@ -14,12 +14,12 @@ import { getErrorMessage, toast } from "@/utils/helpers";
 import moment from "moment";
 import { getTextbookListApi, startPageApi, startTextbook } from "../apiClients/textbookService";
 import { useFocusEffect } from "@react-navigation/native";
-import { navigate } from "@/navigators/NavigationHelpers";
+import { goBack, navigate } from "@/navigators/NavigationHelpers";
 import { Routes } from "@/navigators/RouteName";
 import { AlarmType } from "@/utils/enums";
 import useAlarm from "@/layouts/hooks/useAlarm";
 import { Textbook } from "@/utils/types";
-import { FlatList } from "react-native";
+import { BackHandler, FlatList } from "react-native";
 
 type Props = {
   preparedType?: PreparedType

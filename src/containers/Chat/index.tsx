@@ -17,6 +17,7 @@ import moment from 'moment'
 import { ScaledSheet } from 'react-native-size-matters'
 import MathRender from '@/components/MathRender'
 import { Ionicons } from '@expo/vector-icons'
+import { utcToLocalTime } from '@/utils/helpers'
 export default function Question() {
   const {
     t,
@@ -135,17 +136,27 @@ export default function Question() {
         </View>
         <Text style={styles.timeText}>{moment(conversation.createdAt).fromNow()}</Text>
       </View>
-      {isImagePath(conversation.lastMessage || '') ? (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <Ionicons name="image-outline" size={16} color={palette.grey[500]} />
-          <Text style={{ color: palette.grey[500], fontSize: 14 }}>{t('image')}</Text>
-        </View>
-      ) : (
-        <MathRender content={conversation.lastMessage || ''} />
-      )}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
 
+        {isImagePath(conversation.lastMessage || '') ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Ionicons name="image-outline" size={16} color={palette.grey[500]} />
+            <Text style={{ color: palette.grey[500], fontSize: 14 }}>{t('image')}</Text>
+          </View>
+        ) : (
+          <MathRender content={conversation.lastMessage || ''} isChat/>
+        )}
+        {conversation?.question && <Text>
+          {
+            conversation?.question
+              ? t("problem_number_question", {
+                number: (conversation.question.questionOrder || 0) + 1
+              })
+              : ''
+          }
+        </Text>}
+      </View>
       <View style={styles.divider} />
-
       <View style={styles.profileRow}>
         <Image
           source={{

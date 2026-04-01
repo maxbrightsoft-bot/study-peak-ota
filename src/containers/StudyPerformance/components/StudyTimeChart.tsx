@@ -189,8 +189,6 @@ const StudyTimeChart = ({
   const totalS = useMemo(() => calcFocusTime(data?.sData, isTimerTab), [data?.sData, isTimerTab])
   const [containerWidth, setContainerWidth] = useState<number>(Dimensions.get('window').width - H_PADDING)
 
-  console.log({ data })
-
   const barWidth = useMemo(() => {
     if (!categories.length) return BAR_MIN_WIDTH
     const w = (containerWidth / categories.length) * 0.55

@@ -10,7 +10,11 @@ const phoneRegExp =
 
 const schema = (t: any) =>
   yup.object().shape({
-    fullName: yup.string().required("StudentName is required!"),
+    fullName: yup.string().when("loginMethod", {
+      is: "Apple",
+      then: (schema) => schema.notRequired(),
+      otherwise: (schema) => schema.required(),
+    }),
     phoneNumber: yup
       .string()
       .trim()
@@ -34,6 +38,7 @@ const schema = (t: any) =>
 const StepLogin = () => {
   const { t, user, handleSubmit } = useStep();
   const initValues = {
+    loginMethod: user?.loginMethod || "",
     fullName: user?.fullName || "",
     phoneNumber: user?.phoneNumber || "",
     parentName: user?.parentName || "",

@@ -44,6 +44,7 @@ type TextFieldProps = {
   value?: string
   maxLength?: number
   lineHeight?: number
+  rightComponent?: React.ReactNode
 }
 
 const TextField = ({
@@ -73,7 +74,8 @@ const TextField = ({
   secureTextEntry,
   value,
   maxLength,
-  lineHeight = 20
+  lineHeight = 20,
+  rightComponent
 }: TextFieldProps) => {
   const [active, setIsActive] = useState(false)
 
@@ -132,11 +134,12 @@ const TextField = ({
       onPress={onPress}
     >
       {renderLabel()}
-      <View style={[containerInputStyle, { paddingHorizontal: 12, paddingVertical: 8 }]}>
+      <View style={[styles.inputContainer, containerInputStyle, { paddingHorizontal: 12, paddingVertical: 8 }]}>
         <TextInput
           ref={inputRef}
           style={[
             styles.textInput,
+            { flex: 1 },
             textInputStyle,
             textInputRightStyle,
             { paddingHorizontal: 12, paddingVertical: 8 },
@@ -162,6 +165,7 @@ const TextField = ({
           value={value}
           maxLength={maxLength}
         />
+        {rightComponent}
       </View>
       {!!error && <Text style={styles.error}>{error}</Text>}
     </TouchableOpacity>

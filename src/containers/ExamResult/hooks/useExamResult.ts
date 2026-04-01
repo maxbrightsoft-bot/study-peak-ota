@@ -49,6 +49,15 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
   const [examStatusView, setExamStatusView] = useState(examStatusViewOptions(t)[0].value)
   const [contentSize, setContentSize] = useState({ width: 0, height: 0 });
   const [isOpenConfirmRestartExamDialog, setIsOpenConfirmRestartExamDialog] = useState(false)
+  const [openActionMenu, setOpenActionMenu] = useState(false)
+
+  const handleOpenActionMenu = () => {
+    setOpenActionMenu(true)
+  }
+
+  const handleCloseActionMenu = () => {
+    setOpenActionMenu(false)
+  }
 
   const handleCloseConfirmRestartExamDialog = () => {
     setIsOpenConfirmRestartExamDialog(false)
@@ -316,6 +325,9 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
     contentRef,
     QADialog,
     handlePrint,
+    openActionMenu,
+    handleOpenActionMenu,
+    handleCloseActionMenu,
     examResultData: {
       questionOptions: chapterId ? studentTextbookQuestions : questionOptions,
       examTime,

@@ -1,8 +1,8 @@
 import { palette, TYPO } from '@/theme'
 import { Action, NoteResponse, Question } from '@/utils/types'
-import { Ionicons } from '@expo/vector-icons'
+import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { useState } from 'react'
-import { Pressable, Text, TouchableOpacity, View } from 'react-native'
+import { Platform, Pressable, Text, TouchableOpacity, View } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 import { ExamStatusView } from '@/utils/enums'
 import ExamMyAnswer from '@/containers/MyAnswer/views/ExamMyAnswer'
@@ -26,6 +26,7 @@ import NoteDrawer from '@/containers/IncorrectAnswerNotes/components/NoteDrawer'
 import CompareSolution from '@/containers/CompareSolution'
 import SolutionOrderChart from '../components/SolutionOrderChart'
 import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
+import { Menu, TouchableRipple } from 'react-native-paper'
 
 type Props = {
   examCode?: string
@@ -44,6 +45,9 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
     contentRef,
     QADialog,
     handlePrint,
+    openActionMenu,
+    handleOpenActionMenu,
+    handleCloseActionMenu,
     examResultData,
     examResultNotes,
     isOpenConfirmRestartExamDialog,
@@ -287,13 +291,55 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
             {t('exam_results')}
           </Text>
         </View>
-        <View></View>
+        <View>
+          <Menu
+            visible={openActionMenu}
+            onDismiss={handleCloseActionMenu}
+            anchorPosition="bottom"
+            anchor={
+              <TouchableOpacity onPress={handleOpenActionMenu} style={{ padding: 0, margin: 0 }}>
+                <MaterialCommunityIcons name="dots-vertical" size={24} color={palette.grey[700]} />
+              </TouchableOpacity>
+            }
+            contentStyle={{
+              backgroundColor: '#F9F9F9',
+              paddingVertical: 4,
+              borderRadius: 12,
+              overflow: 'hidden',
+              minWidth: 250,
+              top: Platform.OS === 'ios' ? -50 : 10
+            }}
+          >
+            <TouchableRipple
+              style={{
+                width: '100%',
+                flexDirection: 'row',
+                alignItems: 'center',
+                borderColor: '#E0E0E0'
+              }}
+            >
+              <View
+                style={{
+                  flex: 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingVertical: 12,
+                  paddingHorizontal: 10,
+                  gap: 8
+                }}
+              >
+                <Feather name="rotate-cw" size={24} color="black" />
+                <Text style={{ color: palette.grey[900], fontWeight: '600' }}>{t('restart_exam')}</Text>
+              </View>
+            </TouchableRipple>
+          </Menu>
+        </View>
       </View>
       <View style={styles.container}>
         <View style={styles.tabs}>
           {examStatusViewOptions(t, chapterId).map(({ label, value }, index) => {
             const active = value === examStatusView
-
             return (
               <Pressable
                 key={index}

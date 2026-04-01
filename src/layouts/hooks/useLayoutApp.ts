@@ -9,8 +9,7 @@ import { AcademyResponse, LoginAccessTokenRequest } from '@/utils/types'
 import useLogin from '@/containers/Login/hooks/useLogin'
 import { getDataStorage } from '@/utils/storage'
 import { ACADEMY_DOMAIN, ACCESS_TOKEN } from '@/utils/constants'
-import { useNavigation } from '@react-navigation/native'
-import { useFocusEffect } from 'expo-router'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import useTimers from './useTimer'
 import useAlarm from './useAlarm'
 import { getSocket, initSocket } from '@/services'
@@ -23,7 +22,7 @@ import { PusherChannel } from '@pusher/pusher-websocket-react-native'
 const useLayoutApp = () => {
   const { t } = useTranslation()
   const navigation = useNavigation();
-  const { user, academies, setUser, setLoading, logout, setAcademies, setLoadingWithoutOverlay, setSelectAcademy, initializePusher, pusher, subscribeChannel, disconnectPusher, redirectUrl, clearRedirectUrl } = useAuthStore()
+  const { user, academies, setUser, setLoadingWithoutOverlay, logout, setAcademies, setSelectAcademy, initializePusher, pusher, subscribeChannel, disconnectPusher, redirectUrl, clearRedirectUrl } = useAuthStore()
   const { handleLoginAccessToken } = useLogin()
   const superId = user?.superId
   const [academyMenuVisible, setAcademyMenuVisible] = useState(false)
@@ -66,7 +65,7 @@ const useLayoutApp = () => {
 
     if (user?.id) return
 
-    setLoading(true)
+    setLoadingWithoutOverlay(true)
     try {
       const isLearningSpace = await getLearningSpace()
       const isAcademy = !!(await getAcademyDomain())
@@ -79,12 +78,12 @@ const useLayoutApp = () => {
     } catch (err) {
       await logout()
     }
-    setLoading(false)
+    setLoadingWithoutOverlay(false)
   }
 
   const getAcademies = async (isLoading: boolean = true) => {
     if (!user) return
-    isLoading && setLoading(true)
+    isLoading && setLoadingWithoutOverlay(true)
     try {
       const res = await getUserAcademies(Role.Student, user.isLearningSpace)
       const items: AcademyResponse[] = res.data.items || []
@@ -92,7 +91,7 @@ const useLayoutApp = () => {
     } catch (error) {
       toast.error(getErrorMessage(t, error))
     }
-    isLoading && setLoading(false)
+    isLoading && setLoadingWithoutOverlay(false)
   }
 
   const handleGetAcademyDetail = async () => {
@@ -117,7 +116,7 @@ const useLayoutApp = () => {
   useEffect(() => {
     if (redirectUrl) {
       const timer = setTimeout(() => {
-        navigation.navigate(redirectUrl);
+        navigation.navigate(redirectUrl as never);
         clearRedirectUrl();
       }, 200);
 
@@ -146,7 +145,7 @@ const useLayoutApp = () => {
     const { code, academy } = data;
 
     if (currentScreen() === Routes.Auth.DoExam) return;
-    setLoading(true)
+    setLoadingWithoutOverlay(true)
     try {
       if (user?.academyDomain !== academy.domain)
         await handleSwitchAcademy(academy);
@@ -155,7 +154,7 @@ const useLayoutApp = () => {
     } catch (error: any) {
       toast.error(getErrorMessage(t, error));
     }
-    setLoading(false)
+    setLoadingWithoutOverlay(false)
   };
 
   const handleExamReStart = async (data: any) => {
@@ -164,7 +163,7 @@ const useLayoutApp = () => {
     const { code, academy } = item;
 
     if (currentScreen() === Routes.Auth.DoExam) return;
-    setLoading(true)
+    setLoadingWithoutOverlay(true)
     try {
       if (user?.academyDomain !== academy.domain)
         await handleSwitchAcademy(academy);
@@ -173,7 +172,7 @@ const useLayoutApp = () => {
     } catch (error: any) {
       toast.error(getErrorMessage(t, error));
     }
-    setLoading(false)
+    setLoadingWithoutOverlay(false)
   };
 
   const handleSwitchAcademy = async (
@@ -182,7 +181,7 @@ const useLayoutApp = () => {
     isLoading: boolean = true,
     redirectUrlProp?: string
   ) => {
-    isLoading && setLoading(true)
+    isLoading && setLoadingWithoutOverlay(true)
     try {
       const academyId = selectedAcademy ? selectedAcademy.id : 0
       const academyDomain = selectedAcademy
@@ -209,7 +208,7 @@ const useLayoutApp = () => {
     } catch (error) {
       toast.error(getErrorMessage(t, error))
     }
-    isLoading && setLoading(false)
+    isLoading && setLoadingWithoutOverlay(false)
     closeAcademyMenu()
   }
 
@@ -249,7 +248,7 @@ const useLayoutApp = () => {
   const handleLogOutAcademy = async (
     callback: any
   ) => {
-    setLoading(true)
+    setLoadingWithoutOverlay(true)
     try {
       const res = await switchAcademy(0, Role.Student)
       const data = res.data
@@ -269,7 +268,7 @@ const useLayoutApp = () => {
     } catch (error) {
       toast.error(getErrorMessage(t, error))
     }
-    setLoading(false)
+    setLoadingWithoutOverlay(false)
     callback()
   }
 

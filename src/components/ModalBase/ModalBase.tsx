@@ -11,9 +11,6 @@ import {
 } from 'react-native'
 import { ReactNode, useEffect } from 'react'
 import { ScaledSheet } from 'react-native-size-matters'
-import useAuthStore from '@/store/useAuthStore'
-import { toast } from '@/utils/helpers'
-import { useFocusEffect } from 'expo-router'
 
 interface PropsModalClose {
   isVisible: boolean

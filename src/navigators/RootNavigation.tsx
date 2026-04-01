@@ -59,8 +59,8 @@ const RootNavigation: React.FC = () => {
             )}
           </Stack.Navigator>
         </NavigationContainer>
-        {isLoading && <Loading />}
-        {isLoadingWithoutOverlay && <Loading isOverlay={false} />}
+        {isLoading && <Loading isOverlay/>}
+        {isLoadingWithoutOverlay && <Loading />}
       </PaperProvider>
       <Toast config={audioToastConfig} position="top" topOffset={10} />
     </SafeAreaProvider>

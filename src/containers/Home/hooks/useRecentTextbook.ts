@@ -18,7 +18,7 @@ import { Routes } from "@/navigators/RouteName";
 
 
 const useRecentTextbook = () => {
-  const { selectedAcademy, setLoading, setLoadingWithoutOverlay } = useAuthStore()
+  const { selectedAcademy, setLoadingWithoutOverlay } = useAuthStore()
   const { t } = useTranslation();
   const textSearchRef = useRef<HTMLInputElement>(null);
   const [textbookList, setTextbookList] = useState<Textbook[]>([]);

@@ -8,11 +8,13 @@ import useAuthStore from '@/store/useAuthStore'
 import { Language } from '@/utils/enums'
 import { AppleButton } from '@invertase/react-native-apple-authentication';
 import useLogin from '../hooks/useLogin'
+import LoginAccountButton from '../components/LoginAccountButton'
+import LoginAccountDialog from '../components/LoginAccountDialog'
 // import PhoneNumberLoginButton from '../components/PhoneNumberLoginButton'
 
 const Login = () => {
   const { language } = useAuthStore()
-  const { loginWithGoogle, onAppleButtonPress } = useLogin()
+  const { loginWithGoogle, onAppleButtonPress, openLoginAccountDialog, handleOpenLoginAccountDialog, handleCloseLoginAccountDialog } = useLogin()
 
   const isEnglish = language.code === Language.en;
   return (
@@ -36,9 +38,11 @@ const Login = () => {
             onPress={onAppleButtonPress}
           />}
           <GoogleLoginButton loginWithGoogle={loginWithGoogle} />
+          {Platform.OS === 'ios' && <LoginAccountButton title="이메일로 로그인" onPress={handleOpenLoginAccountDialog} />}
           {/* <PhoneNumberLoginButton /> */}
         </View>
       </View>
+      {openLoginAccountDialog && <LoginAccountDialog visible={openLoginAccountDialog} onClose={handleCloseLoginAccountDialog} />}
     </View>
   )
 }

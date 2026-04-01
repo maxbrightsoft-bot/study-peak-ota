@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { GRADE_OPTIONS } from "../configs/constants";
 import { navigate } from "@/navigators/NavigationHelpers";
@@ -28,6 +28,12 @@ const useStepItem = ({ values, errors, setFieldTouched }: Props) => {
   const [step, setStep] = useState(0);
   const { user, setLoading, setUser, setHasEnteredSelectAcademy } = useAuthStore()
   const { t } = useTranslation();
+
+  useEffect(() => {
+    if (user?.loginMethod === "Apple") {
+      setStep(1)
+    }
+  }, [user])
 
   const onNext = async (num: number) => {
     const stepKey = steps[num];

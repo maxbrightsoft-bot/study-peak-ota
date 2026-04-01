@@ -138,7 +138,8 @@ const styles = StyleSheet.create({
   },
 
   topRow: {
-    gap: 12
+    gap: 12,
+    marginBottom: 40
   },
 
   setTime: {
@@ -155,7 +156,9 @@ const styles = StyleSheet.create({
     color: palette.grey[500]
   },
   flex: {
-    flex: 1
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center"
   },
 
   counterRow: {

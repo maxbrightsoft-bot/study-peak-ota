@@ -82,7 +82,6 @@ const ComparisonChart = ({ label, loading, data, renderChart, colorSubjects }: P
                     }
                   ]}
                 /> */}
-
                 <View
                   style={[
                     styles.barSegment,
