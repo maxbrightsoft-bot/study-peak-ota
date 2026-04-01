@@ -61,7 +61,15 @@ const styles = StyleSheet.create({
 
   dropdownContainer: {
     borderRadius: 12,
-    overflow: 'hidden'
+    overflow: 'hidden',
+    shadowColor: 'transparent',
+    shadowOpacity: 0,
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 0,
+    elevation: 0,
+
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
   },
 
   placeholderStyle: {

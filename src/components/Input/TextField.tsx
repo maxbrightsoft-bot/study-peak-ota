@@ -134,7 +134,7 @@ const TextField = ({
       onPress={onPress}
     >
       {renderLabel()}
-      <View style={[styles.inputContainer, containerInputStyle, { paddingHorizontal: 12, paddingVertical: 8 }]}>
+      <View style={[styles.inputContainer, containerInputStyle, { paddingVertical: 8 }]}>
         <TextInput
           ref={inputRef}
           style={[

@@ -108,6 +108,12 @@ const useMyData = () => {
     try {
       if (content.trim().length === 0) return
 
+      console.log({ content,
+        questionId,
+        examSessionId,
+        studentExamSessionId,
+        imageUrl })
+
       const data: NoteRequest = {
         content,
         questionId,

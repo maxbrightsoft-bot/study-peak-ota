@@ -264,6 +264,11 @@ const useChatContainer = (props: Props) => {
   );
 
   useEffect(() => {
+    if (!selectedConversation?.id) return
+    handleConversationChange()
+  }, [selectedConversation?.id])
+
+  useEffect(() => {
     getMessageConversation();
   }, [JSON.stringify(selectedConversation)]);
 

@@ -292,7 +292,7 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
           </Text>
         </View>
         <View>
-          <Menu
+          {/* <Menu
             visible={openActionMenu}
             onDismiss={handleCloseActionMenu}
             anchorPosition="bottom"
@@ -333,7 +333,7 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
                 <Text style={{ color: palette.grey[900], fontWeight: '600' }}>{t('restart_exam')}</Text>
               </View>
             </TouchableRipple>
-          </Menu>
+          </Menu> */}
         </View>
       </View>
       <View style={styles.container}>

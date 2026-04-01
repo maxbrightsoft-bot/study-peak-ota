@@ -96,6 +96,8 @@ const ExamResultList = () => {
     )
   }
 
+  console.log('selectedExam', selectedExam)
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -218,6 +220,7 @@ const styles = ScaledSheet.create({
     fontSize: '15@ms',
     fontWeight: '600',
     flex: 1,
+    justifyContent: "flex-start",
     marginRight: '10@ms',
     color: palette.grey[900]
   },

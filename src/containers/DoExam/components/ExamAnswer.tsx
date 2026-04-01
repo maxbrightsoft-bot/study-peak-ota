@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, TouchableOpacity, StyleSheet, Platform, KeyboardAvoidingView } from 'react-native'
 import { Text } from 'react-native-paper'
 import _ from 'lodash'
 import { QuestionAnswerType } from '../../../utils/enums'
@@ -129,7 +129,14 @@ const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer
     }
   }
 
-  return <View>{renderAnswer(question, question.questionAnswerType)}</View>
+  return <View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={80}
+    >
+      {renderAnswer(question, question.questionAnswerType)}
+    </KeyboardAvoidingView>
+  </View>
 }
 
 const styles = ScaledSheet.create({

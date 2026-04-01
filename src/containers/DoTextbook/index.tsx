@@ -186,12 +186,6 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
           <View />
         )}
       </View>
-
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={100}
-        style={{ flex: 1, position: 'relative' }}
-      >
         {questionStarList.length > 0 && (
           <View
             style={{
@@ -397,7 +391,6 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
             </View>
           </View>
         </View>
-      </KeyboardAvoidingView>
       <RestartPageDialog
         title={t('restart')}
         options={startPageOptions}
