@@ -1,3 +1,4 @@
+
 import useAuthStore from '@/store/useAuthStore'
 import { palette } from '@/theme'
 import React, { useEffect, useRef, useState } from 'react'
@@ -6,9 +7,7 @@ import {
   Animated,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
-  NativeModules,
-  Platform
+  Dimensions
 } from 'react-native'
 import { Portal } from 'react-native-paper'
 import Loading from '../Loading'
@@ -22,61 +21,79 @@ interface SlideDrawerProps {
   onClose?: () => void
 }
 
-const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({ visible, children, position = 'right', onClose }) => {
+const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
+  visible,
+  children,
+  position = 'right',
+  onClose
+}) => {
   const { isLoading, isLoadingWithoutOverlay } = useAuthStore()
-  const slideAnim = useRef(new Animated.Value(position === 'right' ? SCREEN_WIDTH : -SCREEN_WIDTH)).current
-  const { StatusBarManager } = NativeModules
-  const [statusBarHeight, setStatusBarHeight] = useState(0)
+
+  const slideAnim = useRef(
+    new Animated.Value(position === 'right' ? SCREEN_WIDTH : -SCREEN_WIDTH)
+  ).current
+
   const backdropOpacity = useRef(new Animated.Value(0)).current
 
   const [mounted, setMounted] = useState(visible)
 
   useEffect(() => {
+    
     if (visible) {
       setMounted(true)
     }
 
     Animated.parallel([
       Animated.timing(slideAnim, {
-        toValue: visible ? 0 : position === 'right' ? SCREEN_WIDTH : -SCREEN_WIDTH,
+        toValue:
+          visible ? 0 : position === 'right' ? SCREEN_WIDTH : -SCREEN_WIDTH,
         duration: 300,
         useNativeDriver: true
       }),
       Animated.timing(backdropOpacity, {
         toValue: visible ? 0.5 : 0,
         duration: 300,
-        useNativeDriver: true
+        useNativeDriver: false
       })
-    ]).start(() => {
-      if (!visible) setMounted(false)
-    })
-  }, [visible, position])
+    ]).start()
 
-  useEffect(() => {
-    if (Platform.OS === 'ios') {
-      StatusBarManager.getHeight(({ height }: { height: number }) => {
-        setStatusBarHeight(height)
-      })
+    if (!visible) {
+      const timeout = setTimeout(() => {
+        setMounted(false)
+      }, 300)
+
+      return () => clearTimeout(timeout)
     }
-  }, [])
+  }, [visible, position])
 
   if (!mounted) return null
 
   return (
     <Portal>
       <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+        
         <TouchableOpacity
           style={StyleSheet.absoluteFill}
           activeOpacity={1}
           onPress={onClose}
         >
-          <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]} />
+          <Animated.View
+            style={[
+              styles.backdrop,
+              {
+                opacity: backdropOpacity
+              }
+            ]}
+          />
         </TouchableOpacity>
 
+        
         <Animated.View
           style={[
             styles.drawer,
             {
+              width: SCREEN_WIDTH,
+              transform: [{ translateX: slideAnim }],
               top: 0,
               bottom: 0,
               [position]: 0
@@ -84,6 +101,7 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({ visible, children, positi
           ]}
         >
           {children}
+
           {isLoading && <Loading fullScreen={false} />}
           {isLoadingWithoutOverlay && <Loading isOverlay={false} />}
         </Animated.View>
@@ -101,8 +119,8 @@ const styles = StyleSheet.create({
   },
   drawer: {
     position: 'absolute',
-    width: '100%',
     backgroundColor: 'white',
-    zIndex: 1000
+    zIndex: 1000,
+    elevation: 1000
   }
 })

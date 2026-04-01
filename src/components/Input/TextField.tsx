@@ -146,9 +146,9 @@ const TextField = ({
             style,
             inputHeight ? { height: inputHeight } : null,
             multiline &&
-              numberOfLines && {
-                textAlignVertical: 'top'
-              }
+            numberOfLines && {
+              textAlignVertical: 'top'
+            }
           ]}
           onFocus={onFocusClick}
           onBlur={onBlurClick}
@@ -165,7 +165,9 @@ const TextField = ({
           value={value}
           maxLength={maxLength}
         />
-        {rightComponent}
+        <View style={{ marginRight: 10 }}>
+          {rightComponent}
+        </View>
       </View>
       {!!error && <Text style={styles.error}>{error}</Text>}
     </TouchableOpacity>
