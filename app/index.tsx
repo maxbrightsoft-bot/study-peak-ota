@@ -5,6 +5,17 @@ import { NavigationIndependentTree } from "@react-navigation/native";
 import { LogBox } from "react-native";
 import i18n from "@/languages/i18n";
 
+if (!Array.prototype.findLastIndex) {
+  Array.prototype.findLastIndex = function (callback, thisArg) {
+    for (let i = this.length - 1; i >= 0; i--) {
+      if (callback.call(thisArg, this[i], i, this)) {
+        return i;
+      }
+    }
+    return -1;
+  };
+}
+
 export default function App() {
   LogBox.ignoreAllLogs();
   return (

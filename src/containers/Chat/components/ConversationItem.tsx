@@ -77,18 +77,18 @@ const ConversationItem = ({
               >
                 {highlightText(
                   conversation?.textbookName ||
-                    conversation?.examTitle ||
-                    t(conversation.category || ''),
+                  conversation?.examTitle ||
+                  t(conversation.category || ''),
                   textSearch
                 )}
               </Text>
 
               {conversation?.studentTotalAttemptTime > 1 && (
-                <Text style={[styles.attemptText,{ color: conversation.isSelected ? palette.main[500] : palette.red[900] }]}>
+                <Text style={[styles.attemptText, { color: conversation.isSelected ? palette.main[500] : palette.red[900] }]}>
                   #{conversation.studentAttemptNumber + 1}/{conversation.studentTotalAttemptTime}
                 </Text>
               )}
-              
+
             </View>
           )}
         </View>
@@ -106,12 +106,12 @@ const ConversationItem = ({
             {isOnlyConversationStudentWithTeacher
               ? moment(conversation.createdAt).format(t('date_format'))
               : conversation?.question
-              ? t('problem_number_question', {
+                ? t('problem_number_question', {
                   number: (conversation.question.questionOrder || 0) + 1
                 })
-              : conversation?.courseId
-              ? t('class_inquiry')
-              : t('exam_inquiry')}
+                : conversation?.courseId
+                  ? t('class_inquiry')
+                  : t('exam_inquiry')}
           </Text>
         </View>
       </View>
@@ -125,8 +125,8 @@ const ConversationItem = ({
             {conversation.courseId
               ? conversation.courseName
               : conversation.teacherName ||
-                conversation.mainTeacherCourseName ||
-                ''}
+              conversation.mainTeacherCourseName ||
+              ''}
           </Text>
         )}
 

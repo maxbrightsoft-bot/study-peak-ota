@@ -1,5 +1,6 @@
 export const Routes = {
     Auth: {
+        MainTabs: 'MainTabs',
         Home: "HOME",
         Textbook: "TEXTBOOK",
         Onboarding: "ONBOARDING",

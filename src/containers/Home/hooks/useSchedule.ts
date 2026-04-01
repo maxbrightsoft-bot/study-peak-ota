@@ -26,7 +26,7 @@ import _ from "lodash";
 import { convertScheduleFormToRequest } from "../configs/helpers";
 
 const useSchedule = () => {
-  const { user, setLoading } = useAuthStore()
+  const { user, setLoadingWithoutOverlay } = useAuthStore()
   const [isOpenDialog, setOpenDialog] = useState<boolean>(false);
   const [isOpenConfirmDeleteDialog, setOpenConfirmDeleteDialog] =
     useState<boolean>(false);
@@ -148,7 +148,7 @@ const useSchedule = () => {
       return
     }
 
-    isLoading && setLoading(true)
+    isLoading && setLoadingWithoutOverlay(true)
     try {
       const { data } = await getSchedulesApi({
         ...filter,
@@ -175,7 +175,7 @@ const useSchedule = () => {
       setSchedules([]);
       toast.error(getErrorMessage(t, error));
     }
-    setLoading(false)
+    setLoadingWithoutOverlay(false)
   };
 
   const getScheduleListForNoteEvent = async () => {
@@ -209,7 +209,7 @@ const useSchedule = () => {
 
   const handleUpdateScheduleStatus = async (schedule: ScheduleResponse) => {
     if (schedule.type !== ScheduleType.Personal || !schedule.id) return;
-    setLoading(true)
+    setLoadingWithoutOverlay(true)
     const endTime = timeSpanToLocalMoment(schedule.endTime, schedule.date);
     const now = moment();
     try {
@@ -237,12 +237,12 @@ const useSchedule = () => {
     } catch (error: any) {
       toast.error(getErrorMessage(t, error));
     }
-    setLoading(false)
+    setLoadingWithoutOverlay(false)
   };
 
   const handleDeleteSchedule = async () => {
     if (!selectedSchedule?.id) return;
-    setLoading(true)
+    setLoadingWithoutOverlay(true)
     clearData()
 
     try {
@@ -254,7 +254,7 @@ const useSchedule = () => {
     } catch (error: any) {
       toast.error(getErrorMessage(t, error));
     }
-    setLoading(false)
+    setLoadingWithoutOverlay(false)
   };
 
   const handleCreateSchedule = async (values: ScheduleFormData) => {
@@ -265,7 +265,7 @@ const useSchedule = () => {
       !values.title
     )
       return;
-    setLoading(true)
+    setLoadingWithoutOverlay(true)
     try {
       const schedule: ScheduleRequest = convertScheduleFormToRequest(values)
       if (values.id)
@@ -280,13 +280,13 @@ const useSchedule = () => {
       toast.error(getErrorMessage(t, error));
     }
     finally {
-      setLoading(false)
+      setLoadingWithoutOverlay(false)
     }
   };
 
   const handleCheckInLesson = async (schedule: ScheduleResponse) => {
     if (!schedule?.lessonId) return;
-    setLoading(true)
+    setLoadingWithoutOverlay(true)
     try {
       await getCheckInLessonsApi(schedule?.lessonId);
       await getScheduleList();
@@ -294,7 +294,7 @@ const useSchedule = () => {
     } catch (error: any) {
       toast.error(getErrorMessage(t, error));
     }
-    setLoading(false)
+    setLoadingWithoutOverlay(false)
     clearData()
   };
 

@@ -33,8 +33,8 @@ const CircularTimer: FC<CircularTimerProps> = ({
         <Text style={[styles.text, subject && { color: '#FFF' }]}>
           {isOnlyDisplay
             ? t('minutes_short_format', {
-                mins: Math.floor(minutes)
-              })
+              mins: Math.floor(minutes)
+            })
             : formatMinutesToTime(minutes)}
         </Text>
       </View>
@@ -47,7 +47,7 @@ export default CircularTimer
 const styles = StyleSheet.create({
   container: {
     height: 115,
-    width: '100%',
+    width: 115,
     borderRadius: 9999,
     alignItems: 'center',
     justifyContent: 'center',

@@ -2,7 +2,6 @@ import { palette, TYPO } from '@/theme'
 import React from 'react'
 import { View, ScrollView, TouchableOpacity, StyleSheet, Text } from 'react-native'
 import useRecentTextbook from '../hooks/useRecentTextbook'
-import { PreparedFilterType } from '../configs/type'
 import { utcToLocalTime } from '@/utils/helpers'
 import ArrowRight from '@/assets/iconJSX/arrowRight'
 
@@ -102,36 +101,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 })
-
-const MOCK_TEXTBOOKS = [
-  {
-    id: 1,
-    name: '미적분 연습문제 1~20',
-    subject: { name: '수학' },
-    subjectName: '수학',
-    totalQuestions: 20,
-    completedQuestions: 12,
-    publicationDate: '2024-10-18T00:00:00Z',
-  },
-  {
-    id: 2,
-    name: '영어 독해 실전 모의고사',
-    subject: { name: '영어' },
-    subjectName: '영어',
-    totalQuestions: 30,
-    completedQuestions: 30,
-    publicationDate: '2024-10-25T00:00:00Z',
-  },
-  {
-    id: 3,
-    name: '물리학 개념 정리 문제',
-    subject: { name: '과학' },
-    subjectName: '과학',
-    totalQuestions: 15,
-    completedQuestions: 3,
-    publicationDate: '2024-11-01T00:00:00Z',
-  },
-] as any[]
 
 const RecentTextbook = () => {
   const { t, textbookList, handleDoTextbook } = useRecentTextbook()

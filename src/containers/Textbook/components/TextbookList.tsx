@@ -89,7 +89,6 @@ const TextbookList = ({ preparedType, preparedFilterType }: Props) => {
         open={openFilterModal}
         onClose={handleCloseFilterModal}
         handleChangeFilter={(values) => {
-          console.log('handleChangeFilter', values)
           handleChangeFilter(values)
         }}
         title="필터"

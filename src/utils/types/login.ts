@@ -5,6 +5,7 @@ export type LoginResponse = {
   isFirstLogin: boolean;
   isSuperAdmin?: boolean | undefined;
   user: UserResponse;
+  loginMethod: string;
 }
 
 export type LoginRequest = {
@@ -23,4 +24,10 @@ export type LoginAccessTokenRequest = {
   email: string
   role: string
   isMobile: boolean
+}
+
+export type LoginEmailRequest = {
+  email: string
+  password: string
+  role: string
 }

@@ -37,15 +37,15 @@ const ChatItem = ({ t, item, toggleUpdateDialog, toggleConfirmDialog }: Props) =
           <View style={[styles.messageContainer, styles.myMessage, contentType ? styles.imageMessage : null]}>
             {contentType ? (
               <Image source={{ uri: getSafeUrl(content || '') }} style={{ width: 200, height: 200 }} />
-            ) : item?.isHTMLContent ? (
+            ) :
               <MathRender
                 content={content || ''}
-                style={{ backgroundColor: palette.main[600] }}
                 textColor={palette.common.white}
-              />
-            ) : (
+                isChat
+              />}
+            {/* ) : (
               <Text style={styles.myMessageText}>{content}</Text>
-            )}
+            )} */}
           </View>
         </View>
       ) : (
@@ -53,7 +53,7 @@ const ChatItem = ({ t, item, toggleUpdateDialog, toggleConfirmDialog }: Props) =
           {contentType ? (
             <Image source={{ uri: getSafeUrl(content.replace("https://localhost:7045", BASE_URL) || '') }} style={{ width: 200, height: 200 }} />
           ) : (
-            <MathRender content={content || ''} style={{ backgroundColor: '#FFF' }} textColor={palette.grey[700]} />
+            <MathRender content={content || ''} style={{ backgroundColor: '#FFF' }} textColor={palette.grey[700]} isChat />
           )}
         </View>
       )}

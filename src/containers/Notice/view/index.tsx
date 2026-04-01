@@ -112,7 +112,7 @@ const styles = ScaledSheet.create({
     color: '#222'
   },
 
-  badge : {
+  badge: {
     height: 10,
     width: 10,
     borderRadius: 255,
@@ -120,7 +120,7 @@ const styles = ScaledSheet.create({
     position: 'absolute',
     top: 0,
     right: 10
-  }, 
+  },
 
   backButton: {
     width: 24

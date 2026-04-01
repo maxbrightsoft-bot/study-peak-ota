@@ -20,7 +20,7 @@ import useAlarm from "@/layouts/hooks/useAlarm";
 import { ScrollView } from "react-native";
 
 const useProblemSolving = () => {
-  const { user, selectedAcademy: academy, setLoading, pusher, subscribeChannel, setLoadingWithoutOverlay } = useAuthStore()
+  const { user, selectedAcademy: academy, setLoadingWithoutOverlay, pusher, subscribeChannel } = useAuthStore()
   const [open, setOpen] = useState<boolean>(false);
   const [openSchedule, setOpenSchedule] = useState<boolean>(false);
   const [codeExam, setCodeExam] = useState<string>("");
@@ -174,14 +174,14 @@ const useProblemSolving = () => {
   const handleGetInfoLesson = async (isLoading: boolean = true) => {
     const todayStart = moment().startOf("day").utc().format(FormatDate);
     const todayEnd = moment().endOf("day").utc().format(FormatDate);
-    isLoading && setLoading(true)
+    isLoading && setLoadingWithoutOverlay(true)
     try {
       const res = await getInfoAcademyApi(todayStart, todayEnd);
       setInfoLesson(res.data);
     } catch (error: any) {
       toast.error(getErrorMessage(t, error));
     }
-    isLoading && setLoading(false)
+    isLoading && setLoadingWithoutOverlay(false)
   };
 
   const handleTeacherKickStudent = () => {
@@ -284,7 +284,7 @@ const useProblemSolving = () => {
 
   const handleStartTextbook = async (enable: boolean, textbook: Textbook) => {
     try {
-      setLoading(true)
+      setLoadingWithoutOverlay(true)
       await startTextbook(textbook.id)
       if (enable)
         await handleStartAudio(textbook)
@@ -294,7 +294,7 @@ const useProblemSolving = () => {
     }
     finally {
       navigate(Routes.Auth.DoTextbook, { textbookId: selectedTextbook?.id, restart: true })
-      setLoading(false)
+      setLoadingWithoutOverlay(false)
     }
   }
 
@@ -346,7 +346,7 @@ const useProblemSolving = () => {
       return
     }
 
-    isLoading && setLoading(true)
+    isLoading && setLoadingWithoutOverlay(true)
     try {
       const { data } = await getSchedulesApi({
         currentPage: 1,
@@ -369,12 +369,12 @@ const useProblemSolving = () => {
       setSchedules([]);
       toast.error(getErrorMessage(t, error));
     }
-    setLoading(false)
+    setLoadingWithoutOverlay(false)
   };
 
   const handleCheckInLesson = async (schedule: ScheduleResponse) => {
     if (!schedule?.lessonId) return;
-    setLoading(true)
+    setLoadingWithoutOverlay(true)
     try {
       await getCheckInLessonsApi(schedule?.lessonId);
       await getScheduleList();
@@ -382,12 +382,12 @@ const useProblemSolving = () => {
     } catch (error: any) {
       toast.error(getErrorMessage(t, error));
     }
-    setLoading(false)
+    setLoadingWithoutOverlay(false)
   };
 
   const handleUpdateScheduleStatus = async (schedule: ScheduleResponse) => {
     if (schedule.type !== ScheduleType.Personal || !schedule.id) return;
-    setLoading(true)
+    setLoadingWithoutOverlay(true)
     const endTime = timeSpanToLocalMoment(schedule.endTime, schedule.date);
     const now = moment();
     try {
@@ -415,7 +415,7 @@ const useProblemSolving = () => {
     } catch (error: any) {
       toast.error(getErrorMessage(t, error));
     }
-    setLoading(false)
+    setLoadingWithoutOverlay(false)
   };
 
 

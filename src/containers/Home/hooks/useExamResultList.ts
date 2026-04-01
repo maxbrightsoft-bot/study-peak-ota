@@ -12,8 +12,8 @@ import { DefaultExamSessionFilter } from "../configs/constants";
 import { CourseExamSession, ExamSessionSortBy } from "../configs/type";
 import { OrderBy } from "@/utils/enums";
 
-const useExamResultList = ({ onClose }: { onClose: () => void }) => {
-  const { setLoading } = useAuthStore()
+const useExamResultList = ({ onClose, open }: { onClose: () => void, open: boolean }) => {
+  const { setLoadingWithoutOverlay } = useAuthStore()
   const { t } = useTranslation();
   const [listExam, setListExam] = useState<CourseExamSession[]>([]);
   const [search, setSearch] = useState<string>("");
@@ -36,6 +36,7 @@ const useExamResultList = ({ onClose }: { onClose: () => void }) => {
 
   useFocusEffect(
     useCallback(() => {
+      if (!open) return
       scrollViewRef.current?.scrollToOffset({
         offset: 0,
         animated: true
@@ -46,7 +47,7 @@ const useExamResultList = ({ onClose }: { onClose: () => void }) => {
         setExpandedId(null)
         setSearch("")
       };
-    }, [filter])
+    }, [filter, open])
   );
 
   const handleSort = () => {
@@ -70,7 +71,7 @@ const useExamResultList = ({ onClose }: { onClose: () => void }) => {
   }
 
   const getListExam = async (textSearch?: string) => {
-    setLoading(true)
+    setLoadingWithoutOverlay(true)
     try {
       const res = await getListExamApi({ ...filter, textSearch });
       const result = res?.data?.items.flatMap((item: any) =>
@@ -84,7 +85,7 @@ const useExamResultList = ({ onClose }: { onClose: () => void }) => {
     } catch (error) {
       console.log({ error });
     }
-    setLoading(false)
+    setLoadingWithoutOverlay(false)
   };
 
   const onChangeSearch = (value: string) => {
@@ -100,7 +101,7 @@ const useExamResultList = ({ onClose }: { onClose: () => void }) => {
 
 
   const handleJoinExam = async (item: CourseExamSession) => {
-    setLoading(true)
+    setLoadingWithoutOverlay(true)
     try {
       await joinExamApi(item.examCode);
       onClose()
@@ -109,7 +110,7 @@ const useExamResultList = ({ onClose }: { onClose: () => void }) => {
       console.log({ error });
       toast.error(getErrorMessage(t, error))
     }
-    setLoading(false)
+    setLoadingWithoutOverlay(false)
   }
 
   return {

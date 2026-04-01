@@ -34,7 +34,6 @@ const useAlarmTextbook = ({ handleCloseDialog, onStart }: Props) => {
 
   const handleStartTextbook = async (enable: boolean, textbook: any) => {
     try {
-      console.log('handleStartTextbook', enable, textbook)
       setLoading(true)
       await startTextbook(textbook.id)
       setLoading(false)

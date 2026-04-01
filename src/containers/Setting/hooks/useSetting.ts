@@ -7,6 +7,7 @@ import { UserInfo } from "../configs/types"
 import { GRADE_OPTIONS } from "@/containers/StepLogin/configs/constants"
 import { getDataStorage } from "@/utils/storage"
 import { APPLE_USER_KEY } from "@/utils/constants"
+import { removeAccountApi } from "../apiClients"
 
 const useSetting = () => {
   const [openNoticeDialog, setOpenNoticeDialog] = useState<boolean>(false)
@@ -14,6 +15,9 @@ const useSetting = () => {
   const { setLoading, setUser, user, logout } = useAuthStore()
   const { t } = useTranslation()
   const [openSchedule, setOpenSchedule] = useState(false)
+  const [openConfirmRemoveAccount, setOpenConfirmRemoveAccount] = useState(false)
+
+  const handleToggleConfirmRemoveAccount = () => setOpenConfirmRemoveAccount(prev => !prev)
 
   const handleToggleSchedule = () => setOpenSchedule(prev => !prev)
 
@@ -61,6 +65,20 @@ const useSetting = () => {
     ];
   }, [t]);
 
+  const handleRemoveAccount = async () => {
+    try {
+      setLoading(true)
+      await removeAccountApi()
+      logout()
+      toast.success(t('removed_account'))
+    } catch (error: any) {
+      toast.error(getErrorMessage(t, error))
+    } finally {
+      setLoading(false)
+      handleToggleConfirmRemoveAccount()
+    }
+  }
+
   return {
     t,
     logout,
@@ -75,7 +93,10 @@ const useSetting = () => {
     handleCloseNoticeDialog,
     openUpdateUserDialog,
     handleOpenUpdateUserDialog,
-    handleCloseUpdateUserDialog
+    handleCloseUpdateUserDialog,
+    handleRemoveAccount,
+    openConfirmRemoveAccount,
+    handleToggleConfirmRemoveAccount
   }
 }
 

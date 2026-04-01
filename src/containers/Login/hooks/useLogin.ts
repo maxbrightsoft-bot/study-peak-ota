@@ -20,6 +20,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Routes } from '@/navigators/RouteName';
 import appleAuth from '@invertase/react-native-apple-authentication';
+import { useState } from 'react';
 
 const useLogin = () => {
   const { t } = useTranslation();
@@ -30,6 +31,14 @@ const useLogin = () => {
     setHasEnteredSelectAcademy,
     setRedirectUrl,
   } = useAuthStore();
+  const [ openLoginAccountDialog, setOpenLoginAccountDialog ] = useState(false)
+
+  const handleOpenLoginAccountDialog = () => {
+    setOpenLoginAccountDialog(true)
+  }
+  const handleCloseLoginAccountDialog = () => {
+    setOpenLoginAccountDialog(false)
+  }
 
   const handleRedirectAfterSuccess = async (
     data: any,
@@ -58,7 +67,7 @@ const useLogin = () => {
     const academyDomain = await getAcademyDomain();
 
     try {
-      const { isFirstLogin, token, user } = await apiLogin();
+      const { isFirstLogin, token, user, loginMethod } = await apiLogin();
       const isAcademy = !!user?.academyDomain || !!user?.isLearningSpace;
 
       let redirectUrl: string;
@@ -74,7 +83,7 @@ const useLogin = () => {
       }
 
       await handleRedirectAfterSuccess(
-        { ...user, isNotEnoughStatements: isFirstLogin },
+        { ...user, isNotEnoughStatements: isFirstLogin, loginMethod },
         token,
         redirectUrl
       );
@@ -224,10 +233,15 @@ const useLogin = () => {
   };
 
   return {
+    openLoginAccountDialog,
+    handleOpenLoginAccountDialog,
+    handleCloseLoginAccountDialog,
     onAppleButtonPress,
     loginWithGoogle,
     handleLoginAccessToken,
+    handleLogin,
   };
 };
+
 
 export default useLogin;

@@ -11,6 +11,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { Keyboard } from "react-native";
 import RNFS from 'react-native-fs';
 import useSocketConversation from "./useSocketConversation";
+import { MathRichInputRef } from "@/components/Input/MathRichInput";
 
 interface Props {
   conversation?: ConversationsResponse;
@@ -20,7 +21,7 @@ const useChatContainer = (props: Props) => {
   const { conversation, student } = props;
   const { t } = useTranslation()
   const { user, setLoadingWithoutOverlay } = useAuthStore()
-
+  const inputRef = useRef<MathRichInputRef>(null);
   const isReceivedMessage = useRef(false)
   const roles = user?.roles || []
   const [isSending, setSending] = useState<boolean>(false)
@@ -105,6 +106,7 @@ const useChatContainer = (props: Props) => {
       setSending(false)
       setLoadingWithoutOverlay(false)
       handleChangeInput('')
+      inputRef.current?.clear()
     }
 
   };
@@ -281,6 +283,7 @@ const useChatContainer = (props: Props) => {
       handleToggleScrollToEnd
     },
     inputProps: {
+      inputRef,
       isSending,
       text: message?.content || "",
       onChangeInput: handleChangeInput,

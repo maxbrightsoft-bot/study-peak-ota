@@ -11,6 +11,7 @@ import Notice from '@/containers/Notice/view'
 import UpdateAccount from '../components/UpdateAccount'
 import useSetting from '../hooks/useSetting'
 import CalendarSchedule from '@/containers/Home/components/CalendarSchedule'
+import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
 
 type Props = {
   open: boolean
@@ -41,7 +42,10 @@ const Setting = ({ open, onClose }: Props) => {
     handleCloseNoticeDialog,
     openUpdateUserDialog,
     handleOpenUpdateUserDialog,
-    handleCloseUpdateUserDialog
+    handleCloseUpdateUserDialog,
+    handleRemoveAccount,
+    openConfirmRemoveAccount,
+    handleToggleConfirmRemoveAccount
   } = useSetting()
   return (
     <SlideDrawerRoot visible={open} onClose={onClose}>
@@ -68,6 +72,10 @@ const Setting = ({ open, onClose }: Props) => {
             />
           </View>}
 
+          <View style={styles.card}>
+            <SettingItem onPress={() => handleToggleConfirmRemoveAccount()} icon={<Ionicons name="trash-outline" size={20} color={palette.error.main} />} title="회원 탈퇴" />
+          </View>
+
           <TouchableOpacity style={styles.logout} onPress={() => logout()}>
             <SignOut />
             <Text style={styles.logoutText}>로그아웃</Text>
@@ -89,6 +97,13 @@ const Setting = ({ open, onClose }: Props) => {
         />
       )}
       {openSchedule && <CalendarSchedule isVisible={openSchedule} onClose={handleToggleSchedule} />}
+      <ConfirmDialog
+        open={openConfirmRemoveAccount}
+        toggle={handleToggleConfirmRemoveAccount}
+        onConfirm={handleRemoveAccount}
+        title="회원 탈퇴"
+        text="정말 탈퇴하시겠습니까?"
+      />
     </SlideDrawerRoot>
   )
 }

@@ -34,7 +34,7 @@ const NoteCard = ({
       </View>
       <FontAwesome6 name="angle-right" size={20} color={palette.grey[300]} />
     </View>
-    <MathRender fontSize={45} content={item.content} textColor={palette.grey[700]} />
+    <MathRender fontSize={14} content={item.content} textColor={palette.grey[700]} />
     <View style={styles.headerRow}>
       <Text style={styles.headerText}>{item?.subjectName}</Text>
       <View style={styles.separator} />
