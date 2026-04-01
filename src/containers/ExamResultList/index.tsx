@@ -29,7 +29,7 @@ const ExamResultList = () => {
       <View style={styles.examCard}>
         <View style={styles.examTopRow}>
           <Text numberOfLines={2} style={styles.examTitle}>
-            {highlight ? highlightText(exam?.title || '', search) : exam?.title || ''}
+            {highlight ? highlightText((exam?.title || '').trim(), search) : (exam?.title || '').trim()}
           </Text>
 
           {(exam.studentTotalAttemptTime || 0) > 1 && (
@@ -95,8 +95,6 @@ const ExamResultList = () => {
       </View>
     )
   }
-
-  console.log('selectedExam', selectedExam)
 
   return (
     <View style={styles.container}>
@@ -220,8 +218,6 @@ const styles = ScaledSheet.create({
     fontSize: '15@ms',
     fontWeight: '600',
     flex: 1,
-    justifyContent: "flex-start",
-    marginRight: '10@ms',
     color: palette.grey[900]
   },
 

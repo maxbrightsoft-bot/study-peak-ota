@@ -29,7 +29,6 @@ const useExamResultList = () => {
       })
       getListExam()
       return () => {
-        setSelectedExam(undefined);
         setExpandedId(null)
         setSearch("")
       };

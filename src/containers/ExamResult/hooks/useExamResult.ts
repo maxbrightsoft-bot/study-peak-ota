@@ -140,17 +140,15 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
   }
 
   const getData = () => {
-    resetData()
     if (!user?.email) return
     if (chapterId)
       getDataTextbookResult()
     else
       getStudentData(examCode || '')
   }
-
-  useEffect(() => {
-    getData()
-  }, [examCode, user?.email]);
+useEffect(() => {
+  getData()
+}, [examCode, user?.email])
 
   const totalTime = useMemo(() => {
     let totalTime = 0

@@ -129,7 +129,7 @@ const MyOverall: FC<OverallTabProps> = ({
             >
               {resultData?.subjectName}
             </Text>
-            <Text style={{ fontSize: 14, fontWeight: 500, color: '#222222' }}>{resultData?.title}</Text>
+            <Text style={{ fontSize: 14, fontWeight: 500, color: '#222222', flex: 1 }}>{(resultData?.title|| '').trim()}</Text>
             {(resultData?.studentTotalAttemptTime || 0) > 1 && (
               <View
                 style={[
