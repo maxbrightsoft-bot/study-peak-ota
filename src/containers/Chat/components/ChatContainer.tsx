@@ -16,6 +16,7 @@ import useDialog from '../hooks/useDialog'
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
 import UpdateMessageDialog from './UpdateMessageDialog'
 import MathRichInput, { MathRichInputRef } from '@/components/Input/MathRichInput'
+import TextField from '@/components/Input/TextField'
 
 type prevSender = string | undefined
 
@@ -232,7 +233,8 @@ const ChatContainer = ({
               </View>
 
               <View style={styles.inputWrapper}>
-                <MathRichInput ref={inputRef} disabled={disabled} style={styles.input} onChange={(value) => onChangeInput(value)} />
+                <TextField disabled={disabled} value={text} style={styles.input} onChangeText={onChangeInput} />
+                {/* <MathRichInput ref={inputRef} disabled={disabled} style={styles.input} onChange={(value) => onChangeInput(value)} /> */}
               </View>
 
               <TouchableOpacity
