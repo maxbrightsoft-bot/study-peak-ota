@@ -120,9 +120,9 @@ const useCreateQuestionConversationDialog = ({
 
   const questionOptions = useMemo(() => {
     if (!questions || !exams) return [];
-    return questions.map(({ id, questionOrder, parentQuestionId, parentQuestionOrder = 0 }) => ({
+    return questions.map(({ superId, questionOrder, parentQuestionId, parentQuestionOrder = 0 }) => ({
       label: t('question_order', { number: !!parentQuestionId ? `${parentQuestionOrder + 1}.${questionOrder + 1}` : questionOrder + 1 }),
-      value: id
+      value: superId
     }));
   }, [questions]);
 

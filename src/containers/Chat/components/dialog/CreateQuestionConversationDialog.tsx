@@ -62,7 +62,7 @@ export default function CreateQuestionConversationDialog({
           enableReinitialize
           initialValues={{
             content: '',
-            questionId: examSessionValue && questions ? questions[0]?.id : null
+            questionId: examSessionValue && questions ? questions[0]?.superId : null
           }}
           validationSchema={schema}
           onSubmit={(values) => {

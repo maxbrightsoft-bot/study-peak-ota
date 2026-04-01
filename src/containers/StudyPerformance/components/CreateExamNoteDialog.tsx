@@ -88,28 +88,27 @@ const CreateExamNoteDialog: FC<ExamNoteDialogProps> = ({
         </View>
 
         {isLoadingNotes && <Loading isOverlay={false} />}
-
-        <Formik
-          initialValues={{
-            content: '',
-            questionId: examSessionValue && questions?.length ? questions[0]?.superId : 0
-          }}
-          validationSchema={schema}
-          onSubmit={(values) =>
-            onSaveNote({
-              ...values,
-              examSessionId: Number(examSessionValue?.split('.')?.[0]) ?? 0,
-              studentExamSessionId: Number(examSessionValue?.split('.')?.[1]) ?? 0
-            })
-          }
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={80}
         >
-          {({ handleChange, handleSubmit, values, setFieldValue }) => (
-            <>
-              <KeyboardAvoidingView
-                style={{ flex: 1 }}
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                keyboardVerticalOffset={80}
-              >
+          <Formik
+            initialValues={{
+              content: '',
+              questionId: examSessionValue && questions?.length ? questions[0]?.superId : 0
+            }}
+            validationSchema={schema}
+            onSubmit={(values) =>
+              onSaveNote({
+                ...values,
+                examSessionId: Number(examSessionValue?.split('.')?.[0]) ?? 0,
+                studentExamSessionId: Number(examSessionValue?.split('.')?.[1]) ?? 0
+              })
+            }
+          >
+            {({ handleChange, handleSubmit, values, setFieldValue }) => (
+              <>
                 <ScrollView
                   style={styles.contentWrapper}
                   contentContainerStyle={{ paddingBottom: 20 }}
@@ -124,7 +123,7 @@ const CreateExamNoteDialog: FC<ExamNoteDialogProps> = ({
                     />
                   </View>
 
-                  <View  style={{ marginTop: 20 }}>
+                  <View style={{ marginTop: 20 }}>
                     <Text style={styles.labelText}>{t('test_selection')}</Text>
                     <Select
                       onValueChange={handleChangeExam}
@@ -136,7 +135,7 @@ const CreateExamNoteDialog: FC<ExamNoteDialogProps> = ({
                   <View style={{ marginTop: 20 }}>
                     <Text style={styles.labelText}>{t('problem_number')}</Text>
                     <Select
-                      onValueChange={(value) => setFieldValue('questionId', value)}
+                      onValueChange={(value) => { console.log(value); setFieldValue('questionId', value) }}
                       value={values.questionId}
                       options={questionOptions}
                     />
@@ -156,7 +155,7 @@ const CreateExamNoteDialog: FC<ExamNoteDialogProps> = ({
                     />
                   </View>
 
-                  <View style={{ marginTop: 20 }}>
+                  <View style={{ marginTop: 20, marginBottom: 20 }}>
                     {imageUrl ? (
                       <Image
                         source={{ uri: imageUrl }}
@@ -170,19 +169,20 @@ const CreateExamNoteDialog: FC<ExamNoteDialogProps> = ({
                     )}
                   </View>
                 </ScrollView>
-              </KeyboardAvoidingView>
 
-              <View style={styles.footer}>
-                <TouchableOpacity
-                  style={[styles.button, styles.confirmButton]}
-                  onPress={handleSubmit as any}
-                >
-                  <Text style={styles.confirmButtonText}>등록</Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
-        </Formik>
+                <View style={styles.footer}>
+                  <TouchableOpacity
+                    style={[styles.button, styles.confirmButton]}
+                    onPress={handleSubmit as any}
+                  >
+                    <Text style={styles.confirmButtonText}>등록</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </Formik>
+        </KeyboardAvoidingView>
+
       </View>
     </SlideDrawerRoot>
   )

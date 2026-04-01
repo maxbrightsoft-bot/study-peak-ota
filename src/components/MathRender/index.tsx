@@ -18,7 +18,7 @@ const buildHTML = (content: string, fontSize: number, textColor: string, isChat?
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1, initial-scale=1, maximum-scale=1, user-scalable=no">
-
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
@@ -27,7 +27,9 @@ const buildHTML = (content: string, fontSize: number, textColor: string, isChat?
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: ${fontSize}px;
+  font-weight: 400;
   color: ${textColor};
   -webkit-text-size-adjust: 100%;
 }

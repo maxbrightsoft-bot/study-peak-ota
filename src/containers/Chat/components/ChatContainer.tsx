@@ -93,6 +93,8 @@ const ChatContainer = ({
     }
   }, [isScrollToEnd])
 
+  console.log({ value: text })
+
   return (
     <SlideDrawerRoot visible={open}>
       <View style={styles.header}>
@@ -233,7 +235,7 @@ const ChatContainer = ({
               </View>
 
               <View style={styles.inputWrapper}>
-                <TextField disabled={disabled} value={text} style={styles.input} onChangeText={onChangeInput} />
+                <TextField multiline disabled={disabled} value={text} style={styles.input} onChangeText={onChangeInput} />
                 {/* <MathRichInput ref={inputRef} disabled={disabled} style={styles.input} onChange={(value) => onChangeInput(value)} /> */}
               </View>
 
@@ -412,7 +414,7 @@ const styles = ScaledSheet.create({
     flex: 1,
     backgroundColor: palette.grey[100],
     borderRadius: 20,
-    height: '120@ms'
+    height: '80@ms'
   },
 
   input: {

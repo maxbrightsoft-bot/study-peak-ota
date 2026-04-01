@@ -12,7 +12,7 @@ import { FlatList } from "react-native";
 import { getErrorMessage, toast } from "@/utils/helpers";
 
 const useExamResultList = () => {
-  const { setLoading, selectedAcademy } = useAuthStore()
+  const { user, setLoading, selectedAcademy } = useAuthStore()
   const { t } = useTranslation();
   const [listExam, setListExam] = useState<ExamSessionResponse[]>([]);
   const [search, setSearch] = useState<string>("");
@@ -47,7 +47,9 @@ const useExamResultList = () => {
         pageSize: 15,
         sortColumnName: "StudentExamSession.StartTime",
         sortColumnDirection: "DESC",
-        statuses: [ExamStatus.Completed]
+        statuses: [ExamStatus.Completed],
+        hidden: false,
+        studentId: user?.id
       });
       setListExam(res.data?.items);
     } catch (error) {
@@ -63,7 +65,9 @@ const useExamResultList = () => {
         pageSize: -1,
         sortColumnName: "StudentExamSession.StartTime",
         sortColumnDirection: "ASC",
-        statuses: [ExamStatus.Completed]
+        statuses: [ExamStatus.Completed],
+        hidden: false,
+        studentId: user?.id
       });
       setListExam(res.data?.items);
     } catch (error) {

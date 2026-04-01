@@ -295,7 +295,6 @@ const styles = ScaledSheet.create({
     fontSize: '15@ms',
     color: '#6A3DE8',
     minWidth: 120,
-    textAlign: 'right'
   },
 
   divider: {
