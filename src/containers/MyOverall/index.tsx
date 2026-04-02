@@ -129,7 +129,7 @@ const MyOverall: FC<OverallTabProps> = ({
             >
               {resultData?.subjectName}
             </Text>
-            <Text style={{ fontSize: 14, fontWeight: 500, color: '#222222', flex: 1 }}>{(resultData?.title|| '').trim()}</Text>
+            <Text style={{ fontSize: 14, fontWeight: 500, color: '#222222', flex: 1 }}>{(resultData?.title || '').trim()}</Text>
             {(resultData?.studentTotalAttemptTime || 0) > 1 && (
               <View
                 style={[
@@ -186,19 +186,30 @@ const MyOverall: FC<OverallTabProps> = ({
         </View>
       </View>
       <View>
-        <Carousel
-          data={slides}
-          renderItem={({ item, index }) => (
-            <View style={{ paddingRight: index === slides.length - 1 ? 0 : 16, height: 560 }}>
-              <ChartSlide title={item.title} isTimeChart={item?.isTimeChart} payload={item.payload} />
+        <ScrollView
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          decelerationRate="fast"
+          snapToInterval={SLIDE_WIDTH + 16}
+          snapToAlignment="start"
+        >
+          {slides.map((item, index) => (
+            <View
+              key={item.key}
+              style={{
+                width: SLIDE_WIDTH,
+                marginRight: index === slides.length - 1 ? 0 : 16,
+              }}
+            >
+              <ChartSlide
+                title={item.title}
+                isTimeChart={item.isTimeChart}
+                payload={item.payload}
+              />
             </View>
-          )}
-          width={SLIDE_WIDTH}
-          style={{ width: width }}
-          height={400}
-          loop={false}
-          windowSize={slides.length}
-        />
+          ))}
+        </ScrollView>
       </View>
     </ScrollView>
   )

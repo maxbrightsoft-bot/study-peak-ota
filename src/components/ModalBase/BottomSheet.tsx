@@ -35,6 +35,7 @@ function BottomSheet(props: PropsModalClose) {
       backdropTransitionInTiming={150}
       backdropTransitionOutTiming={0}
       useNativeDriverForBackdrop
+      avoidKeyboard
     >
       <View style={styles.container}>
         <View style={styles.header}>

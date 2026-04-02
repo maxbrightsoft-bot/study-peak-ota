@@ -17,13 +17,10 @@ import moment from 'moment'
 import { ScaledSheet } from 'react-native-size-matters'
 import MathRender from '@/components/MathRender'
 import { Ionicons } from '@expo/vector-icons'
-import { utcToLocalTime } from '@/utils/helpers'
 export default function Question() {
   const {
     t,
     search,
-    handleCloseFilterModal,
-    handleOpenFilterModal,
     selectedConversation,
     conversations,
     onChangeSearch,
@@ -31,8 +28,6 @@ export default function Question() {
     courses,
     handleChangeSelectedConversation,
     setSelectedConversation,
-    isVisibleCreateConversationDialog,
-    handleCloseCreateConversationDialog
   } = useConversationList()
 
   const { isLoadingMessages, chatListProps, inputProps, chatHeaderProps, handleLoadMoreMessages } = useChatContainer({
@@ -56,8 +51,6 @@ export default function Question() {
     courses,
     getConversationList
   })
-
-  const filterCount = 0
 
   const { selected, handleChangeTab } = useTab(TabList)
 
@@ -144,7 +137,7 @@ export default function Question() {
             <Text style={{ color: palette.grey[500], fontSize: 14 }}>{t('image')}</Text>
           </View>
         ) : (
-          <MathRender content={conversation.lastMessage || ''} isChat/>
+          <MathRender content={conversation.lastMessage || ''} isChat maxLines={2}/>
         )}
         {conversation?.question && <Text>
           {
@@ -243,7 +236,7 @@ export default function Question() {
         <ChatContainer
           t={t}
           open={!!selectedConversation}
-          onClose={() => setSelectedConversation(undefined)}
+          onClose={() => { setSelectedConversation(undefined); getConversationList() }}
           isLoadingMessages={isLoadingMessages}
           handleLoadMoreMessages={handleLoadMoreMessages}
           chatListProps={chatListProps}

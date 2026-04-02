@@ -5,7 +5,8 @@ import {
   ScrollView,
   TouchableOpacity,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Dimensions
 } from 'react-native'
 import { FieldArray, Field } from 'formik'
 import { palette } from '@/theme'
@@ -22,6 +23,8 @@ type Props = {
   errors: any
   values: any
 }
+
+const { height: SCREEN_H } = Dimensions.get('window')
 
 const AnswerContent = ({ t, question, questionNumber, errors, values }: Props) => {
   const addable = values.textualAnswers.some((i: string) => !i.trim().length)
@@ -85,6 +88,7 @@ const AnswerContent = ({ t, question, questionNumber, errors, values }: Props) =
 
 const styles = ScaledSheet.create({
   container: {
+    maxHeight: SCREEN_H * 0.5
   },
   questionHeader: {
     marginBottom: 16

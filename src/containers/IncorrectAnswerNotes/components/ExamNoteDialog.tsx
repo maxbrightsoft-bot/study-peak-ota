@@ -62,23 +62,24 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
         <View></View>
       </View>
       {isLoadingNotes && <Loading isOverlay={false} />}
-      <Formik
-        initialValues={{
-          content: selectedNote?.content || '',
-          questionId: initialQuestionId
-        }}
-        validationSchema={schema}
-        onSubmit={(values) => onSaveNote(values.content, values.questionId)}
-      >
-        {({ handleChange, handleSubmit, values, setFieldValue }) => {
-          const question = examResultData?.questions.find(i => i.id === values.questionId)
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={80}>
 
-          return (
-            <>
-              <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={80}>
+        <Formik
+          initialValues={{
+            content: selectedNote?.content || '',
+            questionId: initialQuestionId
+          }}
+          validationSchema={schema}
+          onSubmit={(values) => onSaveNote(values.content, values.questionId)}
+        >
+          {({ handleChange, handleSubmit, values, setFieldValue }) => {
+            const question = examResultData?.questions.find(i => i.id === values.questionId)
+
+            return (
+              <>
                 <ScrollView style={styles.contentWrapper}>
                   <View>
-                    <Text style={styles.labelText}>{t('problem_number')}</Text>
+                    <Text style={styles.labelText}>{t('problem_number')}*</Text>
                     {selectedNote || selectedQuestion ? (
                       <Text style={{ color: theme.colors.primary, fontWeight: 'bold' }}>
                         {t('number_question', {
@@ -114,7 +115,7 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
                     </View>
                   </View>}
                   <View style={{ marginTop: 20 }}>
-                    <Text style={styles.labelText}>{t('incorrect_answer_note_contents')}</Text>
+                    <Text style={styles.labelText}>{t('incorrect_answer_note_contents')}*</Text>
                     <TextField
                       multiline
                       numberOfLines={10}
@@ -143,16 +144,17 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
                     )}
                   </View>
                 </ScrollView>
-              </KeyboardAvoidingView>
-              <View style={styles.footer}>
-                <TouchableOpacity style={[styles.button, styles.confirmButton]} onPress={handleSubmit as any}>
-                  <Text style={styles.confirmButtonText}>등록</Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          )
-        }}
-      </Formik>
+                <View style={styles.footer}>
+                  <TouchableOpacity style={[styles.button, styles.confirmButton]} onPress={handleSubmit as any}>
+                    <Text style={styles.confirmButtonText}>등록</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )
+          }}
+        </Formik>
+      </KeyboardAvoidingView>
+
     </SlideDrawerRoot>
   )
 }
@@ -244,7 +246,7 @@ const styles = ScaledSheet.create({
     paddingHorizontal: '20@ms'
   },
   footer: {
-    marginTop: 52,
+    marginBottom: 24,
     paddingHorizontal: '20@ms'
   },
   button: {

@@ -6,10 +6,11 @@ import {
   ScrollView,
   TouchableOpacity,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Dimensions
 } from 'react-native'
 import { FieldArray, Field } from 'formik'
-import { palette, TYPO } from '@/theme'
+import { palette } from '@/theme'
 import { QuestionAnswerType } from '@/utils/enums'
 import { PreparedQuestionResponse } from '../config/types'
 import { Ionicons } from '@expo/vector-icons'
@@ -22,6 +23,8 @@ type Props = {
   errors: any
   values: any
 }
+
+const { height: SCREEN_H } = Dimensions.get('window')
 
 const AnswerContent = ({ t, question, errors, values }: Props) => {
   const addable = values.textualAnswers.some((i: string) => !i.trim().length)
@@ -86,6 +89,7 @@ const AnswerContent = ({ t, question, errors, values }: Props) => {
 
 const styles = ScaledSheet.create({
   container: {
+    maxHeight: SCREEN_H * 0.5
   },
   questionHeader: {
     marginBottom: 16
