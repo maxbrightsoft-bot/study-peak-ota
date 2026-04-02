@@ -1,7 +1,7 @@
 import { palette, TYPO } from '@/theme'
 import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import React, { useEffect, useMemo, useRef } from 'react'
-import { View, Text, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native'
+import { View, Text, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform, TextInput } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 import { IChatListProps, IInputChatProps } from '../configs/types'
 import { ActivityIndicator } from 'react-native-paper'
@@ -92,8 +92,6 @@ const ChatContainer = ({
       handleToggleScrollToEnd()
     }
   }, [isScrollToEnd])
-
-  console.log({ value: text })
 
   return (
     <SlideDrawerRoot visible={open}>
@@ -235,7 +233,7 @@ const ChatContainer = ({
               </View>
 
               <View style={styles.inputWrapper}>
-                <TextField multiline disabled={disabled} value={text} style={styles.input} onChangeText={onChangeInput} />
+                <TextField inputRef={inputRef} multiline numberOfLines={3} disabled={disabled} style={styles.input} onChangeText={onChangeInput} />
                 {/* <MathRichInput ref={inputRef} disabled={disabled} style={styles.input} onChange={(value) => onChangeInput(value)} /> */}
               </View>
 
