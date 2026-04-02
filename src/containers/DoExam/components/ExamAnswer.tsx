@@ -130,12 +130,7 @@ const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer
   }
 
   return <View>
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={80}
-    >
-      {renderAnswer(question, question.questionAnswerType)}
-    </KeyboardAvoidingView>
+    {renderAnswer(question, question.questionAnswerType)}
   </View>
 }
 

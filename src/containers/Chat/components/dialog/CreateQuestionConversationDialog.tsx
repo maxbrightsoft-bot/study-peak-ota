@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Modal, View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet } from 'react-native'
+import { Modal, View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native'
 import { Formik } from 'formik'
 import * as Yup from 'yup'
 import { palette, TYPO } from '@/theme'
@@ -58,62 +58,68 @@ export default function CreateQuestionConversationDialog({
           </View>
           <View></View>
         </View>
-        <Formik
-          enableReinitialize
-          initialValues={{
-            content: '',
-            questionId: examSessionValue && questions ? questions[0]?.superId : null
-          }}
-          validationSchema={schema}
-          onSubmit={(values) => {
-            handleCreateConversation({
-              ...values,
-              courseId: courseValue,
-              examSessionId: examSessionValue?.split('.')?.[0],
-              studentExamSessionId: examSessionValue?.split('.')?.[1]
-            })
-          }}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={80}
         >
-          {({ values, errors, handleChange, handleSubmit, setFieldValue }) => {
-            useEffect(() => {
-              if (examSessionValue && questions?.length) {
-                setFieldValue('questionId', questions[0].id)
-              }
-            }, [examSessionValue, questions])
+          <Formik
+            enableReinitialize
+            initialValues={{
+              content: '',
+              questionId: examSessionValue && questions ? questions[0]?.superId : null
+            }}
+            validationSchema={schema}
+            onSubmit={(values) => {
+              handleCreateConversation({
+                ...values,
+                courseId: courseValue,
+                examSessionId: examSessionValue?.split('.')?.[0],
+                studentExamSessionId: examSessionValue?.split('.')?.[1]
+              })
+            }}
+          >
+            {({ values, errors, handleChange, handleSubmit, setFieldValue }) => {
+              useEffect(() => {
+                if (examSessionValue && questions?.length) {
+                  setFieldValue('questionId', questions[0].id)
+                }
+              }, [examSessionValue, questions])
 
-            return (
-              <View style={styles.content}>
-                <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
-                  <View>
-                    <Text style={styles.labelText}>{t('half_selection')}</Text>
-                    <CustomSelect
-                      onValueChange={handleChangeCourse}
-                      value={courseValue && Number(courseValue)}
-                      options={courseOptions}
-                    />
-                  </View>
-                  <View>
-                    <Text style={styles.labelText}>{t('test_selection')}</Text>
-                    <CustomSelect onValueChange={handleChangeExam} value={examSessionValue} options={examOptions} />
-                  </View>
-                  <View>
-                    <Text style={styles.labelText}>문제 선택</Text>
-                    <CustomSelect
-                      onValueChange={(value) => setFieldValue('questionId', value)}
-                      value={values.questionId}
-                      options={questionOptions}
-                    />
-                  </View>
-                  <View>
-                    <Text style={styles.labelText}>{t('question_content')}</Text>
-                    <TextField
-                      multiline
-                      placeholder={t('please_enter_your_question')}
-                      numberOfLines={10}
-                      value={values.content}
-                      onChangeText={handleChange('content')}
-                    />
-                  </View>
+              return (
+                <View style={styles.content}>
+                  <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
+                    <View>
+                      <Text style={styles.labelText}>{t('half_selection')}</Text>
+                      <CustomSelect
+                        onValueChange={handleChangeCourse}
+                        value={courseValue && Number(courseValue)}
+                        options={courseOptions}
+                      />
+                    </View>
+                    <View>
+                      <Text style={styles.labelText}>{t('test_selection')}</Text>
+                      <CustomSelect onValueChange={handleChangeExam} value={examSessionValue} options={examOptions} />
+                    </View>
+                    <View>
+                      <Text style={styles.labelText}>문제 선택</Text>
+                      <CustomSelect
+                        onValueChange={(value) => setFieldValue('questionId', value)}
+                        value={values.questionId}
+                        options={questionOptions}
+                      />
+                    </View>
+                    <View>
+                      <Text style={styles.labelText}>{t('question_content')}</Text>
+                      <TextField
+                        multiline
+                        placeholder={t('please_enter_your_question')}
+                        numberOfLines={10}
+                        value={values.content}
+                        onChangeText={handleChange('content')}
+                      />
+                    </View>
+                  </ScrollView>
                   <View style={styles.footer}>
                     <TouchableOpacity
                       onPress={() => handleSubmit()}
@@ -123,11 +129,12 @@ export default function CreateQuestionConversationDialog({
                       <Text style={styles.submitText}>{t('registration')}</Text>
                     </TouchableOpacity>
                   </View>
-                </ScrollView>
-              </View>
-            )
-          }}
-        </Formik>
+                </View>
+              )
+            }}
+          </Formik>
+        </KeyboardAvoidingView>
+
       </View>
     </SlideDrawerRoot>
   )
@@ -141,6 +148,7 @@ const styles = ScaledSheet.create({
     padding: 20
   },
   container: {
+    flex: 1,
     backgroundColor: palette.bg[100]
   },
   backButton: {

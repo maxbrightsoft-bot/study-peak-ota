@@ -1,4 +1,4 @@
-import React, { memo, useRef, useState } from 'react'
+import React, { memo, useEffect, useRef, useState } from 'react'
 import { View, Text } from 'react-native'
 import WebView from 'react-native-webview'
 import { palette } from '@/theme'
@@ -442,6 +442,14 @@ const ChartSlide = memo(({ title, isTimeChart, payload }: Props) => {
   const webRef = useRef<any>(null)
   const HEIGHT = 350
   const [loading, setLoading] = useState<boolean>(true)
+  const hasRendered = useRef(false)
+  const isReady = useRef(false)
+
+  useEffect(() => {
+    if (isReady.current && webRef.current) {
+      webRef.current.postMessage(JSON.stringify(payload))
+    }
+  }, [payload])
 
   return (
     <View
@@ -452,7 +460,7 @@ const ChartSlide = memo(({ title, isTimeChart, payload }: Props) => {
         overflow: 'hidden'
       }}
     >
-      {loading && <Loading isOverlay={false} />}
+      {loading && !hasRendered.current && <Loading isOverlay={false} />}
       <View
         style={{
           backgroundColor: palette.grey[50],
@@ -471,6 +479,7 @@ const ChartSlide = memo(({ title, isTimeChart, payload }: Props) => {
           source={{ html: isTimeChart ? TIME_CHART_HTML : CHART_HTML }}
           thirdPartyCookiesEnabled
           sharedCookiesEnabled
+          javaScriptEnabled
           onMessage={(event) => {
             const msg = JSON.parse(event.nativeEvent.data)
 

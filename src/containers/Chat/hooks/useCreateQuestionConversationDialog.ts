@@ -38,7 +38,7 @@ const useCreateQuestionConversationDialog = ({
     try {
       const res = await getListExamByCourseApi({ courseId });
       setExam(res.data.items || []);
-      setExamSessionIdSelected(`${res.data.items[0]?.id}.${res.data.items[0]?.studentExamSessionId}`);
+      !!res.data.items.length && setExamSessionIdSelected(`${res.data.items[0]?.id}.${res.data.items[0]?.studentExamSessionId}`);
     } catch (error) {
       toast.error(getErrorMessage(t, error));
     }

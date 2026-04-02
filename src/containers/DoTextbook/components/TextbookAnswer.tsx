@@ -129,12 +129,8 @@ const TextbookAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAn
   }
 
   return <View style={styles.container}>
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={100}
-    >
+    
       {renderAnswer(question, question.questionAnswerType)}
-    </KeyboardAvoidingView>
   </View>
 }
 

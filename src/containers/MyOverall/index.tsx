@@ -197,6 +197,7 @@ const MyOverall: FC<OverallTabProps> = ({
           style={{ width: width }}
           height={400}
           loop={false}
+          windowSize={slides.length}
         />
       </View>
     </ScrollView>

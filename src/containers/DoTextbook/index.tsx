@@ -139,53 +139,58 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity>
-          <TouchableOpacity onPress={handleOpenLeaveDialog}>
-            <View style={{ transform: 'rotate(180deg)' }}>
-              <ArrowRight width={24} height={24} color={palette.grey[300]} />
-            </View>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={100}
+      >
+        <View style={styles.header}>
+          <TouchableOpacity>
+            <TouchableOpacity onPress={handleOpenLeaveDialog}>
+              <View style={{ transform: 'rotate(180deg)' }}>
+                <ArrowRight width={24} height={24} color={palette.grey[300]} />
+              </View>
+            </TouchableOpacity>
           </TouchableOpacity>
-        </TouchableOpacity>
-        <View style={styles.titleContainer}>
-          <Text style={styles.subtitle}>{!textbook?.isMock ? formattedTime : remainTimeString}</Text>
-          {!textbook?.isMock && (
-            <View style={styles.timeContainer}>
-              <Text style={styles.timeLeft}>
-                {completedTasks}/{totalTasks}
-              </Text>
-              <Text style={styles.totalTime}>
-                {totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}%
-              </Text>
+          <View style={styles.titleContainer}>
+            <Text style={styles.subtitle}>{!textbook?.isMock ? formattedTime : remainTimeString}</Text>
+            {!textbook?.isMock && (
+              <View style={styles.timeContainer}>
+                <Text style={styles.timeLeft}>
+                  {completedTasks}/{totalTasks}
+                </Text>
+                <Text style={styles.totalTime}>
+                  {totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}%
+                </Text>
+              </View>
+            )}
+          </View>
+          {textbook?.isMock ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              {(isTimerRunning || isAlarmRunning) && (
+                <TouchableOpacity onPress={() => handleToggleSpeaker()}>
+                  {speaker ? <Ionicons name="volume-high" size={24} color={palette.grey[500]} /> : <MuteIcon />}
+                </TouchableOpacity>
+              )}
+              <TimerDropDown
+                speaker={speaker}
+                isTextbook
+                disabledSpeaker={disabledSpeaker}
+                openTimerDialog={openTimerDialog}
+                alarmClockProps={alarmClockProps}
+                audioGuideModalProps={audioGuideModalProps}
+                isAlarmRunning={isAlarmRunning}
+                isTimerRunning={isTimerRunning}
+                studyTimerProps={studyTimerProps}
+                timeUpdateDialogProps={timeUpdateDialogProps}
+                onToggleSpeaker={handleToggleSpeaker}
+                onToggleTimerDialog={handleTimerDialogToggle}
+              />
             </View>
+          ) : (
+            <View />
           )}
         </View>
-        {textbook?.isMock ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            {(isTimerRunning || isAlarmRunning) && (
-              <TouchableOpacity onPress={() => handleToggleSpeaker()}>
-                {speaker ? <Ionicons name="volume-high" size={24} color={palette.grey[500]} /> : <MuteIcon />}
-              </TouchableOpacity>
-            )}
-            <TimerDropDown
-              speaker={speaker}
-              isTextbook
-              disabledSpeaker={disabledSpeaker}
-              openTimerDialog={openTimerDialog}
-              alarmClockProps={alarmClockProps}
-              audioGuideModalProps={audioGuideModalProps}
-              isAlarmRunning={isAlarmRunning}
-              isTimerRunning={isTimerRunning}
-              studyTimerProps={studyTimerProps}
-              timeUpdateDialogProps={timeUpdateDialogProps}
-              onToggleSpeaker={handleToggleSpeaker}
-              onToggleTimerDialog={handleTimerDialogToggle}
-            />
-          </View>
-        ) : (
-          <View />
-        )}
-      </View>
         {questionStarList.length > 0 && (
           <View
             style={{
@@ -391,76 +396,78 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
             </View>
           </View>
         </View>
-      <RestartPageDialog
-        title={t('restart')}
-        options={startPageOptions}
-        t={t}
-        onClose={handleCloseRestartTextbookDialog}
-        open={openRestartTextbookDialog}
-        onSubmit={handleOpenConfirmDialog}
-      />
-      <ConfirmDialog
-        open={isOpenConfirmDialog}
-        toggle={handleCloseConfirmDialog}
-        text={t('are_you_sure_you_want_to_restart_the_textbook')}
-        onConfirm={() => {
-          if (textbook?.isMock) {
-            handleCloseConfirmDialog()
-            handleOpenAudioGuide()
-          } else handleRestartTextbook()
-        }}
-      />
-      {openTextbookResultDialog && (
-        <TextbookDrawer
-          isOpen={openTextbookResultDialog}
-          onClose={() => {
-            navigate(Routes.Auth.Textbook)
-            handleCloseTextbookResultDialog()
+        <RestartPageDialog
+          title={t('restart')}
+          options={startPageOptions}
+          t={t}
+          onClose={handleCloseRestartTextbookDialog}
+          open={openRestartTextbookDialog}
+          onSubmit={handleOpenConfirmDialog}
+        />
+        <ConfirmDialog
+          open={isOpenConfirmDialog}
+          toggle={handleCloseConfirmDialog}
+          text={t('are_you_sure_you_want_to_restart_the_textbook')}
+          onConfirm={() => {
+            if (textbook?.isMock) {
+              handleCloseConfirmDialog()
+              handleOpenAudioGuide()
+            } else handleRestartTextbook()
           }}
-          textbookId={+textbookId}
         />
-      )}
-      <ConfirmDialog
-        open={openLeaveDialog}
-        toggle={handleCloseLeaveDialog}
-        text={t('are_you_sure_you_want_to_leave')}
-        onConfirm={onFinishedTextbook}
-      />
-      <ConfirmDialog
-        open={openExpiredQuestionDialog}
-        toggle={handleCloseExpiredQuestionDialog}
-        onCancel={() => navigate(Routes.Auth.Textbook)}
-        text={t('expired_question_prompt')}
-        onConfirm={handleOpenTextbookResultDialog}
-      />
-      {currentQuestion && (
-        <SelectAnswerSheet
-          onFishedExam={onFinishedTextbook}
-          visible={openAnswerSheet}
-          onClose={handleCloseAnswerSheet}
-          scrollToQuestion={scrollToQuestion}
-          updateQuestionStar={updateQuestionStar}
-          updateQuestionAnswer={updateQuestionAnswer}
-          questionList={questionList}
-          currentQuestion={currentQuestion}
+        {openTextbookResultDialog && (
+          <TextbookDrawer
+            isOpen={openTextbookResultDialog}
+            onClose={() => {
+              navigate(Routes.Auth.Textbook)
+              handleCloseTextbookResultDialog()
+            }}
+            textbookId={+textbookId}
+          />
+        )}
+        <ConfirmDialog
+          open={openLeaveDialog}
+          toggle={handleCloseLeaveDialog}
+          text={t('are_you_sure_you_want_to_leave')}
+          onConfirm={onFinishedTextbook}
         />
-      )}
-      {audioTextbookProp && (
-        <AudioGuideModal
-          open={isOpenAudioGuide}
-          audioUrls={audioTextbookProp.subject?.audioUrls ?? []}
-          onClose={handleCloseAudioGuide}
-          onStart={handleStartTextbookFromGuideModal}
+        <ConfirmDialog
+          open={openExpiredQuestionDialog}
+          toggle={handleCloseExpiredQuestionDialog}
+          onCancel={() => navigate(Routes.Auth.Textbook)}
+          text={t('expired_question_prompt')}
+          onConfirm={handleOpenTextbookResultDialog}
         />
-      )}
-      {audioGuideModalProps.open && (
-        <AudioGuideModal
-          open={audioGuideModalProps.open}
-          audioUrls={audioGuideModalProps.audioUrls}
-          onClose={audioGuideModalProps.onClose}
-          onStart={audioGuideModalProps.onStart}
-        />
-      )}
+        {currentQuestion && (
+          <SelectAnswerSheet
+            onFishedExam={onFinishedTextbook}
+            visible={openAnswerSheet}
+            onClose={handleCloseAnswerSheet}
+            scrollToQuestion={scrollToQuestion}
+            updateQuestionStar={updateQuestionStar}
+            updateQuestionAnswer={updateQuestionAnswer}
+            questionList={questionList}
+            currentQuestion={currentQuestion}
+          />
+        )}
+        {audioTextbookProp && (
+          <AudioGuideModal
+            open={isOpenAudioGuide}
+            audioUrls={audioTextbookProp.subject?.audioUrls ?? []}
+            onClose={handleCloseAudioGuide}
+            onStart={handleStartTextbookFromGuideModal}
+          />
+        )}
+        {audioGuideModalProps.open && (
+          <AudioGuideModal
+            open={audioGuideModalProps.open}
+            audioUrls={audioGuideModalProps.audioUrls}
+            onClose={audioGuideModalProps.onClose}
+            onStart={audioGuideModalProps.onStart}
+          />
+        )}
+      </KeyboardAvoidingView>
+
     </View>
   )
 }
