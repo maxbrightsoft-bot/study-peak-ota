@@ -82,28 +82,25 @@ const TextField = ({
   const onFocusClick = useCallback(
     (e: any) => {
       setIsActive(true)
-      onFocus && onFocus()
+      onFocus && onFocus(e)
     },
-    [setIsActive, onFocus]
+    [onFocus]
   )
 
   const onBlurClick = useCallback(
     (e: any) => {
       setIsActive(false)
-      onBlur && onBlur()
+      onBlur && onBlur(e)
     },
-    [setIsActive, onBlur]
+    [onBlur]
   )
 
   const inputHeight = useMemo(() => {
-    if (!numberOfLines) return
-    if (multiline && numberOfLines > 1) {
+    if (multiline && numberOfLines && numberOfLines > 1) {
       return numberOfLines * lineHeight + (Platform.OS === 'android' ? 8 : 4)
     }
     return undefined
   }, [multiline, numberOfLines, lineHeight])
-
-  // const isBothReadyOnlyAndLabel = label && readOnly;
 
   const renderLabel = useCallback(() => {
     if (labelComponent) {
@@ -121,17 +118,20 @@ const TextField = ({
   }, [labelComponent, label, isRequired, labelStyle])
 
   const editable = !readOnly && !labelReadOnly && !onPress
-  const _keyboardType =
-    keyboardType === KeyboardType.numbersAndPunctuation
-      ? Platform.OS === 'android'
-        ? 'numeric'
-        : 'numbers-and-punctuation'
-      : keyboardType
+  
+  const _keyboardType = useMemo(() => {
+    if (keyboardType === KeyboardType.numbersAndPunctuation) {
+      return Platform.OS === 'android' ? 'numeric' : 'numbers-and-punctuation'
+    }
+    return keyboardType
+  }, [keyboardType])
+
   return (
     <TouchableOpacity
       style={[styles.container, style]}
       disabled={!onPress || disabled}
       onPress={onPress}
+      activeOpacity={1}
     >
       {renderLabel()}
       <View style={[styles.inputContainer, containerInputStyle, { paddingVertical: 8 }]}>
@@ -139,20 +139,15 @@ const TextField = ({
           ref={inputRef}
           style={[
             styles.textInput,
-            { flex: 1 },
+            { flex: 1, paddingHorizontal: 12, paddingVertical: 8 },
             textInputStyle,
             textInputRightStyle,
-            { paddingHorizontal: 12, paddingVertical: 8 },
-            style,
             inputHeight ? { height: inputHeight } : null,
-            multiline &&
-            numberOfLines && {
-              textAlignVertical: 'top'
-            }
+            multiline && numberOfLines ? { textAlignVertical: 'top' } : null
           ]}
           onFocus={onFocusClick}
           onBlur={onBlurClick}
-          editable={editable}
+          editable={editable && !disabled}
           numberOfLines={numberOfLines}
           multiline={multiline}
           pointerEvents={pointerEvents}
@@ -164,14 +159,17 @@ const TextField = ({
           placeholderTextColor={palette.grey[400]}
           value={value}
           maxLength={maxLength}
+          underlineColorAndroid="transparent"
         />
-        <View style={{ marginRight: 10 }}>
-          {rightComponent}
-        </View>
+        {rightComponent && (
+          <View style={{ marginRight: 10, justifyContent: 'center' }}>
+            {rightComponent}
+          </View>
+        )}
       </View>
       {!!error && <Text style={styles.error}>{error}</Text>}
     </TouchableOpacity>
   )
 }
 
-export default TextField
+export default React.memo(TextField)

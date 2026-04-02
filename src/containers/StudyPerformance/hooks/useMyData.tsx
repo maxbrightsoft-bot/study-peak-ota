@@ -148,7 +148,7 @@ const useMyData = () => {
     try {
       const res = await getListExamByCourseApi({ courseId })
       setListExam(res.data.items || [])
-      setExamSessionIdSelected(`${res.data.items[0]?.id}.${res.data.items[0]?.studentExamSessionId}`)
+      !!res.data.items.length && setExamSessionIdSelected(`${res.data.items[0]?.id}.${res.data.items[0]?.studentExamSessionId}`)
     } catch (error) {
       toast.error(getErrorMessage(t, error))
     }

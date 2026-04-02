@@ -38,7 +38,7 @@ const Login = () => {
             onPress={onAppleButtonPress}
           />}
           <GoogleLoginButton loginWithGoogle={loginWithGoogle} />
-          {Platform.OS === 'ios' && <LoginAccountButton title="이메일로 로그인" onPress={handleOpenLoginAccountDialog} />}
+          <LoginAccountButton title="이메일로 로그인" onPress={handleOpenLoginAccountDialog} />
           {/* <PhoneNumberLoginButton /> */}
         </View>
       </View>
