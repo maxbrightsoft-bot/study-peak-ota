@@ -83,7 +83,7 @@ export const DefaultScheduleFilter: ScheduleQuery = {
 
 export const DefaultExamSessionFilter: ExamSessionFilter = {
     currentPage: 1,
-    pageSize: 15,
+    pageSize: -1,
     sortColumnDirection: OrderBy.DESC,
     sortColumnName: ExamSessionSortBy.StartTime,
 };

@@ -3,7 +3,7 @@ import GoogleIcon from '@/assets/iconJSX/google'
 import TextField from '@/components/Input/TextField'
 import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 import { palette } from '@/theme'
-import { Ionicons } from '@expo/vector-icons'
+import { Fontisto, Ionicons } from '@expo/vector-icons'
 import { Formik } from 'formik'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -75,10 +75,17 @@ const FormItem = ({ label, name, options, value, onChange, editingField, setEdit
 }
 
 const validationSchema = Yup.object().shape({
-  phoneNumber: Yup.string().required(),
-  schoolName: Yup.string().required(),
-  major: Yup.string().required(),
-  fullName: Yup.string().required()
+  phoneNumber: Yup.string().nullable(),
+
+  parentName: Yup.string().nullable(),
+
+  parentPhoneNumber: Yup.string().nullable(),
+
+  schoolName: Yup.string().nullable(),
+
+  major: Yup.string().nullable(),
+
+  fullName: Yup.string().required('이름을 입력해주세요.')
 })
 
 const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectOptions }: Props) => {
@@ -89,6 +96,7 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
   const initialValues = {
     fullName: user?.fullName || '',
     phoneNumber: user?.phoneNumber || '',
+    parentName: user?.parentName || '',
     parentPhoneNumber: user?.parentPhoneNumber || '',
     schoolName: user?.schoolName || '',
     grade: user?.grade || 1,
@@ -140,7 +148,7 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
                     </View>
 
                     <View style={styles.profileRow}>
-                      <GoogleIcon />
+                      <Fontisto name="email" size={20} color={palette.grey[500]} />
                       <Text style={styles.email}>{user?.email}</Text>
                     </View>
                   </View>
@@ -155,6 +163,15 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
                       setEditingField={setEditingField}
                     />
 
+                    <Divider />
+                    <FormItem
+                      label="부모님 이름"
+                      name="parentName"
+                      value={values.parentName}
+                      onChange={handleChange('parentName')}
+                      editingField={editingField}
+                      setEditingField={setEditingField}
+                    />
                     <Divider />
 
                     <FormItem
@@ -294,7 +311,7 @@ const styles = ScaledSheet.create({
   input: {
     fontSize: '15@ms',
     color: '#6A3DE8',
-    minWidth: 120,
+    minWidth: 120
   },
 
   divider: {
