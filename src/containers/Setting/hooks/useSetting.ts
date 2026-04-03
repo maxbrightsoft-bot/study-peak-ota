@@ -32,7 +32,7 @@ const useSetting = () => {
     try {
       const isAppleLogin = !!(await getDataStorage(APPLE_USER_KEY))
 
-      const res = await updateInfoLogin({ ...values, isMobile: true, isAppleLogin });
+      const res = await updateInfoLogin({ ...values, isAppleLogin });
       
       setUser(res.data)
       toast.success(t('updated_user'))

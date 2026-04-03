@@ -11,9 +11,20 @@ type Props = {
   visible: boolean
   onClose: () => void
 }
+
 const LoginAccountDialog = ({ visible, onClose }: Props) => {
   const { t } = useTranslation()
   const { formik, showPassword, toggleShowPassword } = useLoginEmail()
+
+  const emailError =
+    formik.touched.email && formik.errors.email
+      ? formik.errors.email
+      : ''
+
+  const passwordError =
+    formik.touched.password && formik.errors.password
+      ? formik.errors.password
+      : ''
 
   return (
     <CommonDialog
@@ -25,9 +36,9 @@ const LoginAccountDialog = ({ visible, onClose }: Props) => {
         <View>
           <Text style={styles.label}>{t('email')}</Text>
           <TextField
-            onChangeText={formik.handleChange('email')}
+            onChangeText={(text: string) => formik.setFieldValue('email', text)}
             value={formik.values.email}
-            error={formik.touched.email && formik.errors.email}
+            error={emailError}
             keyboardType="email-address"
           />
         </View>
@@ -35,16 +46,16 @@ const LoginAccountDialog = ({ visible, onClose }: Props) => {
         <View>
           <Text style={styles.label}>{t('password')}</Text>
           <TextField
-            onChangeText={formik.handleChange('password')}
+            onChangeText={(text: string) => formik.setFieldValue('password', text)}
             value={formik.values.password}
-            error={formik.touched.password && formik.errors.password}
+            error={passwordError}
             secureTextEntry={!showPassword}
             rightComponent={
               <TouchableOpacity onPress={toggleShowPassword}>
-                <Ionicons 
-                  name={showPassword ? 'eye-off' : 'eye'} 
-                  size={20} 
-                  color={palette.grey[500]} 
+                <Ionicons
+                  name={showPassword ? 'eye-off' : 'eye'}
+                  size={20}
+                  color={palette.grey[500]}
                 />
               </TouchableOpacity>
             }

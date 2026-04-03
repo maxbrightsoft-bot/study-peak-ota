@@ -17,6 +17,7 @@ import StudyPerformanceScreen from '@/screens/StudyPerformance'
 import ProfileScreen from '@/screens/Profile'
 import useLayoutApp from '@/layouts/hooks/useLayoutApp'
 import QuestionScreen from '@/screens/Question'
+import { Platform } from 'react-native'
 
 const Tab = createBottomTabNavigator()
 const Authorized = ({ route }: { route: any }) => {
@@ -28,7 +29,7 @@ const Authorized = ({ route }: { route: any }) => {
     [user?.email, user?.isNotEnoughStatements]
   )
 
-  if (isNotEnoughStatements)
+  if (isNotEnoughStatements && Platform.OS !== 'ios')
     return (
       <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={() => null}>
         <Tab.Screen name={Routes.Auth.Onboarding} component={OnboardingScreen} />
