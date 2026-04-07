@@ -52,10 +52,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
+    textAlign: 'center',
+    color: palette.grey[700],
     marginBottom: 8,
     fontWeight: 'bold',
   },
   subTitle: {
+    color: palette.grey[700],
     marginBottom: 16,
     textAlign: 'center',
   },

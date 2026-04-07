@@ -3,11 +3,11 @@ import GoogleIcon from '@/assets/iconJSX/google'
 import TextField from '@/components/Input/TextField'
 import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 import { palette } from '@/theme'
-import { Fontisto, Ionicons } from '@expo/vector-icons'
+import { Ionicons } from '@expo/vector-icons'
 import { Formik } from 'formik'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 import * as Yup from 'yup'
 import { UserInfo } from '../configs/types'
@@ -137,7 +137,7 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
                           onBlur={() => setEditingField(null)}
                         />
                       ) : (
-                        <Text style={styles.name}>{values.fullName}</Text>
+                        <Text style={[styles.name, { fontSize: values.fullName ? 20 : 16 }]} onPress={() => setEditingField(editingField === 'fullName' ? null : 'fullName')}>{values.fullName || t('no_name')}</Text>
                       )}
 
                       <TouchableOpacity
@@ -147,10 +147,10 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
                       </TouchableOpacity>
                     </View>
 
-                    <View style={styles.profileRow}>
-                      <Fontisto name="email" size={20} color={palette.grey[500]} />
+                    {Platform.OS === 'android' && <View style={styles.profileRow}>
+                      <GoogleIcon />
                       <Text style={styles.email}>{user?.email}</Text>
-                    </View>
+                    </View>}
                   </View>
 
                   <View style={styles.card}>
@@ -272,7 +272,6 @@ const styles = ScaledSheet.create({
   },
 
   name: {
-    fontSize: '20@ms',
     fontWeight: '600',
     color: '#222222'
   },

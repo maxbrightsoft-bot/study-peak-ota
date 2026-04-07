@@ -89,7 +89,7 @@ const DoExam = ({ examCode }: Props) => {
     ? exam?.lateStatus === ExamStatus.Paused || exam.lateStatus === ExamStatus.Completed
     : exam?.status === ExamStatus.Paused || exam?.status === ExamStatus.Completed
 
-  if (isNotFoundExam) return <NotFoundExam title={'the_exam_code_you_are_looking_for_was_not_found'} />
+  if (isNotFoundExam) return <NotFoundExam title={t('the_exam_code_you_are_looking_for_was_not_found')} />
   return (
     <View style={styles.container}>
       <KeyboardAvoidingView

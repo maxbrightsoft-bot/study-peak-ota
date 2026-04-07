@@ -1,6 +1,6 @@
 import { api } from "@/services/api/apiClient";
 import { BASE_URL } from "@/utils/constants";
-import { ExamResultRequest } from "../configs/types";
+import { ExamFormRequest, ExamResultRequest } from "../configs/types";
 
 const EXAM_SESSION_URL = `${BASE_URL}/api/examSession`;
 const TEXTBOOK_SESSION_URL = `${BASE_URL}/api/textbooksession`
@@ -62,4 +62,3 @@ export const getQuestionTimeCategoriesResultsApi = (code: string, studentExamSes
     }
 })
 export const getQuestionTimeCategoriesResultsTeacherApi = (id: number, studentId: number) => api.get(`${EXAM_SESSION_URL}/${id}/results/question-times/${studentId}`)
-

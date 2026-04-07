@@ -9,10 +9,8 @@ import { useTranslation } from 'react-i18next'
 import { palette, TYPO } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
 import Loading from '@/components/Loading'
-import { Ionicons } from '@expo/vector-icons'
 
 type Props = {
-  loading: boolean
   openCreateQuestionDialog: boolean
   onCloseCreateQuestion: () => void
   handleCreateQuestion: (data: any) => void
@@ -31,7 +29,6 @@ const CreateNewQuestionDialog: React.FC<Props> = ({
   onCloseCreateQuestion,
   handleCreateQuestion,
   examSessionId,
-  loading,
   studentTextbookId,
   selectedQuestion,
   questionOptions
@@ -57,7 +54,6 @@ const CreateNewQuestionDialog: React.FC<Props> = ({
 
   return (
     <CommonDialog isVisible={openCreateQuestionDialog} onClose={onCloseCreateQuestion} title={t('ask_a_question')}>
-      {loading && <Loading isOverlay />}
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView>
           <View style={{ marginBottom: 16 }}>
@@ -142,25 +138,22 @@ const styles = ScaledSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: '16@ms',
-    borderTopWidth: 1,
-    borderTopColor: palette.grey[200]
   },
   button: {
-    paddingVertical: '12@ms',
-    paddingHorizontal: '24@ms',
-    borderRadius: '8@ms',
+    paddingVertical: '14@ms',
+    paddingHorizontal: '16@ms',
+    borderRadius: '12@ms',
     minWidth: '120@ms',
     alignItems: 'center'
   },
   cancelButton: {
-    backgroundColor: palette.grey[100]
   },
   confirmButton: {
-    backgroundColor: palette.main[500]
+    backgroundColor: palette.main[600]
   },
   cancelButtonText: {
     ...TYPO.button2,
-    color: palette.grey[700]
+    color: palette.main[600]
   },
   confirmButtonText: {
     ...TYPO.button2,
