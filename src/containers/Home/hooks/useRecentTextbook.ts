@@ -18,7 +18,7 @@ import { Routes } from "@/navigators/RouteName";
 
 
 const useRecentTextbook = () => {
-  const { selectedAcademy, setLoadingWithoutOverlay } = useAuthStore()
+  const { selectedAcademy, setLoading } = useAuthStore()
   const { t } = useTranslation();
   const textSearchRef = useRef<HTMLInputElement>(null);
   const [textbookList, setTextbookList] = useState<Textbook[]>([]);
@@ -36,7 +36,7 @@ const useRecentTextbook = () => {
   }
 
   const getTextbookList = async () => {
-    setLoadingWithoutOverlay(true)
+    setLoading(true)
     try {
       const { data } = await getTextbookListApi({
         ...textbookFilter,
@@ -58,7 +58,7 @@ const useRecentTextbook = () => {
       setTextbookList([]);
       toast.error(getErrorMessage(t, error));
     }
-    setLoadingWithoutOverlay(false)
+    setLoading(false)
   };
 
   const handleChangePage = (_: any, page: number) => {

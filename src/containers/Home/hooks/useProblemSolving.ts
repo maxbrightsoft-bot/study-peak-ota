@@ -20,7 +20,7 @@ import useAlarm from "@/layouts/hooks/useAlarm";
 import { ScrollView } from "react-native";
 
 const useProblemSolving = () => {
-  const { user, selectedAcademy: academy, setLoadingWithoutOverlay, pusher, subscribeChannel } = useAuthStore()
+  const { user, selectedAcademy: academy, setLoading, setLoadingWithoutOverlay, pusher, subscribeChannel } = useAuthStore()
   const [open, setOpen] = useState<boolean>(false);
   const [openSchedule, setOpenSchedule] = useState<boolean>(false);
   const [codeExam, setCodeExam] = useState<string>("");
@@ -346,7 +346,7 @@ const useProblemSolving = () => {
       return
     }
 
-    isLoading && setLoadingWithoutOverlay(true)
+    isLoading && setLoading(true)
     try {
       const { data } = await getSchedulesApi({
         currentPage: 1,
@@ -369,7 +369,7 @@ const useProblemSolving = () => {
       setSchedules([]);
       toast.error(getErrorMessage(t, error));
     }
-    setLoadingWithoutOverlay(false)
+    setLoading(false)
   };
 
   const handleCheckInLesson = async (schedule: ScheduleResponse) => {

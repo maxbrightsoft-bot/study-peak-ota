@@ -26,7 +26,7 @@ import _ from "lodash";
 import { convertScheduleFormToRequest } from "../configs/helpers";
 
 const useSchedule = () => {
-  const { user, setLoadingWithoutOverlay } = useAuthStore()
+  const { user, setLoading, setLoadingWithoutOverlay } = useAuthStore()
   const [isOpenDialog, setOpenDialog] = useState<boolean>(false);
   const [isOpenConfirmDeleteDialog, setOpenConfirmDeleteDialog] =
     useState<boolean>(false);
@@ -148,7 +148,7 @@ const useSchedule = () => {
       return
     }
 
-    isLoading && setLoadingWithoutOverlay(true)
+    isLoading && setLoading(true)
     try {
       const { data } = await getSchedulesApi({
         ...filter,
@@ -175,7 +175,7 @@ const useSchedule = () => {
       setSchedules([]);
       toast.error(getErrorMessage(t, error));
     }
-    setLoadingWithoutOverlay(false)
+    setLoading(false)
   };
 
   const getScheduleListForNoteEvent = async () => {
