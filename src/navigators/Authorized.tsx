@@ -18,6 +18,7 @@ import ProfileScreen from '@/screens/Profile'
 import useLayoutApp from '@/layouts/hooks/useLayoutApp'
 import QuestionScreen from '@/screens/Question'
 import { Platform } from 'react-native'
+import StudentExamHistoryScreen from '@/screens/StudentExamHistory'
 
 const Tab = createBottomTabNavigator()
 const Authorized = ({ route }: { route: any }) => {
@@ -46,14 +47,15 @@ const Authorized = ({ route }: { route: any }) => {
       >
         <Tab.Screen name={Routes.Auth.Home} component={HomeScreen} />
         <Tab.Screen name={Routes.Auth.Textbook} component={TextbookScreen} />
-        <Tab.Screen name={Routes.Auth.DoExam} component={DoExamScreen} options={{ lazy: true, }} />
-        <Tab.Screen name={Routes.Auth.DoTextbook} component={DoTextbookScreen} options={{ lazy: true, }} />
-        <Tab.Screen name={Routes.Auth.ExamList} component={ExamListScreen} options={{ lazy: true, }} />
+        <Tab.Screen name={Routes.Auth.DoExam} component={DoExamScreen} />
+        <Tab.Screen name={Routes.Auth.DoTextbook} component={DoTextbookScreen} />
+        <Tab.Screen name={Routes.Auth.ExamList} component={ExamListScreen} />
         <Tab.Screen name={Routes.Auth.ExamResult} component={ExamResultScreen} />
         <Tab.Screen name={Routes.Auth.ExamResultList} component={ExamResultListScreen} />
         <Tab.Screen name={Routes.Auth.StudyPerformance} component={StudyPerformanceScreen} />
         <Tab.Screen name={Routes.Auth.Profile} component={ProfileScreen} />
         <Tab.Screen name={Routes.Auth.Question} component={QuestionScreen} />
+        <Tab.Screen name={Routes.Auth.StudentExamHistory} component={StudentExamHistoryScreen} />
       </Tab.Navigator>
     </LayoutApp>
   )

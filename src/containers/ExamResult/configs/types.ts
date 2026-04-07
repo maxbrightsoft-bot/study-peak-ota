@@ -1,3 +1,4 @@
+import { OrderBy } from "@/utils/enums";
 import { ExamSession } from "@/utils/types";
 
 export type Category = {
@@ -28,4 +29,24 @@ export type OverallQuestionTypeData = {
 export type ExamResultRequest = {
     studentExamSessionId?: any
     useSubcategories?: boolean
+}
+
+export type ExamFormRequest = {
+    studentExamSessionIds: number[]
+}
+
+export enum StudentExamSessionSortBy {
+    CreatedAt = "CreatedAt",
+    StartTime = "StartTime",
+    EndTime = "ExamSession.EndTime",
+    Score = "StudentExamResult.Score",
+    StudentName = "Student.UserProfile.FullName"
+}
+
+export type StudentExamSessionQuery = {
+    sortColumnName?: StudentExamSessionSortBy,
+    textSearch?: string,
+    isSelected?: boolean,
+    studentId?: number,
+    sortColumnDirection?: OrderBy,
 }

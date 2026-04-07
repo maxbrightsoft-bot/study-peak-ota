@@ -283,6 +283,7 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
       setFetching(false)
     }
   }
+  
   const remainTime = useCountDownTimer({
     isLoading: loadingItem,
     runningTime: alarm?.totalRunningTime ?? 0,

@@ -13,6 +13,7 @@ export const Routes = {
         StudyPerformance: "STUDY_PERFORMANCE",
         Profile: "PROFILE",
         Question: "QUESTION",
+        StudentExamHistory: "STUDENT_EXAM_HISTORY",
     },
     UnAuth: {
         Splash: 'SPLASH',
@@ -42,4 +43,5 @@ export const noLayoutScreens = [
     Routes.Auth.ExamResultList,
     Routes.Auth.Question,
     Routes.Auth.StudyPerformance,
+    Routes.Auth.StudentExamHistory,
 ];

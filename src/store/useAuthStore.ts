@@ -218,8 +218,6 @@ const useAuthStore = create<AuthStore>()(
       },
 
       subscribeChannel: async (pusher, channelName, eventHandlers) => {
-        await get().unsubscribeChannelSafe(pusher, channelName);
-
         const channel = await pusher.subscribe({
           channelName,
           onEvent: (event: PusherEvent) => {
@@ -227,6 +225,7 @@ const useAuthStore = create<AuthStore>()(
               const matched = eventHandlers.find(
                 (e) => e.eventName === event.eventName
               );
+
 
               if (!matched) {
                 if (__DEV__) {
@@ -236,6 +235,7 @@ const useAuthStore = create<AuthStore>()(
               }
 
               const data = event.data ? JSON.parse(event.data) : null;
+
               matched.handler(data);
             } catch (err) {
               console.error("[Pusher] Event error:", err);

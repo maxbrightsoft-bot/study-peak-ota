@@ -47,13 +47,9 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
   const [isNotFoundExam, setNotFoundExam] = useState<boolean>();
   const [liveResultDialog, setLiveResultDialog] = useState(false);
   const [openResultDialog, setOpenResultDialog] = useState(false);
-
-  const { user, setLoading, pusher,
-    subscribeChannel, setLoadingWithoutOverlay, unsubscribeChannelSafe } = useAuthStore()
-
+  const { user, setLoading, pusher, subscribeChannel, setLoadingWithoutOverlay, unsubscribeChannelSafe } = useAuthStore()
   const academyDomain: string | undefined = user?.academyDomain;
   const userId: number | undefined = user?.id;
-
   const [isOpenConfirmDialog, setOpenConfirmDialog] = useState(false);
   const scrollViewRef = useRef<FlatList>(null);
   const questionRefs = useRef<Array<View | null>>([]);
@@ -503,7 +499,6 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
         [ExamEvent.RestartExam]: handleTeacherRestartExam
       };
 
-
       channel.current = await subscribeChannel(
         pusher,
         channelName.current,
@@ -523,6 +518,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     handleCloseConfirmDialog()
     setQuestionList([])
     setEnding(false)
+    setExam(undefined)
     firstLoadRef.current = true
     scrollViewRef.current?.scrollToOffset({
       offset: 0,

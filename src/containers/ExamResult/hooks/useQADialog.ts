@@ -1,16 +1,17 @@
 import { useState } from "react";
-import { createConversationApi } from "../apiClients";
+import { createConversationApi } from "../../ExamResultList/apiClients";
 import { useTranslation } from "react-i18next";
 import { Question, QuestionData } from "@/utils/types";
 import { getErrorMessage, toast } from "@/utils/helpers";
 import { GestureResponderEvent } from "react-native";
+import useAuthStore from "@/store/useAuthStore";
 
 
 const useCreateQuestionDialog = (handleSelectQuestion: (question?: QuestionData) => void) => {
     const [isOpenQuestionDialog, setOpenQuestionDialog] = useState<boolean>(false)
     const [questionIdContextMenu, setQuestionIdContextMenu] = useState<number>()
     const { t } = useTranslation()
-    const [loading, setLoading] = useState(false)
+    const { setLoadingWithoutOverlay} = useAuthStore()
 
     const handleCloseQuestionContextMenu = () => {
         setQuestionIdContextMenu(0)
@@ -32,7 +33,7 @@ const useCreateQuestionDialog = (handleSelectQuestion: (question?: QuestionData)
     }
 
     const handleCreateQuestion = async ({ content, examSessionId, studentTextbookId, questionId }: { content: string, examSessionId: number, studentTextbookId: number, questionId: number }) => {
-        setLoading(true)
+        setLoadingWithoutOverlay(true)
         try {
             await createConversationApi({ examSessionId, content, questionId, studentTextbookId })
             toast.success(t('conversation_created_success'))
@@ -41,13 +42,12 @@ const useCreateQuestionDialog = (handleSelectQuestion: (question?: QuestionData)
             toast.error(getErrorMessage(t, error))
         }
         finally {
-            setLoading(false)
+            setLoadingWithoutOverlay(false)
             handleCloseQuestionDialog()
         }
     }
 
     return {
-        loading,
         questionIdContextMenu,
         isOpenQuestionDialog,
         setOpenQuestionDialog,

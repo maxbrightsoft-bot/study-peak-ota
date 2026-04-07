@@ -58,6 +58,7 @@ export type ExamSessionResponse = {
     runningTime: number
     totalAnsweredTime: number
     timestamp?: number
+    studentName?: string
 };
 
 export type Category = {

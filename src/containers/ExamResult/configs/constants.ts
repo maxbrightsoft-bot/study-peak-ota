@@ -1,5 +1,6 @@
 import { ExamStatusView, NoteSortColumn, OrderBy } from "@/utils/enums";
 import { NoteSearchQuery } from "@/utils/types";
+import { StudentExamSessionQuery, StudentExamSessionSortBy } from "./types";
 
 export const examStatusViewOptions = (t: any, chapterId?: number) => chapterId ? [
     {
@@ -43,3 +44,8 @@ export const DEFAULT_NOTE_FILTER: NoteSearchQuery = {
     currentPage: 1,
     pageSize: 12
 }
+
+export const DefaultStudentExamSessionFilter: StudentExamSessionQuery = {
+  sortColumnDirection: OrderBy.DESC,
+  sortColumnName: StudentExamSessionSortBy.StartTime,
+};

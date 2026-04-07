@@ -7,7 +7,7 @@ import { captureRef } from 'react-native-view-shot'
 import RNFS from 'react-native-fs';
 import { useTranslation } from "react-i18next"
 import useExamResultNote from "./useExamResultNote"
-import useCreateQuestionDialog from "../../ExamResultList/hooks/useQADialog"
+import useCreateQuestionDialog from "./useQADialog"
 import { getChapterResultsApi, getChapterResultsCategoriesApi, getChapterResultsEffectSizeApi, getChapterResultsLongTimeSpendApi, getChapterResultsTimeOrderQuestionApi, getResults, getResultsCategories, getResultsEffectSize, getResultsLongTimeSpend, getResultsTimeOrderQuestion } from "../apiClients"
 import { Platform, View } from "react-native"
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
