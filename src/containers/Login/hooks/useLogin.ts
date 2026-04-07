@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { Routes } from '@/navigators/RouteName';
 import appleAuth from '@invertase/react-native-apple-authentication';
 import { useState } from 'react';
+import { Platform } from 'react-native';
 
 const useLogin = () => {
   const { t } = useTranslation();
@@ -31,7 +32,7 @@ const useLogin = () => {
     setHasEnteredSelectAcademy,
     setRedirectUrl,
   } = useAuthStore();
-  const [ openLoginAccountDialog, setOpenLoginAccountDialog ] = useState(false)
+  const [openLoginAccountDialog, setOpenLoginAccountDialog] = useState(false)
 
   const handleOpenLoginAccountDialog = () => {
     setOpenLoginAccountDialog(true)
@@ -72,7 +73,7 @@ const useLogin = () => {
 
       let redirectUrl: string;
       if (isFirstLogin && isAcademy) {
-        redirectUrl = Routes.Auth.Onboarding;
+        redirectUrl = Platform.OS === 'ios' ? Routes.Auth.Home : Routes.Auth.Onboarding;
       } else if (redirectUrlProp) {
         redirectUrl = redirectUrlProp;
       } else if (isAcademy) {
