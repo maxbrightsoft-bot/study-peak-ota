@@ -13,7 +13,7 @@ import { CourseExamSession, ExamSessionSortBy } from "../configs/type";
 import { OrderBy } from "@/utils/enums";
 
 const useExamResultList = ({ onClose, open }: { onClose: () => void, open: boolean }) => {
-  const { setLoadingWithoutOverlay } = useAuthStore()
+  const { setLoading } = useAuthStore()
   const { t } = useTranslation();
   const [listExam, setListExam] = useState<CourseExamSession[]>([]);
   const [search, setSearch] = useState<string>("");
@@ -71,7 +71,7 @@ const useExamResultList = ({ onClose, open }: { onClose: () => void, open: boole
   }
 
   const getListExam = async (textSearch?: string) => {
-    setLoadingWithoutOverlay(true)
+    setLoading(true)
     try {
       const res = await getListExamApi({ ...filter, textSearch });
       const result = res?.data?.items.flatMap((item: any) =>
@@ -85,7 +85,7 @@ const useExamResultList = ({ onClose, open }: { onClose: () => void, open: boole
     } catch (error) {
       console.log({ error });
     }
-    setLoadingWithoutOverlay(false)
+    setLoading(false)
   };
 
   const onChangeSearch = (value: string) => {
@@ -101,7 +101,7 @@ const useExamResultList = ({ onClose, open }: { onClose: () => void, open: boole
 
 
   const handleJoinExam = async (item: CourseExamSession) => {
-    setLoadingWithoutOverlay(true)
+    setLoading(true)
     try {
       await joinExamApi(item.examCode);
       onClose()
@@ -110,7 +110,7 @@ const useExamResultList = ({ onClose, open }: { onClose: () => void, open: boole
       console.log({ error });
       toast.error(getErrorMessage(t, error))
     }
-    setLoadingWithoutOverlay(false)
+    setLoading(false)
   }
 
   return {
