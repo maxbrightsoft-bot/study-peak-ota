@@ -20,10 +20,10 @@ interface Props {
 type TabKey = 'all' | 'incomplete' | 'not_taken' | 'done'
 
 const TABS: { key: TabKey; label: string }[] = [
-  { key: 'all', label: '전체' },
-  { key: 'incomplete', label: '미완료' },
-  { key: 'not_taken', label: '미응시' },
-  { key: 'done', label: '완료' }
+  { key: 'all', label: 'all' },
+  { key: 'incomplete', label: 'incomplete' },
+  { key: 'not_taken', label: 'not_taken' },
+  { key: 'done', label: 'done' }
 ]
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
@@ -71,13 +71,13 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
       <View style={styles.examCard}>
         <View style={styles.cardTopRow}>
           <View style={[styles.statusBadge]}>
-            <Text style={[styles.statusText, { color: statusCfg.color }]}>{statusCfg.label}</Text>
+            <Text style={[styles.statusText, { color: statusCfg.color }]}>{t(statusCfg.label)}</Text>
           </View>
           <Text style={styles.examCode}>{item?.examCode || ''}</Text>
 
           {isDone && (
             <TouchableOpacity style={styles.resultLink} onPress={() => handleOpenResultDialog(item)}>
-              <Text style={styles.resultLinkText}>결과 확인</Text>
+              <Text style={styles.resultLinkText}>{t('view_result')}</Text>
               <Ionicons name="chevron-forward" size={13} color={palette.grey[500]} />
             </TouchableOpacity>
           )}
@@ -107,7 +107,7 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
         {!isDone && (
           <View style={styles.cardFooter}>
             <TouchableOpacity style={styles.applyButton} activeOpacity={0.85} onPress={() => handleJoinExam(item)}>
-              <Text style={styles.applyButtonText}>시험 응시</Text>
+              <Text style={styles.applyButtonText}>{t('take_exam')}</Text>
               <Ionicons name="chevron-forward" size={16} color={'#FFF'} />
             </TouchableOpacity>
           </View>
@@ -122,7 +122,7 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
         <TouchableOpacity style={styles.backButton} onPress={onClose}>
           <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>지난 시험</Text>
+        <Text style={styles.headerTitle}>{t('exam_history')}</Text>
         <View style={{ width: 22 }} />
       </View>
       <View style={styles.container}>
@@ -137,7 +137,7 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
                   onPress={() => setActiveTab(tab.key)}
                   activeOpacity={0.75}
                 >
-                  <Text style={[styles.tabText, active && styles.tabTextActive]}>{tab.label}</Text>
+                  <Text style={[styles.tabText, active && styles.tabTextActive]}>{t(tab.label)}</Text>
                 </TouchableOpacity>
               )
             })}
@@ -147,7 +147,7 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
           <View style={styles.sortBar}>
             <TouchableOpacity style={styles.sortButton} onPress={() => handleSort()} activeOpacity={0.75}>
               <Text style={styles.sortText}>
-                {filter.sortColumnDirection === OrderBy.DESC ? '최근 순' : '오래된 순'}
+                {filter.sortColumnDirection === OrderBy.DESC ? t('recent') : t('oldest')}
               </Text>
               <SortIcon />
             </TouchableOpacity>

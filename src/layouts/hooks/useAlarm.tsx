@@ -326,6 +326,7 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
     onClose: () => setSelectedTimer(undefined),
     onStart: async (enable) => {
       if (!selectedTimer) return
+      
       await handleStartAlarm(AlarmType.Subject, selectedTimer.duration, selectedTimer.timer, enable)
       setSelectedTimer(undefined)
     }

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import {
   View,
   Text,
@@ -17,6 +17,8 @@ import RefreshIcon from '@/assets/iconJSX/refresh'
 import { FilterValues, TextbookQuery } from '../configs/type'
 import CalendarIcon from '@/assets/iconJSX/calendar'
 import moment from 'moment'
+import CustomSelect from '@/components/Select/CustomSelect'
+import { BRIEF_GRADE_OPTIONS } from '@/utils/constants'
 
 interface FilterFormProps {
   onSubmit?: (values: FilterValues) => void
@@ -33,6 +35,7 @@ const defaultValues: FilterValues = {
   subjectIds: [],
   startYear: undefined,
   endYear: undefined,
+  grade: undefined,
   months: []
 }
 
@@ -54,7 +57,7 @@ const FilterForm: React.FC<FilterFormProps> = ({
   onSubmit,
   textbookFilter
 }) => {
-  const { subjectOptions, monthOptions } = useFilterForm()
+  const { t, gradeOptions, subjectOptions, monthOptions } = useFilterForm()
 
   const handleSubmit = (
     values: FilterValues,
@@ -70,6 +73,7 @@ const FilterForm: React.FC<FilterFormProps> = ({
           endYear: !!textbookFilter.toDate ? moment.utc(textbookFilter.toDate).year() : undefined,
           startYear: !!textbookFilter.fromDate ? moment.utc(textbookFilter.fromDate).local().year() : undefined,
           subjectIds: textbookFilter.subjectIds || [],
+          grade: textbookFilter.grade || undefined,
           months: textbookFilter.fromMonths?.map(i => moment.utc(i).local().month() + 1) || []
         }}
         onSubmit={handleSubmit}
@@ -129,7 +133,7 @@ const FilterForm: React.FC<FilterFormProps> = ({
                 contentContainerStyle={styles.content}
                 showsVerticalScrollIndicator={false}
               >
-                <Text style={styles.sectionTitle}>과목</Text>
+                <Text style={styles.sectionTitle}>{t('subject')}</Text>
 
                 <Checkbox
                   checked={
@@ -137,7 +141,7 @@ const FilterForm: React.FC<FilterFormProps> = ({
                     values.subjectIds.length === subjectOptions.length
                   }
                   onPress={toggleSubjectAll}
-                  label="전체"
+                  label={t('all')}
                 />
 
                 <View style={styles.chipRow}>
@@ -155,7 +159,7 @@ const FilterForm: React.FC<FilterFormProps> = ({
 
                 <View style={styles.divider} />
 
-                <Text style={styles.sectionTitle}>연도</Text>
+                <Text style={styles.sectionTitle}>{t('year')}</Text>
 
                 <View style={{ gap: 12 }}>
                   <View style={styles.yearRow}>
@@ -184,7 +188,7 @@ const FilterForm: React.FC<FilterFormProps> = ({
                       />
                     </View>
 
-                    <Text style={styles.yearSuffix}>부터</Text>
+                    <Text style={styles.yearSuffix}>{t('from')}</Text>
                   </View>
 
                   <View style={styles.yearRow}>
@@ -213,18 +217,33 @@ const FilterForm: React.FC<FilterFormProps> = ({
                       />
                     </View>
 
-                    <Text style={styles.yearSuffix}>까지</Text>
+                    <Text style={styles.yearSuffix}>{t('to')}</Text>
                   </View>
+                </View>
+                <View style={styles.divider} />
+
+                <Text style={styles.sectionTitle}>{t('grade')}</Text>
+                <View>
+                  <CustomSelect
+                    value={values.grade}
+                    onValueChange={(grade: number) =>
+                      setFieldValue(
+                        'grade',
+                        grade
+                      )}
+                    options={gradeOptions}
+                  />
+
                 </View>
 
                 <View style={styles.divider} />
 
-                <Text style={styles.sectionTitle}>시험 시기</Text>
+                <Text style={styles.sectionTitle}>{t('exam_period')}</Text>
 
                 <Checkbox
                   checked={values.months.length === monthOptions.length}
                   onPress={toggleMonthAll}
-                  label="전체"
+                  label={t('all')}
                 />
 
                 <View style={styles.monthGrid}>
@@ -239,6 +258,7 @@ const FilterForm: React.FC<FilterFormProps> = ({
                     />
                   ))}
                 </View>
+
               </ScrollView>
 
               <View style={styles.bottomBar}>
@@ -255,7 +275,7 @@ const FilterForm: React.FC<FilterFormProps> = ({
                   onPress={() => formikSubmit()}
                   activeOpacity={0.85}
                 >
-                  <Text style={styles.submitText}>필터 적용</Text>
+                  <Text style={styles.submitText}>{t('apply_filter')}</Text>
                 </TouchableOpacity>
               </View>
             </View>

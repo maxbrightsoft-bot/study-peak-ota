@@ -196,12 +196,12 @@ const useTextbookDrawer = ({
 
     try {
       await removeDataStorage(TOAST_EXAM_STATUS);
-      setTimeout(() => {
-        onOpenAudioGuide?.();
-      }, 200);
-      onClose?.();
+      onOpenAudioGuide?.();
     } catch (error) {
       toast.error(getErrorMessage(t, error));
+    }
+    finally {
+      onClose?.();
     }
   };
 

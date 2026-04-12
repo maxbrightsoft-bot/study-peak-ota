@@ -60,7 +60,7 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props
           <TouchableOpacity onPress={onClose}>
             <Ionicons name="chevron-back" size={24} color="#B8B8B8" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>문제집 상세</Text>
+          <Text style={styles.headerTitle}>{t('textbook_detail')}</Text>
           <View style={{ width: 24 }} />
         </View>
 
@@ -87,13 +87,13 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props
               </View>
 
               <View style={styles.metaRow}>
-                <Text style={{ color: '222222' }}>{t('publisher')}</Text>
+                <Text style={{ color: '#222222' }}>{t('publisher')}</Text>
                 <Text style={styles.meta}>{textbook?.publisher}</Text>
               </View>
 
               <View style={styles.metaRow}>
                 <Text style={{ color: '#222222' }}>{t('number_of_questions')}</Text>
-                <Text style={styles.meta}>{textbook?.totalQuestions ?? 0} 문제</Text>
+                <Text style={styles.meta}>{textbook?.totalQuestions ?? 0} {t('questions')}</Text>
               </View>
             </View>
           </View>
@@ -152,12 +152,12 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.bottomBarContent}>
             {!isMockTextbook && (
               <TouchableOpacity style={[styles.button, styles.pageBtn]} onPress={handleOpenStartPageDialog}>
-                <Text style={styles.outlineButtonText}>페이지 이동</Text>
+                <Text style={styles.outlineButtonText}>{t('navigate_page')}</Text>
               </TouchableOpacity>
             )}
 
             <TouchableOpacity style={[styles.button, styles.continueBtn]} onPress={handleDoTextbook}>
-              <Text style={styles.buttonText}>이어서 풀기</Text>
+              <Text style={styles.buttonText}>{t('continue_textbook')}</Text>
             </TouchableOpacity>
 
             {!!textbook && textbook.isStudying && (

@@ -52,7 +52,7 @@ const CalendarSchedule = ({ isVisible, onClose }: Props) => {
           <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />
         </TouchableOpacity>
         <View>
-          <Text style={{ fontSize: 16, fontWeight: 600, color: '#222222' }}>스케줄 상세</Text>
+          <Text style={{ fontSize: 16, fontWeight: 600, color: '#222222' }}>{t('schedule_detail')}</Text>
         </View>
         <View></View>
       </View>
@@ -68,6 +68,7 @@ const CalendarSchedule = ({ isVisible, onClose }: Props) => {
         <NoteEvent
           t={t}
           schedules={schedules}
+          selectedDate={selectedDate}
           handleCreateSchedule={handleCreateSchedule}
           openTooltipList={openTooltipList}
           handleOpenTooltip={handleOpenTooltip}
@@ -92,7 +93,7 @@ const CalendarSchedule = ({ isVisible, onClose }: Props) => {
             onPress={() => handleOpenDialog()}
           >
             <View style={{ flexDirection: 'row' }}>
-              <Text style={styles.newScheduleButtonText}>새로운 스케줄 추가</Text>
+              <Text style={styles.newScheduleButtonText}>{t('add_new_schedule')}</Text>
             </View>
           </Button>
         </View>

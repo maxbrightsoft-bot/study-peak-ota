@@ -1,5 +1,6 @@
 import { getSubjectListApi } from "@/services/api/subjectService";
 import useAuthStore from "@/store/useAuthStore";
+import { BRIEF_GRADE_OPTIONS } from "@/utils/constants";
 import { getErrorMessage, toast } from "@/utils/helpers";
 import { Subject } from "@/utils/types";
 import moment from "moment";
@@ -49,7 +50,16 @@ const useFilterForm = () => {
     }));
   }, []);
 
+  const gradeOptions = useMemo(() => {
+      return BRIEF_GRADE_OPTIONS.map((i) => ({
+        label: t(i.label),
+        value: i.value
+      }))
+    }, [])
+
   return {
+    t,
+    gradeOptions,
     monthOptions,
     subjectOptions,
   }

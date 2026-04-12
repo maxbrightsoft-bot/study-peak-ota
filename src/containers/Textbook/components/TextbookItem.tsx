@@ -21,7 +21,7 @@ const TextbookItem = ({ textbook, t, handleOpenDialog }: Props) => {
         <View style={styles.content}>
           <View style={styles.topRow}>
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>{textbook?.subject?.name || '국어'}</Text>
+              <Text style={styles.badgeText}>{textbook?.subject?.name}</Text>
             </View>
 
             <Text style={styles.timeText}>{moment(textbook.createdAt).fromNow()}</Text>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ExamQuestion,
   Question,
@@ -16,6 +16,8 @@ import { isTextType } from "@/utils/helpers/textbook";
 import { ExamSessionResponse } from "@/utils/types";
 import NetInfo from '@react-native-community/netinfo';
 import { getDataStorage, removeDataStorage, setDataStorage } from "@/utils/storage";
+import useServerTime from "@/hooks/useServerTime";
+import { logError, logEvent } from "@/utils/helpers/crashlyticsLogger";
 const DATE_TIME_FORMAT = "YYYY-MM-DDTHH:mm:ss.SSSZ"
 const rollBackQuestionList = "rb";
 const recoverQuestionList = "rc";
@@ -48,6 +50,15 @@ const useExamSolving = (props: Props) => {
     handleUpdateSlider,
     handleNextQuestion
   } = props;
+  const { getServerNow } = useServerTime();
+
+  const getServerTimeFormatted = useCallback(() => {
+    const serverNow = getServerNow();
+    const time = moment(serverNow).format(DATE_TIME_FORMAT);
+    const now = toISOString(time);
+    const nowTime = moment(now).utc().valueOf();
+    return { time, now, nowTime };
+  }, [getServerNow]);
 
   const { user, selectedAcademy } = useAuthStore()
   const academyId = selectedAcademy?.id
@@ -107,6 +118,12 @@ const useExamSolving = (props: Props) => {
         })
       }
     } catch (err: any) {
+      const { nowTime } = getServerTimeFormatted();
+      logError(err, {
+        action: 'ANSWER_API_FAIL',
+        examCode,
+        time: nowTime
+      })
       error = err;
       handleNextQuestion(true)
     } finally {
@@ -231,9 +248,7 @@ const useExamSolving = (props: Props) => {
       if (!exam) return;
       const examStatus = exam.isLate ? exam.lateStatus : exam.status
       if (examStatus !== ExamStatus.InProgress) return
-      const time = moment().format(DATE_TIME_FORMAT);
-      const now = toISOString(time);
-      const nowTime = moment(now).utc().valueOf();
+      const { now, nowTime } = getServerTimeFormatted();
 
       const totalRunningTime = moment(now).diff(moment.utc(!exam.isLate ? exam.startTime : exam.startTimeSession).local(), "milliseconds") - exam.totalPausedTime
 
@@ -276,9 +291,18 @@ const useExamSolving = (props: Props) => {
         return item;
       });
 
+      logEvent('ANSWER_QUESTION', {
+        examCode,
+        questionId,
+        time: nowTime
+      })
+
       handleUpdateAnswer(arrQuestionNew, now, nowTime, totalRunningTime, questionId);
     } catch (error) {
-      console.log({ error });
+      logError(error, {
+        action: 'ANSWER_QUESTION',
+        questionId,
+      })
     }
   };
 
@@ -287,9 +311,7 @@ const useExamSolving = (props: Props) => {
       if (!exam) return;
       const examStatus = exam.isLate ? exam.lateStatus : exam.status
       if (examStatus !== ExamStatus.InProgress) return
-      const time = moment().format(DATE_TIME_FORMAT);
-      const now = toISOString(time);
-      const nowTime = moment(now).utc().valueOf();
+      const { now, nowTime } = getServerTimeFormatted();
 
       const totalRunningTime = moment(now).diff(moment.utc(!exam.isLate ? exam.startTime : exam.startTimeSession).local(), "milliseconds") - exam.totalPausedTime
 
@@ -306,10 +328,18 @@ const useExamSolving = (props: Props) => {
         }
         return item;
       });
+      logEvent('ANSWER_STAR_QUESTION', {
+        examCode,
+        questionId,
+        time: nowTime
+      })
 
       handleUpdateAnswer(arrQuestionNew, now, nowTime, totalRunningTime, questionId, true);
     } catch (error) {
-      console.log({ error });
+      logError(error, {
+        action: 'ANSWER_STAR_QUESTION',
+        questionId,
+      })
     }
   };
 

@@ -26,6 +26,10 @@ export const TabList = [
         value: null
     },
     {
+        label: "workbook",
+        value: PreparedType.workbook
+    },
+    {
         label: "csat_past_questions",
         value: PreparedType.csat_past_questions
     },
@@ -38,8 +42,8 @@ export const TabList = [
         value: PreparedType.private_mock_exam
     },
     {
-        label: "workbook",
-        value: PreparedType.workbook
+        label: "past_exam_questions",
+        value: PreparedType.past_exam_questions
     },
     {
         label: "academy_questions",

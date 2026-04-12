@@ -5,6 +5,7 @@ import { PreparedQuestionGroupResponse, PreparedQuestionResponse } from '../conf
 import StarRating from '@/assets/iconJSX/starRating'
 import React, { useMemo } from 'react'
 import MathRender from '@/components/MathRender'
+import { useTranslation } from 'react-i18next'
 
 type Props = {
   t: any
@@ -30,6 +31,7 @@ const TextbookQuestionGroup = ({
   currentQuestionId,
   questionRefs,
 }: Props) => {
+  const { t } = useTranslation()
   const questions = data.questions
   const disabled = isEnd || status === ExamStatus.Paused
   const questionContent = useMemo(() => {
@@ -87,7 +89,7 @@ const TextbookQuestionGroup = ({
           ]}
         >
           <Text style={[styles.questionText, currentQuestionId === item.id && styles.activeQuestionText]}>
-            {item.questionOrder + 1}번
+            {t('number_question', { number: item.questionOrder + 1 })}
           </Text>
         </View>
 
@@ -116,10 +118,10 @@ const TextbookQuestionGroup = ({
       <View style={styles.container}>
         <View style={styles.header}>
           <View style={{ borderRightWidth: 1, borderColor: palette.grey[300], flex: 1 }}>
-            <Text style={styles.headerText}>문번</Text>
+            <Text style={styles.headerText}>{t('problem_number')}</Text>
           </View>
           <View style={{ flex: 3 }}>
-            <Text style={styles.headerText}>답란</Text>
+            <Text style={styles.headerText}>{t('answer_sheet')}</Text>
           </View>
         </View>
 

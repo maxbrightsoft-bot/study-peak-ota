@@ -2,6 +2,7 @@ import Loading from '@/components/Loading'
 import useAuthStore from '@/store/useAuthStore'
 import { palette } from '@/theme/colors'
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Animated, Dimensions, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 type Props = {
@@ -13,6 +14,7 @@ type Props = {
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
 const WaitingExamStart = ({ visible, position = 'right', onClose }: Props) => {
+  const { t } = useTranslation()
   const slideAnim = useRef(new Animated.Value(position === 'right' ? SCREEN_WIDTH : -SCREEN_WIDTH)).current
 
   const backdropOpacity = useRef(new Animated.Value(0)).current
@@ -36,13 +38,12 @@ const WaitingExamStart = ({ visible, position = 'right', onClose }: Props) => {
     <Modal visible={visible} transparent animationType="none">
       <View style={styles.container}>
         <TouchableOpacity style={styles.exitButton} onPress={onClose}>
-          <Text style={styles.exitText}>나가기</Text>
+          <Text style={styles.exitText}>{t('exit')}</Text>
         </TouchableOpacity>
 
         <View style={styles.content}>
           <Text style={styles.title}>
-            라이브 시험을{'\n'}
-            시작하는 중입니다...
+            {t('live_exam_starting')}
           </Text>
 
           {/* <Text style={styles.timer}>

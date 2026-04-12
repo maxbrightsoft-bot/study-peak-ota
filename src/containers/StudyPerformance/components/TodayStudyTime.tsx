@@ -228,6 +228,7 @@ const styles = ScaledSheet.create({
   },
   progressSection: {},
   detailsSection: {
+    flex: 1,
     justifyContent: 'center'
   },
   svg: {

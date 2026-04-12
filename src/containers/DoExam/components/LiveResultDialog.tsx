@@ -35,14 +35,14 @@ const LiveResultDialog = ({ open, onClose = () => {}, examCode, handleExamEnd, h
       <View style={styles.container}>
         <Text style={styles.examTitle}>{examResult?.title || ''}</Text>
 
-        <Text style={styles.score}>{examResult?.score || 0} 점</Text>
+        <Text style={styles.score}>{t('score_format', { score: examResult?.score || 0 })}</Text>
 
-        <Text style={styles.percentage}>백분율: {examResult?.percentageAmongStudents?.toFixed(2) || 0}%</Text>
+        <Text style={styles.percentage}>{t('percentage_among_students')}: {examResult?.percentageAmongStudents?.toFixed(2) || 0}%</Text>
 
         <View style={styles.infoBlock}>
-          <InfoRow label="시험 날짜" value={utcToLocalTime(examResult?.startTime, t('full_date_time_format'))} />
-          <InfoRow label="시험 소요시간" value={totalTime} />
-          <InfoRow label="문제 수" value={`${resultData?.questions?.length || 0} 문제`} />
+          <InfoRow label={t('exam_date')} value={utcToLocalTime(examResult?.startTime, t('full_date_time_format'))} />
+          <InfoRow label={t('exam_duration')} value={totalTime} />
+          <InfoRow label={t('number_of_questions')} value={`${resultData?.questions?.length || 0} ${t('questions')}`} />
         </View>
 
         <View style={styles.buttonContainer}>

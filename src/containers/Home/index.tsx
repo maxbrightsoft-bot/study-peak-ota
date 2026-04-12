@@ -56,7 +56,7 @@ const Home = () => {
             }}
           >
             <View style={styles.rowBetween}>
-              <Text style={{ fontSize: 12, fontWeight: 500, color: palette.grey[900] }}>오늘의 스케줄</Text>
+              <Text style={{ fontSize: 12, fontWeight: 500, color: palette.grey[900] }}>{t('today_schedule')}</Text>
               <ArrowRight color={palette.grey[500]} />
             </View>
 
@@ -91,8 +91,8 @@ const Home = () => {
                 }}
               >
                 <View style={{}}>
-                  <Text style={{ fontSize: 12, fontWeight: 400, marginBottom: 19 }}>오늘의 출석</Text>
-                  <Text style={{ ...styles.bold, fontSize: 16 }}>수학 심화반</Text>
+                  <Text style={{ fontSize: 12, fontWeight: 400, marginBottom: 19 }}>{t('today_attendance')}</Text>
+                  <Text style={{ ...styles.bold, fontSize: 16 }}>{selectedSchedule ? selectedSchedule.title : t('no_class_today')}</Text>
                   {selectedSchedule && (
                     <Text style={styles.time}>
                       {timeSpanToLocalMoment(selectedSchedule.startTime, selectedSchedule.date)?.format('HH:mm')} ~{' '}
@@ -105,7 +105,7 @@ const Home = () => {
                     styles.attendBtn,
                     {
                       backgroundColor:
-                        selectedSchedule?.status === ScheduleStatus.Completed ? palette.sub[400] : palette.grey[200]
+                        selectedSchedule?.status === ScheduleStatus.Completed ? palette.grey[200] : palette.sub[400]
                     }
                   ]}
                   onPress={handleCheckSchedule}
@@ -114,17 +114,17 @@ const Home = () => {
                   <View style={{ flexDirection: 'row', gap: 4, justifyContent: 'center', alignItems: 'center' }}>
                     <View style={{ padding: 4 }}>
                       <Verify
-                        color={selectedSchedule?.status === ScheduleStatus.Completed ? '#FFF' : palette.grey[400]}
+                        color={selectedSchedule?.status === ScheduleStatus.Completed ? palette.grey[400] : '#FFF'}
                       />
                     </View>
                     <Text
                       style={{
                         fontSize: 14,
                         fontWeight: 500,
-                        color: selectedSchedule?.status === ScheduleStatus.Completed ? '#FFF' : palette.grey[400]
+                        color: selectedSchedule?.status === ScheduleStatus.Completed ? palette.grey[400] : '#FFF'
                       }}
                     >
-                      출석하기
+                      {t('check_in')}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -133,22 +133,22 @@ const Home = () => {
 
             <View style={styles.half}>
               <CustomCard style={{ ...styles.card, paddingHorizontal: 12, paddingVertical: 15, width: '100%' }}>
-                <Text style={{ fontSize: 12 }}>새로운 시험</Text>
+                <Text style={{ fontSize: 12 }}>{t('new_exam')}</Text>
                 <TouchableOpacity
                   style={{ backgroundColor: '#F6F6F6', padding: 12, borderRadius: 10, marginTop: 6 }}
                   onPress={() => openCloseModal()}
                 >
-                  <Text style={{ fontSize: 14, fontWeight: 400, color: '#C0C0C0' }}>시험코드 입력</Text>
+                  <Text style={{ fontSize: 14, fontWeight: 400, color: '#C0C0C0' }}>{t('enter_exam_code')}</Text>
                 </TouchableOpacity>
               </CustomCard>
               <View style={{ height: 12 }} />
 
               <CustomCard style={[styles.card, { paddingHorizontal: 12, paddingVertical: 15, width: '100%' }]}>
-                <Text style={{ fontSize: 12, fontWeight: 400, color: '#2E2E2E', marginBottom: 6 }}>지난 시험</Text>
+                <Text style={{ fontSize: 12, fontWeight: 400, color: '#2E2E2E', marginBottom: 6 }}>{t('past_exam')}</Text>
                 <TouchableOpacity onPress={handleOpenExamHistoryDialog}>
                   <View style={{ justifyContent: 'space-between', alignItems: 'center', flexDirection: 'row' }}>
                     <Text style={{ fontSize: 16, fontWeight: 600, color: '#36BFEC', lineHeight: 24, paddingVertical: 6 }}>
-                      지난 시험 풀기
+                      {t('solve_past_exam')}
                     </Text>
                     <ArrowRight color="#E2F4FC" />
                   </View>
@@ -161,7 +161,6 @@ const Home = () => {
           </View>
         </View>
         {openSchedule && <CalendarSchedule isVisible={openSchedule} onClose={handleToggleSchedule} />}
-
       </ScrollView>
       <ModalExamCode
         codeExam={codeExam}

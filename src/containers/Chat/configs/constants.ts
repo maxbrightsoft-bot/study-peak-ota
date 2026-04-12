@@ -28,15 +28,15 @@ export const MESSAGE_CONVERSATION_READ_EVENT = 'message-conversation-read-event'
 
 export const TabList = [
     {
-        label: "전체",
+        label: "entire",
         value: 0,
     },
     {
-        label: "상담 중",
+        label: "consulting",
         value: 1,
     },
     {
-        label: "상담 완료",
+        label: "consulting_completed",
         value: 2,
     },
 ]

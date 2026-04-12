@@ -21,7 +21,7 @@ import { formatMinutesToTime, getErrorMessage, toast } from "@/utils/helpers";
 import useCountDownTimer from "@/hooks/useCountDownTimer";
 import { useNavigation } from "@react-navigation/native";
 import { useFocusEffect } from "@react-navigation/native";
-import { findNodeHandle, ScrollView, UIManager, View, Alert, FlatList } from "react-native";
+import { findNodeHandle, UIManager, View, Alert, FlatList } from "react-native";
 import { Routes } from "@/navigators/RouteName";
 import { navigate, currentScreen } from "@/navigators/NavigationHelpers";
 import { PusherChannel } from "@pusher/pusher-websocket-react-native";
@@ -29,6 +29,9 @@ import { DATE_MIN_VALUE, DATE_TIME_MIN_VALUE, EXAM_CHANNEL } from "@/utils/const
 import { ExamSessionResponse, InfoExamSessionByCode, PauseOrResumeExamRequest } from "@/utils/types";
 import useAuthStore from "@/store/useAuthStore";
 import { getExamInfoApi } from '@/containers/Home/apiClients';
+import useServerTime from '@/hooks/useServerTime';
+import { logError } from '@/utils/helpers/crashlyticsLogger';
+import crashlytics from '@react-native-firebase/crashlytics'
 
 type Props = {
   examCode: string;
@@ -61,6 +64,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
   const [openInfoExamDialog, setOpenInfoExamDialog] = useState<boolean>(false);
   const [examSession, setExamSession] = useState<InfoExamSessionByCode>();
   const [openLeaveDialog, setOpenLeaveDialog] = useState<boolean>(false)
+  const { getServerNow } = useServerTime();
 
   const handleOpenLeaveDialog = () => {
     setOpenLeaveDialog(true)
@@ -324,6 +328,10 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
       (firstLoadRef.current || showErrorMessage) &&
         showToast("error", getErrorMessage(t, err));
       setNotFoundExam(true);
+      logError(err, {
+        action: 'GET_QUESTION_EXAM',
+        examCode
+      })
     }
 
     setLoading(false);
@@ -351,6 +359,11 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
       setEndExam(true);
       exam && exam.isLate && getCheckStatus();
     } catch (error: any) {
+      logError(error, {
+        action: 'FINISH_EXAM',
+        examCode,
+        studentExamSessionId: exam?.studentExamSessionId
+      })
       showToast("error", getErrorMessage(t, error));
       setEndExam(false);
     }
@@ -363,7 +376,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
 
     setLoading(true);
     try {
-      const nowTime = new Date().valueOf();
+      const nowTime = getServerNow();
       const req: PauseOrResumeExamRequest = {
         status,
         rowVersion: exam.rowVersion,
@@ -394,10 +407,25 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
         return;
       }
     } catch (error) {
+      logError(error, {
+        action: 'PAUSE_OR_RESUME_EXAM',
+        examCode,
+        studentExamSessionId: exam?.studentExamSessionId
+      })
       showToast("error", getErrorMessage(t, error));
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (exam?.id) {
+      crashlytics().setAttributes({
+        examId: String(exam.id),
+        examCode: exam.code,
+        studentExamSessionId: String(exam.studentExamSessionId)
+      })
+    }
+  }, [exam?.id])
 
   useEffect(() => {
     if (questionList.length > 0) {

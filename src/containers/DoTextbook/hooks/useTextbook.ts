@@ -29,6 +29,7 @@ import _ from "lodash";
 import useCountDownTimer from "@/hooks/useCountDownTimer";
 import useTimers from "@/layouts/hooks/useTimer";
 import useAlarm from "@/layouts/hooks/useAlarm";
+import useServerTime from "@/hooks/useServerTime";
 
 type Props = {
   handleOpenDrawer?: () => void;
@@ -69,6 +70,7 @@ const useTextbook = ({
   const [openLeaveDialog, setOpenLeaveDialog] = useState<boolean>(false)
   const [openExpiredQuestionDialog, setOpenExpiredQuestionDialog] = useState<boolean>(false)
   const [openTextbookResultDialog, setOpenTextbookResultDialog] = useState(false)
+   const { getServerNow } = useServerTime();
 
   const handleCloseTextbookResultDialog = () => {
     setOpenTextbookResultDialog(false)
@@ -267,7 +269,7 @@ const useTextbook = ({
       };
 
       setTextbook(responseTextbook);
-      setStartTime(moment());
+      setStartTime(moment(getServerNow()));
 
       const questions = _.flatMap(data?.questionGroups || [], "questions").map((i, index) => ({ ...i, questionIndex: index }));
       setQuestionGroupList(data?.questionGroups || []);
@@ -390,7 +392,7 @@ const useTextbook = ({
 
     setLoading(true);
     try {
-      const nowTime = new Date().toISOString();
+      const nowTime = new Date(getServerNow()).toISOString();
       const req: ChangeAnswerTimeRequest = {
         stopTime: nowTime
       };
@@ -432,7 +434,7 @@ const useTextbook = ({
 
     setLoading(true);
     try {
-      const nowTime = Date.now();
+      const nowTime = getServerNow();
       const req: PauseOrResumeExamRequest = {
         rowVersion: textbook.rowVersion,
         status,

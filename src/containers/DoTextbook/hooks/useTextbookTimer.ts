@@ -1,3 +1,4 @@
+import useServerTime from "@/hooks/useServerTime";
 import moment from "moment";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export const useTextbookTimer = (props: Props) => {
+  const { getServerNow } = useServerTime();
   const [elapsedTime, setElapsedTime] = useState(0);
   const { t } = useTranslation()
   const { studyTime, textbookId, startTime } = props;
@@ -16,7 +18,7 @@ export const useTextbookTimer = (props: Props) => {
     if (!textbookId || !startTime) return;
     setElapsedTime(studyTime);
     const timer = setInterval(() => {
-      const time = studyTime + moment().diff(startTime, "milliseconds")
+      const time = studyTime + (getServerNow() - startTime.valueOf())
       setElapsedTime(time);
     }, 1000);
 

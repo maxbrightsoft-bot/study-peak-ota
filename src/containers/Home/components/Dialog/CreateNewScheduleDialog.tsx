@@ -44,7 +44,7 @@ const CreateNewScheduleDialog = ({ t, onClose, open, onSubmit, schedule }: Props
       isVisible={open}
       onClose={onClose}
       submitText={t('next')}
-      title={!!scheduleRequest ? t('update_schedule') : "새로운 스케줄 추가"}
+      title={!!scheduleRequest ? t('update_schedule') : t('add_new_schedule')}
     >
       <Formik initialValues={DEFAULT_SCHEDULE_FORM_DATA} validationSchema={() => schema(t)} onSubmit={onSubmit}>
         {(formikProp) => (

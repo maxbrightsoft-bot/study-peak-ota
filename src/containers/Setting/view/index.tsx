@@ -3,22 +3,21 @@ import SignOut from '@/assets/iconJSX/signOut'
 import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 import { palette } from '@/theme'
 import { Ionicons } from '@expo/vector-icons'
-import { useTranslation } from 'react-i18next'
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
-import useAuthStore from '@/store/useAuthStore'
 import Notice from '@/containers/Notice/view'
 import UpdateAccount from '../components/UpdateAccount'
 import useSetting from '../hooks/useSetting'
 import CalendarSchedule from '@/containers/Home/components/CalendarSchedule'
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
+import LanguageDialog from '../components/LanguageDialog'
 
 type Props = {
   open: boolean
   onClose: () => void
 }
 
-const SettingItem = ({ icon, title, onPress }: any) => {
+const SettingItem = ({ icon, title, onPress }: { icon: React.ReactNode, title: string, onPress: () => void }) => {
   return (
     <TouchableOpacity style={styles.item} onPress={onPress}>
       <View style={styles.icon}>{icon}</View>
@@ -45,7 +44,10 @@ const Setting = ({ open, onClose }: Props) => {
     handleCloseUpdateUserDialog,
     handleRemoveAccount,
     openConfirmRemoveAccount,
-    handleToggleConfirmRemoveAccount
+    handleToggleConfirmRemoveAccount,
+    openLanguageDialog,
+    handleToggleLanguageDialog,
+    changeLanguage
   } = useSetting()
   return (
     <SlideDrawerRoot visible={open} onClose={onClose}>
@@ -61,29 +63,37 @@ const Setting = ({ open, onClose }: Props) => {
       <View style={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
           <View style={styles.card}>
-            <SettingItem onPress={() => handleOpenUpdateUserDialog()} icon={<UserIcon />} title="계정 관리" />
+            <SettingItem onPress={() => handleOpenUpdateUserDialog()} icon={<UserIcon />} title={t('account_management')} />
           </View>
 
           {user?.academyDomain && <View style={styles.card}>
             <SettingItem
               onPress={() => handleOpenNoticeDialog()}
               icon={<Ionicons name="notifications" size={22} color={"#222222"} />}
-              title="알림 수신"
+              title={t('receive_notifications')}
             />
           </View>}
 
           <View style={styles.card}>
-            <SettingItem onPress={() => handleToggleConfirmRemoveAccount()} icon={<Ionicons name="trash-outline" size={20} color={palette.error.main} />} title="회원 탈퇴" />
+            <SettingItem onPress={() => handleToggleConfirmRemoveAccount()} icon={<Ionicons name="trash-outline" size={20} color={palette.error.main} />} title={t('delete_account')} />
+          </View>
+
+          <View style={styles.card}>
+            <SettingItem
+              onPress={() => handleToggleLanguageDialog()}
+              icon={<Ionicons name="language-outline" size={22} color={'#222222'} />}
+              title={t('language')}
+            />
           </View>
 
           <TouchableOpacity style={styles.logout} onPress={() => logout()}>
             <SignOut />
-            <Text style={styles.logoutText}>로그아웃</Text>
+            <Text style={styles.logoutText}>{t('logout')}</Text>
           </TouchableOpacity>
         </ScrollView>
 
         <TouchableOpacity style={styles.button} onPress={() => handleToggleSchedule()}>
-          <Text style={styles.buttonText}>새로운 스케줄 추가</Text>
+          <Text style={styles.buttonText}>{t('add_new_schedule')}</Text>
         </TouchableOpacity>
       </View>
       <Notice open={openNoticeDialog} onClose={handleCloseNoticeDialog} />
@@ -101,8 +111,13 @@ const Setting = ({ open, onClose }: Props) => {
         open={openConfirmRemoveAccount}
         toggle={handleToggleConfirmRemoveAccount}
         onConfirm={handleRemoveAccount}
-        title="회원 탈퇴"
-        text="정말 탈퇴하시겠습니까?"
+        title={t('delete_account')}
+        text={t('delete_account_confirm')}
+      />
+      <LanguageDialog
+        open={openLanguageDialog}
+        onClose={handleToggleLanguageDialog}
+        onSelect={changeLanguage}
       />
     </SlideDrawerRoot>
   )

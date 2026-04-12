@@ -63,7 +63,7 @@ const renderTooltipMenu = () => {
     <BottomSheet
       isVisible={openTooltipList === idx}
       onClose={handleCloseTooltip}
-      title="더보기"
+      title={t('see_more')}
     >
       <View style={styles.menuContainer}>
 

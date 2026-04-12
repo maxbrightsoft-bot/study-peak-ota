@@ -49,7 +49,7 @@ const StudyTimeDescriptionItem = ({
   return (
     <View style={styles.statsItem}>
       <View style={styles.statsTitleRow}>
-        <Text numberOfLines={1} ellipsizeMode="tail" style={styles.statsTitle}>
+        <Text numberOfLines={2} ellipsizeMode="tail" style={styles.statsTitle}>
           {title}
         </Text>
         {!!subStaticsTitle && <Text style={styles.statsTitle}>{subStaticsTitle}</Text>}
@@ -393,6 +393,7 @@ const styles = ScaledSheet.create({
     flexWrap: 'wrap'
   },
   statsTitle: {
+    flex: 1,
     fontSize: 11,
     color: '#6B7280',
     lineHeight: 16

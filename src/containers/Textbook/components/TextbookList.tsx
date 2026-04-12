@@ -36,6 +36,7 @@ const TextbookList = ({ preparedType, preparedFilterType }: Props) => {
   } = useTextbook({ preparedType, preparedFilterType })
 
   const filterCount =
+    (!!textbookFilter.grade ? 1 : 0) +
     (textbookFilter.subjectIds?.length ? 1 : 0) +
     (textbookFilter.fromMonths?.length || textbookFilter.toMonths?.length ? 1 : 0) +
     (textbookFilter.fromDate || textbookFilter.toDate ? 1 : 0)
@@ -44,7 +45,7 @@ const TextbookList = ({ preparedType, preparedFilterType }: Props) => {
     <View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 37, marginBottom: 9, paddingHorizontal: 20 }}>
         <View style={{ flex: 1 }}>
-          <SearchInput value={search} onChangeText={onChangeSearch} placeholder="검색" />
+          <SearchInput value={search} onChangeText={onChangeSearch} placeholder={t('search_for')} />
         </View>
         <TouchableOpacity style={styles.filterButton} onPress={handleOpenFilterModal}>
           {!!filterCount && <View style={styles.filterCountButton}>
@@ -91,7 +92,7 @@ const TextbookList = ({ preparedType, preparedFilterType }: Props) => {
         handleChangeFilter={(values) => {
           handleChangeFilter(values)
         }}
-        title="필터"
+        title={t('filter')}
       />
     </View>
   )

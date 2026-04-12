@@ -10,17 +10,19 @@ import { useTranslation } from "react-i18next";
 
 export const useLanguage = () => {
   const { i18n } = useTranslation();
-  const { language, setLanguage } = useAuthStore();
+  const { language, setLanguage, setLoading } = useAuthStore();
   const isKorean = language.code === Language.ko;
 
   const changeLanguage = async (languageItem?: LanguageResponse) => {
     if (!languageItem) return;
+    setLoading(true)
 
     await i18n.changeLanguage(languageItem.code);
     moment.locale(languageItem.momentLangCode);
     setLanguage(languageItem);
 
     await setDataStorage(LANGUAGE, languageItem.code);
+    setLoading(false)
   };
 
   useEffect(() => {
