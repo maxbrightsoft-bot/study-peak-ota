@@ -15,6 +15,7 @@ import RNBootSplash from 'react-native-bootsplash'
 import { audioToastConfig } from '@/layouts/partials/Alarm/AudioToastContent'
 import { BASE_URL } from '@/utils/constants'
 import { GoogleSignin } from '@react-native-google-signin/google-signin'
+import crashlytics from '@react-native-firebase/crashlytics';
 
 const Stack = createNativeStackNavigator()
 
@@ -25,11 +26,17 @@ GoogleSignin.configure({
 })
 
 const RootNavigation: React.FC = () => {
-  const { language, user, isLoading, selectedAcademy, isLoadingWithoutOverlay, setLoading } = useAuthStore()
+  const { language, user, isLoading, setCrashlyticsUser, selectedAcademy, isLoadingWithoutOverlay, setLoading } = useAuthStore()
   useLanguage()
   useEffect(() => {
     setLoading(false)
   }, [])
+
+  useEffect(() => {
+    if (user?.id) {
+      setCrashlyticsUser(user)
+    }
+  }, [user?.id])
 
   console.log({
     env: BASE_URL,
@@ -59,7 +66,7 @@ const RootNavigation: React.FC = () => {
             )}
           </Stack.Navigator>
         </NavigationContainer>
-        {isLoading && <Loading isOverlay/>}
+        {isLoading && <Loading isOverlay />}
         {!isLoading && isLoadingWithoutOverlay && <Loading />}
       </PaperProvider>
       <Toast config={audioToastConfig} position="top" topOffset={10} />

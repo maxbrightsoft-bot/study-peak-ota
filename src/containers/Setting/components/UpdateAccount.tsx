@@ -110,7 +110,7 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
           <Ionicons name="chevron-back-outline" size={24} color={palette.grey[200]} />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>계정 관리</Text>
+        <Text style={styles.headerTitle}>{t('account_management')}</Text>
 
         <View style={{ width: 24 }} />
       </View>
@@ -155,7 +155,7 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
 
                   <View style={styles.card}>
                     <FormItem
-                      label="핸드폰 번호"
+                      label={t('phone_number')}
                       name="phoneNumber"
                       value={values.phoneNumber}
                       onChange={handleChange('phoneNumber')}
@@ -165,7 +165,7 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
 
                     <Divider />
                     <FormItem
-                      label="부모님 이름"
+                      label={t('parent_name')}
                       name="parentName"
                       value={values.parentName}
                       onChange={handleChange('parentName')}
@@ -175,7 +175,7 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
                     <Divider />
 
                     <FormItem
-                      label="부모님 핸드폰 번호"
+                      label={t('parent_phone_number')}
                       name="parentPhoneNumber"
                       value={values.parentPhoneNumber}
                       onChange={handleChange('parentPhoneNumber')}
@@ -186,7 +186,7 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
 
                   <View style={styles.card}>
                     <FormItem
-                      label="학교"
+                      label={t('school')}
                       name="schoolName"
                       value={values.schoolName}
                       onChange={handleChange('schoolName')}
@@ -197,7 +197,7 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
                     <Divider />
 
                     <FormItem
-                      label="학년"
+                      label={t('grade')}
                       name="grade"
                       value={values.grade}
                       options={gradeOptions}
@@ -208,7 +208,7 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
                     <Divider />
 
                     <FormItem
-                      label="계열"
+                      label={t('major')}
                       name="major"
                       options={subjectOptions}
                       value={values.major}

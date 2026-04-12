@@ -1,43 +1,71 @@
+import { useRef } from 'react'
 import { palette, TYPO } from '@/theme'
 import { Ionicons } from '@expo/vector-icons'
-import { StyleProp, TextInput, View, ViewStyle } from 'react-native'
+import {
+  StyleProp,
+  TextInput,
+  View,
+  ViewStyle,
+  TouchableOpacity,
+  Pressable
+} from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   placeholder?: string
   value: string
-  ref?: any
   style?: StyleProp<ViewStyle>
   onChangeText: (text: string) => void
 }
 
-const SearchInput = ({ ref, style, value, placeholder, onChangeText }: Props) => {
+const SearchInput = ({ style, value, placeholder, onChangeText }: Props) => {
+  const inputRef = useRef<TextInput>(null)
+
   return (
-    <View style={[styles.searchBox, style]}>
-      <View style={styles.container}>
-        <View
-          style={{
-            justifyContent: 'center',
-            alignItems: 'center',
-            width: 50,
-            height: 50
-          }}
-        >
-          <Ionicons name="search" size={18} color={palette.grey[700]} />
+    <Pressable 
+      onPress={() => inputRef.current?.focus()}
+    >
+      <View style={[styles.searchBox, style]}>
+        <View style={styles.container}>
+          <View
+            style={{
+              justifyContent: 'center',
+              alignItems: 'center',
+              width: 50,
+              height: 50
+            }}
+          >
+            <Ionicons name="search" size={18} color={palette.grey[700]} />
+          </View>
+
+          <TextInput
+            ref={inputRef}
+            style={{ color: '#222222', }}
+            value={value}
+            onChangeText={onChangeText}
+            placeholderTextColor={palette.grey[400]}
+            placeholder={placeholder}
+            pointerEvents="none"
+          />
         </View>
-        <TextInput style={{ color: "#222222" }} ref={ref} value={value} onChangeText={onChangeText} placeholderTextColor={palette.grey[400]} placeholder={placeholder} />
+
+        {value?.length > 0 && (
+          <TouchableOpacity
+            onPress={() => {
+              onChangeText('')
+              inputRef.current?.focus()
+            }}
+            style={{
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: 4
+            }}
+          >
+            <Ionicons name="close-circle" size={18} color={palette.grey[700]} />
+          </TouchableOpacity>
+        )}
       </View>
-      {value?.length > 0 && (
-        <View
-          style={{
-            justifyContent: 'center',
-            alignItems: 'center', marginRight: 4
-          }}
-        >
-          <Ionicons onPress={() => onChangeText('')} name="close-circle" size={18} color={palette.grey[700]} />
-        </View>
-      )}
-    </View>
+    </Pressable>
   )
 }
 

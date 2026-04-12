@@ -120,30 +120,30 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
 
   const questionActions: Action<Question>[] = chapterId
     ? [
-        {
-          label: 'ask_a_question',
-          textStyle: {
-            color: '#3dc674'
-          },
-          onPress: handleOpenQuestionDialog
-        }
-      ]
-    : [
-        {
-          label: 'write_a_note_of_incorrect_answers',
-          textStyle: {
-            color: '#3dc674'
-          },
-          onPress: handleOpenNoteDialogFromQuestion
+      {
+        label: 'ask_a_question',
+        textStyle: {
+          color: '#3dc674'
         },
-        {
-          label: 'ask_a_question',
-          textStyle: {
-            color: '#3dc674'
-          },
-          onPress: handleOpenQuestionDialog
-        }
-      ]
+        onPress: handleOpenQuestionDialog
+      }
+    ]
+    : [
+      {
+        label: 'write_a_note_of_incorrect_answers',
+        textStyle: {
+          color: '#3dc674'
+        },
+        onPress: handleOpenNoteDialogFromQuestion
+      },
+      {
+        label: 'ask_a_question',
+        textStyle: {
+          color: '#3dc674'
+        },
+        onPress: handleOpenQuestionDialog
+      }
+    ]
 
   const [selectedNoteView, setSelectedNoteView] = useState<NoteResponse>()
 
@@ -235,15 +235,15 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
         return chapterId
           ? null
           : resultData && (
-              <MyOverall
-                resultData={resultData}
-                subcategoriesOverallChartContainerProps={subcategoriesOverallChartContainer}
-                overallChartContainerProps={overallChartContainer}
-                categoriesOverallChartContainerProps={categoriesOverallChartContainer}
-                overallTimeChartContainerProps={overallTimeChartContainer}
-                questionTypesOverallChartContainerProps={questionTypesOverallChartContainer}
-              />
-            )
+            <MyOverall
+              resultData={resultData}
+              subcategoriesOverallChartContainerProps={subcategoriesOverallChartContainer}
+              overallChartContainerProps={overallChartContainer}
+              categoriesOverallChartContainerProps={categoriesOverallChartContainer}
+              overallTimeChartContainerProps={overallTimeChartContainer}
+              questionTypesOverallChartContainerProps={questionTypesOverallChartContainer}
+            />
+          )
       case ExamStatusView.CompareSolution:
         return effectSize && <CompareSolution effectSize={effectSize} data={resultData} />
       case ExamStatusView.MyAnswers:
@@ -253,21 +253,21 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
       case ExamStatusView.QuestionAnalysis:
         return chapterId
           ? textbookResult && (
-              <TextbookQuestionAnalysis
-                longTimeSpend={longTimeSpend}
-                openProblem={openProblem}
-                setOpenProblem={setOpenProblem}
-                categoryResponses={categoryResponses}
-                resultData={textbookResult}
-              />
-            )
+            <TextbookQuestionAnalysis
+              longTimeSpend={longTimeSpend}
+              openProblem={openProblem}
+              setOpenProblem={setOpenProblem}
+              categoryResponses={categoryResponses}
+              resultData={textbookResult}
+            />
+          )
           : resultData && (
-              <ExamQuestionAnalysis
-                longTimeSpend={longTimeSpend}
-                categoryResponses={categoryResponses}
-                resultData={resultData}
-              />
-            )
+            <ExamQuestionAnalysis
+              longTimeSpend={longTimeSpend}
+              categoryResponses={categoryResponses}
+              resultData={resultData}
+            />
+          )
       case ExamStatusView.SolutionOrder:
         return <SolutionOrderChart data={timelyOrderQuestions} />
       case ExamStatusView.IncorrectAnswerNotes:

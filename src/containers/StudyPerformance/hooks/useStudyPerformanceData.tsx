@@ -321,11 +321,11 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
       case timeTypes[0].value:
         return `${t('day_of_month', {
           day: moment().isoWeek(currentTime).startOf('week').format('DD'),
-          monthName: moment().format('MMMM'),
+          monthName: moment().format('MMM'),
           month: moment().month() + 1
         })} ~ ${t('day_of_month', {
           day: moment().isoWeek(currentTime).endOf('week').format('DD'),
-          monthName: moment().format('MMMM'),
+          monthName: moment().format('MMM'),
           month: moment().month() + 1
         })}`
       case timeTypes[1].value:
@@ -333,13 +333,13 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
           week: getWeekOfMonth(moment().month(currentTime).startOf('month')),
           monthName: moment()
             .month(currentTime)
-            .format('MMMM'),
+            .format('MMM'),
           month: currentTime + 1
         })} ~${t('week_of_month', {
           week:getWeekOfMonth(moment().month(currentTime).endOf('month')),
           monthName: moment()
             .month(currentTime)
-            .format('MMMM'),
+            .format('MMM'),
           month: currentTime + 1
         })}`
       case timeTypes[2].value:
@@ -359,17 +359,17 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
           pTitle: labelStudyTimeChart,
           sTitle: t('week_of_month', {
             week: isSameMonth ? 1 : getWeekOfMonthFromISOWeek(currentTime - 1),
-            monthName: moment().month(month).format('MMMM'),
+            monthName: moment().month(month).format('MMM'),
             month
           })
         }
 
       case timeTypes[1].value:
         return {
-          pTitle: moment().month(currentTime).format('MMMM'),
+          pTitle: moment().month(currentTime).format('MMM'),
           sTitle: moment()
             .month(currentTime - 1)
-            .format('MMMM')
+            .format('MMM')
         }
       case timeTypes[2].value:
         return {

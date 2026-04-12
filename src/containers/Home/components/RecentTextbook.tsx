@@ -108,7 +108,7 @@ const RecentTextbook = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>문제집 이어 풀기</Text>
+        <Text style={styles.headerTitle}>{t('continue_solving_textbook')}</Text>
       </View>
       <ScrollView scrollEnabled={false}>
         <View style={styles.contentContainer}>
@@ -143,7 +143,7 @@ const RecentTextbook = () => {
                     style={styles.startButton}
                     onPress={() => handleDoTextbook(textbook)}
                   >
-                    <Text style={styles.startButtonText}>시작</Text>
+                    <Text style={styles.startButtonText}>{t('start')}</Text>
                     <ArrowRight color='#FFF' />
                   </TouchableOpacity>
                 </View>

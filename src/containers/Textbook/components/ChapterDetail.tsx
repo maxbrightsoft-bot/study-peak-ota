@@ -43,7 +43,7 @@ const ChapterDetail = ({ t, isEnglish, isMock, chapter, isStudying, handleStartF
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
           <Text
             style={styles.chapterMeta}
-          >{`${chapter.completedChapterQuestions}/${chapter.totalChapterQuestions} 문제`}</Text>
+          >{`${chapter.completedChapterQuestions}/${chapter.totalChapterQuestions} ${t('questions')}`}</Text>
           <View style={styles.divider} />
           <Text style={styles.chapterMeta}>
             {`${t('page_number', { number: chapter.pageFrom })} ~ ${t('page_number', { number: chapter.pageTo })}`}

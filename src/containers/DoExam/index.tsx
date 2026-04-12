@@ -107,8 +107,8 @@ const DoExam = ({ examCode }: Props) => {
             </TouchableOpacity>
           </TouchableOpacity>
           <View style={styles.titleContainer}>
-            <Text style={styles.title}>라이브 시험 중</Text>
-            <Text style={styles.subtitle}>{remainTimeString}</Text>
+            <Text style={styles.title}>{t('live_exam_in_progress')}</Text>
+            <Text style={[styles.subtitle, { color: (remainTime || 0) < 10 ? palette.red[900] : palette.grey[400] }]}>{remainTimeString || 0}</Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}></View>
         </View>
@@ -126,7 +126,7 @@ const DoExam = ({ examCode }: Props) => {
             }}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={{ color: '#FFF' }}>별 표시한 문제 보기</Text>
+              <Text style={{ color: '#FFF' }}>{t('view_starred_questions')}</Text>
               <View style={{ flexDirection: 'row', gap: 12 }}>
                 <TouchableOpacity onPress={handleNextStar}>
                   <ArrowDown />
@@ -185,7 +185,7 @@ const DoExam = ({ examCode }: Props) => {
                 )}
               </View>
               <TouchableOpacity onPress={handleOpenInfoExamDialog}>
-                <Text style={{ color: palette.grey[300] }}>더보기</Text>
+                <Text style={{ color: palette.grey[300] }}>{t('see_more')}</Text>
               </TouchableOpacity>
             </View>
           }
@@ -240,8 +240,8 @@ const DoExam = ({ examCode }: Props) => {
               style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={styles.timeLeft}>{(currentQuestion?.questionOrder || 0) + 1}번 </Text>
-                <Text style={styles.totalTime}>문제로 돌아가기</Text>
+                <Text style={styles.timeLeft}>{t('question_number', { number: (currentQuestion?.questionOrder || 0) + 1 })} </Text>
+                <Text style={styles.totalTime}>{t('return_to_question')}</Text>
               </View>
               <View style={{ transform: 'rotate(180deg)' }}>
                 <ArrowDown color="#222222" />
@@ -255,7 +255,7 @@ const DoExam = ({ examCode }: Props) => {
                 alignItems: 'center'
               }}
             >
-              <Text style={{ color: '#222222', fontWeight: 500, fontSize: 14 }}>시험종료</Text>
+              <Text style={{ color: '#222222', fontWeight: 500, fontSize: 14 }}>{t('end_exam')}</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.navRow}>
@@ -290,7 +290,7 @@ const DoExam = ({ examCode }: Props) => {
                     currentQuestion?.id === questionList[0]?.id && { color: palette.grey[300] }
                   ]}
                 >
-                  이전 문항
+                  {t('previous_question')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -311,7 +311,7 @@ const DoExam = ({ examCode }: Props) => {
                     currentQuestion?.id === questionList[questionList.length - 1]?.id && { color: palette.grey[300] }
                   ]}
                 >
-                  다음 문항
+                  {t('next_question')}
                 </Text>
                 <View style={{ padding: 4 }}>
                   <NextIcon
@@ -365,7 +365,7 @@ const DoExam = ({ examCode }: Props) => {
           text={
             isAllQuestionsAnswered(questionList)
               ? t('do_you_want_to_quit_your_exam')
-              : '아직 풀지 않은 문제가 있습니다.\n시험을 종료하시겠습니까?'
+              : t('there_are_still_unanswered_questions_do_you_want_to_end_the_exam')
           }
           onConfirm={handleFinishExam}
         />

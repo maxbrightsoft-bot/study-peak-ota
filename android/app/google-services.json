@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "762317972267",
+    "project_id": "touch-study-mobile",
+    "storage_bucket": "touch-study-mobile.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:762317972267:android:73199d1eaa41f02f371b6e",
+        "android_client_info": {
+          "package_name": "com.max.britghtsoft.touchstudymobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "762317972267-6ih0pm39fcb8tqhtjhpb6s80k7mk8oog.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLOQzEJtYZaR7DTnqJm-a5X04XAqy5L4M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "762317972267-6ih0pm39fcb8tqhtjhpb6s80k7mk8oog.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "762317972267-dk6qr9t8srm4atfk60fn1ud9vlu62iuu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.max.britghtsoft.touchstudymobile"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

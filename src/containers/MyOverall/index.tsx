@@ -154,7 +154,7 @@ const MyOverall: FC<OverallTabProps> = ({
           </View>
           <View style={styles.overviewContainer}>
             <View style={styles.columnItem}>
-              <Text style={styles.overviewLabel}>시험 접수</Text>
+              <Text style={styles.overviewLabel}>{t('exam_score')}</Text>
               <Text style={{ ...TYPO.heading1, color: palette.main[600] }}>
                 {t('score_format', {
                   score: resultData?.score
@@ -172,7 +172,7 @@ const MyOverall: FC<OverallTabProps> = ({
                 <Text style={styles.overviewValue}>{examTime}</Text>
               </View>
               <View style={styles.columnItem}>
-                <Text style={styles.overviewLabel}>응시 인원</Text>
+                <Text style={styles.overviewLabel}>{t('number_of_applicants')}</Text>
                 <Text style={styles.overviewValue}>{t('number_people', { number: resultData?.totalStudent })}</Text>
               </View>
               <View style={styles.columnItem}>
@@ -245,6 +245,7 @@ const styles = ScaledSheet.create({
   },
   columnItem: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between'
   },
   attemptBadge: {

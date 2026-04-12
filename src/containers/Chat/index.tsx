@@ -137,7 +137,7 @@ export default function Question() {
             <Text style={{ color: palette.grey[500], fontSize: 14 }}>{t('image')}</Text>
           </View>
         ) : (
-          <MathRender content={conversation.lastMessage || ''} isChat maxLines={2}/>
+          <MathRender content={conversation.lastMessage || ''} isChat maxLines={2} />
         )}
         {conversation?.question && <Text>
           {
@@ -176,29 +176,37 @@ export default function Question() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>질문</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <BotIcon />
-          <Text style={styles.headerSub}>챗봇</Text>
+        <View style={{ flexDirection: "row" }}>
+          <Text style={styles.headerTitle}>{t('question')}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <BotIcon />
+            <Text style={styles.headerSub}>{t('chatbot')}</Text>
+          </View>
         </View>
+        <TouchableOpacity style={styles.floatingButton} onPress={toggleQuestionConversationDialog}>
+          <AddChatIcon />
+          <Text style={styles.floatingButtonText}>{t('ask_question')}</Text>
+        </TouchableOpacity>
       </View>
       <View style={{ backgroundColor: palette.bg[100], flex: 1, paddingHorizontal: 20, paddingTop: 30, gap: 16 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <View style={styles.tabsContainer}>
+        <View style={styles.tabsContainer}>
+          <ScrollView
+            showsHorizontalScrollIndicator={false}
+            horizontal
+            style={{ flexDirection: 'row' }}
+            contentContainerStyle={{ gap: 8 }}
+          >
             {TabList.map(({ label, value }, index) => (
               <TouchableOpacity key={index} style={[styles.tabs]} onPress={() => handleChangeTab(value)}>
                 <Text style={[styles.tab, value === selected && styles.activeTab]}>{t(label)}</Text>
               </TouchableOpacity>
             ))}
-          </View>
-          <TouchableOpacity style={styles.floatingButton} onPress={toggleQuestionConversationDialog}>
-            <AddChatIcon />
-            <Text style={styles.floatingButtonText}>질문하기</Text>
-          </TouchableOpacity>
+          </ScrollView>
         </View>
+
         <View style={{ flexDirection: 'row', gap: 10 }}>
           <View style={{ flex: 1 }}>
-            <SearchInput value={search} onChangeText={onChangeSearch} placeholder="오답노트 검색" />
+            <SearchInput value={search} onChangeText={onChangeSearch} placeholder={t('search_for')} />
           </View>
           {/* <TouchableOpacity style={styles.filterButton} onPress={handleOpenFilterModal}>
             {filterCount && (
@@ -210,7 +218,7 @@ export default function Question() {
           </TouchableOpacity> */}
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 16 }}>
+        <ScrollView showsVerticalScrollIndicator={false} >
           {conversationFilters.map((conversation) => (
             <Card conversation={conversation} key={conversation.id} />
           ))}
@@ -256,6 +264,7 @@ const styles = ScaledSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
@@ -387,7 +396,7 @@ const styles = ScaledSheet.create({
     paddingVertical: 8,
     borderRadius: 100,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignSelf: 'flex-end',
     gap: 5
   },
   floatingButtonText: {

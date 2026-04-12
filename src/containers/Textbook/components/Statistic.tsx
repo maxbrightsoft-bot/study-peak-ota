@@ -23,25 +23,25 @@ const Statistic = ({ t, isEnglish, chapter }: Props) => {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           {isCompleted && (
             <View style={styles.doneBadge}>
-              <Text style={styles.doneText}>완료</Text>
+              <Text style={styles.doneText}>{t('completed')}</Text>
             </View>
           )}
 
           <Text style={styles.title}>{chapter.name}</Text>
         </View>
 
-        <Text style={styles.total}>{`${completed}/${total} 문제`}</Text>
+        <Text style={styles.total}>{`${completed}/${total} ${t('questions')}`}</Text>
       </View>
       <View style={styles.statsRow}>
         <View style={styles.statBox}>
-          <Text style={styles.statLabel}>정답률</Text>
+          <Text style={styles.statLabel}>{t('accuracy_rate')}</Text>
           <View style={{ alignSelf: 'flex-end' }}>
             <DonutProgress percentage={accuracyRate} />
           </View>
         </View>
 
         <View style={styles.statBox}>
-          <Text style={styles.statLabel}>진행도</Text>
+          <Text style={styles.statLabel}>{t('progress')}</Text>
           <View style={{ alignSelf: 'flex-end' }}>
             <DonutProgress percentage={progress} />
           </View>

@@ -72,7 +72,7 @@ const SelectAnswerSheet = ({
         </TouchableOpacity>
         <Text
           style={{ fontSize: 16, fontWeight: '600', color: '#222222' }}
-        >{`${(currentQuestion?.questionOrder || 0) + 1}번 문제`}</Text>
+        >{t('question_number', { number: (currentQuestion?.questionOrder || 0) + 1 })}</Text>
       </View>
     ),
     [currentQuestion, updateQuestionStar]
@@ -83,7 +83,7 @@ const SelectAnswerSheet = ({
       {isReady && (
         <>
           <View style={styles.sheetContent}>
-            <Text style={styles.title}>정답을 입력하면 다음 문제로 넘어갑니다.</Text>
+            <Text style={styles.title}>{t('answer_sheet_note')}</Text>
 
             <TextbookAnswer t={t} isLastQuestion={currentQuestion?.id === questionList[questionList.length - 1]?.id} question={currentQuestion} updateQuestionAnswer={updateQuestionAnswer} onClose={onClose} />
           </View>
@@ -108,7 +108,7 @@ const SelectAnswerSheet = ({
                   <NextIcon color={currentQuestion?.id === questionList[0]?.id ? palette.grey[300] : '#222222'} />
                 </View>
                 <Text style={[styles.actionTitle, currentQuestion?.id === questionList[0]?.id && { color: palette.grey[300] }]}>
-                  이전 문항
+                  {t('previous_question')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -127,7 +127,7 @@ const SelectAnswerSheet = ({
                     currentQuestion?.id === questionList[questionList.length - 1]?.id && { color: palette.grey[300] }
                   ]}
                 >
-                  다음 문항
+                  {t('next_question')}
                 </Text>
                 <View style={{ padding: 4 }}>
                   <NextIcon

@@ -11,7 +11,7 @@ import RestartPageDialog from '../Textbook/components/Dialog/RestartPageDialog'
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
 import useAlarmTextbook from './hooks/useAlarmTextbook'
 import useDrawer from './hooks/useDrawer'
-import { ExamStatus } from '@/utils/enums'
+import { AlarmType, ExamStatus } from '@/utils/enums'
 import LastIcon from '@/assets/iconJSX/last'
 import NextIcon from '@/assets/iconJSX/next'
 import ArrowDown from '@/assets/iconJSX/arrowDown'
@@ -51,6 +51,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
     updateQuestionAnswer,
     updateQuestionStar,
     formattedTime,
+    remainTime,
     remainTimeString,
     totalTasks,
     speaker,
@@ -153,7 +154,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
             </TouchableOpacity>
           </TouchableOpacity>
           <View style={styles.titleContainer}>
-            <Text style={styles.subtitle}>{!textbook?.isMock ? formattedTime : remainTimeString}</Text>
+            <Text style={[styles.subtitle, { color: (remainTime || 0) < 10 && textbook?.isMock ? palette.red[900] : palette.grey[400] }]}>{!textbook?.isMock ? formattedTime : remainTimeString}</Text>
             {!textbook?.isMock && (
               <View style={styles.timeContainer}>
                 <Text style={styles.timeLeft}>
@@ -205,7 +206,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
             }}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={{ color: '#FFF' }}>별 표시한 문제 보기</Text>
+              <Text style={{ color: '#FFF' }}>{t('view_starred_questions')}</Text>
               <View style={{ flexDirection: 'row', gap: 12 }}>
                 <TouchableOpacity onPress={handleNextStar}>
                   <ArrowDown />
@@ -280,8 +281,8 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
               style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={styles.timeLeft}>{(currentQuestion?.questionOrder || 0) + 1}번 </Text>
-                <Text style={styles.totalTime}>문제로 돌아가기</Text>
+                <Text style={styles.timeLeft}>{t('number_question', { number: (currentQuestion?.questionOrder || 0) + 1 })} </Text>
+                <Text style={styles.totalTime}>{t('return_to_question')}</Text>
               </View>
               <View style={{ transform: 'rotate(180deg)' }}>
                 <ArrowDown color="#222222" />
@@ -338,7 +339,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
                     currentQuestion?.id === questionList[0]?.id && { color: palette.grey[300] }
                   ]}
                 >
-                  이전 문항
+                  {t('previous_question')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -363,7 +364,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
                     currentQuestion?.id === questionList[questionList.length - 1]?.id && { color: palette.grey[300] }
                   ]}
                 >
-                  다음 문항
+                  {t('next_question')}
                 </Text>
                 <View style={{ padding: 4 }}>
                   <NextIcon
@@ -418,6 +419,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
         {openTextbookResultDialog && (
           <TextbookDrawer
             isOpen={openTextbookResultDialog}
+            onOpenAudioGuide={() => audioGuideModalProps.onStart(true)}
             onClose={() => {
               navigate(Routes.Auth.Textbook)
               handleCloseTextbookResultDialog()

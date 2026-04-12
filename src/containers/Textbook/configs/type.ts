@@ -86,6 +86,7 @@ export interface FilterValues {
   startYear?: number
   endYear?: number
   months: number[]
+  grade?: number
 }
 
 export type ScheduleFormData = {
@@ -122,7 +123,8 @@ export enum PreparedType {
   csat_past_questions = 1,
   official_mock_exam,
   private_mock_exam,
-  workbook
+  workbook,
+  past_exam_questions
 }
 
 export enum PreparedFilterType {
@@ -139,6 +141,7 @@ export type TextbookQuery = {
   subjectIds?: number[];
   fromDate?: string
   toDate?: string
+  grade?: number
   fromMonths?: string[]
   toMonths?: string[]
   months?: number[];

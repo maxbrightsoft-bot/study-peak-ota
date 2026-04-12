@@ -26,6 +26,7 @@ import { api } from "@/services/api/apiClient";
 import { autoReconnectPusher } from "@/utils/helpers/pusher";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { toast } from "@/utils/helpers";
+import crashlytics from '@react-native-firebase/crashlytics'
 
 interface EventHandler<T = any> {
   eventName: string;
@@ -58,6 +59,8 @@ interface StoreActions {
   setLanguage: (lang: LanguageResponse) => void;
   setRedirectUrl: (url: string) => void
   clearRedirectUrl: () => void
+  setCrashlyticsUser: (user?: any) => void
+  clearCrashlyticsUser: () => void
 
   setTimers: (timers: SubjectTimerResponse[] | null) => void;
   setAlarm: (alarm: AlarmResponse | null) => void;
@@ -114,6 +117,20 @@ const useAuthStore = create<AuthStore>()(
         set((state) => {
           state.hasEnteredSelectAcademy = value
         })
+      },
+
+      setCrashlyticsUser: (user?: any) => {
+        if (!user?.id) return
+
+        crashlytics().setUserId(String(user.id))
+
+        crashlytics().setAttributes({
+          userId: String(user.id),
+          academyDomain: user.academyDomain || '',
+        })
+      },
+      clearCrashlyticsUser: () => {
+        crashlytics().setUserId('')
       },
 
       setAcademies: (academies) => {
@@ -282,11 +299,12 @@ const useAuthStore = create<AuthStore>()(
       },
 
       logout: async () => {
-        const { pusher, channel, disconnectPusher } = get();
+        const { pusher, channel, disconnectPusher, clearCrashlyticsUser } = get();
         await GoogleSignin.signOut();
 
         await disconnectPusher(pusher, channel);
         toast.dismiss()
+        clearCrashlyticsUser()
 
         set(() => ({
           isLoading: false,

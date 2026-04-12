@@ -53,7 +53,7 @@ const SelectAnswerSheet = ({
           alignItems: 'center'
         }}
       >
-        <Text style={{ color: '#222222', fontWeight: 500, fontSize: 14 }}>시험종료</Text>
+        <Text style={{ color: '#222222', fontWeight: 500, fontSize: 14 }}>{t('end_exam')}</Text>
       </TouchableOpacity>
     ),
     [onFishedExam]
@@ -64,7 +64,7 @@ const SelectAnswerSheet = ({
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <TouchableOpacity
           onPress={() => {
-            if (!currentQuestion) return
+            if (!currentQuestion) return 
             updateQuestionStar(currentQuestion?.id || 0, !(currentQuestion?.isStar || false))
           }}
         >
@@ -72,7 +72,7 @@ const SelectAnswerSheet = ({
         </TouchableOpacity>
         <Text
           style={{ fontSize: 16, fontWeight: '600', color: '#222222' }}
-        >{`${(currentQuestion?.questionOrder || 0) + 1}번 문제`}</Text>
+        >{t('question_number', { number: (currentQuestion?.questionOrder || 0) + 1 })}</Text>
       </View>
     ),
     [currentQuestion, updateQuestionStar]
@@ -83,7 +83,7 @@ const SelectAnswerSheet = ({
       {isReady && (
         <>
           <View style={styles.sheetContent}>
-            <Text style={styles.title}>정답을 입력하면 다음 문제로 넘어갑니다.</Text>
+            <Text style={styles.title}>{t('answer_sheet_note')}</Text>
 
             <ExamAnswer t={t} question={currentQuestion} isLastQuestion={currentQuestion?.id === questionList[questionList.length - 1]?.id} updateQuestionAnswer={updateQuestionAnswer} onClose={onClose} />
           </View>
@@ -109,7 +109,7 @@ const SelectAnswerSheet = ({
                   <NextIcon color={currentQuestion?.id === questionList[0]?.id ? palette.grey[300] : '#222222'} />
                 </View>
                 <Text style={[styles.actionTitle, currentQuestion?.id === questionList[0]?.id && { color: palette.grey[300] }]}>
-                  이전 문항
+                  {t('previous_question')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -128,7 +128,7 @@ const SelectAnswerSheet = ({
                     currentQuestion?.id === questionList[questionList.length - 1]?.id && { color: palette.grey[300] }
                   ]}
                 >
-                  다음 문항
+                  {t('next_question')}
                 </Text>
                 <View style={{ padding: 4 }}>
                   <NextIcon

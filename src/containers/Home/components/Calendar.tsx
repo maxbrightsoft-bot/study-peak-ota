@@ -9,6 +9,7 @@ import useCalendar from '../hooks/useCalendar'
 import moment from 'moment'
 import { ScaledSheet } from 'react-native-size-matters'
 import { SelectedDateInfo } from '../configs/type'
+import { useTranslation } from 'react-i18next'
 
 type Props = {
   handleSelectDate: ({
@@ -31,6 +32,7 @@ type Props = {
 }
 
 const Calendar = (calendarProps: Props) => {
+  const { t } = useTranslation()
   const {
     selectedDate,
     handleSelectDate,
@@ -65,7 +67,7 @@ const Calendar = (calendarProps: Props) => {
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.dateDisplayButton}>
-            <Text style={styles.dateDisplayText}>{moment(selectedDate?.currentDate).format('MM월')}</Text>
+            <Text style={styles.dateDisplayText}>{moment(selectedDate?.currentDate).format(t('month_format'))}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.navButton} onPress={goToNextMonth}>

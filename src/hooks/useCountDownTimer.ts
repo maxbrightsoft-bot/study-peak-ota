@@ -1,12 +1,11 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import moment from "moment";
-import useAuthStore from "@/store/useAuthStore";
-import { checkTextbookApi } from "@/services/api/textbookService";
 import { ExamStatus } from "@/utils/enums";
-import { getCheckStatusExam } from "@/services";
 import { isValidTime } from "@/utils/helpers";
 import { useFocusEffect } from "@react-navigation/native";
 import { AppState } from "react-native";
+import useServerTime from "./useServerTime";
+import useCheckExamStatus from "./useCheckExamStatus ";
 
 interface Props {
     lastResumedAt?: string;
@@ -18,18 +17,14 @@ interface Props {
     code?: string;
     status?: ExamStatus;
     duration?: number;
+    studentExamSessionId?: number;
     isRunning?: boolean;
     textbookId?: number;
+    isCheckStatus?: boolean;
     onFinish: () => void;
 }
 
 const ONE_SECOND = 1000;
-
-const diffFromNowMs = (time: string): number => {
-    const input = moment.utc(time);
-    if (!input.isValid()) return 0;
-    return moment.utc().diff(input);
-};
 
 const useCountDownTimer = (props: Props) => {
     const {
@@ -39,79 +34,65 @@ const useCountDownTimer = (props: Props) => {
         lastPausedTime,
         lastResumedTime,
         totalPausedTime,
+        studentExamSessionId,
         startTime,
         status,
         code,
         isRunning = true,
+        isCheckStatus = true,
         duration,
         onFinish,
     } = props;
 
-    const { setLoading } = useAuthStore();
+    const { getServerNow, synced } = useServerTime();
     const [remainTime, setRemainTime] = useState<number>();
-    const checkStatusTimeoutRef = useRef<number | null>(null);
     const countdownTimeoutRef = useRef<number | null>(null);
-    const isCheckingStatus = useRef(false);
     const isFinishedRef = useRef(false);
     const isTickingRef = useRef(false);
+    const isCheckStatusRef = useRef(isCheckStatus)
 
-    const checkLiveExamStatus = useCallback(async () => {
-        if ((!code && !textbookId) || isCheckingStatus.current || isFinishedRef.current) return;
+    const { checkStatus } = useCheckExamStatus(onFinish, status === ExamStatus.Paused || (remainTime !== undefined && remainTime > 0));
 
-        isCheckingStatus.current = true;
 
-        try {
-            setLoading(true);
-            const res = code
-                ? await getCheckStatusExam(code)
-                : await checkTextbookApi(textbookId!);
+    const diffFromNowMs = useCallback((time: string): number => {
+        const input = moment.utc(time);
+        if (!input.isValid()) return 0;
+        return getServerNow() - input.valueOf();
+    }, [getServerNow]);
 
-            if (res.data.data.status === ExamStatus.Completed) {
-                isFinishedRef.current = true;
-                onFinish();
-                return;
-            }
-        } catch (error) {
-            console.log(error);
-        } finally {
-            setLoading(false);
-            isCheckingStatus.current = false;
-
-            if (status !== ExamStatus.Paused && !isFinishedRef.current) {
-                checkStatusTimeoutRef.current = window.setTimeout(
-                    checkLiveExamStatus,
-                    ONE_SECOND
-                );
-            }
-        }
-    }, [code, textbookId, status, onFinish]);
 
     useEffect(() => {
         if (status !== ExamStatus.InProgress && status !== ExamStatus.Paused) return;
         if (!startTime || !duration || !isRunning) return;
-
         if (isTickingRef.current) return;
+
+        if (!synced) return;
+
         isTickingRef.current = true;
 
         const pauseTime = lastPausedAt ?? lastPausedTime;
-        // const resumeTime = lastResumedAt ?? lastResumedTime;
+        const resumeTime = lastResumedAt ?? lastResumedTime;
 
         const tick = () => {
             if (isFinishedRef.current || !isRunning) return;
 
-            let pausedNow = 0;
-
-            const isPaused = status === ExamStatus.Paused;
             const isValidPauseTime = isValidTime(pauseTime);
+            const isValidResumeTime = isValidTime(resumeTime);
 
-            if (isPaused && isValidPauseTime) {
-                pausedNow = diffFromNowMs(pauseTime!);
-            }
+            const isCurrentlyPaused = isValidResumeTime
+                ? moment(pauseTime).isAfter(moment(resumeTime))
+                : isValidPauseTime;
 
-            const totalPaused = (totalPausedTime || 0) + pausedNow;
-            const elapsedMs = diffFromNowMs(startTime) - totalPaused;
-            const elapsedSeconds = Math.max(Math.floor(elapsedMs / ONE_SECOND), 0);
-            const remain = duration - elapsedSeconds;
+            const pausedTimeDuringCurrentPause = isCurrentlyPaused
+                ? diffFromNowMs(pauseTime || '')
+                : 0;
+
+            const totalPausedTimeNow = (totalPausedTime || 0) + pausedTimeDuringCurrentPause;
+
+            const elapsed = diffFromNowMs(startTime) - totalPausedTimeNow;
+
+            const remain = duration - Math.floor(elapsed / 1000);
+            console.log({ remain, elapsed, duration });
 
             if (remain <= 0) {
                 isFinishedRef.current = true;
@@ -121,7 +102,6 @@ const useCountDownTimer = (props: Props) => {
             }
 
             setRemainTime(remain);
-
             countdownTimeoutRef.current = window.setTimeout(tick, ONE_SECOND);
         };
 
@@ -129,15 +109,15 @@ const useCountDownTimer = (props: Props) => {
 
         return () => {
             isTickingRef.current = false;
-            if (countdownTimeoutRef.current) {
-                clearTimeout(countdownTimeoutRef.current);
-            }
+            if (countdownTimeoutRef.current) clearTimeout(countdownTimeoutRef.current);
         };
     }, [
         startTime,
         duration,
         status,
         isRunning,
+        synced,
+        diffFromNowMs,
         lastPausedAt,
         lastPausedTime,
         lastResumedAt,
@@ -147,31 +127,24 @@ const useCountDownTimer = (props: Props) => {
     ]);
 
     useEffect(() => {
-        if (typeof remainTime === "number" && remainTime <= 0) {
-            checkLiveExamStatus();
-        }
+        if (typeof remainTime === "number" && remainTime <= 0 && isCheckStatusRef.current)
+            checkStatus({ code, textbookId, studentSessionId: studentExamSessionId, examStatus: status });
     }, [remainTime]);
+
 
     useEffect(() => {
         return () => {
-            if (checkStatusTimeoutRef.current) {
-                clearTimeout(checkStatusTimeoutRef.current);
-            }
-            if (countdownTimeoutRef.current) {
-                clearTimeout(countdownTimeoutRef.current);
-            }
+            if (countdownTimeoutRef.current) clearTimeout(countdownTimeoutRef.current);
         };
     }, []);
-
 
     useFocusEffect(
         useCallback(() => {
             isTickingRef.current = false;
+            isFinishedRef.current = false;
 
             return () => {
-                if (countdownTimeoutRef.current) {
-                    clearTimeout(countdownTimeoutRef.current);
-                }
+                if (countdownTimeoutRef.current) clearTimeout(countdownTimeoutRef.current);
             };
         }, [])
     );
@@ -180,7 +153,6 @@ const useCountDownTimer = (props: Props) => {
         const sub = AppState.addEventListener('change', (state) => {
             if (state !== 'active') {
                 clearTimeout(countdownTimeoutRef.current!);
-                clearTimeout(checkStatusTimeoutRef.current!);
                 isTickingRef.current = false;
             }
         });
@@ -188,7 +160,7 @@ const useCountDownTimer = (props: Props) => {
         return () => sub.remove();
     }, []);
 
-    return remainTime;
+    return remainTime
 };
 
 export default useCountDownTimer;

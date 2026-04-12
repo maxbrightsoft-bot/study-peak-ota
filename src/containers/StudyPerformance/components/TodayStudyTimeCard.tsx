@@ -55,7 +55,7 @@ const TodayStudyTimeCard: React.FC<Props> = ({ data, isTimerTab, onOpen }) => {
       <View style={[styles.card]}>
         <View style={styles.content}>
           <View style={styles.headerRow}>
-            <Text style={[styles.title, { color: '#FFF' }]}>{t('today_net_study_time')}</Text>
+            <Text numberOfLines={2} ellipsizeMode="tail" style={[styles.title, { color: '#FFF', width: 100 }]}>{isTimerTab ? t('today_net_study_time') : t('today_correct_answer_rate')}</Text>
             <View style={styles.timeRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                 <Text style={[styles.timeValue, { color: '#FFF' }]}>{ceilTo(currentValue, 2)}</Text>

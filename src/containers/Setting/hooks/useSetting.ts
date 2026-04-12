@@ -8,6 +8,7 @@ import { GRADE_OPTIONS } from "@/containers/StepLogin/configs/constants"
 import { getDataStorage } from "@/utils/storage"
 import { APPLE_USER_KEY } from "@/utils/constants"
 import { removeAccountApi } from "../apiClients"
+import { useLanguage } from "@/hooks/useLanguage"
 
 const useSetting = () => {
   const [openNoticeDialog, setOpenNoticeDialog] = useState<boolean>(false)
@@ -16,6 +17,10 @@ const useSetting = () => {
   const { t } = useTranslation()
   const [openSchedule, setOpenSchedule] = useState(false)
   const [openConfirmRemoveAccount, setOpenConfirmRemoveAccount] = useState(false)
+  const [openLanguageDialog, setOpenLanguageDialog] = useState(false)
+  const { changeLanguage } = useLanguage()
+
+  const handleToggleLanguageDialog = () => setOpenLanguageDialog(prev => !prev)
 
   const handleToggleConfirmRemoveAccount = () => setOpenConfirmRemoveAccount(prev => !prev)
 
@@ -96,7 +101,10 @@ const useSetting = () => {
     handleCloseUpdateUserDialog,
     handleRemoveAccount,
     openConfirmRemoveAccount,
-    handleToggleConfirmRemoveAccount
+    handleToggleConfirmRemoveAccount,
+    openLanguageDialog,
+    handleToggleLanguageDialog,
+    changeLanguage
   }
 }
 

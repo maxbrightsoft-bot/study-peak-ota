@@ -135,7 +135,7 @@ const CreateExamNoteDialog: FC<ExamNoteDialogProps> = ({
                   <View style={{ marginTop: 20 }}>
                     <Text style={styles.labelText}>{t('problem_number')}</Text>
                     <Select
-                      onValueChange={(value) => { console.log(value); setFieldValue('questionId', value) }}
+                      onValueChange={(value) => setFieldValue('questionId', value)}
                       value={values.questionId}
                       options={questionOptions}
                     />
@@ -149,7 +149,7 @@ const CreateExamNoteDialog: FC<ExamNoteDialogProps> = ({
                     <TextField
                       multiline
                       numberOfLines={10}
-                      placeholder="(예시) 다른 문제에서 시간을 절약해서 부족한 현대문학에 시간을 좀 더 써야겠다."
+                      placeholder={t('example_note')}
                       value={values.content}
                       onChangeText={handleChange('content')}
                     />
@@ -175,7 +175,7 @@ const CreateExamNoteDialog: FC<ExamNoteDialogProps> = ({
                     style={[styles.button, styles.confirmButton]}
                     onPress={handleSubmit as any}
                   >
-                    <Text style={styles.confirmButtonText}>등록</Text>
+                    <Text style={styles.confirmButtonText}>{t('register')}</Text>
                   </TouchableOpacity>
                 </View>
               </>

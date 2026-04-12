@@ -119,7 +119,7 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
                     <TextField
                       multiline
                       numberOfLines={10}
-                      placeholder="(예시) 다른 문제에서 시간을 절약해서 부족한 현대문학에 시간을 좀 더 써야겠다."
+                      placeholder={t('example_incorrect_answer_note')}
                       value={values.content}
                       onChangeText={handleChange('content')}
                     />

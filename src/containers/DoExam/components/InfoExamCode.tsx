@@ -2,6 +2,7 @@ import CommonDialog from '@/components/ModalBase/CommonDialog'
 import { palette } from '@/theme'
 import { InfoExamSessionByCode } from '@/utils/types'
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { View, Text, TouchableOpacity } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 
@@ -12,38 +13,39 @@ interface Props {
 }
 
 const InfoExamCode = ({ onClose, open, examSession }: Props) => {
+  const { t } = useTranslation()
   return (
-    <CommonDialog isVisible={open} onClose={onClose} title={'시험 정보를 확인해주세요'}>
+    <CommonDialog isVisible={open} onClose={onClose} title={t('confirm_exam_info')}>
       <View style={styles.container}>
         <View style={styles.row}>
-          <Text style={styles.label}>시험 코드</Text>
+          <Text style={styles.label}>{t('exam_code')}</Text>
           <Text style={styles.value}>{examSession?.code}</Text>
         </View>
 
         <View style={styles.row}>
-          <Text style={styles.label}>시험 카테고리</Text>
+          <Text style={styles.label}>{t('exam_category')}</Text>
           <Text style={styles.value}>{examSession?.category}</Text>
         </View>
 
         <View style={styles.row}>
-          <Text style={styles.label}>시험 과목</Text>
+          <Text style={styles.label}>{t('exam_subject')}</Text>
           <Text style={styles.value}>{examSession?.subject}</Text>
         </View>
 
         <View style={styles.row}>
-          <Text style={styles.label}>소속 학년</Text>
+          <Text style={styles.label}>{t('grade_class')}</Text>
           <Text style={styles.value}>
-            {examSession?.grade}학년 {examSession?.classes.join(', ')}반
+            {t('number_grade', { number: examSession?.grade })} {examSession?.classes.join(', ')}
           </Text>
         </View>
 
         <View style={styles.row}>
-          <Text style={styles.label}>담당 선생님</Text>
+          <Text style={styles.label}>{t('teacher_name')}</Text>
           <Text style={styles.value}>{examSession?.teacherName}</Text>
         </View>
 
         <TouchableOpacity>
-          <Text style={styles.startText}>확인을 누르면 시험이 시작됩니다</Text>
+          <Text style={styles.startText}>{t('confirm_exam_start')}</Text>
         </TouchableOpacity>
       </View>
     </CommonDialog>

@@ -107,7 +107,7 @@ export default function IncorrectNotes({ contentRef }: { contentRef?: React.RefO
               />
             </View>
             <TouchableOpacity style={styles.sortBtn} activeOpacity={0.7} onPress={() => handleSort()}>
-              <Text style={styles.sortText}>{filter.sortColumnDirection === OrderBy.DESC ? "최근 순" : "오래된 순"}</Text>
+              <Text style={styles.sortText}>{filter.sortColumnDirection === OrderBy.DESC ? t('recent') : t('oldest')}</Text>
               <SortIcon />
             </TouchableOpacity>
           </>

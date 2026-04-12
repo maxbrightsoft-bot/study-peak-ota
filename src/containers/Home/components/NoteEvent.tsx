@@ -1,9 +1,7 @@
 import { ScrollView, Text, View } from 'react-native'
 import NoteItem from './NoteItem'
 import { palette, TYPO } from '@/theme'
-import { ScheduleFormData, ScheduleResponse } from '../configs/type'
-import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
-import CreateNewScheduleDialog from './Dialog/CreateNewScheduleDialog'
+import { ScheduleFormData, ScheduleResponse, SelectedDateInfo } from '../configs/type'
 import { ScaledSheet } from 'react-native-size-matters'
 import moment from 'moment'
 
@@ -24,6 +22,7 @@ type Props = {
   handleCloseConfirmDeleteDialog: () => void
   handleOpenConfirmDeleteDialog: (schedule?: ScheduleResponse | undefined) => void
   handleDeleteSchedule: () => void
+  selectedDate?: SelectedDateInfo
   handleUpdateScheduleStatus: (schedule: ScheduleResponse) => Promise<void>
 }
 
@@ -31,6 +30,7 @@ const NoteEvent = (noteProps: Props) => {
   const {
     t,
     schedules,
+    selectedDate,
     openTooltipList,
     handleOpenTooltip,
     handleCloseTooltip,
@@ -40,6 +40,7 @@ const NoteEvent = (noteProps: Props) => {
     handleOpenConfirmDeleteDialog,
     handleUpdateScheduleStatus
   } = noteProps
+
   return (
       <ScrollView>
         <View
@@ -48,7 +49,7 @@ const NoteEvent = (noteProps: Props) => {
             gap: 16
           }}
         >
-          <Text style={styles.dateDisplayText}>{moment(selectedSchedule?.date).format('MM월 DD일')}</Text>
+          <Text style={styles.dateDisplayText}>{moment(selectedDate?.currentDate).format(t('date_with_day'))}</Text>
           <View style={{ gap: 8 }}>
             {schedules?.map((schedule, index) => (
               <NoteItem

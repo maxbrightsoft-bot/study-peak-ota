@@ -37,8 +37,6 @@ const SketchCanvas = ({ t, open, onClose, onSubmit }: Props) => {
     handleUploadImage
   } = useSketchCanvas()
 
-  console.log('bang')
-
   return (
     <CommonDialog isVisible={open} onClose={onClose} title={t('update_message')}>
       <View style={{ flexDirection: 'row', gap: 12 }}>

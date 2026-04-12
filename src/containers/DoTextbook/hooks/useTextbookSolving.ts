@@ -1,5 +1,5 @@
 import NetInfo from '@react-native-community/netinfo';
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { PreparedQuestionResponse, SimplePreparedTextbookResponse, StoredStudentTextbookAnswer, StudentTextbookAnswerRequest, TextbookQuestion } from "../config/types";
 import { answerQuestionTextbook } from "../apiClients";
 import _ from "lodash";
@@ -11,6 +11,7 @@ import { DATE_TIME_MIN_VALUE } from "@/utils/constants";
 import { isTextType } from "@/utils/helpers/textbook";
 import { QuestionAnswerType } from "@/utils/enums";
 import { getDataStorage, removeDataStorage, setDataStorage } from "@/utils/storage";
+import useServerTime from '@/hooks/useServerTime';
 
 const DATE_TIME_FORMAT = "YYYY-MM-DDTHH:mm:ss.SSSZ"
 const rollBackQuestionList = "trb";
@@ -40,12 +41,21 @@ const useTextbookSolving = (props: Props) => {
   const academyId = selectedAcademy?.id
   const academyDomain: string | undefined = user?.academyDomain;
   const userId: number | undefined = user?.id;
-
   const { t } = useTranslation();
+  const { getServerNow } = useServerTime();
+
+  const getServerTimeFormatted = useCallback(() => {
+    const serverNow = getServerNow();
+    const time = moment(serverNow).format(DATE_TIME_FORMAT);
+    const now = toISOString(time);
+    const nowTime = moment(now).utc().valueOf();
+    return { time, now, nowTime };
+  }, [getServerNow]);
+
 
   const apiTimeouts = useRef<any>({});
 
-  const ltAnswerTime = useRef<moment.Moment>();
+  const ltAnswerTime = useRef<string>();
   const totalAnsweredTimeRef = useRef<number>();
 
   const recoverKey = useMemo(() => {
@@ -58,13 +68,16 @@ const useTextbookSolving = (props: Props) => {
     return `${rollBackQuestionList}.${academyId}.${textbookId}.${userId}`;
   }, [academyDomain, academyId, textbookId, userId]);
 
-  const getDiffTime = (nowMoment: moment.Moment) => {
-    if (!textbook) return 0
-    const time = moment(nowMoment).format(DATE_TIME_FORMAT);
-    const now = toISOString(time);
-    let lastAnswerTime = textbook.isMock ?
-      (ltAnswerTime.current || (textbook.lastAnswerTime === DATE_TIME_MIN_VALUE ? textbook.startTime : textbook.lastAnswerTime)) :
-      ltAnswerTime.current && ltAnswerTime.current.isAfter(startTime) ? ltAnswerTime.current : startTime;
+  const getDiffTime = (now: string) => {
+    if (!textbook) return 0;
+
+    let lastAnswerTime = textbook.isMock
+      ? (ltAnswerTime.current || (textbook.lastAnswerTime === DATE_TIME_MIN_VALUE
+        ? textbook.startTime
+        : textbook.lastAnswerTime))
+      : ltAnswerTime.current && moment(ltAnswerTime.current).isAfter(startTime)
+        ? ltAnswerTime.current
+        : startTime;
     let diff = 0
 
     const totalRunningTime = +diffFromNow(textbook?.startTime || "", "milliseconds", now)
@@ -73,7 +86,7 @@ const useTextbookSolving = (props: Props) => {
     else
       diff = totalRunningTime - (totalAnsweredTimeRef.current ?? textbook.totalAnswerTime) - textbook.totalPausedTime;
     diff = Math.max(0, diff)
-    ltAnswerTime.current = nowMoment;
+    ltAnswerTime.current = now;
     if (!totalAnsweredTimeRef.current) totalAnsweredTimeRef.current = textbook.totalAnswerTime
     totalAnsweredTimeRef.current += diff
 
@@ -111,7 +124,7 @@ const useTextbookSolving = (props: Props) => {
           const isValid = moment.invalid(rollBackLastAnswerTime)
 
           if (ltAnswerTime.current && isValid && moment(rollBackLastAnswerTime).isAfter(startTime) && moment(rollBackLastAnswerTime).isAfter(ltAnswerTime.current))
-            ltAnswerTime.current = moment(rollBackLastAnswerTime)
+            ltAnswerTime.current = rollBackLastAnswerTime
         }
 
         const errorMessage = error?.response?.data?.title || res?.message;
@@ -214,10 +227,7 @@ const useTextbookSolving = (props: Props) => {
   const updateQuestionAnswer = ({ questionId, textualAnswers = [], answer }: TextbookQuestion) => {
     try {
       if (!textbook) return;
-      const nowMoment = moment()
-      const time = nowMoment.format(DATE_TIME_FORMAT);
-      const now = toISOString(time);
-      const nowTime = moment(now).utc().valueOf();
+      const { now, nowTime } = getServerTimeFormatted();
 
       const listQuestionNews = _.cloneDeep(questionList);
       const arrQuestionNew = listQuestionNews.map((item: PreparedQuestionResponse) => {
@@ -247,7 +257,7 @@ const useTextbookSolving = (props: Props) => {
               break;
           }
 
-          const diff = getDiffTime(nowMoment);
+          const diff = getDiffTime(now);
           item.duration = (item.duration || 0) + +diff;
           item.answerTime =
             item.answerTime && item.answerTime !== 0
@@ -267,10 +277,8 @@ const useTextbookSolving = (props: Props) => {
   const updateQuestionStar = (questionId: number, isStar: boolean) => {
     try {
       if (!textbook) return;
-      const nowMoment = moment();
-      const time = nowMoment.format(DATE_TIME_FORMAT);
-      const now = toISOString(time);
-      const nowTime = moment(now).utc().valueOf();
+      const { now, nowTime } = getServerTimeFormatted();
+
       const listQuestionNews = _.cloneDeep(questionList);
       const arrQuestionNew = listQuestionNews.map((item: PreparedQuestionResponse) => {
         const isTextAnswerType = isTextType(item.questionAnswerType)
@@ -282,7 +290,7 @@ const useTextbookSolving = (props: Props) => {
         }
         if (item.id === questionId) {
           item.isStar = isStar;
-          const diff = getDiffTime(nowMoment);
+          const diff = getDiffTime(now);
           item.duration = (item.duration || 0) + +diff;
           item.answerTime =
             item.answerTime && item.answerTime !== 0

@@ -99,7 +99,7 @@ const ExamResultList = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>내 성적</Text>
+        <Text style={styles.headerTitle}>{t('my_grades')}</Text>
       </View>
       <View style={styles.searchBox}>
         <SearchInput value={search} onChangeText={onChangeSearch} placeholder={t('search_placeholder')} />

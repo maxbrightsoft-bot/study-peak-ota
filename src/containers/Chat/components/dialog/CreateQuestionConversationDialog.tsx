@@ -102,7 +102,7 @@ export default function CreateQuestionConversationDialog({
                       <CustomSelect onValueChange={handleChangeExam} value={examSessionValue} options={examOptions} />
                     </View>
                     <View>
-                      <Text style={styles.labelText}>문제 선택</Text>
+                      <Text style={styles.labelText}>{t('question_selection')}</Text>
                       <CustomSelect
                         onValueChange={(value) => setFieldValue('questionId', value)}
                         value={values.questionId}

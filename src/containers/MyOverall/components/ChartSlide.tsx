@@ -3,6 +3,7 @@ import { View, Text } from 'react-native'
 import WebView from 'react-native-webview'
 import { palette } from '@/theme'
 import Loading from '@/components/Loading'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   title: string
@@ -10,7 +11,7 @@ interface Props {
   payload: any
 }
 
-export const CHART_HTML = `<!DOCTYPE html>
+export const CHART_HTML = (t: any) => `<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
@@ -90,8 +91,8 @@ export const CHART_HTML = `<!DOCTYPE html>
       var cats     = normalizeArray(data.shortCategories, 6, '');
       var myData   = normalizeArray(data.myData,  6, 0);
       var avgData  = normalizeArray(data.avgData, 6, 0);
-      var myLabel  = data.myLabel  || '내 데이터';
-      var avgLabel = data.avgLabel || '평균 데이터';
+      var myLabel  = data.myLabel  || "${t('my_data')}";
+      var avgLabel = data.avgLabel || "${t('avg_data')}";
       var GREY_300 = '#D0D5DD';
       var GREY_500 = '#98A2B3';
       var GREY_700 = '#667085';
@@ -191,7 +192,7 @@ export const CHART_HTML = `<!DOCTYPE html>
 </body>
 </html>`;
 
-export const TIME_CHART_HTML = `<!DOCTYPE html>
+export const TIME_CHART_HTML = (t: any) => `<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
@@ -310,8 +311,8 @@ export const TIME_CHART_HTML = `<!DOCTYPE html>
         };
       });
 
-      var myLabel  = data.myLabel  || '내 데이터';
-      var avgLabel = data.avgLabel || '평균 데이터';
+      var myLabel  = data.myLabel  || "${t('my_data')}";
+      var avgLabel = data.avgLabel || "${t('avg_data')}";
 
       chartInstance = new ApexCharts(document.querySelector('#chart'), {
         chart: {
@@ -439,6 +440,7 @@ export const TIME_CHART_HTML = `<!DOCTYPE html>
 </html>`;
 
 const ChartSlide = memo(({ title, isTimeChart, payload }: Props) => {
+  const { t } = useTranslation()
   const webRef = useRef<any>(null)
   const HEIGHT = 350
   const [loading, setLoading] = useState<boolean>(true)
@@ -476,7 +478,7 @@ const ChartSlide = memo(({ title, isTimeChart, payload }: Props) => {
         <WebView
           ref={webRef}
           style={{ height: HEIGHT }}
-          source={{ html: isTimeChart ? TIME_CHART_HTML : CHART_HTML }}
+          source={{ html: isTimeChart ? TIME_CHART_HTML(t) : CHART_HTML(t) }}
           thirdPartyCookiesEnabled
           sharedCookiesEnabled
           javaScriptEnabled
