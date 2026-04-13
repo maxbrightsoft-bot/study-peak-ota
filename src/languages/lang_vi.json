@@ -1808,5 +1808,14 @@
     "number_of_applicants": "Số người dự thi",
     "example_incorrect_answer_note": "(Ví dụ) Mình nên tiết kiệm thời gian ở các câu khác và dành nhiều thời gian hơn cho phần văn học hiện đại còn yếu.",
     "exam_score": "Điểm số",
-    "language": "Ngôn ngữ"
+    "language": "Ngôn ngữ",
+    "enter_your_name": "Nhập tên của bạn",
+    "name_is_required": "Tên là bắt buộc",
+    "select_major_and_grade": "Chọn chuyên ngành và khối lớp",
+    "study_face_maker": "Study Face Maker",
+    "study_face_maker_description_1": "Study Face Maker là nền tảng để tích lũy, phân tích và chia sẻ dữ liệu học tập ngoại tuyến.",
+    "study_face_maker_description_2": "Nó giúp bạn học tập hiệu quả hơn bằng cách trực quan hóa các mẫu học tập của bạn.",
+    "login_with_google": "Tiếp tục với Google",
+    "login_with_apple": "Tiếp tục với Apple",
+    "login_with_email": "Đăng nhập với Email"
 }

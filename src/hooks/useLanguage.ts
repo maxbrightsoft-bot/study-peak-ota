@@ -7,11 +7,12 @@ import { LanguageResponse } from "@/utils/types";
 import moment from "moment";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import * as RNLocalize from "react-native-localize";
 
 export const useLanguage = () => {
   const { i18n } = useTranslation();
   const { language, setLanguage, setLoading } = useAuthStore();
-  const isKorean = language.code === Language.ko;
+  const isKorean = language?.code === Language.ko;
 
   const changeLanguage = async (languageItem?: LanguageResponse) => {
     if (!languageItem) return;
@@ -26,13 +27,30 @@ export const useLanguage = () => {
   };
 
   useEffect(() => {
-    const currentLang = LANGUAGES.find(
-      (i) => i.code === language.code
-    );
+    const initLanguage = () => {
+      const currentLang = LANGUAGES.find(
+        (i) => i.code === language?.code
+      );
 
-    if (currentLang) {
-      changeLanguage(currentLang)
+      console.log("currentLang", currentLang);
+
+      if (currentLang) {
+        changeLanguage(currentLang)
+      }
+      else {
+        const locales = RNLocalize.getLocales();
+        if (locales.length > 0) {
+          const deviceLang = locales[0].languageCode;
+
+          const matchedLang = LANGUAGES.find(
+            (lang) => lang.code === deviceLang
+          );
+
+          changeLanguage(matchedLang || LANGUAGES[0]);
+        }
+      }
     }
+    initLanguage();
   }, []);
 
   return { isKorean, changeLanguage };

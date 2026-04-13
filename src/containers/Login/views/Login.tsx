@@ -10,26 +10,28 @@ import { AppleButton } from '@invertase/react-native-apple-authentication';
 import useLogin from '../hooks/useLogin'
 import LoginAccountButton from '../components/LoginAccountButton'
 import LoginAccountDialog from '../components/LoginAccountDialog'
+import { useTranslation } from 'react-i18next'
 // import PhoneNumberLoginButton from '../components/PhoneNumberLoginButton'
 
 const Login = () => {
+  const { t } = useTranslation()
   const { language } = useAuthStore()
   const { loginWithGoogle, onAppleButtonPress, openLoginAccountDialog, handleOpenLoginAccountDialog, handleCloseLoginAccountDialog } = useLogin()
 
-  const isEnglish = language.code === Language.en;
+  const isEnglish = language?.code === Language.en;
   return (
     <View style={styles.container}>
       <View style={styles.content}>
         {isEnglish ? <LogoEN style={styles.logo} /> : <LogoKO style={styles.logo} />}
         <View style={styles.text1}>
           <Text style={{ ...TYPO.body3, ...styles.title }}>
-            스터디 피크는 오프라인의 공부 데이터를
+            {t('study_face_maker_description_1')}
             {'\n'}
-            <Text style={{ ...TYPO.body3, ...styles.title }}>축적, 분석, 공유하기 위한</Text>
+            <Text style={{ ...TYPO.body3, ...styles.title }}>{t('study_face_maker_description_2')}</Text>
           </Text>
         </View>
 
-        <Text style={styles.description}>공부 페이스 메이커 입니다.</Text>
+        <Text style={styles.description}>{t('study_face_maker')}</Text>
         <View style={{ gap: 8, width: '100%' }}>
           {Platform.OS === 'ios' && <AppleButton
             buttonStyle={AppleButton.Style.BLACK}
@@ -38,7 +40,7 @@ const Login = () => {
             onPress={onAppleButtonPress}
           />}
           <GoogleLoginButton loginWithGoogle={loginWithGoogle} />
-          <LoginAccountButton title="이메일로 로그인" onPress={handleOpenLoginAccountDialog} />
+          <LoginAccountButton title={t('login_with_email')} onPress={handleOpenLoginAccountDialog} />
           {/* <PhoneNumberLoginButton /> */}
         </View>
       </View>

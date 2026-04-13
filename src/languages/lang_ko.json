@@ -1790,5 +1790,14 @@
     "number_of_applicants": "응시 인원",
     "example_incorrect_answer_note": "(예시) 다른 문제에서 시간을 절약해서 부족한 현대문학에 시간을 좀 더 써야겠다.",
     "exam_score": "시험 점수",
-    "language": "언어"
+    "language": "언어",
+    "enter_your_name": "이름을 입력해주세요",
+    "name_is_required": "이름은 필수입니다",
+    "select_major_and_grade": "학과와 학년을 선택해주세요",
+    "study_face_maker": "스터디 페이스 메이커",
+    "study_face_maker_description_1": "스터디 페이스 메이커는 오프라인 공부 데이터를",
+    "study_face_maker_description_2": "축적, 분석, 공유하기 위한",
+    "login_with_google": "Google로 계속하기",
+    "login_with_apple": "Apple로 계속하기",
+    "login_with_email": "이메일로 로그인"
 }

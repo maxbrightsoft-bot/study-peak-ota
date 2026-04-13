@@ -15,7 +15,6 @@ import RNBootSplash from 'react-native-bootsplash'
 import { audioToastConfig } from '@/layouts/partials/Alarm/AudioToastContent'
 import { BASE_URL } from '@/utils/constants'
 import { GoogleSignin } from '@react-native-google-signin/google-signin'
-import crashlytics from '@react-native-firebase/crashlytics';
 
 const Stack = createNativeStackNavigator()
 
@@ -40,7 +39,7 @@ const RootNavigation: React.FC = () => {
 
   console.log({
     env: BASE_URL,
-    language: language.code,
+    language: language?.code,
     user,
     isLoading,
     currentScreen: currentScreen(),

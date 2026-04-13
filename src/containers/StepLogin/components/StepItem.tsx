@@ -29,11 +29,11 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
       case 0:
         return (
           <View style={{ flexDirection: 'column' }}>
-            <Text style={styles.title}>먼저, 이름을 입력해주세요.</Text>
+            <Text style={styles.title}>{t('enter_your_name')}</Text>
             <Field name="fullName">
               {() => (
                 <TextField
-                  error={touched.fullName && errors.fullName && '이름은 필수입니다'}
+                  error={touched.fullName && errors.fullName && t('name_is_required')}
                   value={values.fullName}
                   style={styles.input}
                   onChangeText={(value: string) => setFieldValue('fullName', value)}
@@ -45,14 +45,14 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
       case 1:
         return (
           <View>
-            <Text style={styles.title}>전화번호를 입력해주세요.</Text>
+            <Text style={styles.title}>{t('phone_number')}</Text>
             <Field name="phoneNumber">
               {() => (
                 <TextField
                   style={styles.input}
                   value={values.phoneNumber}
                   keyboardType="phone-pad"
-                  error={touched.phoneNumber && errors.phoneNumber && '전화번호는 필수입니다'}
+                  error={touched.phoneNumber && errors.phoneNumber && t('phone_number_is_required')}
                   onChangeText={(value: string) => setFieldValue('phoneNumber', value)}
                 />
               )}
@@ -62,11 +62,11 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
       case 2:
         return (
           <View style={{ flexDirection: 'column' }}>
-            <Text style={styles.title}>보호자 이름을 입력해주세요.</Text>
+            <Text style={styles.title}>{t('parent_name')}</Text>
             <Field name="parentName">
               {() => (
                 <TextField
-                  error={touched.parentName && errors.parentName && '보호자 이름은 필수입니다'}
+                  error={touched.parentName && errors.parentName && t('parent_name_is_required')}
                   value={values.parentName}
                   style={styles.input}
                   onChangeText={(value: string) => setFieldValue('parentName', value)}
@@ -78,14 +78,14 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
       case 3:
         return (
           <View>
-            <Text style={styles.title}>보호자 전화번호를 입력해주세요.</Text>
+            <Text style={styles.title}>{t('parent_phone_number')}</Text>
             <Field name="parentPhoneNumber">
               {() => (
                 <TextField
                   style={styles.input}
                   value={values.parentPhoneNumber}
                   keyboardType="phone-pad"
-                  error={touched.parentPhoneNumber && errors.parentPhoneNumber && '보호자 전화번호는 필수입니다'}
+                  error={touched.parentPhoneNumber && errors.parentPhoneNumber && t('parent_phone_number_is_required')}
                   onChangeText={(value: string) => setFieldValue('parentPhoneNumber', value)}
                 />
               )}
@@ -95,11 +95,11 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
       case 4:
         return (
           <View>
-            <Text style={styles.title}>재학 중인 학교를 선택해주세요.</Text>
+            <Text style={styles.title}>{t('school_name')}</Text>
             <Field name="schoolName">
               {() => (
                 <TextField
-                  error={touched.schoolName && errors.schoolName && '학교 이름은 필수입니다'}
+                  error={touched.schoolName && errors.schoolName && t('school_name_is_required')}
                   value={values.schoolName}
                   style={styles.input}
                   onChangeText={(value: string) => setFieldValue('schoolName', value)}
@@ -112,7 +112,7 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
       case 5:
         return (
           <>
-            <Text style={styles.title}>학과와 학년을 선택해주세요.</Text>
+            <Text style={styles.title}>{t('select_major_and_grade')}</Text>
             <GridContainer spacing={12}>
               <GridItem xs={4} style={{ justifyContent: 'space-between' }}>
                 <Text style={[styles.label, { marginBottom: 8 }]}>{t('select_liberal_arts/science')}</Text>
