@@ -7,6 +7,7 @@ import {
   PusherChannel,
   PusherEvent,
 } from "@pusher/pusher-websocket-react-native";
+import analytics from '@react-native-firebase/analytics'
 
 import {
   AcademyHeaders,
@@ -119,7 +120,7 @@ const useAuthStore = create<AuthStore>()(
         })
       },
 
-      setCrashlyticsUser: (user?: any) => {
+      setCrashlyticsUser: async(user?: any) => {
         if (!user?.id) return
 
         crashlytics().setUserId(String(user.id))
@@ -128,6 +129,7 @@ const useAuthStore = create<AuthStore>()(
           userId: String(user.id),
           academyDomain: user.academyDomain || '',
         })
+        await analytics().setUserId(String(user.id))
       },
       clearCrashlyticsUser: () => {
         crashlytics().setUserId('')

@@ -32,6 +32,7 @@ import { getExamInfoApi } from '@/containers/Home/apiClients';
 import useServerTime from '@/hooks/useServerTime';
 import { logError } from '@/utils/helpers/crashlyticsLogger';
 import crashlytics from '@react-native-firebase/crashlytics'
+import analytics from '@react-native-firebase/analytics'
 
 type Props = {
   examCode: string;
@@ -418,13 +419,22 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
   };
 
   useEffect(() => {
-    if (exam?.id) {
-      crashlytics().setAttributes({
-        examId: String(exam.id),
-        examCode: exam.code,
-        studentExamSessionId: String(exam.studentExamSessionId)
+    if (!exam?.id) return
+    crashlytics().setAttributes({
+      examId: String(exam.id),
+      examCode: exam.code || '',
+      studentExamSessionId: String(exam.studentExamSessionId || ''),
+    })
+
+    const track = async () => {
+      await analytics().logEvent('ENTER_EXAM', {
+        exam_id: String(exam.id),
+        exam_code: exam.code || '',
+        session_id: String(exam.studentExamSessionId || ''),
       })
     }
+
+    track()
   }, [exam?.id])
 
   useEffect(() => {

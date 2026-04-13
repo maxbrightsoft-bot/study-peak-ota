@@ -1,18 +1,21 @@
 import crashlytics from '@react-native-firebase/crashlytics'
+import analytics from '@react-native-firebase/analytics'
 
-export const logEvent = (event: string, data?: Record<string, any>) => {
-  const instance = crashlytics()
-
-  instance.log(`[EVENT] ${event}`)
-
-  if (data) {
-    Object.entries(data).forEach(([key, value]) => {
-      instance.setAttribute(key, String(value))
-    })
+export const logEvent = async (
+  event: string,
+  data?: Record<string, any>
+) => {
+  try {
+    await analytics().logEvent(event, data)
+  } catch (e) {
+    console.log('Analytics error:', e)
   }
 }
 
-export const logError = (error: any, context?: Record<string, any>) => {
+export const logError = (
+  error: any,
+  context?: Record<string, any>
+) => {
   const instance = crashlytics()
 
   const status = error?.response?.status
@@ -25,19 +28,19 @@ export const logError = (error: any, context?: Record<string, any>) => {
 
   instance.log(`[ERROR] ${finalMessage}`)
 
-  if (status) instance.setAttribute('status', String(status))
-  if (apiMessage) instance.setAttribute('apiMessage', apiMessage)
-  instance.setAttribute('errorMessage', finalMessage)
+  instance.setAttributes({
+    status: status ? String(status) : '',
+    apiMessage: apiMessage || '',
+    errorMessage: finalMessage,
+    ...(context
+      ? Object.fromEntries(
+          Object.entries(context).map(([k, v]) => [k, String(v)])
+        )
+      : {}),
+  })
 
-  if (context) {
-    Object.entries(context).forEach(([key, value]) => {
-      instance.setAttribute(key, String(value))
-    })
-  }
+  const err =
+    error instanceof Error ? error : new Error(finalMessage)
 
-  if (error instanceof Error) {
-    instance.recordError(error)
-  } else {
-    instance.recordError(new Error(finalMessage))
-  }
+  instance.recordError(err)
 }
