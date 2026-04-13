@@ -35,7 +35,7 @@ const LanguageDialog = ({ open, onClose, onSelect }: Props) => {
           <Text style={styles.title}>언어 선택 / Language</Text>
           <View style={styles.list}>
             {LANGUAGES.map((lang) => {
-              const isActive = language.code === lang.code
+              const isActive = language?.code === lang.code
               return (
                 <TouchableOpacity
                   key={lang.code}

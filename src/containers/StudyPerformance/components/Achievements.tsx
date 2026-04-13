@@ -51,7 +51,7 @@ const MyRankingItem = ({ data, isTimerTab }: { data?: Ranking; isTimerTab: boole
             {`${
               !!data.grade &&
               t(
-                ((label) => (label ? t(label) : formatGrade(data.grade, t, language.code)))(
+                ((label) => (label ? t(label) : formatGrade(data.grade, t, language?.code)))(
                   BRIEF_GRADE_OPTIONS.find((o) => o.value === Number(data.grade))?.label
                 )
               )

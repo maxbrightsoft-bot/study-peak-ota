@@ -3,13 +3,14 @@ import React from 'react'
 import { TouchableOpacity, Text, StyleSheet } from 'react-native'
 import IconGoogle from '@/assets/icons/google.svg'
 import { palette } from '@/theme'
+import { useTranslation } from 'react-i18next'
 
 const GoogleLoginButton = ({ loginWithGoogle }: { loginWithGoogle: () => void }) => {
-
+  const { t } = useTranslation()
   return (
     <TouchableOpacity style={styles.googleButton} onPress={loginWithGoogle}>
       <IconGoogle style={styles.googleIcon} />
-      <Text style={styles.googleButtonText}>Google로 계속하기</Text>
+      <Text style={styles.googleButtonText}>{t('login_with_google')}</Text>
     </TouchableOpacity>
   )
 }

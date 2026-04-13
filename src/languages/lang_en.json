@@ -1790,5 +1790,14 @@
     "number_of_applicants": "Number of applicants",
     "example_incorrect_answer_note": "(Example) I should save time on other questions and spend more time on modern literature, which I'm weak in.",
     "exam_score": "Exam score",
-    "language": "Language"
+    "language": "Language",
+    "enter_your_name": "Enter your name",
+    "name_is_required": "Name is required",
+    "select_major_and_grade": "Select major and grade",
+    "study_face_maker": "Study Face Maker",
+    "study_face_maker_description_1": "Study Face Maker is a platform for accumulating, analyzing, and sharing offline study data.",
+    "study_face_maker_description_2": "It helps you study more efficiently by visualizing your study patterns.",
+    "login_with_google": "Continue with Google",
+    "login_with_apple": "Continue with Apple",
+    "login_with_email": "Continue with Email"
 }

@@ -30,7 +30,7 @@ const useTextbookDrawer = ({
 }: Props) => {
   const { t } = useTranslation();
   const { language, setLoading: setLoadingGlobal } = useAuthStore();
-  const isEnglish = language.code === Language.en;
+  const isEnglish = language?.code === Language.en;
   const [loading, setLoading] = useState(false)
   const { selected, handleChangeTab } = useTab(TextbookTabList)
   const [textbook, setTextbook] = useState<Textbook>();

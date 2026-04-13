@@ -41,7 +41,7 @@ interface StoreState {
   academies: AcademyResponse[];
   selectedAcademy: AcademyResponse | null;
   hasEnteredSelectAcademy: boolean
-  language: LanguageResponse;
+  language: LanguageResponse | null;
   timers: SubjectTimerResponse[];
   alarm: AlarmResponse | null;
 
@@ -100,7 +100,7 @@ const useAuthStore = create<AuthStore>()(
       academies: [],
       selectedAcademy: null,
       redirectUrl: null,
-      language: LANGUAGES[0],
+      language:  null,
       timers: [],
       alarm: null,
       hasEnteredSelectAcademy: true,
@@ -313,7 +313,7 @@ const useAuthStore = create<AuthStore>()(
           academies: [],
           selectedAcademy: null,
 
-          language: LANGUAGES[0],
+          language: null,
           timers: [],
           alarm: null,
 
