@@ -3,6 +3,7 @@
 #import "RNBootSplash.h"
 // @generated end bootsplash-header
 
+#import "OtaHotUpdate.h"
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTLinkingManager.h>
 
@@ -29,7 +30,7 @@
 #if DEBUG
   return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@".expo/.virtual-metro-entry"];
 #else
-  return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
+  return [OtaHotUpdate getBundle];
 #endif
 }
 
