@@ -1,5 +1,5 @@
 {
-  "version": 1,
-  "downloadAndroidUrl": "",
-  "downloadIosUrl": ""
+  "version": "1.0.2",
+  "downloadAndroidUrl": "https://github.com/maxbrightsoft-bot/study-peak-ota/releases/download/ota-v1-0-2/android.zip",
+  "downloadIosUrl": "https://github.com/maxbrightsoft-bot/study-peak-ota/releases/download/ota-v1-0-2/ios.zip"
 }
