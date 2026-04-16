@@ -21,16 +21,23 @@ buildscript {
         classpath('com.facebook.react:react-native-gradle-plugin')
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
 
-        classpath('com.google.gms:google-services:4.4.4')
-        classpath('com.google.firebase:firebase-crashlytics-gradle:3.0.6')
+        classpath('com.google.gms:google-services:4.4.2')
+        classpath('com.google.firebase:firebase-crashlytics-gradle:2.9.9')
     }
 }
-
 apply plugin: "com.facebook.react.rootproject"
 
 allprojects {
-    repositories {
+    configurations.all {
+        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+            if (details.requested.group == 'com.google.android.gms' &&
+                details.requested.name.startsWith('play-services-measurement')) {
+                details.useVersion '21.6.2'
+            }
+        }
+    }
 
+    repositories {
         maven {
             url(new File(['node', '--print', "require.resolve('react-native/package.json')"]
             .execute(null, rootDir).text.trim(), '../android'))
