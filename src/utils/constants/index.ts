@@ -1,6 +1,9 @@
 import { Platform, StatusBar } from "react-native"
 import { PagingResponse } from "../types"
 import { QuestionAnswerType } from "../enums"
+import Constants from "expo-constants";
+
+const extra = Constants.expoConfig?.extra || {};
 
 export const ACCESS_TOKEN = 'ACCESS_TOKEN'
 export const LanguageHeaders = "Accept-Language"
@@ -27,23 +30,23 @@ export const DATE_MIN_VALUE = '0001-01-01T00:00:00+00:00'
 export const DATE_TIME_MIN_VALUE = '0001-01-01T00:00:00'
 
 export const PUSHER_CONFIG = {
-  cluster: process.env.EXPO_PUBLIC_PUSHER_CONFIG_CLUSTER || "",
-  key: process.env.EXPO_PUBLIC_PUSHER_CONFIG_KEY || ""
+  cluster: extra.PUSHER_CLUSTER || "",
+  key: extra.PUSHER_KEY || ""
 }
-export const OTA_URL = process.env.EXPO_PUBLIC_OTA_URL || ""
-export const BASE_URL = process.env.EXPO_PUBLIC_BASE_URL || ''
+export const OTA_URL = extra.OTA_URL || ""
+export const BASE_URL = extra.BASE_URL || ''
 export const SUPER_ADMIN_BASE_URL =
-  process.env.EXPO_PUBLIC_SUPER_ADMIN_BASE_URL || ""
-export const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL || ""
-export const STUDENT_URL = process.env.EXPO_PUBLIC_STUDENT_URL || ""
+  extra.SUPER_ADMIN_BASE_URL || ""
+export const SOCKET_URL = extra.SOCKET_URL || ""
+export const STUDENT_URL = extra.STUDENT_URL || ""
 
 export const GOOGLE_RECAPTCHA_KEY =
-  process.env.EXPO_PUBLIC_GOOGLE_RECAPTCHA_KEY || ""
+  extra.GOOGLE_RECAPTCHA_KEY || ""
 
-export const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || ""
+export const GOOGLE_CLIENT_ID = extra.GOOGLE_CLIENT_ID || ""
 
 export const GOOGLE_RECAPTCHA_ID =
-  process.env.EXPO_PUBLIC_GOOGLE_RECAPTCHA_ID || ""
+  extra.GOOGLE_RECAPTCHA_ID || ""
 
 export const answerTypeOptions = (t: any) => ([
   {

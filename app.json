@@ -15,7 +15,6 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.max.britghtsoft.touchstudymobile",
-      "buildNumber": "7",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSPhotoLibraryUsageDescription": "This app needs access to your photos so you can upload images.",
@@ -33,7 +32,6 @@
     },
     "android": {
       "package": "com.max.britghtsoft.touchstudymobile",
-      "versionCode": 25,
       "intentFilters": [
         {
           "action": "VIEW",
@@ -55,6 +53,7 @@
       "output": "static"
     },
     "plugins": [
+      "react-native-ota-hot-update",
       "expo-router",
       [
         "react-native-bootsplash",
