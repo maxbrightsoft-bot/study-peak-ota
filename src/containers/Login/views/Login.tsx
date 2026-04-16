@@ -44,7 +44,7 @@ const Login = () => {
           {/* <PhoneNumberLoginButton /> */}
         </View>
       </View>
-      {openLoginAccountDialog && <LoginAccountDialog visible={openLoginAccountDialog} onClose={handleCloseLoginAccountDialog} />}
+      <LoginAccountDialog visible={openLoginAccountDialog} onOpen={handleOpenLoginAccountDialog} onClose={handleCloseLoginAccountDialog} />
     </View>
   )
 }

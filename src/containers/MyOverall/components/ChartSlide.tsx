@@ -4,6 +4,8 @@ import WebView from 'react-native-webview'
 import { palette } from '@/theme'
 import Loading from '@/components/Loading'
 import { useTranslation } from 'react-i18next'
+import useAuthStore from '@/store/useAuthStore'
+import { Language } from '@/utils/enums'
 
 interface Props {
   title: string
@@ -88,7 +90,7 @@ export const CHART_HTML = (t: any) => `<!DOCTYPE html>
       if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
 
       var height   = data.height || 300;
-      var cats     = normalizeArray(data.shortCategories, 6, '');
+      var cats     = normalizeArray(data.categories, 6, '');
       var myData   = normalizeArray(data.myData,  6, 0);
       var avgData  = normalizeArray(data.avgData, 6, 0);
       var myLabel  = data.myLabel  || "${t('my_data')}";
@@ -150,28 +152,28 @@ export const CHART_HTML = (t: any) => `<!DOCTYPE html>
         },
         tooltip: {
           enabled: true,
+          followCursor: true,
           custom: function(opt) {
             var dpi   = opt.dataPointIndex;
             var label = cats[dpi] || '';
-            if (data.overallData && data.overallData[dpi]) {
-              var row  = data.overallData[dpi];
-              var tot  = row.totalQuestions || 0;
-              var myV  = tot ? ((row.totalCorrectQuestions * 100) / tot).toFixed(2) + '%' : '0.00%';
-              var avgV = tot ? ((row.avgCorrectQuestions   * 100) / tot).toFixed(2) + '%' : '0.00%';
-              return '<div style="padding:8px;background:#fff;border-radius:4px;font-size:13px;">'
-                + '<div style="margin-bottom:4px"><strong>' + label + '</strong></div>'
-                + '<div>' + myLabel  + ': ' + myV  + '</div>'
-                + '<div>' + avgLabel + ': ' + avgV + '</div>'
+            if (data.tooltipData && data.tooltipData[dpi]) {
+              var row     = data.tooltipData[dpi];
+              var myV     = row.myValue || 0;
+              var avgV    = row.avgValue || 0;
+              var myColor  = '#3DC674';
+              var avgColor = '#4F8BDE';
+              return '<div style="padding:8px;background:#fff;border-radius:4px;">'
+                + '<div style="border-bottom:1px solid #f3f3f3;margin-bottom:4px"><strong>' + label + '</strong></div>'
+                + '<div style="display:flex;justify-content:space-between">'
+                +   '<p style="margin-right:4px"><strong style="color:' + myColor  + '">' + myLabel  + ':</strong></p>'
+                +   '<p>' + myV  + '</p>'
+                + '</div>'
+                + '<div style="display:flex;justify-content:space-between">'
+                +   '<p style="margin-right:4px"><strong style="color:' + avgColor + '">' + avgLabel + ':</strong></p>'
+                +   '<p>' + avgV + '</p>'
+                + '</div>'
                 + '</div>';
             }
-            var s  = opt.series;
-            var v0 = (s[0] && s[0][dpi] != null) ? s[0][dpi] : '-';
-            var v1 = (s[1] && s[1][dpi] != null) ? s[1][dpi] : '-';
-            return '<div style="padding:8px;background:#fff;border-radius:4px;font-size:13px;">'
-              + '<div style="margin-bottom:4px"><strong>' + label + '</strong></div>'
-              + '<div>' + myLabel  + ': ' + v0 + ' points</div>'
-              + '<div>' + avgLabel + ': ' + v1 + ' points</div>'
-              + '</div>';
           }
         }
       });
@@ -397,6 +399,7 @@ export const TIME_CHART_HTML = (t: any) => `<!DOCTYPE html>
         tooltip: {
           shared:    true,
           intersect: false,
+          followCursor: true,
           x: {
             formatter: function(x, opt) {
               var dpi = opt && opt.dataPointIndex;
@@ -448,7 +451,8 @@ const ChartSlide = memo(({ title, isTimeChart, payload }: Props) => {
   const isReady = useRef(false)
 
   useEffect(() => {
-    if (isReady.current && webRef.current) {
+    if (!isReady.current && webRef.current) {
+      isReady.current = true
       webRef.current.postMessage(JSON.stringify(payload))
     }
   }, [payload])
@@ -488,10 +492,12 @@ const ChartSlide = memo(({ title, isTimeChart, payload }: Props) => {
             console.log('MESSAGE FROM WEB', msg)
 
             if (msg.type === 'READY') {
+              isReady.current = true
               webRef.current?.postMessage(JSON.stringify(payload))
             }
 
             if (msg.type === 'RENDERED') {
+              isReady.current = true
               setLoading(false)
             }
           }}

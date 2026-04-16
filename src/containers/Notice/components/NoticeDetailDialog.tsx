@@ -1,4 +1,4 @@
-import { Text, TouchableOpacity, View, FlatList, useWindowDimensions } from 'react-native'
+import { Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
 import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 import { Ionicons } from '@expo/vector-icons'
 import { palette } from '@/theme'
@@ -23,11 +23,11 @@ const NoticeDetailDialog = ({ open, onClose, notification }: Props) => {
     return (
       <View style={styles.item}>
         <View style={styles.itemContent}>
-          <Text numberOfLines={1} style={styles.title}>
+          <Text style={styles.title}>
             {item?.name}
           </Text>
 
-          <Text style={styles.teacher}>김피크 선생님</Text>
+          <Text style={styles.teacher}>{item?.teacherName}</Text>
 
           <Text style={styles.date}>{moment(item?.createdAt).format('YY.MM.DD')}</Text>
         </View>
@@ -50,7 +50,7 @@ const NoticeDetailDialog = ({ open, onClose, notification }: Props) => {
           <Ionicons name="chevron-back-outline" size={24} color={palette.grey[200]} />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>공지 상세</Text>
+        <Text style={styles.headerTitle}>{t('notice_detail')}</Text>
 
         <View style={{ width: 24 }} />
       </View>

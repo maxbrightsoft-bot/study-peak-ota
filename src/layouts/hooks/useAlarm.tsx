@@ -29,6 +29,7 @@ import { DEFAULT_AUDIO_URL } from '../configs/constants'
 import { getDataStorage, setDataStorage, removeDataStorage } from '@/utils/storage'
 import { ToastExamStatus } from '../configs/enums'
 import { TOAST_EXAM_STATUS } from '@/utils/constants'
+import useServerTime from '@/hooks/useServerTime'
 
 const DEFAULT_ALARM_DURATION = 45
 const TOTAL_MILLISECONDS_IN_MINUTE = 60 * 1000
@@ -43,6 +44,7 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
   const [isFetching, setFetching] = useState(false)
   const [speaker, setSpeaker] = useState(true)
   const stoppingRef = useRef(false)
+  const { getServerNow } = useServerTime();
 
   const [selectedTimer, setSelectedTimer] = useState<{
     timer: SubjectTimerResponse
@@ -107,8 +109,9 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
     if (status === stage) return
 
     await setDataStorage(TOAST_EXAM_STATUS, stage)
+    const nowTime = getServerNow()
 
-    toastIdRef.current = `audio-${Date.now()}`
+    toastIdRef.current = `audio-${nowTime}`
 
     setAudioPopupProps({
       soundRef,
@@ -167,14 +170,14 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
     setLoadingItem(true)
     try {
       const start = onAcademy ? startStudentAlarmApi : startSuperStudentAlarmApi
-
+      const nowTime = getServerNow()
       const res = await start({
         duration,
         type,
         rowVersion: alarm?.rowVersion || '',
         speakerMode: enable || speaker,
         subjectId: subject?.id,
-        startTime: moment().utc().valueOf()
+        startTime: moment(nowTime).utc().valueOf()
       })
 
       handleUpdateAlarm(res.data)
@@ -195,11 +198,11 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
     setLoadingItem(true)
     try {
       const pause = onAcademy ? pauseStudentAlarmApi : pauseSuperStudentAlarmApi
-
+      const nowTime = getServerNow()
       const res = await pause({
         id: currentAlarm.id,
         status: TimerStatus.Stopped,
-        stopTime: moment().utc().valueOf(),
+        stopTime: moment(nowTime).utc().valueOf(),
         rowVersion: currentAlarm.rowVersion
       })
 
@@ -240,7 +243,7 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
     if (!alarm || !alarm.id || alarm.status == TimerStatus.Stopped) return
     const isPaused = alarm.status === TimerStatus.Paused
     if (isPaused) soundRef.current?.pauseAsync()
-
+    const nowTime = getServerNow()
     setLoadingItem(true)
     try {
       const pause = onAcademy
@@ -249,7 +252,7 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
       const res = await pause({
         id: alarm.id,
         status: isPaused ? TimerStatus.Started : TimerStatus.Paused,
-        pauseTime: !isPaused ? moment().utc().valueOf() : 0,
+        pauseTime: !isPaused ? moment(nowTime).utc().valueOf() : 0,
         rowVersion: alarm.rowVersion
       })
       handleUpdateAlarm(res.data)

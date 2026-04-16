@@ -223,36 +223,44 @@ const useNotice = (setNew: any) => {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      handleListenerEvent();
-    }, [academyDomain, pusher])
-  );
+  const cleanupPusher = () => {
+
+    if (channelName.current && pusher) {
+      const channelNameText = channelName.current;
+      unsubscribeChannelSafe(pusher, channelNameText);
+    }
+
+    if (notifyChannelName.current && pusher) {
+      const channelNameText = notifyChannelName.current;
+      unsubscribeChannelSafe(pusher, channelNameText);
+    }
+
+    if (generalNotifyChannelName.current && pusher) {
+      const channelNameText = generalNotifyChannelName.current;
+      unsubscribeChannelSafe(pusher, channelNameText);
+    }
+
+    channel.current = undefined;
+    notifyChannel.current = undefined;
+    generalNotifyChannel.current = undefined;
+  };
 
   useFocusEffect(
     useCallback(() => {
-      return () => {
+      let isActive = true;
 
-        if (channelName.current && pusher) {
-          const channelNameText = channelName.current;
-          unsubscribeChannelSafe(pusher, channelNameText);
-        }
-
-        if (notifyChannelName.current && pusher) {
-          const channelNameText = notifyChannelName.current;
-          unsubscribeChannelSafe(pusher, channelNameText);
-        }
-
-        if (generalNotifyChannelName.current && pusher) {
-          const channelNameText = generalNotifyChannelName.current;
-          unsubscribeChannelSafe(pusher, channelNameText);
-        }
-
-        channel.current = undefined;
-        notifyChannel.current = undefined;
-        generalNotifyChannel.current = undefined;
+      const initPusher = async () => {
+        if (!isActive) return;
+        await handleListenerEvent();
       };
-    }, [])
+
+      initPusher();
+
+      return () => {
+        isActive = false;
+        cleanupPusher()
+      }
+    }, [academyDomain, pusher])
   );
 
   return { t, selected, handleChangeTab, selectedNotification, notifications, openNoticeDetailDialog, handleOpenDetailDialog, handleCloseDetailDialog }

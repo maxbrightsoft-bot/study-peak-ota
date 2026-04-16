@@ -33,7 +33,7 @@ const StudyTimerTab: FC<StudyTimerTabProps> = ({
 }) => {
   const { t } = useTranslation()
 
-  const itemStart = subjects.find((item) => item.status === TimerStatus.Started || item.status === TimerStatus.Paused)
+  const itemStart = subjects.find((item) => item.status === TimerStatus.Started)
 
   if (isFetching) {
     return (

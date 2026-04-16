@@ -1,8 +1,10 @@
-import { useState, useEffect, useMemo, useCallback } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { getOverallCategoriesResultsApi } from "../apiClients"
 import { ExamResult, OverallCategoryData } from "@/utils/types"
 import { checkData, getPercentage } from "../configs/helpers"
+import useAuthStore from "@/store/useAuthStore"
+import { Language } from "@/utils/enums"
 
 const useCategoriesOverallChartContainer = (
     examResultData: ExamResult | undefined,
@@ -15,6 +17,9 @@ const useCategoriesOverallChartContainer = (
     const [isLoading, setLoading] = useState<boolean>(false)
     const [overallData, setOverallData] = useState<OverallCategoryData[]>([])
     const { t } = useTranslation()
+    const { language } = useAuthStore()
+    const isKorean = language?.code === Language.ko;
+
     useEffect(() => {
         const fetchData = async () => {
             if (
@@ -25,11 +30,8 @@ const useCategoriesOverallChartContainer = (
             setLoading(true)
             try {
                 if (chapterId) return
-                else {
-                    const res = await getOverallCategoriesResultsApi(examCode, +(studentExamSessionId || 0), useSubcategories)
-                        
-                    setOverallData(res.data?.data?.slice(0, 6) ?? [])
-                }
+                const res = await getOverallCategoriesResultsApi(examCode, +(studentExamSessionId || 0), useSubcategories)
+                setOverallData(res.data?.data?.slice(0, 6) ?? [])
             } catch (error) {
                 console.log(error)
             }
@@ -42,85 +44,47 @@ const useCategoriesOverallChartContainer = (
         if (!overallData?.length) return [0, 0, 0, 0, 0, 0]
         return overallData.map(i => getPercentage(i.totalCorrectQuestions, i.totalQuestions))
     }, [JSON.stringify(overallData)])
+
     const avgData = useMemo(() => {
         if (!overallData?.length) return [0, 0, 0, 0, 0, 0]
         return overallData.map(i => getPercentage(i.avgCorrectQuestions, i.totalQuestions))
     }, [JSON.stringify(overallData)])
 
     const categories = useMemo(() => {
-        if (!overallData) return ["", "", "", "", "", ""]
+        if (!overallData?.length) return ["", "", "", "", "", ""]
         return overallData.map(i => i.categoryName)
-    }, [overallData])
+    }, [JSON.stringify(overallData)])
 
     const shortCategories = useMemo(() => {
-        if (!overallData) return ["", "", "", "", "", ""]
+        if (!overallData?.length) return ["", "", "", "", "", ""]
         return overallData.map(i => i.categoryName.slice(0, 4) + "...")
-    }, [overallData])
+    }, [JSON.stringify(overallData)])
 
-    const xAxisLabelFormatter = useCallback(
-        (_: string, { dataPointIndex }: any) => {
-            if(dataPointIndex === 0 || dataPointIndex === 3) return categories[dataPointIndex]
-            const texts = categories[dataPointIndex]?.split(" ") ?? []
+    const xAxisLabels = useMemo(() => {
+        return categories.map((label, index) => {
+            if (index === 0 || index === 3) return [label]
+            const texts = label.split(" ")
             const middle = Math.floor(texts.length / 2)
-            return [texts.slice(0, middle), texts.slice(middle)]
-        },
-        [JSON.stringify(categories)]
-    )
+            return [texts.slice(0, middle).join(" "), texts.slice(middle).join(" ")]
+        })
+    }, [JSON.stringify(categories)])
 
-    const formatTooltip = useCallback(
-        (dataProps: any) => {
-            const dataPointIndex = dataProps?.dataPointIndex
-            const label = categories[dataPointIndex]
-            if (!label) return ""
-            const data = overallData?.[dataPointIndex]
-            const myValue = `${(!data?.totalQuestions ? 0 : (data?.totalCorrectQuestions * 100) / data.totalQuestions)?.toFixed(2) ?? 0}%`
-            const avgValue = `${(!data?.totalQuestions ? 0 : (data?.avgCorrectQuestions * 100) / data.totalQuestions)?.toFixed(2) ?? 0}%`
+    const tooltipData = useMemo(() => {
+        return categories.map((label, index) => {
+            const data = overallData?.[index]
+            const myValue = `${(!data?.totalQuestions ? 0 : (data.totalCorrectQuestions * 100) / data.totalQuestions).toFixed(2)}%`
+            const avgValue = `${(!data?.totalQuestions ? 0 : (data.avgCorrectQuestions * 100) / data.totalQuestions).toFixed(2)}%`
+            return { label, myValue, avgValue }
+        })
+    }, [JSON.stringify(overallData), JSON.stringify(categories)])
 
-            return `<View style={{
-                    padding: 8,
-                    backgroundColor: '#fff',
-                    borderRadius: 4,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 4,
-                    elevation: 3,
-                    minWidth: 120,
-                    }}>
-                    <View style={{
-                        borderBottomWidth: 1,
-                        borderBottomColor: '#f3f3f3',
-                        marginBottom: 4,
-                        paddingBottom: 4,
-                    }}>
-                        <Text style={{ fontWeight: 'bold' }}>${label}</Text>
-                    </View>
-                    
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                        <Text style={{ marginRight: 4, fontWeight: 'bold', color: colors?.[0] || '#4CAF50' }}>
-                        {t("my_data")}:
-                        </Text>
-                        <Text>{myValue}</Text>
-                    </View>
-                    
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
-                        <Text style={{ marginRight: 4, fontWeight: 'bold', color: colors?.[1] || '#F44336' }}>
-                        {t("avg_data")}:
-                        </Text>
-                        <Text>${avgValue}</Text>
-                    </View>
-                    </View>`
-        },
-        [t, JSON.stringify(overallData), JSON.stringify(categories)]
-    )
     return {
         isLoading,
         myData,
         avgData,
-        shortCategories,
-        categories,
-        xAxisLabelFormatter,
-        formatTooltip
+        categories: isKorean ? categories : shortCategories,
+        xAxisLabels,
+        tooltipData,
     }
 }
 

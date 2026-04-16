@@ -17,7 +17,7 @@ const filterDefault = {
   currentPage: 1,
 }
 const useNotice = (setNew: any) => {
-  const { selectedAcademy, user, pusher, subscribeChannel } = useAuthStore()
+  const { selectedAcademy, user, pusher, subscribeChannel, unsubscribeChannelSafe } = useAuthStore()
   const [isLoading, setLoading] = useState<boolean>(false)
   const [selected, setSelected] = useState(TabList[0].value)
   const [typeSelected, setTypeSelected] = useState(TabList[0].type)
@@ -203,14 +203,40 @@ const useNotice = (setNew: any) => {
     }
   }
 
-  useEffect(() => {
-    if (!pusher) return
-    const initPusher = async () => {
-      await handleListenerEvent();
-    };
+  const cleanupPusher = () => {
+    if (channelName.current && pusher) {
+      unsubscribeChannelSafe(pusher, channelName.current);
+    }
 
-    initPusher()
-  }, [userId, selectedAcademy?.domain, typeSelected, selected, pusher])
+    channel.current = undefined;
+    channelName.current = undefined;
+  }
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!pusher) return;
+
+      let isActive = true;
+
+      const initPusher = async () => {
+        if (!isActive) return;
+        await handleListenerEvent();
+      };
+
+      initPusher();
+
+      return () => {
+        isActive = false;
+        cleanupPusher()
+      }
+    }, [
+      userId,
+      selectedAcademy?.domain,
+      typeSelected,
+      selected,
+      pusher,
+    ])
+  );
 
   return {
     t,

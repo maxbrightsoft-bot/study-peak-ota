@@ -16,7 +16,7 @@ import _ from "lodash";
 import useExamSolving from "./useExamSolving";
 import { useTranslation } from "react-i18next";
 import moment from "moment";
-import { ExamEvent, ExamStatus, QuestionAnswerType } from "@/utils/enums";
+import { ActivityAction, ExamEvent, ExamStatus, QuestionAnswerType } from "@/utils/enums";
 import { formatMinutesToTime, getErrorMessage, toast } from "@/utils/helpers";
 import useCountDownTimer from "@/hooks/useCountDownTimer";
 import { useNavigation } from "@react-navigation/native";
@@ -32,7 +32,7 @@ import { getExamInfoApi } from '@/containers/Home/apiClients';
 import useServerTime from '@/hooks/useServerTime';
 import { logError } from '@/utils/helpers/crashlyticsLogger';
 import crashlytics from '@react-native-firebase/crashlytics'
-import analytics from '@react-native-firebase/analytics'
+import { useActivityTracking } from '@/hooks/useActivityTracking';
 
 type Props = {
   examCode: string;
@@ -66,6 +66,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
   const [examSession, setExamSession] = useState<InfoExamSessionByCode>();
   const [openLeaveDialog, setOpenLeaveDialog] = useState<boolean>(false)
   const { getServerNow } = useServerTime();
+  const { track } = useActivityTracking()
 
   const handleOpenLeaveDialog = () => {
     setOpenLeaveDialog(true)
@@ -359,6 +360,14 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
       showToast("success", t("finish_exam_successful"));
       setEndExam(true);
       exam && exam.isLate && getCheckStatus();
+      track({
+        action: ActivityAction.SubmitExam,
+        metaData: {
+          examId: String(exam?.id),
+          examCode: exam?.code || '',
+          studentExamSessionId: String(exam?.studentExamSessionId || ''),
+        }
+      })
     } catch (error: any) {
       logError(error, {
         action: 'FINISH_EXAM',
@@ -407,6 +416,14 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
         setLoading(false);
         return;
       }
+      track({
+        action: status === ExamStatus.Paused ? ActivityAction.Pause : ActivityAction.Resume,
+        metaData: {
+          examId: String(exam.id),
+          examCode: exam.code || '',
+          studentExamSessionId: String(exam.studentExamSessionId || ''),
+        }
+      })
     } catch (error) {
       logError(error, {
         action: 'PAUSE_OR_RESUME_EXAM',
@@ -426,15 +443,15 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
       studentExamSessionId: String(exam.studentExamSessionId || ''),
     })
 
-    const track = async () => {
-      await analytics().logEvent('ENTER_EXAM', {
-        exam_id: String(exam.id),
-        exam_code: exam.code || '',
-        session_id: String(exam.studentExamSessionId || ''),
-      })
-    }
+    track({
+      action: ActivityAction.StartExam,
+      metaData: {
+        examId: String(exam.id),
+        examCode: exam.code || '',
+        studentExamSessionId: String(exam.studentExamSessionId || ''),
+      }
+    })
 
-    track()
   }, [exam?.id])
 
   useEffect(() => {
@@ -451,6 +468,14 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
       await restartExamApi(exam?.code || '');
       handleClear()
       getQuestionExams();
+      track({
+        action: ActivityAction.Restart,
+        metaData: {
+          examId: String(exam.id),
+          examCode: exam.code || '',
+          studentExamSessionId: String(exam.studentExamSessionId || ''),
+        }
+      })
     } catch (error) {
       showToast("error", getErrorMessage(t, error));
     }
@@ -586,26 +611,35 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     return unsubscribe;
   }, [navigation, exam?.status, t]);
 
+  const cleanupPusher = () => {
+    if (!academyDomain || !userId || !pusher) return
+
+    if (channelName.current) {
+      unsubscribeChannelSafe(pusher, channelName.current)
+    }
+
+    channel.current = undefined;
+    channelName.current = undefined;
+  };
+
   useFocusEffect(
     useCallback(() => {
-      if (!exam?.code) return;
+      if (!exam?.code || !pusher || !academyDomain) return;
 
-      handleListenerEvent();
-    }, [exam?.code, academyDomain, pusher])
-  );
+      let isActive = true;
 
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        if (channelName.current && pusher) {
-          const channelNameText = channelName.current;
-          unsubscribeChannelSafe(pusher, channelNameText);
-        }
-
-        channel.current = undefined;
-        channelName.current = undefined;
+      const initPusher = async () => {
+        if (!isActive) return;
+        await handleListenerEvent();
       };
-    }, [])
+
+      initPusher();
+
+      return () => {
+        isActive = false;
+        cleanupPusher()
+      }
+    }, [exam?.code, academyDomain, pusher])
   );
 
   useFocusEffect(

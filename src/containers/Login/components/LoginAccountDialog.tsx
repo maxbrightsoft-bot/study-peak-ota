@@ -1,159 +1,332 @@
+import React, { useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { palette, TYPO } from '@/theme'
 import TextField from '@/components/Input/TextField'
 import useLoginEmail from '../hooks/useLoginEmail'
+import useRegisterEmail, { TOTAL_REGISTER_STEPS } from '../hooks/useRegisterEmail'
 import { useTranslation } from 'react-i18next'
 import CustomTouchable from '@/components/Button/CustomTouchable'
 import CommonDialog from '@/components/ModalBase/CommonDialog'
+import ForgotPasswordDialog from './ForgotPasswordDialog'
+import Select from '@/components/Select/CustomSelect'
 
 type Props = {
   visible: boolean
+  onOpen: () => void
   onClose: () => void
 }
 
-const LoginAccountDialog = ({ visible, onClose }: Props) => {
+
+const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
   const { t } = useTranslation()
-  const { formik, showPassword, toggleShowPassword } = useLoginEmail()
 
-  const emailError =
-    formik.touched.email && formik.errors.email
-      ? formik.errors.email
-      : ''
+  const { formik: loginFormik, showPassword, toggleShowPassword } = useLoginEmail()
+  
+  const [mode, setMode] = useState<'login' | 'register'>('login')
+  const { formik: registerFormik, getError, subjectOptions, gradeOptions, registerStep, handleBack, handleNext } = useRegisterEmail({ mode, setMode })
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false)
 
-  const passwordError =
-    formik.touched.password && formik.errors.password
-      ? formik.errors.password
-      : ''
+  const renderLogin = () => {
+    const emailError =
+      loginFormik.touched.email && loginFormik.errors.email
+        ? loginFormik.errors.email
+        : ''
 
-  return (
-    <CommonDialog
-      isVisible={visible}
-      onClose={onClose}
-      title={t('sign_in')}
-    >
+    const passwordError =
+      loginFormik.touched.password && loginFormik.errors.password
+        ? loginFormik.errors.password
+        : ''
+
+    return (
       <View style={styles.form}>
-        <View>
-          <Text style={styles.label}>{t('email')}</Text>
-          <TextField
-            onChangeText={(text: string) => formik.setFieldValue('email', text)}
-            value={formik.values.email}
-            error={emailError}
-            keyboardType="email-address"
-          />
-        </View>
+        <Text style={styles.label}>{t('email')}</Text>
+        <TextField
+          value={loginFormik.values.email}
+          onChangeText={(text: string) => loginFormik.setFieldValue('email', text)}
+          error={emailError}
+        />
 
-        <View>
-          <Text style={styles.label}>{t('password')}</Text>
-          <TextField
-            onChangeText={(text: string) => formik.setFieldValue('password', text)}
-            value={formik.values.password}
-            error={passwordError}
-            secureTextEntry={!showPassword}
-            rightComponent={
-              <TouchableOpacity onPress={toggleShowPassword}>
-                <Ionicons
-                  name={showPassword ? 'eye-off' : 'eye'}
-                  size={20}
-                  color={palette.grey[500]}
-                />
-              </TouchableOpacity>
-            }
-          />
-        </View>
+        <Text style={styles.label}>{t('password')}</Text>
+        <TextField
+          value={loginFormik.values.password}
+          onChangeText={(text: string) => loginFormik.setFieldValue('password', text)}
+          error={passwordError}
+          secureTextEntry={!showPassword}
+          rightComponent={
+            <TouchableOpacity onPress={toggleShowPassword}>
+              <Ionicons
+                name={showPassword ? 'eye-off' : 'eye'}
+                size={20}
+                color={palette.grey[500]}
+              />
+            </TouchableOpacity>
+          }
+        />
+
+        <TouchableOpacity
+          style={styles.forgotPassword}
+          onPress={() => {
+            onClose()
+            setShowForgotPassword(true)
+          }}
+        >
+          <Text style={styles.forgotPasswordText}>
+            {t('forgot_password')}
+          </Text>
+        </TouchableOpacity>
 
         <CustomTouchable
-          style={styles.loginButton}
-          onPress={() => formik.handleSubmit()}
+          style={styles.primaryButton}
+          onPress={() => loginFormik.handleSubmit()}
         >
-          <Text style={styles.loginButtonText}>
-            {t('sign_in')}
+          <Text style={styles.primaryButtonText}>{t('sign_in')}</Text>
+        </CustomTouchable>
+      </View>
+    )
+  }
+
+  const renderStep1 = () => (
+    <>
+      <TextField
+        placeholder={t('email')}
+        value={registerFormik.values.email}
+        error={getError('email')}
+        onChangeText={(t: string) => registerFormik.setFieldValue('email', t)}
+      />
+
+      <TextField
+        placeholder={t('password')}
+        secureTextEntry={!showRegisterPassword}
+        value={registerFormik.values.password}
+        error={getError('password')}
+        onChangeText={(t: string) => registerFormik.setFieldValue('password', t)}
+        rightComponent={
+          <TouchableOpacity onPress={() => setShowRegisterPassword(p => !p)}>
+            <Ionicons
+              name={showRegisterPassword ? 'eye-off' : 'eye'}
+              size={20}
+              color={palette.grey[500]}
+            />
+          </TouchableOpacity>
+        }
+      />
+
+      <TextField
+        placeholder={t('confirm_password')}
+        secureTextEntry={!showRegisterPassword}
+        error={getError('confirmPassword')}
+        value={registerFormik.values.confirmPassword}
+        onChangeText={(t: string) =>
+          registerFormik.setFieldValue('confirmPassword', t)
+        }
+      />
+    </>
+  )
+
+  const renderStep2 = () => (
+    <>
+      <TextField
+        placeholder={t('full_name')}
+        error={getError('fullName')}
+        value={registerFormik.values.fullName}
+        onChangeText={(t: string) => registerFormik.setFieldValue('fullName', t)}
+      />
+      <TextField
+        placeholder={t('phone_number')}
+        keyboardType="phone-pad"
+        error={getError('phoneNumber')}
+        value={registerFormik.values.phoneNumber}
+        onChangeText={(t: string) => registerFormik.setFieldValue('phoneNumber', t)}
+      />
+      <TextField
+        placeholder={t('school_name')}
+        error={getError('schoolName')}
+        value={registerFormik.values.schoolName}
+        onChangeText={(t: string) => registerFormik.setFieldValue('schoolName', t)}
+      />
+    </>
+  )
+
+  const renderStep3 = () => (
+    <>
+      <TextField
+        placeholder={t('parent_name')}
+        error={getError('parentName')}
+        value={registerFormik.values.parentName}
+        onChangeText={(t: string) => registerFormik.setFieldValue('parentName', t)}
+      />
+      <TextField
+        placeholder={t('parent_phone_number')}
+        error={getError('parentPhoneNumber')}
+        keyboardType="phone-pad"
+        value={registerFormik.values.parentPhoneNumber}
+        onChangeText={(t: string) =>
+          registerFormik.setFieldValue('parentPhoneNumber', t)
+        }
+      />
+    </>
+  )
+
+  const renderStep4 = () => (
+    <>
+      <Select
+        onValueChange={(value) => registerFormik.setFieldValue('major', value)}
+        value={registerFormik.values.major || ''}
+        options={subjectOptions}
+      />
+      <Select
+        onValueChange={(value) => registerFormik.setFieldValue('grade', value)}
+        value={registerFormik.values.grade || ''}
+        options={gradeOptions}
+      />
+    </>
+  )
+
+  const renderRegisterStep = () => {
+    switch (registerStep) {
+      case 1: return renderStep1()
+      case 2: return renderStep2()
+      case 3: return renderStep3()
+      case 4: return renderStep4()
+      default: return null
+    }
+  }
+
+  const renderRegister = () => (
+    <View style={styles.form}>
+      <Text style={styles.stepText}>
+        {t('step', { current: registerStep, total: TOTAL_REGISTER_STEPS })}
+      </Text>
+
+      {renderRegisterStep()}
+
+      <View style={styles.row}>
+        {registerStep > 1 && (
+          <CustomTouchable style={styles.secondaryButton} onPress={handleBack}>
+            <Text>{t('back')}</Text>
+          </CustomTouchable>
+        )}
+
+        <CustomTouchable style={styles.primaryButton} onPress={handleNext}>
+          <Text style={styles.primaryButtonText}>
+            {registerStep === TOTAL_REGISTER_STEPS
+              ? t('sign_up')
+              : t('next')}
           </Text>
         </CustomTouchable>
       </View>
-    </CommonDialog>
+    </View>
+  )
+
+  return (
+    <>
+      <CommonDialog
+        isVisible={visible}
+        onClose={onClose}
+        title={mode === 'login' ? t('sign_in') : t('sign_up')}
+      >
+        <View style={styles.tabContainer}>
+          <TouchableOpacity onPress={() => setMode('login')}>
+            <Text style={[styles.tab, mode === 'login' && styles.activeTab]}>
+              {t('sign_in')}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => setMode('register')}>
+            <Text style={[styles.tab, mode === 'register' && styles.activeTab]}>
+              {t('sign_up')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {mode === 'login' ? renderLogin() : renderRegister()}
+      </CommonDialog>
+
+      {showForgotPassword && (
+        <ForgotPasswordDialog
+          onOpenLoginAccountDialog={onOpen}
+          visible={showForgotPassword}
+          onClose={() => setShowForgotPassword(false)}
+        />
+      )}
+    </>
   )
 }
 
 export default LoginAccountDialog
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 40,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 48,
-  },
-  logo: {
-    width: 180,
-    height: 60,
-    marginBottom: 24,
-  },
-  title: {
-    ...TYPO.h3,
-    color: palette.grey[900],
-    marginBottom: 8,
-  },
-  subtitle: {
-    ...TYPO.body3,
-    color: palette.grey[600],
-    textAlign: 'center',
-  },
-  form: {
-    gap: 12
-  },
-  inputSpacing: {
-    marginTop: 16,
-  },
+  form: { gap: 12 },
+
   label: {
     fontSize: 13,
     fontWeight: '500',
     color: palette.grey[700],
     marginBottom: 8,
   },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginTop: 12,
-    marginBottom: 24,
+
+  tabContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 16,
   },
-  loginButton: {
-    marginTop: 24,
+
+  tab: {
+    marginHorizontal: 12,
+    fontSize: 16,
+    color: palette.grey[500],
+  },
+
+  activeTab: {
+    color: palette.main[600],
+    fontWeight: 'bold',
+  },
+
+  primaryButton: {
+    marginTop: 12,
     backgroundColor: palette.main[600],
-    height: 54,
-    borderRadius: 12,
+    height: 50,
+    paddingHorizontal: 24,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: palette.main[600],
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
   },
-  loginButtonText: {
-    ...TYPO.button,
+
+  primaryButtonText: {
     color: '#fff',
-    fontSize: 16,
     fontWeight: 'bold',
   },
-  footer: {
-    marginTop: 'auto',
+
+  secondaryButton: {
+    backgroundColor: palette.grey[300],
+    paddingHorizontal: 16,
+    height: 50,
+    borderRadius: 10,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 32,
   },
-  footerText: {
+
+  row: {
+    flexDirection: 'row',
+    alignItems: "center",
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+
+  stepText: {
+    textAlign: 'center',
+    color: palette.grey[500],
+  },
+
+  forgotPassword: {
+    alignSelf: 'flex-end',
+  },
+
+  forgotPasswordText: {
     ...TYPO.body3,
-    color: palette.grey[600],
-  },
-  signUpText: {
     color: palette.main[500],
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
 })

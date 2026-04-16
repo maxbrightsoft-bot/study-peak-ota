@@ -63,3 +63,17 @@ export const apiLoginEmail = (body: LoginEmailRequest) =>
 
 
 export const getSuperAdminInfoFromWeb = () => api.get(`${AUTH_SUPER_ADMIN_URL}/info`)
+
+export const apiForgotPassword = (email: string) =>
+  api.post(`${AUTH_URL}/forgot-password`, { email }, {
+    headers: {
+      [NoAcademyHeaders]: true,
+    },
+  });
+
+export const apiResetPassword = (body: { key: string; email: string; otp: string; newPassword: string }) =>
+  api.post(`${AUTH_URL}/reset-password`, body, {
+    headers: {
+      [NoAcademyHeaders]: true,
+    },
+  });

@@ -1,3 +1,4 @@
+import useServerTime from "@/hooks/useServerTime";
 import { TimerStatus } from "@/utils/enums";
 import { getRemainTimeFromMinutes } from "@/utils/helpers";
 import { useState, useRef, useEffect } from "react";
@@ -26,10 +27,12 @@ const useCountDownTimer = (props: Props) => {
         onFinish,
         playAudio,
     } = props;
+    
 
     const [remainTime, setRemainTime] = useState<number>();
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const finishedRef = useRef(false);
+    const { getServerNow } = useServerTime();
 
     useEffect(() => {
         if (!duration || !startTime || isLoading) {
@@ -48,11 +51,13 @@ const useCountDownTimer = (props: Props) => {
 
         const tick = () => {
             if (finishedRef.current) return;
+            const serverNow = getServerNow();
 
             const remain = getRemainTimeFromMinutes(
                 startTime,
                 duration,
                 runningTime,
+                serverNow,
                 lastResumeTime
             );
 

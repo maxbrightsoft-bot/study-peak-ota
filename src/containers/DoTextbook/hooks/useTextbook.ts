@@ -22,7 +22,7 @@ import { Alert, findNodeHandle, FlatList, UIManager, View } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { PauseOrResumeExamRequest, RestartTextbookRequest } from "@/utils/types";
-import { ExamStatus, SubjectType } from "@/utils/enums";
+import { ActivityAction, ExamStatus, SubjectType } from "@/utils/enums";
 import moment from "moment";
 import { formatMinutesToTime, getErrorMessage, toast } from "@/utils/helpers";
 import _ from "lodash";
@@ -30,6 +30,7 @@ import useCountDownTimer from "@/hooks/useCountDownTimer";
 import useTimers from "@/layouts/hooks/useTimer";
 import useAlarm from "@/layouts/hooks/useAlarm";
 import useServerTime from "@/hooks/useServerTime";
+import { useActivityTracking } from "@/hooks/useActivityTracking";
 
 type Props = {
   handleOpenDrawer?: () => void;
@@ -70,7 +71,8 @@ const useTextbook = ({
   const [openLeaveDialog, setOpenLeaveDialog] = useState<boolean>(false)
   const [openExpiredQuestionDialog, setOpenExpiredQuestionDialog] = useState<boolean>(false)
   const [openTextbookResultDialog, setOpenTextbookResultDialog] = useState(false)
-   const { getServerNow } = useServerTime();
+  const { getServerNow } = useServerTime();
+  const { track } = useActivityTracking()
 
   const handleCloseTextbookResultDialog = () => {
     setOpenTextbookResultDialog(false)
@@ -459,6 +461,14 @@ const useTextbook = ({
           rowVersion: data?.rowVersion
         });
       });
+      track({
+        action: status === ExamStatus.Paused ? ActivityAction.Pause : ActivityAction.Resume,
+        metaData: {
+          textbookId: String(textbook?.id),
+          status: textbook?.status,
+          studentTextbookId: textbook?.studentTextbookId
+        }
+      })
     } catch (error) {
       toast.error(getErrorMessage(t, error));
     }
@@ -477,6 +487,14 @@ const useTextbook = ({
       };
       await restartTextbookApi(Number(textbook.id), req);
       getQuestionsTextbook();
+      track({
+        action: ActivityAction.Restart,
+        metaData: {
+          textbookId: String(textbook?.id),
+          status: textbook?.status,
+          studentTextbookId: textbook?.studentTextbookId
+        }
+      })
     } catch (error) {
       toast.error(getErrorMessage(t, error));
     }
@@ -509,6 +527,14 @@ const useTextbook = ({
       if (!textbookId) return;
 
       getQuestionsTextbook();
+      track({
+        action: ActivityAction.StartTextbook,
+        metaData: {
+          textbookId: String(textbook?.id),
+          status: textbook?.status,
+          studentTextbookId: textbook?.studentTextbookId
+        }
+      })
       return () => {
         clearData()
       }

@@ -100,7 +100,7 @@ const NoteItem: FC<NoteItemProps> = ({
         </View>
         <FontAwesome6 name="angle-right" size={20} color={palette.grey[300]} />
       </View>
-      <MathRender content={data.content} textColor={palette.grey[700]} />
+      <MathRender content={data.content} textColor={palette.grey[700]} maxLines={1}/>
     </Pressable>
   )
 }

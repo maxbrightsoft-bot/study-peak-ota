@@ -24,6 +24,7 @@ import { getCountTime, getErrorMessage, toast } from "@/utils/helpers"
 import { DATE_TIME_MIN_VALUE } from "@/utils/constants"
 import { useTranslation } from "react-i18next"
 import { removeDataStorage, setDataStorage } from "@/utils/storage"
+import useServerTime from "@/hooks/useServerTime"
 
 const useTimers = (open: boolean, handleToggle: () => void) => {
     const { user, timers, setTimers } = useAuthStore()
@@ -36,6 +37,7 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
     const [loadingItem, setLoadingItem] = useState(false)
     const [isFetching, setFetching] = useState(false)
     const [openTimeUpdateDialog, setOpenTimeUpdateDialog] = useState<SubjectTimerResponse>()
+    const { getServerNow } = useServerTime();
 
     const academyDomain = user?.academyDomain?.toLowerCase?.() ?? ""
     const onAcademy = academyDomain || user?.isLearningSpace
@@ -64,16 +66,17 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
         const isActive = activeTimerId === data.id
         const isStarted = data.status === TimerStatus.Started
         const timerKey = `${TIMER_KEY}.${user?.superId}.${data.id}.${data.timerId}`
-
+        const nowTime = getServerNow()
         setLoadingItem(true)
         try {
             const stop = onAcademy ? stopStudentSubjectApi : stopSuperStudentSubjectApi
             const res = await stop(data.id, data.timerId, {
-                stopTime: moment().utc().valueOf(),
+                stopTime: moment(nowTime).utc().valueOf(),
                 rowVersion: data.rowVersion
             })
             setTimers(timers.map(timer => timer.id === data.id ? res.data : timer))
             setActiveTimerId(isStarted && isActive ? undefined : data.id)
+            handleChangeTime(res.data, 0)
             await removeDataStorage(timerKey)
         } catch (error) {
             toast.error(getErrorMessage(t, error))
@@ -89,12 +92,13 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
         onError?: (error: any) => void
     ) => {
         if (data.status === TimerStatus.Paused) return data
+        const nowTime = getServerNow()
         const timerKey = `${TIMER_KEY}.${user?.superId}.${data.id}.${data.timerId}`
         try {
             const pause = onAcademy ? pauseStudentSubjectApi : pauseSuperStudentSubjectApi
             const res = await pause(data.id, {
                 status: TimerStatus.Paused,
-                pauseTime: data.pauseTime ?? moment().utc().valueOf(),
+                pauseTime: data.pauseTime ?? moment(nowTime).utc().valueOf(),
                 timerId: data.timerId,
                 rowVersion: data.rowVersion
             })
@@ -151,6 +155,7 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
             const mergedTimers = timers.map(
                 i => pausedTimers.find(p => p.id === i.id) ?? i
             )
+            const nowTime = getServerNow()
 
             if (data.timerId && !isRestart) {
                 if (!isActive && !isPaused) {
@@ -158,7 +163,7 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
                     setTimers(
                         mergedTimers.map(timer =>
                             timer.id === data.id
-                                ? { ...timer, lastResumeTime: moment().utc().toISOString() }
+                                ? { ...timer, lastResumeTime: moment(nowTime).utc().toISOString() }
                                 : timer
                         )
                     )
@@ -166,7 +171,7 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
                     const pause = onAcademy ? pauseStudentSubjectApi : pauseSuperStudentSubjectApi
                     const res = await pause(data.id, {
                         status: isPaused ? TimerStatus.Started : TimerStatus.Paused,
-                        pauseTime: !isPaused ? moment().utc().valueOf() : 0,
+                        pauseTime: !isPaused ? moment(nowTime).utc().valueOf() : 0,
                         timerId: data.timerId,
                         rowVersion: data.rowVersion
                     })
@@ -251,11 +256,12 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
         ) return
 
         try {
+            const nowTime = getServerNow()
             const save = onAcademy ? saveStudentSubjectTimerApi : saveSuperStudentSubjectTimerApi
             const res = await save(
                 selectedTimer.id,
                 selectedTimer.timerId,
-                { savedTime: moment().utc().valueOf() }
+                { savedTime: moment(nowTime).utc().valueOf() }
             )
             setTimers(
                 timers.map(timer =>
@@ -312,6 +318,7 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
         const tick = async () => {
             if (ticking) return
             ticking = true
+            const nowTime = getServerNow();
             try {
                 const {
                     startTime,
@@ -333,7 +340,7 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
 
                 if (startOfTime === DATE_TIME_MIN_VALUE || pauseTime) return
 
-                const time = getCountTime(startOfTime, duration)
+                const time = getCountTime(startOfTime, duration, nowTime)
                 if (typeof time !== "number") {
                     handleChangeTime(selectedTimer, 0)
                     return
@@ -341,7 +348,7 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
 
                 const secs = Math.floor(time / 1000)
                 handleChangeTime(selectedTimer, secs)
-                await setDataStorage(timerKey, `${Date.now()}`)
+                await setDataStorage(timerKey, `${nowTime}`)
             } finally {
                 ticking = false
             }
@@ -366,34 +373,15 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
 
     const isTimerRunning = timers.some(t => t.status === TimerStatus.Started)
 
-    const onStartOrPause = useMemo(
-        () => _.debounce(handleStartOrPauseTimer, 300),
-        [handleStartOrPauseTimer]
-    )
-
-    const onStopTimer = useMemo(
-        () => _.debounce(handleStopTimer, 300),
-        [handleStopTimer]
-    )
-
-    const onEditTimer = useMemo(
-        () => _.debounce(handleOpenDialogEditTimer, 100),
-        [handleOpenDialogEditTimer]
-    )
-
-    useEffect(() => () => onStartOrPause.cancel(), [onStartOrPause])
-    useEffect(() => () => onStopTimer.cancel(), [onStopTimer])
-    useEffect(() => () => onEditTimer.cancel(), [onEditTimer])
-
     const studyTimerProps: StudyTimerTabProps = {
         isFetching,
         loadingItem,
         subjects: timers,
         activeTimerId,
         time: seconds,
-        onStartOrPause,
-        onEditTimer,
-        onStopTimer
+        onStartOrPause: handleStartOrPauseTimer,
+        onEditTimer: handleOpenDialogEditTimer,
+        onStopTimer: handleStopTimer
     }
 
     const timeUpdateDialogProps: TimeUpdateDialogProps = {

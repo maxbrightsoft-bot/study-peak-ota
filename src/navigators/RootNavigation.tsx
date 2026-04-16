@@ -37,14 +37,14 @@ const RootNavigation: React.FC = () => {
     }
   }, [user?.id])
 
-  console.log({
-    env: BASE_URL,
-    language: language?.code,
-    user,
-    isLoading,
-    currentScreen: currentScreen(),
-    selectedAcademy
-  })
+  // console.log({
+  //   env: BASE_URL,
+  //   language: language?.code,
+  //   user,
+  //   isLoading,
+  //   currentScreen: currentScreen(),
+  //   selectedAcademy
+  // })
 
   return (
     <SafeAreaProvider>

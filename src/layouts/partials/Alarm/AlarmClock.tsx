@@ -38,6 +38,8 @@ const AlarmClock: FC<AlarmClockProps> = ({
     isPlaying ? onPause(alarm) : onResume(alarm)
   }
 
+  console.log("remainTime", remainTime)
+
   return (
     <View style={styles.container}>
       <CircularTimer maxMinutes={totalMinutes} remainSeconds={remainTime} edit={false} size={232} />

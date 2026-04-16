@@ -24,6 +24,7 @@ const CircularTimer: FC<CircularTimerProps> = ({
   size
 }) => {
   const { t } = useTranslation()
+
   const minutes = edit ? value : remainSeconds / 60
 
   return (
