@@ -194,7 +194,7 @@ const NoteDrawer: FC<Props> = (props) => {
                 {!!user.grade && (
                   <Text style={styles.studentText}>
                     {`${t(
-                      ((label) => (label ? t(label) : formatGrade(user.grade, t, language.code)))(
+                      ((label) => (label ? t(label) : formatGrade(user.grade, t, language?.code)))(
                         BRIEF_GRADE_OPTIONS.find((o: any) => o.value === Number(user.grade))?.label
                       )
                     )} ${!!user.gradeYear ? `(${user.gradeYear})` : ''}`}

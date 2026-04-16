@@ -63,7 +63,7 @@ const FormItem = ({ label, name, options, value, onChange, editingField, setEdit
             />
           )
         ) : (
-          <Text style={styles.valueText}>{value}</Text>
+          <Text style={styles.valueText} numberOfLines={1} ellipsizeMode="tail">{value}</Text>
         )}
 
         <TouchableOpacity onPress={() => setEditingField(isEditing ? null : name)}>
@@ -299,7 +299,7 @@ const styles = ScaledSheet.create({
   label: {
     fontSize: '16@ms',
     fontWeight: 600,
-    color: '#222'
+    color: '#222',
   },
 
   right: {
@@ -310,7 +310,7 @@ const styles = ScaledSheet.create({
   input: {
     fontSize: '15@ms',
     color: '#6A3DE8',
-    minWidth: 120
+    minWidth: 120,
   },
 
   divider: {
@@ -355,7 +355,8 @@ const styles = ScaledSheet.create({
     fontSize: '14@ms',
     color: palette.main[600],
     marginRight: 4,
-    fontWeight: '500'
+    fontWeight: '500',
+    maxWidth: 100
   },
 
   profileRow: {

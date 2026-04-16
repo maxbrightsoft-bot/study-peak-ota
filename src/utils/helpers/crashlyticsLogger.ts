@@ -1,16 +1,4 @@
 import crashlytics from '@react-native-firebase/crashlytics'
-import analytics from '@react-native-firebase/analytics'
-
-export const logEvent = async (
-  event: string,
-  data?: Record<string, any>
-) => {
-  try {
-    await analytics().logEvent(event, data)
-  } catch (e) {
-    console.log('Analytics error:', e)
-  }
-}
 
 export const logError = (
   error: any,

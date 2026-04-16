@@ -30,6 +30,7 @@ export const PUSHER_CONFIG = {
   cluster: process.env.EXPO_PUBLIC_PUSHER_CONFIG_CLUSTER || "",
   key: process.env.EXPO_PUBLIC_PUSHER_CONFIG_KEY || ""
 }
+export const OTA_URL = process.env.EXPO_PUBLIC_OTA_URL || ""
 export const BASE_URL = process.env.EXPO_PUBLIC_BASE_URL || ''
 export const SUPER_ADMIN_BASE_URL =
   process.env.EXPO_PUBLIC_SUPER_ADMIN_BASE_URL || ""

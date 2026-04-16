@@ -79,7 +79,7 @@ const AlarmClockPanel: FC<AlarmClockPanelProps> = ({
         <FlatList
           data={subjectOptions}
           numColumns={4}
-          columnWrapperStyle={{ gap: 8 }}
+          columnWrapperStyle={{ gap: 8, rowGap: 8 }}
           keyExtractor={(item, i) => `${item.value.id}_${i}`}
           contentContainerStyle={styles.subjectList}
           renderItem={({ item }) => (
@@ -99,7 +99,7 @@ const AlarmClockPanel: FC<AlarmClockPanelProps> = ({
         />
         <FlatList
           numColumns={3}
-          columnWrapperStyle={{ gap: 8 }}
+          columnWrapperStyle={{ gap: 8, rowGap: 8 }}
           data={QUICK_START_OPTIONS}
           contentContainerStyle={styles.subjectList}
           keyExtractor={(item, i) => `${item}_${i}`}

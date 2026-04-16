@@ -10,14 +10,15 @@ import _ from "lodash";
 import useAuthStore from "@/store/useAuthStore";
 import { useTranslation } from "react-i18next";
 import { diffFromNow, getErrorMessage, toast, toISOString } from "@/utils/helpers";
-import { ExamStatus, QuestionAnswerType } from "@/utils/enums";
+import { ActivityAction, ExamStatus, QuestionAnswerType } from "@/utils/enums";
 import moment from "moment";
 import { isTextType } from "@/utils/helpers/textbook";
 import { ExamSessionResponse } from "@/utils/types";
 import NetInfo from '@react-native-community/netinfo';
 import { getDataStorage, removeDataStorage, setDataStorage } from "@/utils/storage";
 import useServerTime from "@/hooks/useServerTime";
-import { logError, logEvent } from "@/utils/helpers/crashlyticsLogger";
+import { logError } from "@/utils/helpers/crashlyticsLogger";
+import { useActivityTracking } from "@/hooks/useActivityTracking";
 const DATE_TIME_FORMAT = "YYYY-MM-DDTHH:mm:ss.SSSZ"
 const rollBackQuestionList = "rb";
 const recoverQuestionList = "rc";
@@ -51,6 +52,7 @@ const useExamSolving = (props: Props) => {
     handleNextQuestion
   } = props;
   const { getServerNow } = useServerTime();
+  const { track } = useActivityTracking()
 
   const getServerTimeFormatted = useCallback(() => {
     const serverNow = getServerNow();
@@ -104,6 +106,7 @@ const useExamSolving = (props: Props) => {
   ) => {
     let res: any = null;
     let error: any = null;
+    const serverNow = getServerNow();
     try {
       res = await answerQuestionExam(examCode, body);
       res = res.data;
@@ -137,7 +140,7 @@ const useExamSolving = (props: Props) => {
         const rollBackQuestions = await getRollBackQuestionList();
         if (rollBackQuestions) {
           updateQuestionList?.(rollBackQuestions.questions);
-          if (ltAnswerTime.current && (diffFromNow(rollBackQuestions.lastAnswerTime, "milliseconds", ltAnswerTime.current) || 0) > 0)
+          if (ltAnswerTime.current && (diffFromNow(rollBackQuestions.lastAnswerTime, serverNow, ltAnswerTime.current) || 0) > 0)
             ltAnswerTime.current = rollBackQuestions.lastAnswerTime;
         }
 
@@ -183,6 +186,7 @@ const useExamSolving = (props: Props) => {
     callback?: Function
   ) => {
     if ((!examId && !callback) || !rollbackKey) return;
+    const serverNow = getServerNow();
 
     await setDataStorage(
       rollbackKey,
@@ -192,7 +196,7 @@ const useExamSolving = (props: Props) => {
         questions: questionList
       })
     );
-    if (ltAnswerTime.current && (diffFromNow(lastAnswerTime, "milliseconds", ltAnswerTime.current) || 0) > 0)
+    if (ltAnswerTime.current && (diffFromNow(lastAnswerTime, serverNow, ltAnswerTime.current) || 0) > 0)
       ltAnswerTime.current = lastAnswerTime;
     updateQuestionList?.(arrQuestionNew);
 
@@ -291,10 +295,15 @@ const useExamSolving = (props: Props) => {
         return item;
       });
 
-      logEvent('ANSWER_QUESTION', {
-        examCode,
-        questionId,
-        time: nowTime
+      track({
+        action: ActivityAction.Answer,
+        metaData: {
+          questionId,
+          examId: String(exam?.id),
+          status: exam?.isLate ? exam?.lateStatus : exam?.status,
+          examCode: exam?.code || '',
+          studentExamSessionId: String(exam?.studentExamSessionId || ''),
+        }
       })
 
       handleUpdateAnswer(arrQuestionNew, now, nowTime, totalRunningTime, questionId);
@@ -302,6 +311,21 @@ const useExamSolving = (props: Props) => {
       logError(error, {
         action: 'ANSWER_QUESTION',
         questionId,
+        examId: String(exam?.id),
+        examCode: exam?.code || '',
+        status: exam?.isLate ? exam?.lateStatus : exam?.status,
+        studentExamSessionId: String(exam?.studentExamSessionId || ''),
+      })
+      track({
+        action: ActivityAction.Error,
+        metaData: {
+          type: ActivityAction.Answer,
+          questionId,
+          examId: String(exam?.id),
+          examCode: exam?.code || '',
+          status: exam?.isLate ? exam?.lateStatus : exam?.status,
+          studentExamSessionId: String(exam?.studentExamSessionId || ''),
+        }
       })
     }
   };
@@ -328,10 +352,16 @@ const useExamSolving = (props: Props) => {
         }
         return item;
       });
-      logEvent('ANSWER_STAR_QUESTION', {
-        examCode,
-        questionId,
-        time: nowTime
+
+      track({
+        action: ActivityAction.StarAnswer,
+        metaData: {
+          questionId,
+          examId: String(exam.id),
+          status: exam?.isLate ? exam?.lateStatus : exam?.status,
+          examCode: exam.code || '',
+          studentExamSessionId: String(exam.studentExamSessionId || ''),
+        }
       })
 
       handleUpdateAnswer(arrQuestionNew, now, nowTime, totalRunningTime, questionId, true);
@@ -339,6 +369,21 @@ const useExamSolving = (props: Props) => {
       logError(error, {
         action: 'ANSWER_STAR_QUESTION',
         questionId,
+        examId: String(exam?.id),
+        status: exam?.isLate ? exam?.lateStatus : exam?.status,
+        examCode: exam?.code || '',
+        studentExamSessionId: String(exam?.studentExamSessionId || ''),
+      })
+      track({
+        action: ActivityAction.Error,
+        metaData: {
+          type: ActivityAction.StarAnswer,
+          questionId,
+          examId: String(exam?.id),
+          status: exam?.isLate ? exam?.lateStatus : exam?.status,
+          examCode: exam?.code || '',
+          studentExamSessionId: String(exam?.studentExamSessionId || ''),
+        }
       })
     }
   };

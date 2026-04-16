@@ -1,4 +1,4 @@
-import React, { FC } from 'react'
+import React, { FC, useMemo } from 'react'
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native'
 import CircularTimer from '../CircularTimer'
 import { TimerStatus } from '@/utils/enums'
@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { SubjectTimerResponse } from '@/utils/types'
 import AlarmClockNote from '../Alarm/AlarmClockNote'
 import { useTranslation } from 'react-i18next'
+import { TimerBase } from '@/layouts/configs/types'
 
 export interface AlarmClockProps {
   isLoading: boolean
@@ -22,22 +23,30 @@ export interface AlarmClockProps {
 const TimerClock: FC<AlarmClockProps> = ({ isLoading, time, onTerminate, data, onStartOrPauseTimer }) => {
   const { t } = useTranslation()
   const isPlaying = data.status === TimerStatus.Started
-  const isLimited = data.limitedTimeReached
 
-  const handlePauseOrResume = () => {
-    if (isLimited && isPlaying) {
-      onTerminate(data)
-      return
-    }
-    onStartOrPauseTimer(data, false)
+  const getDisplayTime = (
+    data?: TimerBase,
+    seconds?: number
+  ): number => {
+    if (!data) return 0
+
+    const limitedTime = Math.floor(data.limitedTime / 1000)
+
+    if (data.limitedTimeReached) return limitedTime
+    return Math.max(seconds ?? 0, 0)
   }
+
+  const displayedTime = useMemo(
+    () => getDisplayTime(data, time),
+    [data.id, data.status, data.duration, time]
+  )
 
   return (
     <View style={styles.container}>
-      <CircularTimer value={(time || 0) / 60} edit size={232} subject={data.name} />
+      <CircularTimer value={(displayedTime || 0) / 60} edit size={232} subject={data.name} />
 
       <View style={styles.actions}>
-        <TouchableOpacity style={[styles.button]} onPress={handlePauseOrResume} disabled={isLoading}>
+        <TouchableOpacity style={[styles.button]} onPress={() => onStartOrPauseTimer(data, false)} disabled={isLoading}>
           {isPlaying ? <PauseIcon /> : <Ionicons name="play" size={24} color="black" />}
           <Text style={[styles.buttonLabel]}>{t(isPlaying ? 'pause' : 'resume')}</Text>
         </TouchableOpacity>

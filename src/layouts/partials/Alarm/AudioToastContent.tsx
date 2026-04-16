@@ -11,6 +11,7 @@ import { getRemainTimeFromMinutes, toast } from '@/utils/helpers'
 import { removeDataStorage } from '@/utils/storage'
 import { TOAST_EXAM_STATUS } from '@/utils/constants'
 import { BaseToast, ErrorToast, InfoToast, SuccessToast } from 'react-native-toast-message'
+import useServerTime from '@/hooks/useServerTime'
 
 interface Props {
   audioSrc: string
@@ -34,6 +35,7 @@ const AudioToastContent: FC<Props> = ({ soundRef, audioSrc, alarm, remainTime, o
 
   const closeTimer = useRef<NodeJS.Timeout | null>(null)
   const tickTimer = useRef<NodeJS.Timeout | null>(null)
+  const { getServerNow } = useServerTime();
 
   useEffect(() => {
     if (!sound.current) return
@@ -103,10 +105,12 @@ const AudioToastContent: FC<Props> = ({ soundRef, audioSrc, alarm, remainTime, o
     if (alarm.status !== TimerStatus.Started) return
 
     const tick = () => {
+      const nowTime = getServerNow();
       const remain = getRemainTimeFromMinutes(
         alarm.startTime,
         alarm.duration,
         alarm.totalRunningTime,
+        nowTime,
         alarm.lastResumeTime
       )
 

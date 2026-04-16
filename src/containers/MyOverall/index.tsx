@@ -9,7 +9,6 @@ import { palette, TYPO } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
 import { utcToLocalTime } from '@/utils/helpers'
 import ChartSlide from './components/ChartSlide'
-import Carousel from 'react-native-reanimated-carousel'
 import { useWindowDimensions } from 'react-native'
 
 interface OverallTabProps {
@@ -34,7 +33,7 @@ const MyOverall: FC<OverallTabProps> = ({
 }) => {
   const { width } = useWindowDimensions()
   const { t } = useTranslation()
-  const SLIDE_WIDTH = width - 60
+  const SLIDE_WIDTH = width - 20
 
   const slides = [
     {
@@ -185,28 +184,32 @@ const MyOverall: FC<OverallTabProps> = ({
           </View>
         </View>
       </View>
-      <View>
+      <View >
         <ScrollView
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
           decelerationRate="fast"
-          snapToInterval={SLIDE_WIDTH + 16}
+          snapToInterval={SLIDE_WIDTH}
           snapToAlignment="start"
         >
           {slides.map((item, index) => (
             <View
               key={item.key}
               style={{
-                width: SLIDE_WIDTH,
-                marginRight: index === slides.length - 1 ? 0 : 16,
+                width: SLIDE_WIDTH
               }}
             >
-              <ChartSlide
-                title={item.title}
-                isTimeChart={item.isTimeChart}
-                payload={item.payload}
-              />
+              <View style={{
+                paddingLeft: index === 0 ? 0 : -20,
+                marginRight: index === slides.length - 1 ? 0 : 20
+              }}>
+                <ChartSlide
+                  title={item.title}
+                  isTimeChart={item.isTimeChart}
+                  payload={item.payload}
+                />
+              </View>
             </View>
           ))}
         </ScrollView>

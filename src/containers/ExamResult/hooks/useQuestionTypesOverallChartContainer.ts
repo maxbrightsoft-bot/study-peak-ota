@@ -1,10 +1,12 @@
 import { ExamResult } from "@/utils/types"
-import { useState, useEffect, useMemo, useCallback } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { OverallQuestionTypeData } from "../configs/types"
 import { SubjectType } from "@/utils/enums"
 import { checkData, getPercentage } from "../configs/helpers"
 import { getOverallQuestionTypesResultsApi } from "../apiClients"
+import useAuthStore from "@/store/useAuthStore"
+import { Language } from "@/utils/enums"
 
 const useQuestionTypesOverallChartContainer = (
     examResultData: ExamResult | undefined,
@@ -16,6 +18,8 @@ const useQuestionTypesOverallChartContainer = (
     const [isLoading, setLoading] = useState<boolean>(false)
     const [overallData, setOverallData] = useState<OverallQuestionTypeData[]>([])
     const { t } = useTranslation()
+    const { language } = useAuthStore()
+    const isKorean = language?.code === Language.ko;
 
     useEffect(() => {
         if (examCode && studentExamSessionId) setOverallData([])
@@ -28,10 +32,8 @@ const useQuestionTypesOverallChartContainer = (
             setLoading(true)
             try {
                 if (chapterId) return
-                else {
-                    const res = await getOverallQuestionTypesResultsApi(examCode, +(studentExamSessionId || 0))
-                    setOverallData(res.data?.data?.slice(0, 6) ?? [])
-                }
+                const res = await getOverallQuestionTypesResultsApi(examCode, +(studentExamSessionId || 0))
+                setOverallData(res.data?.data?.slice(0, 6) ?? [])
             } catch (error) {
                 console.log(error)
             }
@@ -51,54 +53,38 @@ const useQuestionTypesOverallChartContainer = (
     }, [JSON.stringify(overallData)])
 
     const categories = useMemo(() => {
-        if (!overallData) return ["", "", "", "", "", ""]
+        if (!overallData?.length) return ["", "", "", "", "", ""]
         return overallData.map(i => i.name)
-    }, [overallData])
+    }, [JSON.stringify(overallData)])
 
     const shortCategories = useMemo(() => {
-        if (!overallData) return ["", "", "", "", "", ""]
+        if (!overallData?.length) return ["", "", "", "", "", ""]
         return overallData.map(i => i.name.slice(0, 4) + "...")
-    }, [overallData])
+    }, [JSON.stringify(overallData)])
 
-    const xAxisLabelFormatter = useCallback(
-        (_: string, { dataPointIndex }: any) => {
-            if (dataPointIndex === 0 || dataPointIndex === 3) return categories[dataPointIndex]
-            const texts = categories[dataPointIndex]?.split(" ") ?? []
-            return texts
-        },
-        [JSON.stringify(categories)]
-    )
+    const xAxisLabels = useMemo(() => {
+        return categories.map((label, index) => {
+            if (index === 0 || index === 3) return [label]
+            return label.split(" ")
+        })
+    }, [JSON.stringify(categories)])
 
-    const formatTooltip = useCallback(
-        ({ dataPointIndex, w }: any) => {
-            const label = categories[dataPointIndex]
-            if (!label) return ""
-            const data = overallData?.[dataPointIndex]
-            const myValue = `${(!data?.totalQuestions ? 0 : (data?.totalCorrectQuestions * 100) / data.totalQuestions)?.toFixed(2) ?? 0}%`
-            const avgValue = `${(!data?.totalQuestions ? 0 : (data?.avgCorrectQuestions * 100) / data.totalQuestions)?.toFixed(2) ?? 0}%`
+    const tooltipData = useMemo(() => {
+        return categories.map((label, index) => {
+            const data = overallData?.[index]
+            const myValue = `${(!data?.totalQuestions ? 0 : (data.totalCorrectQuestions * 100) / data.totalQuestions).toFixed(2)}%`
+            const avgValue = `${(!data?.totalQuestions ? 0 : (data.avgCorrectQuestions * 100) / data.totalQuestions).toFixed(2)}%`
+            return { label, myValue, avgValue }
+        })
+    }, [JSON.stringify(overallData), JSON.stringify(categories)])
 
-            return `<div style="padding: 8px; background: #fff; border-radius: 4px;">
-                    <div style="border-bottom: 1px solid #f3f3f3; margin-bottom: 4px"><strong>${label}</strong></div>
-                    <div style="display: flex; justify-content: space-between">
-                        <p style="margin-right: 4px"><strong style="color: ${w.globals.colors[0]}">${t("my_data")}:</strong></p>
-                        <p>${myValue}</p>
-                    </div>
-                    <div style="display: flex; justify-content: space-between">
-                        <p style="margin-right: 4px"><strong style="color: ${w.globals.colors[1]}">${t("avg_data")}:</strong></p>
-                        <p>${avgValue}</p>
-                    </div>
-                </div>`
-        },
-        [t, JSON.stringify(overallData), JSON.stringify(categories)]
-    )
     return {
         isLoading,
         myData,
         avgData,
-        categories,
-        shortCategories,
-        xAxisLabelFormatter,
-        formatTooltip
+        categories: isKorean ? categories : shortCategories,
+        xAxisLabels,
+        tooltipData,
     }
 }
 

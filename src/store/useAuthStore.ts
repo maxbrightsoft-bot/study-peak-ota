@@ -7,12 +7,10 @@ import {
   PusherChannel,
   PusherEvent,
 } from "@pusher/pusher-websocket-react-native";
-import analytics from '@react-native-firebase/analytics'
 
 import {
   AcademyHeaders,
   BASE_URL,
-  LANGUAGES,
   NoAcademyHeaders,
   PUSHER_CONFIG,
 } from "@/utils/constants";
@@ -129,7 +127,6 @@ const useAuthStore = create<AuthStore>()(
           userId: String(user.id),
           academyDomain: user.academyDomain || '',
         })
-        await analytics().setUserId(String(user.id))
       },
       clearCrashlyticsUser: () => {
         crashlytics().setUserId('')
@@ -241,6 +238,9 @@ const useAuthStore = create<AuthStore>()(
           channelName,
           onEvent: (event: PusherEvent) => {
             try {
+              console.log({ channelName, eventHandlers});
+              
+              console.log("[Pusher] Event:", event.eventName);
               const matched = eventHandlers.find(
                 (e) => e.eventName === event.eventName
               );

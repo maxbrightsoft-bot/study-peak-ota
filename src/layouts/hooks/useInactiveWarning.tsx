@@ -10,6 +10,7 @@ import {
   PAUSE_INACTIVITY_LIMIT,
 } from '../configs/constants';
 import { SubjectTimerResponse } from '../../utils/types';
+import useServerTime from '@/hooks/useServerTime';
 
 const useInactiveWarning = (
   isRunning: boolean,
@@ -19,6 +20,7 @@ const useInactiveWarning = (
   ) => void
 ) => {
   const { t } = useTranslation();
+  const { getServerNow } = useServerTime();
 
   const [showWarning, setShowWarning] =
     useState<boolean>(false);
@@ -47,7 +49,8 @@ const useInactiveWarning = (
   };
 
   const checkTime = async () => {
-    const diff = moment().diff(
+    const nowTime = getServerNow();
+    const diff = moment(nowTime).diff(
       lastActiveRef.current,
       'milliseconds'
     );
@@ -76,7 +79,8 @@ const useInactiveWarning = (
   };
 
   const resetTimer = useCallback(() => {
-    lastActiveRef.current = moment();
+    const nowTime = getServerNow();
+    lastActiveRef.current = moment(nowTime);
     setShowWarning(false);
     stopWarning();
 

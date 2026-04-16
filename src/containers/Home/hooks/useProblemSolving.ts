@@ -20,7 +20,7 @@ import useAlarm from "@/layouts/hooks/useAlarm";
 import { ScrollView } from "react-native";
 
 const useProblemSolving = () => {
-  const { user, selectedAcademy: academy, setLoading, setLoadingWithoutOverlay, pusher, subscribeChannel } = useAuthStore()
+  const { user, selectedAcademy: academy, setLoading, setLoadingWithoutOverlay, pusher, subscribeChannel, unsubscribeChannelSafe } = useAuthStore()
   const [open, setOpen] = useState<boolean>(false);
   const [openSchedule, setOpenSchedule] = useState<boolean>(false);
   const [codeExam, setCodeExam] = useState<string>("");
@@ -214,19 +214,19 @@ const useProblemSolving = () => {
     }
   };
 
-  // const cleanupPusher = () => {
-  //   if (!academyDomain || !userId || !pusher) return
-  //   if (studentChannelName.current) {
-  //     unsubscribeChannelSafe(pusher, studentChannelName.current)
-  //   }
-  //   if (channelName.current) {
-  //     unsubscribeChannelSafe(pusher, channelName.current)
-  //   }
+  const cleanupPusher = () => {
+    if (!academyDomain || !userId || !pusher) return
+    if (studentChannelName.current) {
+      unsubscribeChannelSafe(pusher, studentChannelName.current)
+    }
+    if (channelName.current) {
+      unsubscribeChannelSafe(pusher, channelName.current)
+    }
 
-  //   // isCheckTeacherStart &&
-  //   //   codeExam &&
-  //   //   window.removeEventListener("beforeunload", handleUnload);
-  // };
+    // isCheckTeacherStart &&
+    //   codeExam &&
+    //   window.removeEventListener("beforeunload", handleUnload);
+  };
 
   const handleGetScheduleCount = async () => {
     try {
@@ -316,13 +316,19 @@ const useProblemSolving = () => {
   );
 
   useEffect(() => {
+    let isStart = true;
+
     const initPusher = async () => {
+      if (!isStart) return;
       await handleListenerEvent();
     };
 
     initPusher()
 
-    // return cleanupPusher;
+    return () => {
+      isStart = false;
+      cleanupPusher()
+    };
   }, [
     pusher,
     codeExam,

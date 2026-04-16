@@ -1,5 +1,5 @@
 import _ from "lodash"
-import moment, { Moment, unitOfTime } from "moment"
+import moment, { Moment } from "moment"
 import { DATE_MIN_VALUE, DATE_TIME_MIN_VALUE } from "../constants"
 
 export const getLocalDayOfWeek = (utcDateTime: string, dayOfWeek: number) => {
@@ -9,14 +9,18 @@ export const getLocalDayOfWeek = (utcDateTime: string, dayOfWeek: number) => {
     return moment.utc(utcDateTime).add(diff, "days").local().weekday()
 }
 
-export const diffFromNow = (time: string, unitOfTime: unitOfTime.Diff, targetTime?: string) => {
-    if (time === DATE_MIN_VALUE || targetTime === DATE_MIN_VALUE) return 0
-    try {
-        const now = !targetTime ? moment() : moment.utc(targetTime).local();
-        return now.diff(moment.utc(time).local(), unitOfTime)
-    } catch {
-        return ""
-    }
+export const diffFromNow = (
+  time: string,
+  nowMs: number,
+  targetTime?: string
+) => {
+  const baseNow = targetTime
+    ? new Date(targetTime).getTime()
+    : nowMs
+
+  const t = new Date(time).getTime()
+
+  return baseNow - t
 }
 
 export const formatMinutesToTime = (minutes: number) => {
@@ -67,25 +71,22 @@ export const convertHHMMSStoSeconds = (time?: string) => {
     return +times[0] * 60 * 60 + +times[1] * 60 + +times[2]
 }
 
-export const getRemainTime = (startTime: string, duration: string) => {
-    const timePass = diffFromNow(startTime, "second")
-    const durationInNumber = convertHHMMSStoSeconds(duration)
-    if (typeof timePass !== "number") return null
-    if (timePass > durationInNumber) return 0
-    return durationInNumber - timePass
-}
-
-export const getRemainTimeFromMinutes = (startTime: string, duration: number, runningTime: number, lastResumeTime?: string) => {
+export const getRemainTimeFromMinutes = (startTime: string, duration: number, runningTime: number, nowTime: number, lastResumeTime?: string) => {
     const time = (!lastResumeTime || lastResumeTime === DATE_TIME_MIN_VALUE) ? startTime : lastResumeTime
-    const timePass = diffFromNow(time, "milliseconds")
+    const timePass = diffFromNow(time, nowTime)
     if (typeof timePass !== "number") return null
     const totalTimePassed = runningTime + timePass
     if (totalTimePassed > duration) return 0
     return duration - totalTimePassed
 }
 
-export const getCountTime = (startTime: string, duration: number) => {
-    const timePass = diffFromNow(startTime, "milliseconds")
-    if (typeof timePass !== "number") return null
-    return duration + timePass
+export const getCountTime = (
+  startTime: string,
+  duration: number,
+  nowTime: number
+) => {
+  const start = new Date(startTime).getTime()
+  if (!start) return null
+
+  return duration + (nowTime - start)
 }

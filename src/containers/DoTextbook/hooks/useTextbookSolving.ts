@@ -9,9 +9,11 @@ import moment from "moment";
 import { diffFromNow, getErrorMessage, toast, toISOString } from "@/utils/helpers";
 import { DATE_TIME_MIN_VALUE } from "@/utils/constants";
 import { isTextType } from "@/utils/helpers/textbook";
-import { QuestionAnswerType } from "@/utils/enums";
+import { ActivityAction, QuestionAnswerType } from "@/utils/enums";
 import { getDataStorage, removeDataStorage, setDataStorage } from "@/utils/storage";
 import useServerTime from '@/hooks/useServerTime';
+import { logError } from '@/utils/helpers/crashlyticsLogger';
+import { useActivityTracking } from '@/hooks/useActivityTracking';
 
 const DATE_TIME_FORMAT = "YYYY-MM-DDTHH:mm:ss.SSSZ"
 const rollBackQuestionList = "trb";
@@ -43,6 +45,7 @@ const useTextbookSolving = (props: Props) => {
   const userId: number | undefined = user?.id;
   const { t } = useTranslation();
   const { getServerNow } = useServerTime();
+  const { track } = useActivityTracking()
 
   const getServerTimeFormatted = useCallback(() => {
     const serverNow = getServerNow();
@@ -68,7 +71,7 @@ const useTextbookSolving = (props: Props) => {
     return `${rollBackQuestionList}.${academyId}.${textbookId}.${userId}`;
   }, [academyDomain, academyId, textbookId, userId]);
 
-  const getDiffTime = (now: string) => {
+  const getDiffTime = (now: string, nowTime: number) => {
     if (!textbook) return 0;
 
     let lastAnswerTime = textbook.isMock
@@ -80,9 +83,9 @@ const useTextbookSolving = (props: Props) => {
         : startTime;
     let diff = 0
 
-    const totalRunningTime = +diffFromNow(textbook?.startTime || "", "milliseconds", now)
+    const totalRunningTime = +diffFromNow(textbook?.startTime || "", nowTime, now)
     if (!textbook?.isMock)
-      diff = +diffFromNow(moment(lastAnswerTime).format(DATE_TIME_FORMAT), "milliseconds", now)
+      diff = +diffFromNow(moment(lastAnswerTime).format(DATE_TIME_FORMAT), nowTime, now)
     else
       diff = totalRunningTime - (totalAnsweredTimeRef.current ?? textbook.totalAnswerTime) - textbook.totalPausedTime;
     diff = Math.max(0, diff)
@@ -257,7 +260,7 @@ const useTextbookSolving = (props: Props) => {
               break;
           }
 
-          const diff = getDiffTime(now);
+          const diff = getDiffTime(now, nowTime);
           item.duration = (item.duration || 0) + +diff;
           item.answerTime =
             item.answerTime && item.answerTime !== 0
@@ -267,9 +270,36 @@ const useTextbookSolving = (props: Props) => {
         return item;
       });
 
+      track({
+        action: ActivityAction.Answer,
+        metaData: {
+          questionId,
+          textbookId: String(textbook?.id),
+          status: textbook?.status,
+          studentTextbookId: textbook?.studentTextbookId
+        }
+      })
+
       handleUpdateAnswer(arrQuestionNew, now, nowTime, questionId);
     } catch (error) {
       console.log({ error });
+      logError(error, {
+        action: 'ANSWER_QUESTION',
+        questionId,
+        textbookId: String(textbook?.id),
+        status: textbook?.status,
+        studentTextbookId: textbook?.studentTextbookId
+      })
+      track({
+        action: ActivityAction.Error,
+        metaData: {
+          type: ActivityAction.Answer,
+          questionId,
+          textbookId: String(textbook?.id),
+          status: textbook?.status,
+          studentTextbookId: textbook?.studentTextbookId
+        }
+      })
     }
   };
 
@@ -290,7 +320,7 @@ const useTextbookSolving = (props: Props) => {
         }
         if (item.id === questionId) {
           item.isStar = isStar;
-          const diff = getDiffTime(now);
+          const diff = getDiffTime(now, nowTime);
           item.duration = (item.duration || 0) + +diff;
           item.answerTime =
             item.answerTime && item.answerTime !== 0
@@ -299,10 +329,36 @@ const useTextbookSolving = (props: Props) => {
         }
         return item;
       });
+      track({
+        action: ActivityAction.StarAnswer,
+        metaData: {
+          type: ActivityAction.StarAnswer,
+          questionId,
+          textbookId: String(textbook?.id),
+          status: textbook?.status,
+          studentTextbookId: textbook?.studentTextbookId
+        }
+      })
 
       handleUpdateAnswer(arrQuestionNew, now, nowTime, questionId, true);
     } catch (error) {
       console.log({ error });
+      logError(error, {
+        action: 'ANSWER_STAR_QUESTION',
+        questionId,
+        textbookId: String(textbook?.id),
+        status: textbook?.status,
+        studentTextbookId: textbook?.studentTextbookId
+      })
+      track({
+        action: ActivityAction.Error,
+        metaData: {
+          questionId,
+          textbookId: String(textbook?.id),
+          status: textbook?.status,
+          studentTextbookId: textbook?.studentTextbookId
+        }
+      })
     }
   };
 

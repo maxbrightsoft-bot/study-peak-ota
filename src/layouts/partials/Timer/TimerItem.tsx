@@ -46,16 +46,30 @@ const TimerItem: FC<Props> = ({
     [data.id, data.status, data.duration, seconds, activeTimerId, t]
   )
 
+  const handleStartOrPauseTimer = () => {
+    onStartOrPauseTimer(
+      data,
+      data.status !== TimerStatus.Started
+        ? data.limitedTimeReached
+        : false
+    )
+  }
+
   const handleMainAction = () => {
     if (isLimited && isStarted) {
       onStopTimer(data)
       return
     }
 
-    onStartOrPauseTimer(data, !isStarted && (isLimited || isStopped || (isPaused && !isPausedSameToday)))
+    isLimited || isStopped || (isPaused && !isPausedSameToday)
+      ? handleRestart()
+      : handleStartOrPauseTimer()
   }
 
   const handleRestart = () => {
+    if (data.status === TimerStatus.Started && !data.limitedTimeReached)
+      return
+
     onStartOrPauseTimer(data, true)
     setConfirmVisible(false)
     setMenuVisible(false)
@@ -70,49 +84,85 @@ const TimerItem: FC<Props> = ({
         </View>
         <View style={styles.right}>
           <Text style={[styles.timeInactive, { color: palette.main[600] }]}>{t('press_to_start')}</Text>
-          <Ionicons name={'play'} size={16} color={palette.main[600]} />
-          {/* {(isPaused || isStopped) && (
-            <Menu
-              visible={menuVisible}
-              onDismiss={() => setMenuVisible(false)}
-              style={{ margin: 0, padding: 0 }}
-              contentStyle={{ margin: 0, padding: 0 }}
-              anchor={
-                <MaterialCommunityIcons
-                  style={{ margin: 0, padding: 0 }}
-                  name="dots-horizontal-circle-outline"
-                  size={16}
-                  color={palette.main[600]}
-                  onPress={() => setMenuVisible(true)}
-                />
-              }
+          {isLimited || isStopped ||
+            (isPaused && !isPausedSameToday) ? <Pressable
+              onPress={(e) => {
+                e.stopPropagation();
+                handleRestart();
+              }}
+              style={{
+              }}
             >
-              {(!isStarted && isLimited) || isStopped || (isPaused && !isPausedSameToday) ? (
-                <Menu.Item title={t('restart_timer')} leadingIcon="reload" onPress={() => setConfirmVisible(true)} />
-              ) : (
-                <Menu.Item
-                  title={t('start_timer')}
-                  leadingIcon="play-circle"
-                  onPress={() => {
-                    setMenuVisible(false)
-                    handleMainAction()
-                  }}
-                />
-              )}
-              {!isStopped && !isLimited && (!isPaused || isPausedSameToday) && (
-                <Menu.Item title={t('restart_timer')} leadingIcon="reload" onPress={() => setConfirmVisible(true)} />
-              )}
-
-              <Menu.Item
-                title={t('updating_timeline')}
-                leadingIcon="pencil"
-                onPress={() => {
-                  setMenuVisible(false)
-                  onEditTimer(data)
+            <Ionicons name={'reload'} size={16} color={palette.main[600]} />
+          </Pressable> :
+            <Ionicons name={'play'} size={16} color={palette.main[600]} />}
+          {!isLimited &&
+            !isStopped &&
+            (
+              !isPaused ||
+              isPausedSameToday
+            ) && (
+              <Pressable
+                onPress={(e) => {
+                  e.stopPropagation();
+                  handleRestart();
                 }}
-              />
-            </Menu>
-          )} */}
+                style={{
+                }}
+              >
+                <Ionicons name={'reload'} size={16} color={palette.main[600]} />
+              </Pressable>
+              // <Menu
+              //   visible={menuVisible}
+              //   onDismiss={() => setMenuVisible(false)}
+              //   style={{ margin: 0, padding: 0 }}
+              //   contentStyle={{ margin: 0, padding: 0 }}
+              //   anchor={
+              //     <Pressable
+              //       onPress={(e) => {
+              //         e.stopPropagation();
+              //         setMenuVisible(true);
+              //       }}
+              //       hitSlop={10}
+              //       style={{
+              //         padding: 8,
+              //         marginLeft: 4,
+              //       }}
+              //     >
+              //       <MaterialCommunityIcons
+              //         name="dots-horizontal-circle-outline"
+              //         size={16}
+              //         color={palette.main[600]}
+              //       />
+              //     </Pressable>
+              //   }
+              // >
+              //   {(!isStarted && isLimited) || isStopped || (isPaused && !isPausedSameToday) ? (
+              //     <Menu.Item title={t('restart_timer')} leadingIcon="reload" onPress={() => setConfirmVisible(true)} />
+              //   ) : (
+              //     <Menu.Item
+              //       title={t('start_timer')}
+              //       leadingIcon="play-circle"
+              //       onPress={() => {
+              //         setMenuVisible(false)
+              //         handleMainAction()
+              //       }}
+              //     />
+              //   )}
+              //   {!isStopped && !isLimited && (!isPaused || isPausedSameToday) && (
+              //     <Menu.Item title={t('restart_timer')} leadingIcon="reload" onPress={() => setConfirmVisible(true)} />
+              //   )}
+
+              //   {/* <Menu.Item
+              //     title={t('updating_timeline')}
+              //     leadingIcon="pencil"
+              //     onPress={() => {
+              //       setMenuVisible(false)
+              //       onEditTimer(data)
+              //     }}
+              //   /> */}
+              // </Menu>
+            )}
         </View>
       </Pressable>
       <ConfirmDialog
