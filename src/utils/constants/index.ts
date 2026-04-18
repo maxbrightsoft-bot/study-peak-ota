@@ -4,7 +4,7 @@ import { QuestionAnswerType } from "../enums"
 import Constants from "expo-constants";
 
 const extra = Constants.expoConfig?.extra || {};
-
+export const KEEP_LOGIN = 'KEEP_LOGIN'
 export const ACCESS_TOKEN = 'ACCESS_TOKEN'
 export const LanguageHeaders = "Accept-Language"
 export const ACADEMY_DOMAIN = "ACADEMY_DOMAIN"

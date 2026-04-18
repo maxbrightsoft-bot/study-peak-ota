@@ -74,7 +74,6 @@ const useRegisterEmail = ({ mode, setMode }: { mode: "login" | "register", setMo
     onSubmit: async (values) => {
       try {
         const { confirmPassword, ...data } = values
-        console.log({ data });
 
         setLoading(true)
         await registerAccountApi(data)

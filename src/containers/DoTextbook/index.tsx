@@ -442,7 +442,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
         />
         {currentQuestion && (
           <SelectAnswerSheet
-            onFishedExam={onFinishedTextbook}
+            onFishedExam={handleOpenLeaveDialog}
             visible={openAnswerSheet}
             onClose={handleCloseAnswerSheet}
             scrollToQuestion={scrollToQuestion}

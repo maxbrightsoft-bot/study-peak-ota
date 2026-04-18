@@ -299,7 +299,6 @@ export type QuestionTime = {
 export interface InfoExamSessionByCode {
   id: number
   code: string
-  category: string
   subject: string
   grade: number
   gradeYear: number

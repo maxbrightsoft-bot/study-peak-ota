@@ -1,10 +1,8 @@
 export enum ActivityAction
     {
-        StartExam,
+        Start,
         SubmitExam,
-        EndExam,
-        StartTextbook,
-        EndTextbook,
+        End,
 
         Answer,
         StarAnswer,

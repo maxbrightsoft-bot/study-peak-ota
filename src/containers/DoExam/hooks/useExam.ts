@@ -424,6 +424,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
           studentExamSessionId: String(exam.studentExamSessionId || ''),
         }
       })
+      showToast("info", t(status === ExamStatus.Paused ? "exam_has_been_paused" : "exam_has_been_resumed"));
     } catch (error) {
       logError(error, {
         action: 'PAUSE_OR_RESUME_EXAM',
@@ -444,7 +445,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     })
 
     track({
-      action: ActivityAction.StartExam,
+      action: ActivityAction.Start,
       metaData: {
         examId: String(exam.id),
         examCode: exam.code || '',
@@ -476,6 +477,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
           studentExamSessionId: String(exam.studentExamSessionId || ''),
         }
       })
+      showToast("info", t("exam_has_been_restarted"));
     } catch (error) {
       showToast("error", getErrorMessage(t, error));
     }

@@ -1,4 +1,4 @@
-import RootNavigation from "@/navigators/RootNavigation";
+import RootNavigation from "../src/navigators/RootNavigation";
 import { I18nextProvider } from "react-i18next";
 import React, { useEffect } from "react";
 import { NavigationIndependentTree } from "@react-navigation/native";

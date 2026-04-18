@@ -140,7 +140,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: palette.grey[300],
     borderRadius: 8,
-    flex: 1
+    flex: 1,
+    overflow: 'hidden'
   },
   header: {
     borderTopLeftRadius: 8,
@@ -158,6 +159,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7
   },
   row: {
+    minHeight: 50,
     position: 'relative',
     flexDirection: 'row',
     alignItems: 'stretch',
