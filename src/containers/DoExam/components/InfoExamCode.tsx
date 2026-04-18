@@ -23,11 +23,6 @@ const InfoExamCode = ({ onClose, open, examSession }: Props) => {
         </View>
 
         <View style={styles.row}>
-          <Text style={styles.label}>{t('exam_category')}</Text>
-          <Text style={styles.value}>{examSession?.category}</Text>
-        </View>
-
-        <View style={styles.row}>
           <Text style={styles.label}>{t('exam_subject')}</Text>
           <Text style={styles.value}>{examSession?.subject}</Text>
         </View>

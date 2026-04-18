@@ -17,7 +17,7 @@ export const LANGUAGES: LanguageResponse[] = [
       nativeName: "English",
       name: "English",
       image: "/images/usa.png",
-      momentLangCode: "en-au"
+      momentLangCode: "en-gb"
   },
   {
       code: "vi",

@@ -1,7 +1,6 @@
-// Learn more https://docs.expo.io/guides/customizing-metro
 const { getDefaultConfig } = require('expo/metro-config');
+const path = require('path');
 
-/** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(__dirname);
 
 config.transformer = {
@@ -15,11 +14,16 @@ config.transformer = {
     },
   }),
 };
-//
+
 config.resolver = {
   ...config.resolver,
+  extraNodeModules: {
+    '@': path.resolve(__dirname, 'src'),
+  },
   assetExts: config.resolver.assetExts.filter((ext) => ext !== 'svg'),
   sourceExts: [...config.resolver.sourceExts, 'svg', 'd.ts'],
 };
+
+config.watchFolders = [path.resolve(__dirname, 'src')];
 
 module.exports = config;

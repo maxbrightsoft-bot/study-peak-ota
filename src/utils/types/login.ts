@@ -17,6 +17,7 @@ export type LoginRequest = {
   googleId?: string;
   role: string;
   isMobile: boolean
+  isKeepMeLoggedIn?: boolean
 }
 
 export type LoginAccessTokenRequest = {
@@ -30,4 +31,5 @@ export type LoginEmailRequest = {
   email: string
   password: string
   role: string
+  isKeepMeLoggedIn: boolean
 }

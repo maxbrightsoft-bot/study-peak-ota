@@ -46,7 +46,10 @@ const SelectAnswerSheet = ({
   const closeChildren = useMemo(
     () => (
       <TouchableOpacity
-        onPress={onFishedExam}
+        onPress={() => {
+          onClose()
+          onFishedExam()
+        }}
         style={{
           paddingHorizontal: 10,
           justifyContent: 'center',

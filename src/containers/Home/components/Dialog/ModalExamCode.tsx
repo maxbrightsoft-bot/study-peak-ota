@@ -56,7 +56,8 @@ const styles = ScaledSheet.create({
     textAlign: 'center'
   },
   label: {
-    ...TYPO.caption,
+    fontSize: 14,
+    fontWeight: '700',
     color: palette.grey[900],
     marginBottom: 8
   },

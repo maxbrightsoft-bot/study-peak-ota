@@ -29,7 +29,7 @@ const ChatItem = ({ t, item, toggleUpdateDialog, toggleConfirmDialog }: Props) =
       )}
 
       {item.isMe ? (
-        <View style={{ alignSelf: 'flex-end', maxWidth: '80%', flexDirection: 'row', alignItems: 'center' }}>
+        <View style={{ alignSelf: 'flex-end', flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity onPress={() => setOpenActionSheet(true)} hitSlop={8}>
             <Ionicons name="ellipsis-vertical-sharp" size={18} color={palette.grey[500]} />
           </TouchableOpacity>
@@ -43,9 +43,6 @@ const ChatItem = ({ t, item, toggleUpdateDialog, toggleConfirmDialog }: Props) =
                 textColor={palette.common.white}
                 isChat
               />}
-            {/* ) : (
-              <Text style={styles.myMessageText}>{content}</Text>
-            )} */}
           </View>
         </View>
       ) : (
@@ -89,7 +86,6 @@ const ChatItem = ({ t, item, toggleUpdateDialog, toggleConfirmDialog }: Props) =
 
 const styles = ScaledSheet.create({
   messageContainer: {
-    maxWidth: '80%',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,

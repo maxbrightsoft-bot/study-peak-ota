@@ -528,7 +528,7 @@ const useTextbook = ({
 
       getQuestionsTextbook();
       track({
-        action: ActivityAction.StartTextbook,
+        action: ActivityAction.Start,
         metaData: {
           textbookId: String(textbook?.id),
           status: textbook?.status,
