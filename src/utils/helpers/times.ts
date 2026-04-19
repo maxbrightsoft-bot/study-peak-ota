@@ -14,14 +14,23 @@ export const diffFromNow = (
   nowMs: number,
   targetTime?: string
 ) => {
+  const parseUTC = (t: string) => {
+    if (!t) return NaN;
+
+    if (/[zZ]|[+-]\d{2}:\d{2}$/.test(t)) {
+      return new Date(t).getTime();
+    }
+    return new Date(t + 'Z').getTime();
+  };
+
   const baseNow = targetTime
-    ? new Date(targetTime).getTime()
-    : nowMs
+    ? parseUTC(targetTime)
+    : nowMs;
 
-  const t = new Date(time).getTime()
+  const t = parseUTC(time);
 
-  return baseNow - t
-}
+  return baseNow - t;
+};
 
 export const formatMinutesToTime = (minutes: number) => {
   const totalSeconds = Math.floor(minutes * 60)
