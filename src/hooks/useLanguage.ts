@@ -19,7 +19,7 @@ export const useLanguage = () => {
     async (languageItem?: LanguageResponse) => {
       if (!languageItem) return;
 
-      if (i18n.language === languageItem.code) return;
+      // if (i18n.language === languageItem.code) return;
 
       try {
         setLoading(true);

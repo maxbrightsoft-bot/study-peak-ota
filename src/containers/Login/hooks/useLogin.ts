@@ -90,9 +90,9 @@ const useLogin = () => {
         redirectUrl
       );
     } catch (error) {
+      toast.error(getErrorMessage(t, error));
       academyDomain && (await removeDataStorage(ACADEMY_DOMAIN));
       await removeDataStorage(LEARNING_SPACE);
-      toast.error(getErrorMessage(t, error));
       isLogout && (await logout());
     } finally {
       setLoading(false);
