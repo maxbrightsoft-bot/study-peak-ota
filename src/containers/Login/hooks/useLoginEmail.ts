@@ -5,7 +5,7 @@ import { Role } from '@/utils/enums';
 import { LoginEmailRequest } from '@/utils/types';
 import { apiLoginEmail } from '../apiClients/accountService';
 import useLogin from './useLogin';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getErrorMessage, toast } from '@/utils/helpers';
 import { KEEP_LOGIN } from '@/utils/constants';
 import { getDataStorage } from '@/utils/storage';
@@ -39,14 +39,10 @@ const useLoginEmail = () => {
         role: Role.Student,
         isKeepMeLoggedIn: keepLogin === 'true'
       };
-      try {
-        await handleLogin(async () => {
-          const response = await apiLoginEmail(loginData);
-          return response.data;
-        });
-      } catch (error) {
-        toast.error(getErrorMessage(t, error));
-      }
+      await handleLogin(async () => {
+        const response = await apiLoginEmail(loginData);
+        return response.data;
+      }, false);
     },
   });
 

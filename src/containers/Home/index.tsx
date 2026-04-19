@@ -45,7 +45,7 @@ const Home = () => {
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} ref={scrollRef} style={{ backgroundColor: palette.main[600] }}>
         <View style={styles.container}>
-          {/* <TouchableOpacity
+          <TouchableOpacity
             onPress={handleToggleSchedule}
             style={{
               ...styles.card,
@@ -70,7 +70,7 @@ const Home = () => {
                 </Text>
               </View>
             ))}
-          </TouchableOpacity> */}
+          </TouchableOpacity>
 
           {user?.academyDomain && <View style={{ ...styles.row, marginBottom: 28, gap: 14 }}>
             <CustomCard

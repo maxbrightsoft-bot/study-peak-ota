@@ -5,6 +5,7 @@ import { palette } from '@/theme'
 import { LANGUAGES } from '@/utils/constants/language'
 import { LanguageResponse } from '@/utils/types'
 import useAuthStore from '@/store/useAuthStore'
+import { useTranslation } from 'react-i18next'
 
 type Props = {
   open: boolean
@@ -26,13 +27,16 @@ const LANG_LABELS: Record<string, string> = {
 
 const LanguageDialog = ({ open, onClose, onSelect }: Props) => {
   const { language } = useAuthStore()
+  const { t } = useTranslation()
+
+  console.log({ language})
 
   return (
     <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.overlay} onPress={onClose}>
         <Pressable style={styles.sheet} onPress={() => {}}>
           <View style={styles.handle} />
-          <Text style={styles.title}>언어 선택 / Language</Text>
+          <Text style={styles.title}>{t('language')}</Text>
           <View style={styles.list}>
             {LANGUAGES.map((lang) => {
               const isActive = language?.code === lang.code
