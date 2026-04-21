@@ -65,7 +65,9 @@ async function checkOtaUpdate() {
       ? data.downloadIosUrl
       : data.downloadAndroidUrl;
 
-    hotUpdate.downloadBundleUri(ReactNativeBlobUtil, url, data.version, {
+    const versionCode = data.versionCode ?? 1;
+
+    hotUpdate.downloadBundleUri(ReactNativeBlobUtil, url, versionCode, {
       updateSuccess: () => console.log("[OTA] Success"),
       updateFail: (msg) => console.log("[OTA] Failed:", msg),
       restartAfterInstall: true,
