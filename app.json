@@ -3,7 +3,7 @@
     "name": "Study Peak",
     "slug": "touch-study-mobile",
     "jsEngine": "jsc",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/app-icon.png",
     "scheme": "com.max.britghtsoft.touchstudymobile",
@@ -31,6 +31,7 @@
       "appleTeamId": "9PC7DVBBJ8"
     },
     "android": {
+      "versionCode": 2,
       "package": "com.max.britghtsoft.touchstudymobile",
       "intentFilters": [
         {
@@ -62,7 +63,15 @@
         }
       ],
       "@react-native-community/datetimepicker",
-      "expo-font"
+      "expo-font",
+       [
+        "expo-build-properties",
+        {
+          "android": {
+            "enablePagesizeMigration": true
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

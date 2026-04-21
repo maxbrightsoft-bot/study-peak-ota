@@ -4,7 +4,15 @@ set -e
 VERSION=$1
 
 if [ -z "$VERSION" ]; then
-  echo "Usage: ./scripts/hotfix.sh <version>"
+  echo "Usage: hotfix.sh <version>"
+  exit 1
+fi
+
+CURRENT_IN_CODE=$(grep -o '"[0-9]\+\.[0-9]\+\.[0-9]\+"' app/index.tsx | head -1 | tr -d '"')
+
+if [ "$CURRENT_IN_CODE" != "$VERSION" ]; then
+  echo "❌ CURRENT_BUNDLE_VERSION trong app/index.tsx là '$CURRENT_IN_CODE', chưa cập nhật thành '$VERSION'"
+  echo "   Hãy sửa trước rồi chạy lại script"
   exit 1
 fi
 
@@ -88,16 +96,33 @@ gh release create ota-v$TAG_VERSION \
 
 echo "=== Updating update.json ==="
 
-SHA=$(curl -s \
-  -H "Authorization: token $GITHUB_TOKEN" \
-  "https://api.github.com/repos/$GITHUB_REPO/contents/update.json" \
-  | node -pe "JSON.parse(require('fs').readFileSync(0)).sha")
+IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+VERSION_CODE=$((MAJOR * 10000 + MINOR * 100 + PATCH))
 
-CONTENT=$(echo "{
+SHA_RESPONSE=$(curl -s \
+  -H "Authorization: token $GITHUB_TOKEN" \
+  "https://api.github.com/repos/$GITHUB_REPO/contents/update.json")
+
+SHA=$(echo $SHA_RESPONSE | node -pe "try { JSON.parse(require('fs').readFileSync(0)).sha } catch(e) { '' }" 2>/dev/null || echo "")
+
+JSON_CONTENT="{
   \"version\": \"$VERSION\",
+  \"versionCode\": $VERSION_CODE,
   \"downloadAndroidUrl\": \"https://github.com/$GITHUB_REPO/releases/download/ota-v$TAG_VERSION/android.zip\",
   \"downloadIosUrl\": \"https://github.com/$GITHUB_REPO/releases/download/ota-v$TAG_VERSION/ios.zip\"
-}" | base64 | tr -d '\n')
+}"
+
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  CONTENT=$(echo "$JSON_CONTENT" | base64 -w 0)
+else
+  CONTENT=$(echo "$JSON_CONTENT" | base64 | tr -d '\n')
+fi
+
+if [ -z "$SHA" ] || [ "$SHA" = "undefined" ] || [ "$SHA" = "null" ]; then
+  SHA_FIELD=""
+else
+  SHA_FIELD=", \"sha\": \"$SHA\""
+fi
 
 curl -s -X PUT \
   -H "Authorization: token $GITHUB_TOKEN" \
@@ -105,8 +130,9 @@ curl -s -X PUT \
   "https://api.github.com/repos/$GITHUB_REPO/contents/update.json" \
   -d "{
     \"message\": \"OTA v$VERSION\",
-    \"content\": \"$CONTENT\",
-    \"sha\": \"$SHA\"
+    \"content\": \"$CONTENT\"
+    $SHA_FIELD
   }"
 
+echo ""
 echo "=== ✅ OTA v$VERSION deployed successfully ==="

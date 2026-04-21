@@ -3,6 +3,7 @@ import 'dotenv/config';
 export default ({ config }) => ({
   ...config,
   extra: {
+    ...config.extra,
     BASE_URL: process.env.EXPO_PUBLIC_BASE_URL,
     SUPER_ADMIN_BASE_URL: process.env.EXPO_PUBLIC_SUPER_ADMIN_BASE_URL,
     SOCKET_URL: process.env.EXPO_PUBLIC_SOCKET_URL,
