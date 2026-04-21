@@ -418,9 +418,9 @@ export const TIME_CHART_HTML = (t: any) => `<!DOCTYPE html>
                 var rawMs   = sIdx === 0
                   ? questions[realIdx].time
                   : (questions[realIdx].avgTime || 0);
-                return (rawMs / 1000).toFixed(2) + ' seconds';
+                return (rawMs / 1000).toFixed(2) + " ${t('seconds')}";
               }
-              return y != null ? parseFloat(y).toFixed(0) + ' seconds' : '';
+              return y != null ? parseFloat(y).toFixed(0) + " ${t('seconds')}" : '';
             }
           }
         }

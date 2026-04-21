@@ -201,6 +201,7 @@ const useTextbook = ({
   )
 
   const onScrollToIndex = (index: number) => {
+    console.log("index", index);
     const ref = questionRefs.current[index];
     const scrollViewNode = scrollViewRef.current
       ? findNodeHandle(scrollViewRef.current)
@@ -234,7 +235,7 @@ const useTextbook = ({
 
     if (index === -1) return
 
-    onScrollToIndex(index)
+    requestAnimationFrame(() => onScrollToIndex(index))
   }, [currentQuestionId])
 
   const getQuestionsTextbook = async (showErrorMessage: boolean = false) => {
@@ -427,7 +428,8 @@ const useTextbook = ({
 
   useEffect(() => {
     if (questionList.length > 0) {
-      setCurrentQuestionId(questionList[0].id);
+      const noAnswer = questionList.find(i => i.questionAnswerType < 2 ? !i.selectedAnswers?.length : !i.textualAnswers?.length)
+      setCurrentQuestionId(noAnswer?.id || questionList[0].id);
     }
   }, [questionList.length]);
 

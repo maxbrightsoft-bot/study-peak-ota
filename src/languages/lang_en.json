@@ -1262,7 +1262,7 @@
   "focused_study_timer": "Focused Study Timer",
   "my_statistics": "My Statistics",
   "timer": "Timer",
-  "alarm_clock": "Alarm clock",
+  "alarm_clock": "Mock exam clock",
   "minutes_short_format": "{{mins}}m",
   "start_alarm": "Start Alarm",
   "set_time": "Set Time",
@@ -1824,5 +1824,11 @@
   "password_not_match": "Passwords do not match",
   "step": "Step {{current}}/{{total}}",
   "notice_detail": "Notice Detail",
-  "keep_logging_in": "Save the login status"
+  "keep_logging_in": "Save the login status",
+  "account_created_successfully": "Account created successfully",
+  "school_name_helper_text": "Enter the name of the school you are currently attending.",
+  "none": "None",
+  "check_exist_phone_number": "Check if phone number already exists",
+  "do_exercises": "Do exercises",
+  "average": "Average"
 }

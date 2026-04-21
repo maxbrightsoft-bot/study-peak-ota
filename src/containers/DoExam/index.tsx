@@ -110,7 +110,22 @@ const DoExam = ({ examCode }: Props) => {
             <Text style={styles.title}>{t('live_exam_in_progress')}</Text>
             <Text style={[styles.subtitle, { color: (remainTime || 0) < 10 ? palette.red[900] : palette.grey[400] }]}>{remainTimeString || 0}</Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}></View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            {(exam?.isLate || (!exam?.isLate && exam?.lateStatus === ExamStatus.Completed)) && (
+              <FloatingActionButton
+                t={t}
+                status={exam?.lateStatus}
+                onTogglePauseResume={handlePauseAndResumeExam}
+                onOpenConfirmDialog={handleOpenConfirmDialog}
+                keys={{
+                  pause: 'pause_exam',
+                  resume: 'resume_exam',
+                  restart: 'restart_exam'
+                }}
+                ariaLabel="exam-actions"
+              />
+            )}
+          </View>
         </View>
         {questionStarList.length > 0 && (
           <View
@@ -207,23 +222,6 @@ const DoExam = ({ examCode }: Props) => {
           windowSize={5}
           removeClippedSubviews
         />
-
-        <View>
-          {(exam?.isLate || (!exam?.isLate && exam?.lateStatus === ExamStatus.Completed)) && (
-            <FloatingActionButton
-              t={t}
-              status={exam?.lateStatus}
-              onTogglePauseResume={handlePauseAndResumeExam}
-              onOpenConfirmDialog={handleOpenConfirmDialog}
-              keys={{
-                pause: 'pause_exam',
-                resume: 'resume_exam',
-                restart: 'restart_exam'
-              }}
-              ariaLabel="exam-actions"
-            />
-          )}
-        </View>
 
         <View style={styles.footer}>
           <View

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { GRADE_OPTIONS } from "../configs/constants";
 import { navigate } from "@/navigators/NavigationHelpers";
@@ -28,6 +28,19 @@ const useStepItem = ({ values, errors, setFieldTouched }: Props) => {
   const [step, setStep] = useState(0);
   const { user, setLoading, setUser, setHasEnteredSelectAcademy } = useAuthStore()
   const { t } = useTranslation();
+  const textSearchRef = useRef()
+
+   const formatPhone = (text: string) => {
+      const cleaned = text.replace(/\D/g, "");
+  
+      const match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/);
+  
+      if (!match) return text;
+  
+      return [match[1], match[2], match[3]]
+        .filter(Boolean)
+        .join("-");
+    };
 
   useEffect(() => {
     if (user?.loginMethod === "Apple") {
@@ -56,6 +69,7 @@ const useStepItem = ({ values, errors, setFieldTouched }: Props) => {
     setLoading(true)
     try {
       const isAppleLogin = !!(await getDataStorage(APPLE_USER_KEY))
+      console.log('values', values)
 
       const res = await updateInfoLogin({ ...values, isAppleLogin });
 
@@ -96,12 +110,15 @@ const useStepItem = ({ values, errors, setFieldTouched }: Props) => {
       })),
     ];
   }, [t, values.schoolName]);
+
   return {
     t,
     step,
     onNext,
     onPrev,
     user,
+    textSearchRef,
+    formatPhone,
     subjectOptions,
     gradeOptions,
     stepCount: steps.length

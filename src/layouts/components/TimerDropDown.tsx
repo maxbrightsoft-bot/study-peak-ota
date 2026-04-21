@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { TouchableRipple } from 'react-native-paper'
-import { InteractionManager, View } from 'react-native'
+import { Animated, Easing, InteractionManager, View } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 import { palette } from '@/theme/colors'
 import Clock from '@/assets/iconJSX/clock'
@@ -39,6 +39,53 @@ const TimerDropdown = ({
 }: Props) => {
   const isRunning = isTextbook && (isTimerRunning || isAlarmRunning)
 
+  const shakeAnim = useRef(new Animated.Value(0)).current
+  const scaleAnim = useRef(new Animated.Value(1)).current
+
+  useEffect(() => {
+    if (isAlarmRunning || isTimerRunning) {
+      Animated.loop(
+        Animated.parallel([
+          Animated.sequence([
+            Animated.timing(shakeAnim, {
+              toValue: 1,
+              duration: 80,
+              useNativeDriver: true,
+              easing: Easing.linear
+            }),
+            Animated.timing(shakeAnim, {
+              toValue: -1,
+              duration: 80,
+              useNativeDriver: true,
+              easing: Easing.linear
+            }),
+            Animated.timing(shakeAnim, {
+              toValue: 0,
+              duration: 80,
+              useNativeDriver: true
+            })
+          ]),
+
+          Animated.sequence([
+            Animated.timing(scaleAnim, {
+              toValue: 1.15,
+              duration: 300,
+              useNativeDriver: true
+            }),
+            Animated.timing(scaleAnim, {
+              toValue: 1,
+              duration: 300,
+              useNativeDriver: true
+            })
+          ])
+        ])
+      ).start()
+    } else {
+      shakeAnim.setValue(0)
+      scaleAnim.setValue(1)
+    }
+  }, [isAlarmRunning, isTimerRunning])
+
   const [renderDialog, setRenderDialog] = useState(false)
 
   useEffect(() => {
@@ -62,7 +109,29 @@ const TimerDropdown = ({
   return (
     <View>
       <TouchableRipple onPress={handleToggle} style={styles.iconButton}>
-        {isRunning ? <Clock color={palette.main[600]} /> : <Clock color={isTextbook ? palette.grey[500] : "#FFF"} />}
+        <Animated.View
+          style={{
+            transform: [
+              {
+                rotate: shakeAnim.interpolate({
+                  inputRange: [-1, 1],
+                  outputRange: ['-10deg', '10deg']
+                })
+              },
+              { scale: scaleAnim }
+            ]
+          }}
+        >
+          <Clock
+            color={
+              isRunning
+                ? palette.main[600]
+                : isTextbook
+                  ? palette.grey[500]
+                  : palette.red[900]
+            }
+          />
+        </Animated.View>
       </TouchableRipple>
 
       {renderDialog && (

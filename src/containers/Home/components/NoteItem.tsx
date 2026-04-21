@@ -1,3 +1,4 @@
+import React from 'react'
 import { palette, TYPO } from '@/theme'
 import { Ionicons } from '@expo/vector-icons'
 import { Text, View, TouchableOpacity } from 'react-native'
@@ -9,6 +10,7 @@ import VerifyIcon from '@/assets/iconJSX/verify'
 import PencilIcon from '@/assets/iconJSX/pencil'
 import TrashIcon from '@/assets/iconJSX/trash'
 import BottomSheet from '@/components/ModalBase/BottomSheet'
+import moment from 'moment'
 
 type Props = {
   schedule: ScheduleResponse
@@ -36,7 +38,7 @@ const NoteItem = ({
   const { t } = useTranslation()
   const startTime = timeSpanToLocalMoment(schedule.startTime, schedule.date)
   const endTime = timeSpanToLocalMoment(schedule.endTime, schedule.date)
-  const enableCheckSchedule = schedule.type === ScheduleType.Personal || schedule.status === ScheduleStatus.Default
+  const enableCheckSchedule = moment(endTime).isSameOrBefore(moment()) && (schedule.type === ScheduleType.Personal || schedule.status === ScheduleStatus.Default)
 
   const handleCheckSchedule = () => {
     if (!enableCheckSchedule) return
@@ -56,51 +58,51 @@ const NoteItem = ({
     }
   }
 
-const renderTooltipMenu = () => {
-  if (!schedule.id) return null
+  const renderTooltipMenu = () => {
+    if (!schedule.id) return null
 
-  return (
-    <BottomSheet
-      isVisible={openTooltipList === idx}
-      onClose={handleCloseTooltip}
-      title={t('see_more')}
-    >
-      <View style={styles.menuContainer}>
+    return (
+      <BottomSheet
+        isVisible={openTooltipList === idx}
+        onClose={handleCloseTooltip}
+        title={t('see_more')}
+      >
+        <View style={styles.menuContainer}>
 
-        <TouchableOpacity
-          onPress={() => handleOpenScheduleDialog(schedule)}
-          style={styles.menuItem}
-          activeOpacity={0.7}
-        >
-          <View style={styles.iconBox}>
-            <PencilIcon />
-          </View>
+          <TouchableOpacity
+            onPress={() => handleOpenScheduleDialog(schedule)}
+            style={styles.menuItem}
+            activeOpacity={0.7}
+          >
+            <View style={styles.iconBox}>
+              <PencilIcon />
+            </View>
 
-          <Text style={styles.menuText}>
-            {t('edit_schedule')}
-          </Text>
-        </TouchableOpacity>
+            <Text style={styles.menuText}>
+              {t('edit_schedule')}
+            </Text>
+          </TouchableOpacity>
 
-        <View style={styles.divider} />
+          <View style={styles.divider} />
 
-        <TouchableOpacity
-          onPress={() => handleOpenConfirmDeleteDialog(schedule)}
-          style={styles.menuItem}
-          activeOpacity={0.7}
-        >
-          <View style={styles.iconBox}>
-            <TrashIcon />
-          </View>
+          <TouchableOpacity
+            onPress={() => handleOpenConfirmDeleteDialog(schedule)}
+            style={styles.menuItem}
+            activeOpacity={0.7}
+          >
+            <View style={styles.iconBox}>
+              <TrashIcon />
+            </View>
 
-          <Text style={[styles.menuText, styles.deleteText]}>
-            {t('delete_schedule')}
-          </Text>
-        </TouchableOpacity>
+            <Text style={[styles.menuText, styles.deleteText]}>
+              {t('delete_schedule')}
+            </Text>
+          </TouchableOpacity>
 
-      </View>
-    </BottomSheet>
-  )
-}
+        </View>
+      </BottomSheet>
+    )
+  }
 
   return (
     <View style={styles.container}>
@@ -119,7 +121,7 @@ const renderTooltipMenu = () => {
           </View>
         </View>
       </View>
-      <TouchableOpacity onPress={() => handleOpenTooltip(idx)} style={styles.moreButton}>
+      <TouchableOpacity onPress={() => handleOpenTooltip(idx)} style={styles.moreButton} disabled={!enableCheckSchedule}>
         <Ionicons name="ellipsis-vertical-sharp" size={20} color={palette.grey[500]} />
       </TouchableOpacity>
       {renderTooltipMenu()}
@@ -143,7 +145,7 @@ const styles = ScaledSheet.create({
     gap: '8@ms'
   },
   title: {
-    fontSize: 14, 
+    fontSize: 14,
     fontWeight: 600,
     color: "#222222"
   },

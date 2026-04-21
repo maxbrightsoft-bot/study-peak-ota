@@ -17,18 +17,14 @@ export enum TypeNotificationEnum {
 }
 
 export const TabList = [
-    {
-        label: "recently_solved_questions",
-        value: PreparedFilterType.recently_solved_questions
-    },
-    {
-        label: "entire",
-        value: null
-    },
-    {
-        label: "workbook",
-        value: PreparedType.workbook
-    },
+    // {
+    //     label: "recently_solved_questions",
+    //     value: PreparedFilterType.recently_solved_questions
+    // },
+    // {
+    //     label: "entire",
+    //     value: null
+    // },
     {
         label: "csat_past_questions",
         value: PreparedType.csat_past_questions
@@ -40,6 +36,10 @@ export const TabList = [
     {
         label: "private_mock_exam",
         value: PreparedType.private_mock_exam
+    },
+    {
+        label: "workbook",
+        value: PreparedType.workbook
     },
     {
         label: "past_exam_questions",

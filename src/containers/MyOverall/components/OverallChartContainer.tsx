@@ -11,8 +11,12 @@ export interface OverallChartContainerProps {
   avgData: number[];
   categories: any[];
   isPrint?: boolean;
-  formatTooltip: (val: any) => string;
-  xAxisLabelFormatter?: (val: string, option: any) => any;
+  xAxisLabels: string[][];
+    tooltipData: {
+        label: string;
+        myValue: string;
+        avgValue: string;
+    }[];
   onRendered?: () => void;
 }
 

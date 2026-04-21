@@ -8,6 +8,7 @@ import GridItem from '@/components/Grid/GridItem'
 import Select from '@/components/Select/CustomSelect'
 import useStepItem from '../hooks/useStepItem'
 import { Ionicons } from '@expo/vector-icons'
+import { Checkbox } from 'react-native-paper'
 
 type Props = {
   values: any
@@ -18,11 +19,12 @@ type Props = {
 }
 
 const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: Props) => {
-  const { t, step, stepCount, onNext, onPrev, subjectOptions, gradeOptions } = useStepItem({
+  const { t, step, formatPhone, stepCount, onNext, onPrev, subjectOptions, gradeOptions } = useStepItem({
     values,
     errors,
     setFieldTouched
   })
+
 
   const renderStep = () => {
     switch (step) {
@@ -50,10 +52,13 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
               {() => (
                 <TextField
                   style={styles.input}
-                  value={values.phoneNumber}
+                  value={formatPhone(values.phoneNumber)}
                   keyboardType="phone-pad"
                   error={touched.phoneNumber && errors.phoneNumber && t('phone_number_is_required')}
-                  onChangeText={(value: string) => setFieldValue('phoneNumber', value)}
+                  onChangeText={(value: string) => {
+                    const cleaned = value.replace(/\D/g, "");
+                    setFieldValue("phoneNumber", cleaned);
+                  }}
                 />
               )}
             </Field>
@@ -83,13 +88,25 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
               {() => (
                 <TextField
                   style={styles.input}
-                  value={values.parentPhoneNumber}
+                  value={formatPhone(values.parentPhoneNumber)}
                   keyboardType="phone-pad"
-                  error={touched.parentPhoneNumber && errors.parentPhoneNumber && t('parent_phone_number_is_required')}
-                  onChangeText={(value: string) => setFieldValue('parentPhoneNumber', value)}
+                  error={
+                    touched.parentPhoneNumber &&
+                    errors.parentPhoneNumber &&
+                    t('parent_phone_number_is_required')
+                  }
+                  onChangeText={(value: string) => {
+                    const cleaned = value.replace(/\D/g, "");
+                    setFieldValue("parentPhoneNumber", cleaned);
+                  }}
                 />
               )}
             </Field>
+            {/* <View>
+              <TouchableOpacity activeOpacity={0.7} style={styles.checkExistButton}>
+                <Text>{t('check_exist_phone_number')}</Text>
+              </TouchableOpacity>
+            </View> */}
           </View>
         )
       case 4:
@@ -106,7 +123,7 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
                 />
               )}
             </Field>
-            <Text style={styles.helperText}>안내 텍스트입니다.</Text>
+            <Text style={styles.helperText}>{t('school_name_helper_text')}</Text>
           </View>
         )
       case 5:
@@ -229,6 +246,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8
+  },
+  checkExistButton: {
+    backgroundColor: palette.main[600],
+    padding: 16,
+    borderRadius: 12,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   containerSelect: {
     flex: 1,

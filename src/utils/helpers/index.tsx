@@ -145,6 +145,14 @@ export const getAccessToken = async () => {
   }
 }
 
+export const formatNumber = (value: number, fractionDigits?: number): string => {
+  if (Number.isInteger(value)) {
+    return value.toString();
+  }
+
+  return value.toFixed(fractionDigits);
+}
+
 export const getSafeUrl = (url: string) => {
   if (!url) return ''
 

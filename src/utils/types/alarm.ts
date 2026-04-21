@@ -29,7 +29,6 @@ export type StartAlarmRequest = {
     startTime: number
     speakerMode: boolean
     subjectId?: number
-    rowVersion: string;
 }
 
 export type ToggleAlarmSpeakerRequest = {

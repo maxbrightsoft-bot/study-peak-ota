@@ -57,12 +57,6 @@ const OverallTimeChart: FC<Props> = ({ data, total, index, isPrint, onRendered }
     [t, JSON.stringify(data.questions)]
   )
 
-  const handleRendered = useCallback(() => {
-    if (onRendered) {
-      onRendered(index)
-    }
-  }, [index])
-
   return (
     <Fragment>
       <OverallTabHeader title={`${t('problem_solving_speed')} (${data.categoryName})`} />

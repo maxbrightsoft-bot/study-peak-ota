@@ -156,15 +156,53 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
     }
   }
 
+  const resetAudio = async () => {
+    await removeDataStorage(TOAST_EXAM_STATUS)
+  }
+  const handleCloseAudioGuide = () => {
+    setSelectedTimer(undefined)
+  }
+  const handleStartSubjectAlarm = (duration: number, subject: SubjectTimerResponse) => {
+    setSelectedTimer({ duration, timer: subject })
+  }
+
+  const handleStartSelectedSubjectAlarm = async (enable: boolean, duration?: number, subject?: SubjectTimerResponse, startTime?: number) => {
+    const currentTimer = duration && subject && startTime ? { duration, timer: subject } : selectedTimer
+    if (!currentTimer) return
+    setLoadingItem(true)
+    try {
+      const start = onAcademy
+        ? startStudentAlarmApi
+        : startSuperStudentAlarmApi
+      const res = await start({
+        duration: currentTimer.duration,
+        type: AlarmType.Subject,
+        speakerMode: enable,
+        subjectId: currentTimer.timer.id,
+        startTime: duration && subject && startTime ? startTime : moment().utc().valueOf()
+      })
+      handleUpdateAlarm(res.data)
+      resetAudio()
+      handleShowAudioToast(currentTimer.duration * 60, true, res.data)
+    } catch (error) {
+      toast.error(
+        t("failed_to_start_the_alarm", {
+          message: getErrorMessage(t, error)
+        })
+      )
+    }
+    setLoadingItem(false)
+  }
+
   const handleStartAlarm = async (
     type: AlarmType,
     duration: number,
     subject?: SubjectTimerResponse,
-    enable?: boolean
   ) => {
-    if (type === AlarmType.Subject && subject && !enable) {
-      setSelectedTimer({ timer: subject, duration })
-      return
+    if (type === AlarmType.Subject && !subject) return
+    if (type === AlarmType.Subject && !!subject) {
+      handleStartSubjectAlarm(duration, subject)
+      return;
     }
 
     setLoadingItem(true)
@@ -174,16 +212,18 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
       const res = await start({
         duration,
         type,
-        rowVersion: alarm?.rowVersion || '',
-        speakerMode: enable || speaker,
+        speakerMode: speaker,
         subjectId: subject?.id,
         startTime: moment(nowTime).utc().valueOf()
       })
 
       handleUpdateAlarm(res.data)
+      resetAudio()
       handleShowAudioToast(duration * 60, true, res.data)
     } catch (error) {
-      toast.error(getErrorMessage(t, error))
+      t("failed_to_start_the_alarm", {
+        message: getErrorMessage(t, error)
+      })
     } finally {
       setLoadingItem(false)
     }
@@ -286,7 +326,7 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
       setFetching(false)
     }
   }
-  
+
   const remainTime = useCountDownTimer({
     isLoading: loadingItem,
     runningTime: alarm?.totalRunningTime ?? 0,
@@ -326,13 +366,8 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
   const audioGuideModalProps: AudioGuideModalProps = {
     open: !!selectedTimer,
     audioUrls: selectedTimer?.timer.audioUrls ?? [],
-    onClose: () => setSelectedTimer(undefined),
-    onStart: async (enable) => {
-      if (!selectedTimer) return
-      
-      await handleStartAlarm(AlarmType.Subject, selectedTimer.duration, selectedTimer.timer, enable)
-      setSelectedTimer(undefined)
-    }
+    onClose: handleCloseAudioGuide,
+    onStart: handleStartSelectedSubjectAlarm
   }
 
   return {
@@ -341,6 +376,7 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
     alarmClockProps,
     isAlarmRunning,
     speaker,
+    handleStartSelectedSubjectAlarm,
     disabledSpeaker: loadingItem,
     handleToggleSpeaker,
     getAlarm

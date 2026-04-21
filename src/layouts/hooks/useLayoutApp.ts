@@ -27,22 +27,12 @@ const useLayoutApp = () => {
   const superId = user?.superId
   const [academyMenuVisible, setAcademyMenuVisible] = useState(false)
   const [userMenuVisible, setUserMenuVisible] = useState(false)
-  const [openTimerDialog, setOpenTimerDialog] = useState<boolean>(false)
   const [openNoticeDialog, setOpenNoticeDialog] = useState<boolean>(false)
-  const [openSettingDialog, setOpenSettingDialog] = useState<boolean>(false)
   const appState = useRef(AppState.currentState)
   const generalChannel = useRef<PusherChannel>();
 
-
-  const handleOpenSettingDialog = () => setOpenSettingDialog(true)
-  const handleCloseSettingDialog = () => setOpenSettingDialog(false)
-
   const handleOpenNoticeDialog = () => setOpenNoticeDialog(true)
   const handleCloseNoticeDialog = () => setOpenNoticeDialog(false)
-
-  const handleTimerDialogToggle = () => {
-    setOpenTimerDialog(state => !state)
-  }
 
   const openAcademyMenu = () => setAcademyMenuVisible(true)
   const closeAcademyMenu = () => setAcademyMenuVisible(false)
@@ -296,32 +286,8 @@ const useLayoutApp = () => {
     };
   }, [pusher, user?.academyDomain]);
 
-
-
-  const {
-    timers,
-    studyTimerProps,
-    timeUpdateDialogProps,
-    isTimerRunning,
-    handlePauseCurrentTimer,
-    getTimers
-  } = useTimers(openTimerDialog, handleTimerDialogToggle)
-
-  const {
-    audioGuideModalProps,
-    isAlarmRunning,
-    speaker,
-    disabledSpeaker,
-    handleToggleSpeaker,
-    getAlarm,
-    audioPopupProps,
-    alarmClockProps,
-  } = useAlarm(openTimerDialog, timers)
-
   useFocusEffect(
     useCallback(() => {
-      getTimers()
-      getAlarm()
       handleGetAcademyDetail()
       return () => {
         cleanupPusherChannels()
@@ -364,25 +330,6 @@ const useLayoutApp = () => {
 
   return {
     headerProps: {
-      timers,
-      studyTimerProps,
-      timeUpdateDialogProps,
-      isTimerRunning,
-      handlePauseCurrentTimer,
-      getTimers,
-      audioGuideModalProps,
-      audioPopupProps,
-      alarmClockProps,
-      isAlarmRunning,
-      speaker,
-      disabledSpeaker,
-      openTimerDialog,
-      handleTimerDialogToggle,
-      handleToggleSpeaker,
-      getAlarm,
-      openSettingDialog,
-      handleOpenSettingDialog,
-      handleCloseSettingDialog,
       openNoticeDialog,
       handleOpenNoticeDialog,
       handleCloseNoticeDialog,

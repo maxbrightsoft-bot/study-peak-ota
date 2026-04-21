@@ -157,7 +157,7 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props
             )}
 
             <TouchableOpacity style={[styles.button, styles.continueBtn]} onPress={handleDoTextbook}>
-              <Text style={styles.buttonText}>{t('continue_textbook')}</Text>
+              <Text style={styles.buttonText}>{t('do_exercises')}</Text>
             </TouchableOpacity>
 
             {!!textbook && textbook.isStudying && (

@@ -166,32 +166,49 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
               </View>
             )}
           </View>
-          {textbook?.isMock ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              {(isTimerRunning || isAlarmRunning) && (
-                <TouchableOpacity onPress={() => handleToggleSpeaker()}>
-                  {speaker ? <Ionicons name="volume-high" size={24} color={palette.grey[500]} /> : <MuteIcon />}
-                </TouchableOpacity>
-              )}
-              <TimerDropDown
-                speaker={speaker}
-                isTextbook
-                disabledSpeaker={disabledSpeaker}
-                openTimerDialog={openTimerDialog}
-                alarmClockProps={alarmClockProps}
-                audioGuideModalProps={audioGuideModalProps}
-                isAlarmRunning={isAlarmRunning}
-                isTimerRunning={isTimerRunning}
-                studyTimerProps={studyTimerProps}
-                timeUpdateDialogProps={timeUpdateDialogProps}
-                onToggleSpeaker={handleToggleSpeaker}
-                onToggleTimerDialog={handleTimerDialogToggle}
-              />
-            </View>
-          ) : (
-            <View />
-          )}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+
+            {textbook?.isMock ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                {(isTimerRunning || isAlarmRunning) && (
+                  <TouchableOpacity onPress={() => handleToggleSpeaker()}>
+                    {speaker ? <Ionicons name="volume-high" size={24} color={palette.grey[500]} /> : <MuteIcon />}
+                  </TouchableOpacity>
+                )}
+                <TimerDropDown
+                  speaker={speaker}
+                  isTextbook
+                  disabledSpeaker={disabledSpeaker}
+                  openTimerDialog={openTimerDialog}
+                  alarmClockProps={alarmClockProps}
+                  audioGuideModalProps={audioGuideModalProps}
+                  isAlarmRunning={isAlarmRunning}
+                  isTimerRunning={isTimerRunning}
+                  studyTimerProps={studyTimerProps}
+                  timeUpdateDialogProps={timeUpdateDialogProps}
+                  onToggleSpeaker={handleToggleSpeaker}
+                  onToggleTimerDialog={handleTimerDialogToggle}
+                />
+              </View>
+            ) : (
+              <View />
+            )}
+            <FloatingActionButton
+              t={t}
+              isOnlyRestart={!textbook?.isMock}
+              status={textbook?.status}
+              onTogglePauseResume={handlePauseAndResumeTextbook}
+              onOpenConfirmDialog={textbook?.isMock ? handleOpenConfirmDialog : handleOpenRestartTextbookDialog}
+              keys={{
+                pause: 'pause_textbook',
+                resume: 'resume_textbook',
+                restart: 'restart_textbook'
+              }}
+              ariaLabel="textbook-actions"
+            />
+          </View>
         </View>
+
         {questionStarList.length > 0 && (
           <View
             style={{
@@ -244,20 +261,6 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
           )}
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
-        />
-
-        <FloatingActionButton
-          t={t}
-          isOnlyRestart={!textbook?.isMock}
-          status={textbook?.status}
-          onTogglePauseResume={handlePauseAndResumeTextbook}
-          onOpenConfirmDialog={textbook?.isMock ? handleOpenConfirmDialog : handleOpenRestartTextbookDialog}
-          keys={{
-            pause: 'pause_textbook',
-            resume: 'resume_textbook',
-            restart: 'restart_textbook'
-          }}
-          ariaLabel="textbook-actions"
         />
 
         <View style={styles.footer}>
@@ -489,6 +492,7 @@ const styles = ScaledSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     borderBottomWidth: 1,
+    zIndex: 10,
     borderColor: palette.grey[100]
   },
   title: {

@@ -112,6 +112,8 @@ const Setting = ({ open, onClose }: Props) => {
         toggle={handleToggleConfirmRemoveAccount}
         onConfirm={handleRemoveAccount}
         title={t('delete_account')}
+        isDelete
+        confirmText={user?.email}
         text={t('delete_account_confirm')}
       />
       <LanguageDialog

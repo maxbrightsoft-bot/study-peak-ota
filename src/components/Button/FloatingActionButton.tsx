@@ -1,10 +1,10 @@
 import React, { useCallback, useState } from 'react'
-import { View, StyleSheet, Animated, TouchableOpacity, Text } from 'react-native'
-import { FAB } from 'react-native-paper'
+import { View, StyleSheet, Animated, TouchableOpacity, Text, Dimensions, Pressable } from 'react-native'
+import { IconButton } from 'react-native-paper'
 import { ExamStatus } from '@/utils/enums'
-import { palette } from '@/theme'
 import { Ionicons } from '@expo/vector-icons'
 import { useFocusEffect } from '@react-navigation/native'
+import { palette } from '@/theme'
 
 type Props = {
   t: (key: string) => string
@@ -19,6 +19,7 @@ type Props = {
   }
   ariaLabel?: string
 }
+const screenWidth = Dimensions.get('window').width
 
 const FloatingActionButton: React.FC<Props> = ({
   t,
@@ -45,26 +46,29 @@ const FloatingActionButton: React.FC<Props> = ({
       Animated.parallel([
         Animated.timing(scaleAnim, {
           toValue: 0.9,
-          duration: 250,
+          duration: 200,
           useNativeDriver: true
         }),
         Animated.timing(opacityAnim, {
           toValue: 0,
-          duration: 250,
+          duration: 200,
           useNativeDriver: true
         })
       ]).start(() => setMenuOpen(false))
     } else {
       setMenuOpen(true)
+      scaleAnim.setValue(0.9)
+      opacityAnim.setValue(0)
+
       Animated.parallel([
         Animated.timing(scaleAnim, {
           toValue: 1,
-          duration: 250,
+          duration: 200,
           useNativeDriver: true
         }),
         Animated.timing(opacityAnim, {
           toValue: 1,
-          duration: 250,
+          duration: 200,
           useNativeDriver: true
         })
       ]).start()
@@ -83,101 +87,102 @@ const FloatingActionButton: React.FC<Props> = ({
 
   useFocusEffect(
     useCallback(() => {
-      return () => Animated.parallel([
-        Animated.timing(scaleAnim, {
-          toValue: 0.9,
-          duration: 250,
-          useNativeDriver: true
-        }),
-        Animated.timing(opacityAnim, {
-          toValue: 0,
-          duration: 250,
-          useNativeDriver: true
-        })
-      ]).start(() => setMenuOpen(false))
+      return () =>
+        Animated.parallel([
+          Animated.timing(scaleAnim, {
+            toValue: 0.9,
+            duration: 200,
+            useNativeDriver: true
+          }),
+          Animated.timing(opacityAnim, {
+            toValue: 0,
+            duration: 200,
+            useNativeDriver: true
+          })
+        ]).start(() => setMenuOpen(false))
     }, [])
   )
 
   return (
-    <View style={styles.container}>
-      <Animated.View
-        style={[
-          styles.menuContainer,
-          {
-            opacity: opacityAnim,
-            transform: [{ scale: scaleAnim }],
-            pointerEvents: menuOpen ? 'auto' : 'none'
-          }
-        ]}
-      >
-        {!isOnlyRestart && (
+    <Pressable style={styles.container} onPress={() => menuOpen && toggleMenu()}>
+      {menuOpen && (
+        <Animated.View
+          style={[
+            styles.menuContainer,
+            {
+              opacity: opacityAnim,
+              transform: [{ scale: scaleAnim }]
+            }
+          ]}
+        >
+          {!isOnlyRestart && (
+            <View style={styles.buttonWrapper}>
+              <TouchableOpacity
+                onPress={handlePauseResume}
+                disabled={isCompleted}
+                style={[
+                  styles.menuButton,
+                  styles.pauseResumeButton,
+                  isCompleted && styles.disabledButton
+                ]}
+              >
+                <View style={styles.buttonContent}>
+                  <Ionicons
+                    name={isPaused ? 'play-circle-sharp' : 'pause-circle-sharp'}
+                    size={20}
+                    color={'#FFF'}
+                  />
+                  <Text style={styles.buttonLabel}>
+                    {t(isPaused ? resumeKey : pauseKey)}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          )}
+
           <View style={styles.buttonWrapper}>
             <TouchableOpacity
-              onPress={handlePauseResume}
-              disabled={isCompleted}
-              style={[styles.menuButton, styles.pauseResumeButton, isCompleted && styles.disabledButton]}
+              onPress={handleRestart}
+              style={[styles.menuButton, styles.restartButton]}
             >
               <View style={styles.buttonContent}>
-                <Ionicons name={isPaused ? 'play-circle-sharp' : 'pause-circle-sharp'} size={20} color={'#FFF'} />
-                <Text style={styles.buttonLabel}>{t(isPaused ? resumeKey : pauseKey)}</Text>
+                <Ionicons name={'refresh-circle-sharp'} size={20} color={'#FFF'} />
+                <Text style={styles.buttonLabel}>{t(restartKey)}</Text>
               </View>
             </TouchableOpacity>
           </View>
-        )}
-
-        <View style={styles.buttonWrapper}>
-          <TouchableOpacity
-            onPress={handleRestart}
-            style={[styles.menuButton, styles.buttonLabel, styles.restartButton]}
-          >
-            <View style={styles.buttonContent}>
-              <Ionicons name={'refresh-circle-sharp'} size={20} color={'#FFF'} />
-              <Text style={styles.buttonLabel}>{t(restartKey)}</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
-
-      <FAB
-        style={[styles.fab, menuOpen && styles.fabOpen, { backgroundColor: palette.main[600] }]}
-        icon={menuOpen ? 'close' : 'dots-vertical'}
+        </Animated.View>
+      )}
+      <Ionicons
+        style={styles.fab}
         onPress={toggleMenu}
-        animated={true}
-        color="#FFFFFF"
-        accessibilityLabel={ariaLabel}
-        size="medium"
+        name={menuOpen ? 'close' : 'ellipsis-vertical'}
+        size={20}
+        color={palette.grey[500]}
       />
-    </View>
+    </Pressable>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    bottom: 200,
-    right: 24,
-    zIndex: 10,
-    alignItems: 'flex-end',
-    pointerEvents: 'box-none'
+    position: 'relative'
   },
   menuContainer: {
-    marginBottom: 16,
+    position: 'absolute',
+    top: 30,
+    right: 0,
     alignItems: 'flex-end',
-    gap: 12
+    gap: 12,
+    minWidth: screenWidth
   },
   buttonWrapper: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5
+    alignSelf: 'flex-end'
   },
   menuButton: {
     borderRadius: 24,
-    paddingHorizontal: 16,
-    minWidth: 'auto'
+    alignSelf: 'flex-start'
   },
   pauseResumeButton: {
     backgroundColor: '#FF9800'
@@ -189,26 +194,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 10
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
   buttonLabel: {
     textAlign: 'center',
     color: 'white',
     marginLeft: 8,
-    fontSize: 16
+    fontSize: 16,
   },
   disabledButton: {
     backgroundColor: '#9E9E9E'
   },
   fab: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5
-  },
-  fabOpen: {
-    transform: [{ scale: 0.9 }]
+    alignSelf: 'flex-end',
   }
 })
 

@@ -954,7 +954,7 @@
   "csat_past_questions": "수능/평가원 기출",
   "official_mock_exam": "교육청 모의고사",
   "private_mock_exam": "사설 모의고사",
-  "academy_questions": "학원 문제",
+  "academy_questions": "학원 내 문제",
   "my_created_questions": "내가 만든 문제",
   "recently_solved_questions": "최근 푼 문제",
   "teacher_admin_page": "교사 관리자 페이지",
@@ -1261,7 +1261,7 @@
   "focused_study_timer": "순공타이머",
   "my_statistics": "내 통계",
   "timer": "타이머",
-  "alarm_clock": "알람 시계",
+  "alarm_clock": "모의고사 시계",
   "minutes_short_format": "{{mins}}분",
   "start_alarm": "알람 시작",
   "set_time": "시간 설정",
@@ -1824,5 +1824,11 @@
   "password_not_match": "비밀번호가 일치하지 않습니다",
   "step": "{{current}} / {{total}} 단계",
   "notice_detail": "공지 상세",
-  "keep_logging_in": "로그인 유지하기"
+  "keep_logging_in": "로그인 유지하기",
+  "account_created_successfully": "계정이 성공적으로 생성되었습니다",
+  "school_name_helper_text": "재학 중인 학교 이름을 입력해주세요.",
+  "none": "없음",
+  "check_exist_phone_number": "전화번호 중복 확인",
+  "do_exercises": "문제집 풀기",
+  "average": "평균"
 }

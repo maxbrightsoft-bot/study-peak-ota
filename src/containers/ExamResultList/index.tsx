@@ -8,6 +8,11 @@ import SearchInput from '@/components/Input/SearchInput'
 import moment from 'moment'
 import { highlightText, isValidTime, utcToLocalTime } from '@/utils/helpers'
 import ExamResult from '../ExamResult/views'
+import TimerDropDown from '@/layouts/components/TimerDropDown'
+import useTimers from '@/layouts/hooks/useTimer'
+import useAlarm from '@/layouts/hooks/useAlarm'
+import AudioGuideModal from '@/layouts/components/AudioGuideModal'
+import HeaderAction from '@/layouts/components/HeaderAction'
 
 const ExamResultList = () => {
   const {
@@ -100,6 +105,9 @@ const ExamResultList = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('my_grades')}</Text>
+        <View>
+          <HeaderAction />
+        </View>
       </View>
       <View style={styles.searchBox}>
         <SearchInput value={search} onChangeText={onChangeSearch} placeholder={t('search_placeholder')} />
@@ -155,7 +163,10 @@ const styles = ScaledSheet.create({
     paddingHorizontal: 18,
     borderBottomWidth: 1,
     backgroundColor: '#FFF',
-    borderColor: palette.grey[100]
+    borderColor: palette.grey[100],
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
   },
   headerTitle: {
     fontSize: 20,

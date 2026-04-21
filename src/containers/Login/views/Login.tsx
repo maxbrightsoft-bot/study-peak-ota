@@ -12,7 +12,7 @@ import LoginAccountButton from '../components/LoginAccountButton'
 import LoginAccountDialog from '../components/LoginAccountDialog'
 import { useTranslation } from 'react-i18next'
 import Checkbox from '@/components/Button/Checkbox'
-import { getDataStorage, setDataStorage } from '@/utils/storage'
+import { setDataStorage } from '@/utils/storage'
 import { KEEP_LOGIN } from '@/utils/constants'
 // import PhoneNumberLoginButton from '../components/PhoneNumberLoginButton'
 

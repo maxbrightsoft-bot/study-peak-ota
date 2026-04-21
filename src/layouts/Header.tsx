@@ -12,6 +12,7 @@ import Notice from '@/containers/Notice/view'
 import Setting from '@/containers/Setting/view'
 import SignOut from '@/assets/iconJSX/signOut'
 import AudioGuideModal from './components/AudioGuideModal'
+import HeaderAction from './components/HeaderAction'
 
 type Props = {
   headerProps: any
@@ -21,24 +22,10 @@ const Header = ({ headerProps }: Props) => {
   const { t } = useTranslation()
   const { user, academies, selectedAcademy, logout } = useAuthStore()
   const {
-    speaker,
-    disabledSpeaker,
-    openTimerDialog,
     academyMenuVisible,
-    alarmClockProps,
-    audioGuideModalProps,
-    isAlarmRunning,
-    isTimerRunning,
-    studyTimerProps,
-    openSettingDialog,
-    handleOpenSettingDialog,
-    handleCloseSettingDialog,
     openNoticeDialog,
     handleCloseNoticeDialog,
     handleOpenNoticeDialog,
-    timeUpdateDialogProps,
-    handleToggleSpeaker,
-    handleTimerDialogToggle,
     closeAcademyMenu,
     openAcademyMenu,
     handleSwitchAcademy
@@ -175,27 +162,13 @@ const Header = ({ headerProps }: Props) => {
             {user?.academyDomain && <TouchableOpacity onPress={() => handleOpenNoticeDialog()}>
               <Alarm />
             </TouchableOpacity>}
-            <TimerDropdown
-              speaker={speaker}
-              disabledSpeaker={disabledSpeaker}
-              openTimerDialog={openTimerDialog}
-              alarmClockProps={alarmClockProps}
-              isAlarmRunning={isAlarmRunning}
-              isTimerRunning={isTimerRunning}
-              studyTimerProps={studyTimerProps}
-              timeUpdateDialogProps={timeUpdateDialogProps}
-              onToggleSpeaker={handleToggleSpeaker}
-              onToggleTimerDialog={handleTimerDialogToggle}
-            />
-            <TouchableOpacity onPress={() => handleOpenSettingDialog()}>
-              <SettingIcon />
-            </TouchableOpacity>
+
+            <HeaderAction />
+            
           </View>
         </>
       </View>
       <Notice open={openNoticeDialog} onClose={handleCloseNoticeDialog} />
-      <Setting open={openSettingDialog} onClose={handleCloseSettingDialog} />
-      <AudioGuideModal {...audioGuideModalProps} />
     </View>
   )
 }
