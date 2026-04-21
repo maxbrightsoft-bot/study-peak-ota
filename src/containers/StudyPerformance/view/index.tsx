@@ -64,11 +64,11 @@ const MyData = () => {
       </View>
 
       <TabPanel value={selected} index={0}>
-        <TimeData contentRef={contentRef} handleReadyPrint={handleReadyPrint} />
+        {selected === 0 && <TimeData contentRef={contentRef} handleReadyPrint={handleReadyPrint} />}
       </TabPanel>
 
       <TabPanel value={selected} index={1}>
-        <PerformanceData contentRef={contentRef} handleReadyPrint={handleReadyPrint} />
+        {selected === 1 && <PerformanceData contentRef={contentRef} handleReadyPrint={handleReadyPrint} />}
       </TabPanel>
       <TabPanel value={selected} index={2}>
         {!openCreateNote && <IncorrectNotes contentRef={contentRef} />}

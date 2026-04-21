@@ -8,13 +8,17 @@ import { checkEmptyValue } from '../configs/helpers'
 export interface CategoriesOverallChartContainerProps {
   isLoading?: boolean
   myData: number[]
-  id?: string
+  id?: string 
   title?: string
   avgData: number[]
   categories: any[]
   isPrint?: boolean
-  formatTooltip: (val: any) => string
-  xAxisLabelFormatter?: (val: string, option: any) => any
+  xAxisLabels: string[][];
+    tooltipData: {
+        label: string;
+        myValue: string;
+        avgValue: string;
+    }[];
   onRendered?: () => void
 }
 

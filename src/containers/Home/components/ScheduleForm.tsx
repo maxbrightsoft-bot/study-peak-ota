@@ -15,10 +15,16 @@ interface Props {
   open: boolean
   formikProp: FormikProps<ScheduleFormData>
   scheduleRequest?: ScheduleFormData
-  onClose: () => void
+  onClose: () => void 
+  selectedDate: {
+    startDate: string
+    endDate: string
+    currentDate: string
+    isTotalMonth: boolean
+  }
 }
 
-const ScheduleForm: FC<Props> = ({ open, formikProp, scheduleRequest, onClose }) => {
+const ScheduleForm: FC<Props> = ({ open, formikProp, scheduleRequest, onClose, selectedDate }) => {
   const { errors, values, setFieldValue, setValues, handleSubmit, touched, setTouched } = formikProp
   const { t } = useTranslation()
 
@@ -31,7 +37,7 @@ const ScheduleForm: FC<Props> = ({ open, formikProp, scheduleRequest, onClose })
 
   useEffect(() => {
     if (open && scheduleRequest) setValues(scheduleRequest)
-    else setValues(DEFAULT_SCHEDULE_FORM_DATA)
+    else setValues({ ...DEFAULT_SCHEDULE_FORM_DATA, date: moment(selectedDate.currentDate )})
   }, [open, scheduleRequest])
 
   const handleConfirm = (selected: Date) => {

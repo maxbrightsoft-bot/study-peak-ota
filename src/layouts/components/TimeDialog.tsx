@@ -36,7 +36,6 @@ const TimerDialog: FC<Props> = ({
         <TabPanel value={value} index={0}>
           <StudyTimerTab {...studyTimerProps} />
         </TabPanel>
-
         <TabPanel value={value} index={1}>
           <AlarmClockTab {...alarmClockProps} />
         </TabPanel>

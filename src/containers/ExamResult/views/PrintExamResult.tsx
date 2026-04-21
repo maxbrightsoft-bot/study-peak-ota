@@ -1,4 +1,3 @@
-import { t } from 'i18next'
 import React, { Dispatch, FC, RefObject, SetStateAction } from 'react'
 import { Text, View } from 'react-native'
 import ExamMyAnswer from '@/containers/MyAnswer/views/ExamMyAnswer'
@@ -28,16 +27,24 @@ interface Props {
     myData: number[]
     avgData: number[]
     categories: string[]
-    xAxisLabelFormatter: (_: string, data: any) => string | string[][]
-    formatTooltip: (dataProps: any) => string
+    xAxisLabels: string[][];
+    tooltipData: {
+        label: string;
+        myValue: string;
+        avgValue: string;
+    }[];
   }
   categoriesOverallChartContainer: {
     isLoading: boolean
     myData: number[]
     avgData: number[]
     categories: string[]
-    xAxisLabelFormatter: (_: string, { dataPointIndex }: any) => string | string[][]
-    formatTooltip: (dataProps: any) => string
+    xAxisLabels: string[][];
+    tooltipData: {
+        label: string;
+        myValue: string;
+        avgValue: string;
+    }[];
   }
   overallTimeChartContainer: {
     isLoading: boolean

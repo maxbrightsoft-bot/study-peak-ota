@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import TabPanel from '@/components/Tab/TabPanel'
 import TextbookList from '../components/TextbookList'
 import { PreparedFilterType, PreparedType } from '../configs/type'
+import HeaderAction from '@/layouts/components/HeaderAction'
 
 const Textbook = () => {
   const { t } = useTranslation()
@@ -16,6 +17,9 @@ const Textbook = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('question_bank')}</Text>
+        <View>
+          <HeaderAction />
+        </View>
       </View>
       <View style={{ marginTop: 18 }}>
         <ScrollView
@@ -37,27 +41,30 @@ const Textbook = () => {
           ))}
         </ScrollView>
       </View>
-        <TabPanel value={selected} index={TabList[0].value}>
-          <TextbookList preparedFilterType={PreparedFilterType.recently_solved_questions} />
-        </TabPanel>
-        <TabPanel value={selected} index={TabList[1].value}>
-          <TextbookList />
-        </TabPanel>
-        <TabPanel value={selected} index={TabList[2].value}>
-          <TextbookList preparedType={PreparedType.csat_past_questions} />
-        </TabPanel>
-        <TabPanel value={selected} index={TabList[3].value}>
-          <TextbookList preparedType={PreparedType.official_mock_exam} />
-        </TabPanel>
-        <TabPanel value={selected} index={TabList[4].value}>
-          <TextbookList preparedType={PreparedType.private_mock_exam} />
-        </TabPanel>
-        <TabPanel value={selected} index={TabList[5].value}>
-          <TextbookList preparedType={PreparedType.workbook} />
-        </TabPanel>
-        <TabPanel value={selected} index={TabList[6].value}>
-          <TextbookList preparedFilterType={PreparedFilterType.academy_questions} />
-        </TabPanel>
+      {/* <TabPanel value={selected} index={TabList[0].value}>
+        <TextbookList preparedFilterType={PreparedFilterType.recently_solved_questions} />
+      </TabPanel>
+      <TabPanel value={selected} index={TabList[1].value}>
+        <TextbookList />
+      </TabPanel> */}
+      <TabPanel value={selected} index={TabList[0].value}>
+        <TextbookList preparedType={PreparedType.csat_past_questions} />
+      </TabPanel>
+      <TabPanel value={selected} index={TabList[1].value}>
+        <TextbookList preparedType={PreparedType.official_mock_exam} />
+      </TabPanel>
+      <TabPanel value={selected} index={TabList[2].value}>
+        <TextbookList preparedType={PreparedType.private_mock_exam} />
+      </TabPanel>
+      <TabPanel value={selected} index={TabList[3].value}>
+        <TextbookList preparedType={PreparedType.workbook} />
+      </TabPanel>
+      <TabPanel value={selected} index={TabList[4].value}>
+        <TextbookList preparedType={PreparedType.past_exam_questions} />
+      </TabPanel>
+      <TabPanel value={selected} index={TabList[5].value}>
+        <TextbookList preparedFilterType={PreparedFilterType.academy_questions} />
+      </TabPanel>
     </View>
   )
 }
@@ -68,6 +75,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF'
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingVertical: 18,
     paddingHorizontal: 20
   },

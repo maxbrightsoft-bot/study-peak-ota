@@ -1277,7 +1277,7 @@
   "focused_study_timer": "Bộ đếm giờ học tập trung",
   "my_statistics": "Thống kê của tôi",
   "timer": "Bộ đếm giờ",
-  "alarm_clock": "Đồng hồ báo thức",
+  "alarm_clock": "Đồng hồ thi thử",
   "minutes_short_format": "{{mins}}p",
   "start_alarm": "Bắt đầu báo thức",
   "set_time": "Đặt thời gian",
@@ -1842,5 +1842,11 @@
   "password_not_match": "Mật khẩu không khớp",
   "step": "Bước {{current}}/{{total}}",
   "notice_detail": "Chi tiết thông báo",
-  "keep_logging_in": "Duy trì đăng nhập"
+  "keep_logging_in": "Duy trì đăng nhập",
+  "account_created_successfully": "Tài khoản đã được tạo thành công",
+  "school_name_helper_text": "Nhập tên trường bạn đang theo học.",
+  "none": "Không",
+  "check_exist_phone_number": "Kiểm tra số điện thoại đã tồn tại",
+  "do_exercises": "Làm bài tập",
+  "average": "Trung bình"
 }

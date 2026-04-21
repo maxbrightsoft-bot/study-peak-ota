@@ -6,6 +6,12 @@ import { useTranslation } from 'react-i18next'
 import { registerAccountApi } from '@/services'
 import useAuthStore from '@/store/useAuthStore'
 import { getErrorMessage, toast } from '@/utils/helpers'
+import { getDataStorage } from '@/utils/storage'
+import { KEEP_LOGIN } from '@/utils/constants'
+import { LoginEmailRequest } from '@/utils/types'
+import { Role } from '@/utils/enums'
+import useLogin from './useLogin'
+import { apiLoginEmail } from '../apiClients/accountService'
 
 type RegisterValues = {
   email: string
@@ -25,8 +31,7 @@ export const TOTAL_REGISTER_STEPS = 4
 const useRegisterEmail = ({ mode, setMode }: { mode: "login" | "register", setMode: React.Dispatch<React.SetStateAction<"login" | "register">> }) => {
   const { setLoading } = useAuthStore()
   const [registerStep, setRegisterStep] = useState(1)
-
-
+  const { handleLogin } = useLogin();
   const { t } = useTranslation()
 
   const validationSchema = Yup.object({
@@ -77,9 +82,19 @@ const useRegisterEmail = ({ mode, setMode }: { mode: "login" | "register", setMo
 
         setLoading(true)
         await registerAccountApi(data)
-        setMode('login')
+        const keepLogin = await getDataStorage(KEEP_LOGIN);
+        const loginData: LoginEmailRequest = {
+          email: values.email,
+          password: values.password,
+          role: Role.Student,
+          isKeepMeLoggedIn: keepLogin === 'true'
+        };
+        await handleLogin(async () => {
+          const response = await apiLoginEmail(loginData);
+          return response.data;
+        }, false);
+        toast.success(t('account_created_successfully'))
       } catch (error) {
-        console.log({ error });
         toast.error(getErrorMessage(t, error))
       } finally {
         setLoading(false)
@@ -142,7 +157,7 @@ const useRegisterEmail = ({ mode, setMode }: { mode: "login" | "register", setMo
     ];
   }, [t]);
 
-    const handleNext = async () => {
+  const handleNext = async () => {
     const isValid = await validateStep(registerStep)
     if (!isValid) return
 

@@ -1,7 +1,7 @@
-import { palette, TYPO } from '@/theme'
+import { palette } from '@/theme'
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
-import { Dropdown } from 'react-native-element-dropdown'
+import { Dropdown, IDropdownRef } from 'react-native-element-dropdown'
 import { useTranslation } from 'react-i18next'
 import Ionicons from '@expo/vector-icons/Ionicons'
 
@@ -13,14 +13,18 @@ type Props = {
   disabled?: boolean
   placeholder?: string
   icon?: any
+  searchQuery?: ((keyword: string, labelValue: string) => boolean)
+  ref?: React.LegacyRef<IDropdownRef> | undefined
 }
 
-const CustomSelect = ({ value, onValueChange, style, options, disabled, placeholder, icon }: Props) => {
+const CustomSelect = ({ ref, value, onValueChange, style, options, disabled, placeholder, icon, searchQuery }: Props) => {
   const { t } = useTranslation()
 
   return (
     <View>
       <Dropdown
+        ref={ref}
+        searchQuery={searchQuery}
         data={options}
         labelField="label"
         valueField="value"

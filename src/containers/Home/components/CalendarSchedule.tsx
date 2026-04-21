@@ -104,6 +104,7 @@ const CalendarSchedule = ({ isVisible, onClose }: Props) => {
           handleCloseDialog()
         }}
         t={t}
+        selectedDate={selectedDate}
         onSubmit={(values) => {
           handleCreateSchedule(values)
           handleCloseDialog()

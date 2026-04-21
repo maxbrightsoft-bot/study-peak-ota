@@ -1,5 +1,5 @@
-import React, { FC, useMemo } from 'react'
-import { View, ScrollView, Text } from 'react-native'
+import React, { FC, useMemo, useRef, useState } from 'react'
+import { View, ScrollView, Text, TouchableOpacity } from 'react-native'
 import { OverallChartContainerProps } from './components/OverallChartContainer'
 import { CategoriesOverallChartContainerProps } from './components/CategoriesOverallChartContainer'
 import { OverallTimeChartContainerProps } from './components/OverallTimeChartContainer'
@@ -7,9 +7,11 @@ import { ExamResult } from '@/utils/types'
 import { useTranslation } from 'react-i18next'
 import { palette, TYPO } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
-import { utcToLocalTime } from '@/utils/helpers'
+import { formatNumber, utcToLocalTime } from '@/utils/helpers'
 import ChartSlide from './components/ChartSlide'
+import NextIcon from '@/assets/iconJSX/next'
 import { useWindowDimensions } from 'react-native'
+import { MaterialIcons } from '@expo/vector-icons'
 
 interface OverallTabProps {
   resultData: ExamResult | undefined
@@ -33,6 +35,31 @@ const MyOverall: FC<OverallTabProps> = ({
 }) => {
   const { width } = useWindowDimensions()
   const { t } = useTranslation()
+  const scrollRef = useRef<ScrollView>(null)
+  const [currentIndex, setCurrentIndex] = useState(0)
+
+  const handleNext = () => {
+    if (currentIndex < slides.length - 1) {
+      const nextIndex = currentIndex + 1
+      scrollRef.current?.scrollTo({
+        x: nextIndex * SLIDE_WIDTH,
+        animated: true
+      })
+      setCurrentIndex(nextIndex)
+    }
+  }
+
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      const prevIndex = currentIndex - 1
+      scrollRef.current?.scrollTo({
+        x: prevIndex * SLIDE_WIDTH,
+        animated: true
+      })
+      setCurrentIndex(prevIndex)
+    }
+  }
+
   const SLIDE_WIDTH = width - 20
 
   const slides = [
@@ -154,11 +181,18 @@ const MyOverall: FC<OverallTabProps> = ({
           <View style={styles.overviewContainer}>
             <View style={styles.columnItem}>
               <Text style={styles.overviewLabel}>{t('exam_score')}</Text>
-              <Text style={{ ...TYPO.heading1, color: palette.main[600] }}>
-                {t('score_format', {
-                  score: resultData?.score
-                })}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Text style={{ ...TYPO.heading1, color: palette.main[600] }}>
+                  {t("score_format", {
+                    score: formatNumber(resultData?.score || 0, 2)
+                  })}
+                </Text>
+                <Text style={{ ...TYPO.heading1, color: palette.main[600] }}>
+                  /{t("score_format", {
+                    score: formatNumber(resultData?.totalScore || 0, 2)
+                  })}
+                </Text>
+              </View>
             </View>
 
             <View style={{ gap: 8 }}>
@@ -180,18 +214,47 @@ const MyOverall: FC<OverallTabProps> = ({
                   {t('question_count_format', { number: resultData?.questions.length || 0 })}
                 </Text>
               </View>
+              <View style={styles.columnItem}>
+                <Text style={styles.overviewLabel}>{t('percentage')}</Text>
+                <Text style={styles.overviewValue}>
+                  {resultData?.totalCorrectRate.toFixed(2)}%
+                </Text>
+              </View>
+              <View style={styles.columnItem}>
+                <Text style={styles.overviewLabel}>{t('problem_solving_efficiency')}</Text>
+                <Text style={styles.overviewValue}>
+                  {(
+                    (resultData?.score || 0 / (resultData?.totalScore || 0)) *
+                    100
+                  ).toFixed(2)}
+                  %
+                </Text>
+              </View>
+              <View style={styles.columnItem}>
+                <Text style={styles.overviewLabel}>{t('average')}</Text>
+                <Text style={styles.overviewValue}>
+                  {t("score_format", {
+                    score: formatNumber(resultData?.averageScores || 0, 2)
+                  })}
+                </Text>
+              </View>
             </View>
           </View>
         </View>
       </View>
-      <View >
+      <View>
         <ScrollView
           horizontal
+          ref={scrollRef}
           pagingEnabled
           showsHorizontalScrollIndicator={false}
           decelerationRate="fast"
           snapToInterval={SLIDE_WIDTH}
           snapToAlignment="start"
+          onMomentumScrollEnd={(e) => {
+            const index = Math.round(e.nativeEvent.contentOffset.x / SLIDE_WIDTH)
+            setCurrentIndex(index)
+          }}
         >
           {slides.map((item, index) => (
             <View
@@ -213,6 +276,17 @@ const MyOverall: FC<OverallTabProps> = ({
             </View>
           ))}
         </ScrollView>
+        {currentIndex > 0 && currentIndex < slides.length - 1 && <View style={{ position: 'absolute', left: 0, top: '35%' }}>
+          <TouchableOpacity onPress={handlePrev}>
+            <MaterialIcons name="arrow-back-ios-new" size={24} color={palette.grey[300]} />
+          </TouchableOpacity>
+        </View>}
+
+        {currentIndex < slides.length - 1 && <View style={{ position: 'absolute', right: 5, top: '35%' }}>
+          <TouchableOpacity onPress={handleNext}>
+            <MaterialIcons name="arrow-forward-ios" size={24} color={palette.grey[300]} />
+          </TouchableOpacity>
+        </View>}
       </View>
     </ScrollView>
   )
@@ -238,12 +312,13 @@ const styles = ScaledSheet.create({
     gap: '20@ms'
   },
   overviewLabel: {
-    ...TYPO.caption,
+    fontSize: 12,
+    fontWeight: 400,
     color: palette.grey[500]
   },
   overviewValue: {
-    ...TYPO.button3,
-    fontWeight: 700,
+    fontSize: 14,
+    fontWeight: 500,
     color: palette.grey[900]
   },
   columnItem: {

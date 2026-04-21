@@ -119,6 +119,7 @@ export type ExamResult = {
     totalStudent: number
     totalTime: any
     type: number
+    averageScores: number
     courses?: CourseInfo[]
     sessionCourses?: CourseInfo[]
     sessionStudentCourses?: CourseInfo[]

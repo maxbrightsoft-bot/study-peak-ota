@@ -16,6 +16,12 @@ interface Props {
   onSubmit: (values: ScheduleFormData) => void
   schedule?: ScheduleResponse
   t: any
+  selectedDate: {
+    startDate: string
+    endDate: string
+    currentDate: string
+    isTotalMonth: boolean
+  }
 }
 
 const schema = (t: any) =>
@@ -26,7 +32,7 @@ const schema = (t: any) =>
     title: Yup.string().required(t('title_required'))
   })
 
-const CreateNewScheduleDialog = ({ t, onClose, open, onSubmit, schedule }: Props) => {
+const CreateNewScheduleDialog = ({ t, onClose, open, onSubmit, schedule, selectedDate }: Props) => {
   const convertScheduleRequest = (): ScheduleFormData | undefined => {
     if (!schedule) return undefined
     return {
@@ -53,6 +59,7 @@ const CreateNewScheduleDialog = ({ t, onClose, open, onSubmit, schedule }: Props
             formikProp={formikProp}
             scheduleRequest={scheduleRequest}
             onClose={onClose}
+            selectedDate={selectedDate}
           />
         )}
       </Formik>

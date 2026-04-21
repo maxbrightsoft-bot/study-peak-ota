@@ -129,7 +129,6 @@ const TextbookAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAn
   }
 
   return <View style={styles.container}>
-    
       {renderAnswer(question, question.questionAnswerType)}
   </View>
 }
@@ -176,13 +175,11 @@ const styles = ScaledSheet.create({
   },
   answerRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 16,
-    paddingHorizontal: 15,
     justifyContent: 'space-between'
   },
   answerButton: {
-    width: 50,
+    flex: 1,
     height: 50,
     borderRadius: 25,
     borderWidth: 1,
