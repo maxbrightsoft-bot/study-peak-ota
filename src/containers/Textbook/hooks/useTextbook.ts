@@ -149,7 +149,7 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
         const res = await startTextbook(textbook.id)
         startTime = moment.utc(res.data).valueOf()
       }
-      if (enable && !textbook.isMock) {
+      if (enable) {
         await handleStartAudio(textbook, minutes, startTime)
       }
 

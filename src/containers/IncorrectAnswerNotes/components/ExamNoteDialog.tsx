@@ -98,21 +98,6 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
                       />
                     )}
                   </View>
-                  {question && <View style={{ marginTop: 12 }}>
-                    <View style={styles.headerRow}>
-                      {!!question?.questionTypeCategories?.length && <>
-                        <Text style={styles.headerText}>{question?.questionTypeCategories?.[0]?.category?.name}</Text>
-                        <View style={styles.separator} />
-                        <Text style={styles.headerText}>{question?.questionTypeCategories?.[0]?.subcategory?.name}</Text>
-                      </>}
-                    </View>
-
-                    <View style={styles.metaRow}>
-                      <View style={styles.metaLeft}>
-                        <Text style={styles.metaText}>{examResultData?.title ?? textbookResult?.chapterName}</Text>
-                      </View>
-                    </View>
-                  </View>}
                   <View style={{ marginTop: 20 }}>
                     <Text style={styles.labelText}>{t('incorrect_answer_note_contents')}*</Text>
                     <TextField

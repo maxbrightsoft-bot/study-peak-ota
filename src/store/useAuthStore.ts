@@ -101,7 +101,7 @@ const useAuthStore = create<AuthStore>()(
       isLoadingWithoutOverlay: false,
       user: null,
       academies: [],
-      hasConsented: false,
+      hasConsented: true,
       selectedAcademy: null,
       redirectUrl: null,
       language:  null,
