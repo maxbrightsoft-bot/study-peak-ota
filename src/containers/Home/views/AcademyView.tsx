@@ -1,21 +1,20 @@
-import { palette, TYPO } from '@/theme'
-import React from 'react'
-import { ScrollView, View, StyleSheet, TouchableOpacity } from 'react-native'
-import { Text } from 'react-native-paper'
-import CalendarSchedule from './components/CalendarSchedule'
-import ModalExamCode from './components/Dialog/ModalExamCode'
-import useProblemSolving from './hooks/useProblemSolving'
 import ArrowRight from '@/assets/iconJSX/arrowRight'
 import Verify from '@/assets/iconJSX/verify'
 import CustomCard from '@/components/Card/CustomCard'
-import WaitingExamStart from './components/Dialog/WaitingExamStart'
-import ConfirmExamCode from './components/Dialog/ConfirmExamCode'
+import WaitingExamStart from '../components/Dialog/WaitingExamStart'
+import ConfirmExamCode from '../components/Dialog/ConfirmExamCode'
 import { timeSpanToLocalMoment } from '@/utils/helpers'
-import ExamHistoryDialog from './components/Dialog/ExamHistoryDialog'
-import { ScheduleStatus } from './configs/type'
-import RecentTextbook from './components/RecentTextbook'
+import ExamHistoryDialog from '../components/Dialog/ExamHistoryDialog'
+import { ScheduleStatus } from '../configs/type'
+import RecentTextbook from '../components/RecentTextbook'
+import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import CalendarSchedule from '../components/CalendarSchedule'
+import ModalExamCode from '../components/Dialog/ModalExamCode'
+import { palette } from '@/theme'
+import useProblemSolving from '../hooks/useProblemSolving'
+import StudyTimerCard from '../components/StudyTimerCard'
 
-const Home = () => {
+const AcademyView = () => {
   const {
     t,
     open,
@@ -42,9 +41,12 @@ const Home = () => {
   } = useProblemSolving()
 
   return (
-    <View style={{ flex: 1 }}>
+    <View>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} ref={scrollRef} style={{ backgroundColor: palette.main[600] }}>
         <View style={styles.container}>
+          <View style={{ marginBottom: 28 }}>
+            <StudyTimerCard />
+          </View>
           <TouchableOpacity
             onPress={handleToggleSchedule}
             style={{
@@ -91,8 +93,8 @@ const Home = () => {
                 }}
               >
                 <View style={{}}>
-                  <Text style={{ fontSize: 12, fontWeight: 400, marginBottom: 19 }}>{t('today_attendance')}</Text>
-                  <Text style={{ ...styles.bold, fontSize: 16 }}>{selectedSchedule ? selectedSchedule.title : t('no_class_today')}</Text>
+                  <Text style={{ fontSize: 12, fontWeight: 400, marginBottom: 19, color: palette.grey[500] }}>{t('today_attendance')}</Text>
+                  <Text style={{ ...styles.bold, fontSize: 16, color: palette.grey[500] }}>{selectedSchedule ? selectedSchedule.title : t('no_class_today')}</Text>
                   {selectedSchedule && (
                     <Text style={styles.time}>
                       {timeSpanToLocalMoment(selectedSchedule.startTime, selectedSchedule.date)?.format('HH:mm')} ~{' '}
@@ -133,7 +135,7 @@ const Home = () => {
 
             <View style={styles.half}>
               <CustomCard style={{ ...styles.card, paddingHorizontal: 12, paddingVertical: 15, width: '100%' }}>
-                <Text style={{ fontSize: 12 }}>{t('new_exam')}</Text>
+                <Text style={{ fontSize: 12, color: palette.grey[500] }}>{t('new_exam')}</Text>
                 <TouchableOpacity
                   style={{ backgroundColor: '#F6F6F6', padding: 12, borderRadius: 10, marginTop: 6 }}
                   onPress={() => openCloseModal()}
@@ -156,6 +158,7 @@ const Home = () => {
               </CustomCard>
             </View>
           </View>}
+
           <View style={{ marginBottom: 28 }}>
             <RecentTextbook />
           </View>
@@ -182,7 +185,8 @@ const Home = () => {
   )
 }
 
-export default Home
+export default AcademyView
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

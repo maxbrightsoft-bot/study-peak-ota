@@ -1,12 +1,15 @@
 import { palette, TYPO } from '@/theme'
 import React from 'react'
-import { View, ScrollView, TouchableOpacity, StyleSheet, Text } from 'react-native'
+import { View, ScrollView, TouchableOpacity, Text } from 'react-native'
 import useRecentTextbook from '../hooks/useRecentTextbook'
 import { utcToLocalTime } from '@/utils/helpers'
 import ArrowRight from '@/assets/iconJSX/arrowRight'
+import { ScaledSheet } from 'react-native-size-matters'
+import AudioGuideModal from '@/layouts/components/AudioGuideModal'
+import SelectTimeDialog from '@/layouts/components/SelectTimeDialog'
 
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
   },
   header: {
@@ -96,19 +99,61 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   emptyText: {
-    ...TYPO.caption,
+    marginVertical: 20,
+    textAlign: 'center',
+    fontWeight: '600',
+    fontSize: '13@ms',
+    lineHeight: '14@ms',
+    color: palette.grey[500]
+  },
+  ctaWrapper: {
+    borderRadius: 16,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    gap: 14,
+  },
+  ctaText: {
+    fontSize: 14,
     color: palette.grey[500],
     textAlign: 'center',
+  },
+  ctaButton: {
+    backgroundColor: palette.main[600],
+    borderRadius: 999,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  ctaButtonText: {
+    ...TYPO.button3,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
 })
 
 const RecentTextbook = () => {
-  const { t, textbookList, handleDoTextbook } = useRecentTextbook()
+  const {
+    t,
+    isRecentEmpty,
+    textbookList,
+    handleDoTextbook,
+    handleGoToTextbookList,
+    isOpenAudioGuide,
+    handleCloseAudioGuide,
+    selectedTextbook,
+    handleStartTextbookFromGuideModal,
+    isOpenTimeSelectModal,
+    handleCloseTimeSelectModal,
+    handleStartTextbook
+  } = useRecentTextbook()
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('continue_solving_textbook')}</Text>
+        <Text style={styles.headerTitle}>{isRecentEmpty ? t('suggested_textbooks') : t('continue_solving_textbook')}</Text>
       </View>
       <ScrollView scrollEnabled={false}>
         <View style={styles.contentContainer}>
@@ -143,16 +188,43 @@ const RecentTextbook = () => {
                     style={styles.startButton}
                     onPress={() => handleDoTextbook(textbook)}
                   >
-                    <Text style={styles.startButtonText}>{t('start')}</Text>
+                    <Text style={styles.startButtonText}>{textbook.isStudying ? t('continue') : t('start')}</Text>
                     <ArrowRight color='#FFF' />
                   </TouchableOpacity>
                 </View>
               </View>
             )
           })}
-          {textbookList?.length === 0 && <Text style={styles.emptyText}>{t('no_data')}</Text>}
+          {textbookList?.length === 0 && (
+            <View style={styles.ctaWrapper}>
+              <TouchableOpacity style={styles.ctaButton} onPress={handleGoToTextbookList}>
+                <Text style={styles.ctaButtonText}>{t('start_your_textbook_now')}</Text>
+                <ArrowRight color='#FFF' />
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </ScrollView>
+      {isOpenAudioGuide && (
+        <AudioGuideModal
+          open={isOpenAudioGuide}
+          audioUrls={selectedTextbook?.subject?.audioUrls ?? []}
+          onClose={handleCloseAudioGuide}
+          onStart={handleStartTextbookFromGuideModal}
+        />
+      )}
+      {isOpenTimeSelectModal && (
+        <SelectTimeDialog
+          open={isOpenTimeSelectModal}
+          t={t}
+          title={t('select_timer_limit')}
+          onClose={handleCloseTimeSelectModal}
+          onSubmit={(minutes) => {
+            if (selectedTextbook) handleStartTextbook(true, selectedTextbook, minutes)
+          }}
+          initialValue={selectedTextbook?.subject?.limitedTimeInMinutes || selectedTextbook?.limitedTimeInMinutes}
+        />
+      )}
     </View>
   )
 }

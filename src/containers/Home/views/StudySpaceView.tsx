@@ -1,0 +1,243 @@
+import Verify from '@/assets/iconJSX/verify'
+import CustomCard from '@/components/Card/CustomCard'
+import { timeSpanToLocalMoment } from '@/utils/helpers'
+import { ScheduleStatus } from '../configs/type'
+import RecentTextbook from '../components/RecentTextbook'
+import { ScrollView, View, Text, TouchableOpacity } from 'react-native'
+import CalendarSchedule from '../components/CalendarSchedule'
+import { palette, TYPO } from '@/theme'
+import useProblemSolving from '../hooks/useProblemSolving'
+import Calendar from '../components/Calendar'
+import useSchedule from '../hooks/useSchedule'
+import NoteEvent from '../components/NoteEvent'
+import CreateNewScheduleDialog from '../components/Dialog/CreateNewScheduleDialog'
+import { ScaledSheet } from 'react-native-size-matters'
+import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
+import StudyTimerCard from '../components/StudyTimerCard'
+
+const StudySpaceView = () => {
+  const {
+    t,
+    user,
+    scrollRef,
+    openSchedule,
+    enableCheckSchedule,
+    handleCheckSchedule,
+    handleToggleSchedule,
+  } = useProblemSolving()
+
+  const {
+    schedules,
+    selectedDate,
+    openTooltipList,
+    handleOpenTooltip,
+    handleCloseTooltip,
+    selectedSchedule,
+    highlightedDays,
+    getScheduleList,
+    getScheduleListForNoteEvent,
+    handleCheckInLesson,
+    isOpenDialog: isOpenScheduleDialog,
+    handleCloseDialog: handleCloseScheduleDialog,
+    handleOpenDialog: handleOpenScheduleDialog,
+    isOpenDialog,
+    handleOpenDialog,
+    handleCloseDialog,
+    handleSelectDate,
+    handleCreateSchedule,
+    handleGetScheduleCount,
+    isOpenConfirmDeleteDialog,
+    handleCloseConfirmDeleteDialog,
+    handleOpenConfirmDeleteDialog,
+    handleDeleteSchedule,
+    handleUpdateScheduleStatus
+  } = useSchedule()
+
+  return (
+    <View>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} ref={scrollRef} style={{ backgroundColor: palette.main[600] }}>
+
+        <View style={styles.container}>
+          <View style={{ marginBottom: 28 }}>
+            <StudyTimerCard />
+          </View>
+          <View>
+            <Text style={{ ...TYPO.heading1, color: palette.grey[900], }}>{t('schedule_detail')}</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.fabButton}
+            onPress={() => handleOpenDialog()}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.fabIcon}>＋</Text>
+            <Text style={styles.fabText}>{t('add_new_schedule')}</Text>
+          </TouchableOpacity>
+          <View style={{ marginBottom: 24 }}>
+            <Calendar
+              highlightedDays={highlightedDays}
+              selectedDate={selectedDate}
+              handleSelectDate={handleSelectDate}
+              getScheduleList={getScheduleList}
+              getScheduleListForNoteEvent={getScheduleListForNoteEvent}
+              onScheduleCountChange={handleGetScheduleCount}
+            />
+            <NoteEvent
+              t={t}
+              schedules={schedules?.slice(0, 3)}
+              selectedDate={selectedDate}
+              handleCreateSchedule={handleCreateSchedule}
+              openTooltipList={openTooltipList}
+              handleOpenTooltip={handleOpenTooltip}
+              handleCloseTooltip={handleCloseTooltip}
+              selectedSchedule={selectedSchedule}
+              handleCheckInLesson={handleCheckInLesson}
+              isOpenScheduleDialog={isOpenScheduleDialog}
+              handleOpenScheduleDialog={handleOpenScheduleDialog}
+              isOpenConfirmDeleteDialog={isOpenConfirmDeleteDialog}
+              handleCloseScheduleDialog={handleCloseScheduleDialog}
+              handleCloseConfirmDeleteDialog={handleCloseConfirmDeleteDialog}
+              handleOpenConfirmDeleteDialog={handleOpenConfirmDeleteDialog}
+              handleDeleteSchedule={handleDeleteSchedule}
+              handleUpdateScheduleStatus={handleUpdateScheduleStatus}
+            />
+
+          </View>
+
+          {user?.academyDomain && (
+            <View style={[styles.row, { marginBottom: 28, gap: 14 }]}>
+              <CustomCard style={[styles.card, styles.half, { flex: 1 }]}>
+                <View style={{ paddingHorizontal: 15, paddingVertical: 16, height: '100%', justifyContent: 'space-between' }}>
+                  <View>
+                    <Text style={{ fontSize: 12, fontWeight: 400, marginBottom: 19 }}>{t('today_attendance')}</Text>
+                    <Text style={[styles.bold, { fontSize: 16 }]}>{selectedSchedule ? selectedSchedule.title : t('no_class_today')}</Text>
+                    {selectedSchedule && (
+                      <Text style={styles.time}>
+                        {timeSpanToLocalMoment(selectedSchedule.startTime, selectedSchedule.date)?.format('HH:mm')} ~{' '}
+                        {timeSpanToLocalMoment(selectedSchedule.endTime, selectedSchedule.date)?.format('HH:mm')}
+                      </Text>
+                    )}
+                  </View>
+                  <TouchableOpacity
+                    style={[
+                      styles.attendBtn,
+                      {
+                        backgroundColor:
+                          selectedSchedule?.status === ScheduleStatus.Completed ? palette.grey[200] : palette.sub[400]
+                      }
+                    ]}
+                    onPress={handleCheckSchedule}
+                    disabled={!enableCheckSchedule}
+                  >
+                    <View style={{ flexDirection: 'row', gap: 4, justifyContent: 'center', alignItems: 'center' }}>
+                      <View style={{ padding: 4 }}>
+                        <Verify color={selectedSchedule?.status === ScheduleStatus.Completed ? palette.grey[400] : '#FFF'} />
+                      </View>
+                      <Text style={{ fontSize: 14, fontWeight: 500, color: selectedSchedule?.status === ScheduleStatus.Completed ? palette.grey[400] : '#FFF' }}>
+                        {t('check_in')}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              </CustomCard>
+            </View>
+          )}
+
+
+          <View style={{ marginBottom: 28 }}>
+            <RecentTextbook />
+          </View>
+        </View>
+      </ScrollView>
+
+      <CreateNewScheduleDialog
+        open={isOpenDialog}
+        onClose={() => handleCloseDialog()}
+        t={t}
+        selectedDate={selectedDate}
+        onSubmit={(values) => {
+          handleCreateSchedule(values)
+          handleCloseDialog()
+        }}
+        schedule={selectedSchedule}
+      />
+
+      <ConfirmDialog
+        open={!!selectedSchedule && isOpenConfirmDeleteDialog}
+        toggle={handleCloseConfirmDeleteDialog}
+        text={t('are_you_sure_you_want_to_delete_the_schedule', { name: selectedSchedule?.title })}
+        confirmText={selectedSchedule?.title}
+        onConfirm={handleDeleteSchedule}
+        isDelete
+      />
+    </View>
+  )
+}
+
+export default StudySpaceView
+
+const styles = ScaledSheet.create({
+  container: {
+    flex: 1,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    backgroundColor: palette.grey[50],
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  card: {
+    borderRadius: 14
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 12
+  },
+  half: {
+    flex: 1
+  },
+  bold: {
+    fontWeight: '600',
+    fontSize: 14,
+    flex: 1,
+    color: '#222222',
+    lineHeight: 22
+  },
+  time: {
+    color: palette.grey[400],
+    fontSize: 13,
+    fontWeight: 400
+  },
+  attendBtn: {
+    alignSelf: 'flex-end',
+    borderRadius: 26,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    backgroundColor: palette.grey[200]
+  },
+  fabButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    gap: 4,
+    marginTop: 10,
+    marginBottom: 10,
+    backgroundColor: palette.main[600],
+    borderRadius: 20,
+    paddingVertical: '7@ms',
+    paddingHorizontal: '14@ms',
+    shadowColor: palette.main[600],
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  fabIcon: {
+    fontSize: 16,
+    color: '#fff',
+    lineHeight: 20,
+  },
+  fabText: {
+    ...TYPO.button2,
+    color: '#fff',
+    fontSize: 13,
+  },
+})
