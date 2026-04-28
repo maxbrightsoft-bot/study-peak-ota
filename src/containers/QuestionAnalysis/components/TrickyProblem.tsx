@@ -7,10 +7,11 @@ import { Ionicons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
 import { palette } from '@/theme'
 import TargetIcon from '@/assets/icons/target.svg'
-import { CategoryResponse } from '@/utils/types'
+import { CategoryResponse, QuestionGroupResponse } from '@/utils/types'
 
 interface ExamResult {
   questions: Question[]
+  questionGroups: QuestionGroupResponse[]
 }
 
 interface Question {
@@ -36,9 +37,6 @@ interface Props {
 
 const QuestionItem = ({ question, color, categories, data }: { question: Question; color: string; categories?: CategoryResponse[]; data?: ExamResult }) => {
   const [visible, setVisible] = React.useState(false)
-
-  console.log({ data });
-  
 
   const openMenu = () => setVisible(true)
   const closeMenu = () => setVisible(false)

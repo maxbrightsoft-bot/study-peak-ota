@@ -80,7 +80,6 @@ const useStepItem = ({ values, errors, setFieldTouched }: Props) => {
     setLoading(true)
     try {
       const isAppleLogin = !!(await getDataStorage(APPLE_USER_KEY))
-      console.log('values', values)
 
       const res = await updateInfoLogin({ ...values, isAppleLogin });
 
