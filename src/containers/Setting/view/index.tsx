@@ -11,6 +11,8 @@ import useSetting from '../hooks/useSetting'
 import CalendarSchedule from '@/containers/Home/components/CalendarSchedule'
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
 import LanguageDialog from '../components/LanguageDialog'
+import PolicyViewer from '../components/PolicyViewer'
+import { PRIVACY_POLICY_CONTENT, TERMS_OF_SERVICE_CONTENT } from '../configs/policyContent'
 
 type Props = {
   open: boolean
@@ -47,7 +49,11 @@ const Setting = ({ open, onClose }: Props) => {
     handleToggleConfirmRemoveAccount,
     openLanguageDialog,
     handleToggleLanguageDialog,
-    changeLanguage
+    changeLanguage,
+    openPrivacyPolicy,
+    openTermsOfService,
+    handleTogglePrivacyPolicy,
+    handleToggleTermsOfService,
   } = useSetting()
   return (
     <SlideDrawerRoot visible={open} onClose={onClose}>
@@ -62,6 +68,11 @@ const Setting = ({ open, onClose }: Props) => {
       </View>
       <View style={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
+          <View style={styles.accountInfoCard}>
+            <Text style={styles.accountInfoLabel}>{t('account_info')}</Text>
+            <Text style={styles.accountInfoEmail}>{user?.email}</Text>
+          </View>
+
           <View style={styles.card}>
             <SettingItem onPress={() => handleOpenUpdateUserDialog()} icon={<UserIcon />} title={t('account_management')} />
           </View>
@@ -75,15 +86,31 @@ const Setting = ({ open, onClose }: Props) => {
           </View>}
 
           <View style={styles.card}>
-            <SettingItem onPress={() => handleToggleConfirmRemoveAccount()} icon={<Ionicons name="trash-outline" size={20} color={palette.error.main} />} title={t('delete_account')} />
-          </View>
-
-          <View style={styles.card}>
             <SettingItem
               onPress={() => handleToggleLanguageDialog()}
               icon={<Ionicons name="language-outline" size={22} color={'#222222'} />}
               title={t('language')}
             />
+          </View>
+
+          <View style={styles.card}>
+            <SettingItem
+              onPress={() => handleTogglePrivacyPolicy()}
+              icon={<Ionicons name="document-text-outline" size={22} color={'#222222'} />}
+              title={t('privacy_policy')}
+            />
+          </View>
+
+          <View style={styles.card}>
+            <SettingItem
+              onPress={() => handleToggleTermsOfService()}
+              icon={<Ionicons name="newspaper-outline" size={22} color={'#222222'} />}
+              title={t('terms_of_service')}
+            />
+          </View>
+
+          <View style={styles.card}>
+            <SettingItem onPress={() => handleToggleConfirmRemoveAccount()} icon={<Ionicons name="trash-outline" size={20} color={palette.error.main} />} title={t('delete_account')} />
           </View>
 
           <TouchableOpacity style={styles.logout} onPress={() => logout()}>
@@ -121,6 +148,18 @@ const Setting = ({ open, onClose }: Props) => {
         onClose={handleToggleLanguageDialog}
         onSelect={changeLanguage}
       />
+      <PolicyViewer
+        open={openPrivacyPolicy}
+        onClose={handleTogglePrivacyPolicy}
+        title={t('privacy_policy')}
+        content={PRIVACY_POLICY_CONTENT}
+      />
+      <PolicyViewer
+        open={openTermsOfService}
+        onClose={handleToggleTermsOfService}
+        title={t('terms_of_service')}
+        content={TERMS_OF_SERVICE_CONTENT}
+      />
     </SlideDrawerRoot>
   )
 }
@@ -152,6 +191,27 @@ const styles = ScaledSheet.create({
     backgroundColor: palette.bg[100],
     paddingHorizontal: '20@ms',
     paddingTop: '20@ms'
+  },
+
+  accountInfoCard: {
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    marginBottom: '16@ms',
+    paddingVertical: '16@ms',
+    paddingHorizontal: '16@ms',
+  },
+
+  accountInfoLabel: {
+    fontSize: '12@ms',
+    fontWeight: '500',
+    color: palette.grey[500],
+    marginBottom: '4@ms',
+  },
+
+  accountInfoEmail: {
+    fontSize: '15@ms',
+    fontWeight: '600',
+    color: '#222',
   },
 
   card: {
@@ -211,3 +271,4 @@ const styles = ScaledSheet.create({
     fontWeight: '600'
   }
 })
+

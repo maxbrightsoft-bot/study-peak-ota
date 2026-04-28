@@ -29,8 +29,6 @@ const LanguageDialog = ({ open, onClose, onSelect }: Props) => {
   const { language } = useAuthStore()
   const { t } = useTranslation()
 
-  console.log({ language})
-
   return (
     <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.overlay} onPress={onClose}>

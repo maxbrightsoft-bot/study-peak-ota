@@ -1,5 +1,5 @@
 import { AxiosResponse } from 'axios'
-import { ACCESS_TOKEN, DATE_MIN_VALUE, DATE_TIME_MIN_VALUE, DefaultErrorMessage } from '../constants'
+import { ACCESS_TOKEN, DATE_MIN_VALUE, DATE_TIME_MIN_VALUE, DefaultErrorMessage, ErrorMessages } from '../constants'
 import { TFunction } from 'i18next'
 import moment from 'moment'
 import Toast from 'react-native-toast-message'
@@ -107,17 +107,36 @@ export const formatGrade = (grade: number, t: any, language?: string) => {
     : ''
 }
 
-export const getErrorMessage = (
-  t: TFunction<'translation', undefined>,
-  error: any,
-  defaultErrorMessage?: string
-): string => {
-  let errorMessage = error?.response?.data?.title
-  if (error?.response?.status === 500) return defaultErrorMessage || t(DefaultErrorMessage)
-  if (typeof errorMessage === 'string') return decodeURIComponent(errorMessage)
-  errorMessage = error?.message || error?.response?.data?.message
-  if (typeof errorMessage === 'string') return errorMessage
-  return defaultErrorMessage || t(DefaultErrorMessage)
+export const getErrorMessage = (t: TFunction<"translation", undefined>, error: any, defaultErrorMessage?: string): string => {
+    let errorMessage = error?.response?.data?.title
+    const errorStatus = error?.response?.status
+    if (errorStatus === 409)
+        return t("conflict_error_occurred")
+    if(errorStatus === 512)
+        return t("an_unexpected_error_has_occurred")
+    if(errorStatus === 500){
+        if (typeof errorMessage === "string" && !defaultErrorMessage) return t(DefaultErrorMessage, { message: decodeURIComponent(errorMessage) });
+        return defaultErrorMessage || t("an_unexpected_error_has_occurred")
+    }
+    if (typeof errorMessage === "string") return decodeURIComponent(errorMessage);
+    errorMessage = error?.message || error?.response?.data?.message
+    if (typeof errorMessage === "string") return errorMessage;
+    return defaultErrorMessage || t("an_unexpected_error_has_occurred");
+}
+export const getMessageFromError = (t: TFunction<"translation", undefined>, error: any, defaultErrorMessage?: string): string => {
+    const message = error?.response?.data?.title
+    const errorStatus = error?.response?.status
+    if(errorStatus === 420 && !!message) {
+        const content = ErrorMessages[message]
+        if (!content) return getErrorMessage(t, error, defaultErrorMessage)
+        const jsonData = error?.response?.data?.instance
+        let data = {};
+        try {
+            data = JSON.parse(decodeURIComponent(jsonData))
+        } catch (error) {}
+        return t(content, data)
+    }
+    return getErrorMessage(t, error, defaultErrorMessage)
 }
 
 export const getAcademyDomain = async () => {

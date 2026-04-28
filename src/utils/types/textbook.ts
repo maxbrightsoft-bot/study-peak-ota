@@ -1,4 +1,4 @@
-import { ExamStatus, QuestionAnswerType } from "../enums"
+import { ExamStatus, QuestionAnswerType, SubjectType } from "../enums"
 import { Category, Question } from "./exam"
 import { UserResponse } from "./user"
 
@@ -60,19 +60,24 @@ export type Subject = {
   createdAt: string,
   superId: number
   audioUrls: string[]
+  limitedTimeInMinutes?: number
+  limitedQuestionCount?: number
 }
 
 export type TextbookResult = {
-  id: number
-  chapterName: string
-  parentChapterName: string | null
-  className: string
-  startTime: string
-  totalTime: number
-  totalQuestions: number
-  score: number
-  studentTextbookSessionId: number
-  studentQuestionResults: StudentQuestionResult[]
+    id: number
+    chapterName: string
+    parentChapterName: string | null
+    className: string
+    startTime: string
+    totalTime: number
+    totalQuestions: number
+    score: number
+    totalScore: number
+    studentTextbookSessionId: number
+    studentQuestionResults: StudentQuestionResult[]
+    questionGroups: QuestionGroupResponse[]
+    type: SubjectType
 }
 
 export type StudentQuestionResult = Question & {
@@ -111,13 +116,13 @@ export type ChapterResponse = {
   accuracyRate: number
   completedChapterQuestions: number
   totalChapterQuestions: number
-
 };
 
 export type QuestionGroupResponse = {
   id: number
   pageFrom?: number
   pageTo?: number
+  articles: ArticleResponse[]
 }
 
 export type ArticleResponse = {
@@ -128,6 +133,7 @@ export type ArticleResponse = {
   chapterId: number;
   category?: CategoryResponse;
   questions: QuestionResponse[];
+  subcategory?: CategoryResponse
 };
 
 

@@ -35,6 +35,7 @@ interface EventHandler<T = any> {
 interface StoreState {
   isLoading: boolean;
   redirectUrl: string | null,
+  hasConsented: boolean,
   isLoadingWithoutOverlay: boolean;
   user: UserResponse | null;
   academies: AcademyResponse[];
@@ -43,6 +44,7 @@ interface StoreState {
   language: LanguageResponse | null;
   timers: SubjectTimerResponse[];
   alarm: AlarmResponse | null;
+  isOpenTimerDialog: boolean;
 
   pusher?: Pusher;
   channel?: PusherChannel;
@@ -50,6 +52,7 @@ interface StoreState {
 
 interface StoreActions {
   setUser: (user: UserResponse | null) => void;
+  setHasConsented: (value: boolean) => void
   setAcademies: (academies: AcademyResponse[]) => void;
   setSelectAcademy: (academy?: AcademyResponse | null) => void;
   setHasEnteredSelectAcademy: (value: boolean) => void
@@ -63,6 +66,7 @@ interface StoreActions {
 
   setTimers: (timers: SubjectTimerResponse[] | null) => void;
   setAlarm: (alarm: AlarmResponse | null) => void;
+  setIsOpenTimerDialog: (isOpen: boolean) => void;
 
   initializePusher: (
     academyDomain: string,
@@ -97,11 +101,13 @@ const useAuthStore = create<AuthStore>()(
       isLoadingWithoutOverlay: false,
       user: null,
       academies: [],
+      hasConsented: false,
       selectedAcademy: null,
       redirectUrl: null,
       language:  null,
       timers: [],
       alarm: null,
+      isOpenTimerDialog: false,
       hasEnteredSelectAcademy: true,
       pusher: undefined,
       channel: undefined,
@@ -110,6 +116,12 @@ const useAuthStore = create<AuthStore>()(
         set((state) => {
           state.user = user;
         });
+      },
+
+      setHasConsented: (value) => {
+        set((state) => {
+          state.hasConsented = value
+        })
       },
 
       setHasEnteredSelectAcademy: (value) => {
@@ -175,6 +187,12 @@ const useAuthStore = create<AuthStore>()(
         set((state) => {
           state.alarm = alarm;
           if (__DEV__) console.log("[Alarm]", alarm);
+        });
+      },
+
+      setIsOpenTimerDialog: (isOpen) => {
+        set((state) => {
+          state.isOpenTimerDialog = isOpen;
         });
       },
 
@@ -335,6 +353,7 @@ const useAuthStore = create<AuthStore>()(
         selectedAcademy: state.selectedAcademy,
         isLoading: state.isLoading,
         language: state.language,
+        hasConsented: state.hasConsented,
       }),
     }
   )

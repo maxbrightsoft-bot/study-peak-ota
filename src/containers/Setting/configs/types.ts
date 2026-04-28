@@ -3,6 +3,6 @@ export type UserInfo = {
   parentPhoneNumber: string
   schoolName: string
   grade: number
-  major: string
+  major: string | null
   fullName: string
 }
