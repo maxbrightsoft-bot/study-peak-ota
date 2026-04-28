@@ -60,7 +60,7 @@ const useProblemSolving = () => {
   const [selectedTextbook, setSelectedTextbook] = useState<Textbook>()
   const [isOpenAudioGuide, setOpenAudioGuide] =
     useState<boolean>(false);
-  const { alarmClockProps: { panelProps: { onStart } } } = useAlarm(false, [], true)
+  const { alarmClockProps: { panelProps: { onStart } } } = useAlarm(false, [], false)
   const scrollRef = useRef<ScrollView>(null)
   const academyDomain = user?.academyDomain
 
@@ -171,19 +171,6 @@ const useProblemSolving = () => {
     setLoadingWithoutOverlay(false)
   };
 
-  const handleGetInfoLesson = async (isLoading: boolean = true) => {
-    const todayStart = moment().startOf("day").utc().format(FormatDate);
-    const todayEnd = moment().endOf("day").utc().format(FormatDate);
-    isLoading && setLoadingWithoutOverlay(true)
-    try {
-      const res = await getInfoAcademyApi(todayStart, todayEnd);
-      setInfoLesson(res.data);
-    } catch (error: any) {
-      toast.error(getErrorMessage(t, error));
-    }
-    isLoading && setLoadingWithoutOverlay(false)
-  };
-
   const handleTeacherKickStudent = () => {
     toast.error(t("you_has_been_kicked_out"));
     openCloseModal();
@@ -198,11 +185,6 @@ const useProblemSolving = () => {
     } else if (data.Status === ExamStatus.Completed) {
       navigate(Routes.Auth.ExamResult, { examCode: codeExam });
     }
-  };
-
-  const handleUnload = function (event: any) {
-    event.preventDefault();
-    event.returnValue = "";
   };
 
   const handleMemberRemoved = (member: any) => {
@@ -222,10 +204,6 @@ const useProblemSolving = () => {
     if (channelName.current) {
       unsubscribeChannelSafe(pusher, channelName.current)
     }
-
-    // isCheckTeacherStart &&
-    //   codeExam &&
-    //   window.removeEventListener("beforeunload", handleUnload);
   };
 
   const handleGetScheduleCount = async () => {
@@ -286,7 +264,7 @@ const useProblemSolving = () => {
     try {
       setLoadingWithoutOverlay(true)
       await startTextbook(textbook.id)
-      if (enable)
+      if (enable && !textbook.isMock)
         await handleStartAudio(textbook)
       handleCloseAudioGuide()
     } catch (error) {

@@ -34,7 +34,6 @@ const NoteEvent = (noteProps: Props) => {
     openTooltipList,
     handleOpenTooltip,
     handleCloseTooltip,
-    selectedSchedule,
     handleCheckInLesson,
     handleOpenScheduleDialog,
     handleOpenConfirmDeleteDialog,
@@ -66,9 +65,7 @@ const NoteEvent = (noteProps: Props) => {
               />
             ))}
             {!schedules?.length && (
-              <View style={styles.container}>
-                <Text style={[styles.noScheduleText, { color: palette.grey[500] }]}>{t('there_is_no_schedule')}</Text>
-              </View>
+                <Text style={[styles.noScheduleText]}>{t('there_is_no_schedule')}</Text>
             )}
           </View>
         </View>
@@ -83,10 +80,12 @@ const styles = ScaledSheet.create({
     justifyContent: 'center'
   },
   noScheduleText: {
+    marginVertical: 20,
+    textAlign: 'center',
     fontWeight: '600',
     fontSize: '13@ms',
     lineHeight: '14@ms',
-    marginBottom: '12@vs'
+    color: palette.grey[500]
   },
   dateDisplayText: {
     ...TYPO.body1,
