@@ -8,10 +8,6 @@ import SearchInput from '@/components/Input/SearchInput'
 import moment from 'moment'
 import { highlightText, isValidTime, utcToLocalTime } from '@/utils/helpers'
 import ExamResult from '../ExamResult/views'
-import TimerDropDown from '@/layouts/components/TimerDropDown'
-import useTimers from '@/layouts/hooks/useTimer'
-import useAlarm from '@/layouts/hooks/useAlarm'
-import AudioGuideModal from '@/layouts/components/AudioGuideModal'
 import HeaderAction from '@/layouts/components/HeaderAction'
 
 const ExamResultList = () => {

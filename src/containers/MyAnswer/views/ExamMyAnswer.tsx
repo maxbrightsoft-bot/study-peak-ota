@@ -13,9 +13,11 @@ interface Props {
   data: ExamResult
   categories: CategoryResponse[]
   effectSize?: EffectSize[]
+  onCreateNote?: (question: Question) => void
+  onCreateQuestion?: (question: Question) => void
 }
 
-const MyAnswer: FC<Props> = ({ data, categories, effectSize }) => {
+const MyAnswer: FC<Props> = ({ data, categories, effectSize, onCreateNote, onCreateQuestion }) => {
   const isMath = data.type === SubjectType.Math
   const { t } = useTranslation()
 
@@ -129,6 +131,8 @@ const MyAnswer: FC<Props> = ({ data, categories, effectSize }) => {
           effectSize={effectSizeItem}
           isLast={isLast}
           isFirst={isFirst}
+          onCreateNote={onCreateNote}
+          onCreateQuestion={onCreateQuestion}
         />
       </View>
     )
@@ -182,14 +186,14 @@ const MyAnswer: FC<Props> = ({ data, categories, effectSize }) => {
         showsVerticalScrollIndicator={true}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: 200
+          paddingBottom: 350
         }}
       >
         {newFormattedData &&
           newFormattedData.length > 0 &&
-          newFormattedData.map((item) => (
+          newFormattedData.map((item, index) => (
             <View key={item.category.id} style={styles.categorySection}>
-              {renderHeader()}
+              {index == 0 && renderHeader()}
               <View style={styles.categoryHeader}>
                 <View style={styles.categoryColumn}>
                   <Text style={styles.categoryLabel}>{t('_category')}</Text>
@@ -198,7 +202,7 @@ const MyAnswer: FC<Props> = ({ data, categories, effectSize }) => {
                   </Text>
                 </View>
               </View>
-              <View style={styles.questionsContainer}>
+              <View style={[styles.questionsContainer, index == newFormattedData.length - 1 && { borderBottomLeftRadius: 14, borderBottomRightRadius: 14 }]}>
                 {item.questions.map((question, index) => renderAnswer(question, index, item.questions, item.overall))}
               </View>
             </View>
@@ -289,8 +293,6 @@ const styles = StyleSheet.create({
   },
   questionsContainer: {
     backgroundColor: '#FFFFFF',
-    borderBottomLeftRadius: 14,
-    borderBottomRightRadius: 14,
     overflow: 'hidden'
   },
   groupHeader: {

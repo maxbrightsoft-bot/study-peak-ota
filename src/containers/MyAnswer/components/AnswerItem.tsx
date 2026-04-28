@@ -2,7 +2,7 @@ import { formatTimeDiff, formatTimeSecond } from '@/utils/helpers';
 import { Ionicons } from '@expo/vector-icons';
 import React, { FC, Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { AnswerItemProps } from '../configs/types';
 import { palette, red } from '@/theme/colors';
 
@@ -12,6 +12,8 @@ const AnswerItem: FC<AnswerItemProps> = ({
   isLast,
   index,
   effectSize,
+  onCreateNote,
+  onCreateQuestion,
 }) => {
   const { t } = useTranslation();
 
@@ -222,6 +224,17 @@ const AnswerItem: FC<AnswerItemProps> = ({
           </View>
         </View>
       </View>
+
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.footerButton} onPress={() => onCreateQuestion?.(data)}>
+          <Ionicons name="chatbubbles-outline" size={16} color="#4B5563" />
+          <Text style={styles.footerText}>{t('qna')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.footerButton} onPress={() => onCreateNote?.(data)}>
+          <Ionicons name="document-text-outline" size={16} color="#4B5563" />
+          <Text style={styles.footerText}>{t('note')}</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -349,6 +362,27 @@ const styles = StyleSheet.create({
   categoryText: {
     fontSize: 11,
     color: '#374151',
+  },
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+    gap: 8,
+  },
+  footerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    backgroundColor: '#F3F4F6',
+  },
+  footerText: {
+    fontSize: 12,
+    color: '#4B5563',
+    fontWeight: '500',
   },
 });
 

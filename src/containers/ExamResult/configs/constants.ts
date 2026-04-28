@@ -8,6 +8,14 @@ export const examStatusViewOptions = (t: any, chapterId?: number) => chapterId ?
         value: ExamStatusView.MyAnswers
     },
     {
+        label: t('solution_order'),
+        value: ExamStatusView.SolutionOrder
+    },
+    {
+        label: t('compare_solution'),
+        value: ExamStatusView.CompareSolution
+    },
+    {
         label: t('question_analysis'),
         value: ExamStatusView.QuestionAnalysis
     },
@@ -46,6 +54,6 @@ export const DEFAULT_NOTE_FILTER: NoteSearchQuery = {
 }
 
 export const DefaultStudentExamSessionFilter: StudentExamSessionQuery = {
-  sortColumnDirection: OrderBy.DESC,
-  sortColumnName: StudentExamSessionSortBy.StartTime,
+    sortColumnDirection: OrderBy.DESC,
+    sortColumnName: StudentExamSessionSortBy.StartTime,
 };

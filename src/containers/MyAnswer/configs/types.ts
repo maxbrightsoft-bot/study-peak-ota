@@ -15,6 +15,8 @@ export interface AnswerItemProps {
     index: number
     isFirst?: boolean
     effectSize?: EffectSize
+    onCreateNote?: (question: Question) => void
+    onCreateQuestion?: (question: Question) => void
 }
 
 export interface TextbookAnswerItemProps {
@@ -24,4 +26,6 @@ export interface TextbookAnswerItemProps {
     isFirst?: boolean
     questionGroupId: number
     effectSize?: EffectSize
+    onCreateNote?: (question: Question) => void
+    onCreateQuestion?: (question: Question) => void
 }
