@@ -92,7 +92,6 @@ const useCountDownTimer = (props: Props) => {
             const elapsed = diffFromNowMs(startTime) - totalPausedTimeNow;
 
             const remain = duration - Math.floor(elapsed / 1000);
-            console.log({ remain, elapsed, duration });
 
             if (remain <= 0) {
                 isFinishedRef.current = true;

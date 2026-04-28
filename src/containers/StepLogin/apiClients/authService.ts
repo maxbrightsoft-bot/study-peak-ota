@@ -7,3 +7,4 @@ export const updateInfoLogin = (body: any) => api.post(`${AUTH_LOGIN_URL}/info`,
 export const checkInfoApi = (body: any, step: number) => api.post(`${AUTH_LOGIN_URL}/check`, body, {
     params: { step }
 })
+export const checkPhoneNumberApi = (body: any) => api.post(`${AUTH_LOGIN_URL}/check-phone-number`, body)

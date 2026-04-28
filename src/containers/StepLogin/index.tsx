@@ -45,7 +45,7 @@ const StepLogin = () => {
     parentPhoneNumber: user?.parentPhoneNumber || "",
     schoolName: user?.schoolName || "",
     grade: user?.grade || 1,
-    major: user?.major || t("liberal_arts"),
+    major: user?.major || null,
   };
 
   return (

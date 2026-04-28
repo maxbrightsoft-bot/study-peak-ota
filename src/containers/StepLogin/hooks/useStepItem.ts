@@ -4,7 +4,7 @@ import { GRADE_OPTIONS } from "../configs/constants";
 import { navigate } from "@/navigators/NavigationHelpers";
 import { getErrorMessage, toast } from "@/utils/helpers";
 import useAuthStore from "@/store/useAuthStore";
-import { updateInfoLogin } from "../apiClients/authService";
+import { checkPhoneNumberApi, updateInfoLogin } from "../apiClients/authService";
 import { Routes } from "@/navigators/RouteName";
 import { APPLE_USER_KEY } from "@/utils/constants";
 import { getDataStorage } from "@/utils/storage";
@@ -29,18 +29,19 @@ const useStepItem = ({ values, errors, setFieldTouched }: Props) => {
   const { user, setLoading, setUser, setHasEnteredSelectAcademy } = useAuthStore()
   const { t } = useTranslation();
   const textSearchRef = useRef()
+  const [isCheckPhoneNumber, setIsCheckPhoneNumber] = useState<boolean>(false)
 
-   const formatPhone = (text: string) => {
-      const cleaned = text.replace(/\D/g, "");
-  
-      const match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/);
-  
-      if (!match) return text;
-  
-      return [match[1], match[2], match[3]]
-        .filter(Boolean)
-        .join("-");
-    };
+  const formatPhone = (text: string) => {
+    const cleaned = text.replace(/\D/g, "");
+
+    const match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/);
+
+    if (!match) return text;
+
+    return [match[1], match[2], match[3]]
+      .filter(Boolean)
+      .join("-");
+  };
 
   useEffect(() => {
     if (user?.loginMethod === "Apple") {
@@ -58,6 +59,16 @@ const useStepItem = ({ values, errors, setFieldTouched }: Props) => {
       await handleUpdateInfo()
     }
   };
+
+  const handleCheckPhoneNumber = async () => {
+    try {
+      await checkPhoneNumberApi({ phoneNumber: values.phoneNumber })
+      toast.success(t('phone_number_is_available'))
+      setIsCheckPhoneNumber(true)
+    } catch (error: any) {
+      toast.error(getErrorMessage(t, error))
+    }
+  }
 
   const onPrev = () => {
     if (step >= 0) {
@@ -92,6 +103,10 @@ const useStepItem = ({ values, errors, setFieldTouched }: Props) => {
   const subjectOptions = useMemo(() => {
     return [
       {
+        label: t("none"),
+        value: '',
+      },
+      {
         label: t("liberal_arts"),
         value: t("liberal_arts"),
       },
@@ -117,6 +132,8 @@ const useStepItem = ({ values, errors, setFieldTouched }: Props) => {
     onNext,
     onPrev,
     user,
+    isCheckPhoneNumber,
+    handleCheckPhoneNumber,
     textSearchRef,
     formatPhone,
     subjectOptions,

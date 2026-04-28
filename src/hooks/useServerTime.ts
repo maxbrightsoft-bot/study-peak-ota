@@ -5,56 +5,52 @@ import { AppState } from 'react-native';
 let globalOffset = 0;
 let globalSynced = false;
 let syncInProgress = false;
+let pendingSync: Promise<void> | null = null;
 
-export async function doSync(attempt = 0) {
-  if (syncInProgress) return;
-  syncInProgress = true;
+export async function doSync(attempt = 0): Promise<void> {
+  if (pendingSync) return pendingSync;
 
-  try {
-    const t1 = Date.now();
-    const res = await getTimeServerApi()
-    
-    const { serverTime } = res.data;
-
-    const latency = (Date.now() - t1) / 2;
-
-    globalOffset = serverTime - (Date.now() - latency);
-    globalSynced = true;
-
-  } catch {
-    if (attempt < 4) {
-      const delay = [1000, 2000, 4000, 8000][attempt];
-      setTimeout(() => {
-        syncInProgress = false;
-        doSync(attempt + 1);
-      }, delay);
-      return;
+  pendingSync = (async () => {
+    try {
+      const t1 = Date.now();
+      const res = await getTimeServerApi();
+      const { serverTime } = res.data;
+      const latency = (Date.now() - t1) / 2;
+      globalOffset = serverTime - (Date.now() - latency);
+      globalSynced = true;
+    } catch {
+      if (attempt < 4) {
+        const delay = [1000, 2000, 4000, 8000][attempt];
+        await new Promise((r) => setTimeout(r, delay));
+        pendingSync = null;
+        return doSync(attempt + 1);
+      }
+      globalSynced = false;
+    } finally {
+      pendingSync = null;
     }
-    globalSynced = false;
-  }
+  })();
 
-  syncInProgress = false;
+  return pendingSync;
 }
 
 const useServerTime = () => {
   const [synced, setSynced] = useState(globalSynced);
   const [offset, setOffset] = useState(globalOffset);
   const appStateRef = useRef(AppState.currentState);
-  const periodicRef = useRef<any>(null);
+  const periodicRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const sync = useCallback(async () => {
+  const sync = async () => {
     await doSync();
     setSynced(globalSynced);
     setOffset(globalOffset);
-  }, []);
+  };
 
   useEffect(() => {
-    syncInProgress = false;
     sync();
 
     const appStateSub = AppState.addEventListener('change', (state) => {
       if (appStateRef.current !== 'active' && state === 'active') {
-        syncInProgress = false;
         sync();
       }
       appStateRef.current = state;
@@ -64,15 +60,15 @@ const useServerTime = () => {
 
     return () => {
       appStateSub.remove();
-      clearInterval(periodicRef.current);
+      if (periodicRef.current) clearInterval(periodicRef.current);
     };
-  }, [sync]);
+  }, []);
 
   const getServerNow = useCallback(() => {
     return Date.now() + globalOffset;
   }, []);
 
   return { getServerNow, synced, offset };
-}
+};
 
 export default useServerTime;
