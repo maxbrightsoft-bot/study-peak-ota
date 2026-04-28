@@ -6,8 +6,7 @@ import { palette } from '@/theme'
 import { MaterialIcons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
 import { ceilTo, roundTo } from '@/utils/helpers'
-import { MILLISECONDS_PER_HOUR } from '../configs/constants'
-import { sum } from '../configs/helper'
+import { formatAccumulatedTime, formatAccumulatedTimeSplit, sum } from '../configs/helper'
 
 type Props = {
   data?: any
@@ -112,7 +111,7 @@ const TodayStudyTime = ({ data, loading, isTimerTab = true, isPrint }: Props) =>
 
   const change = currentValue - lastValue
 
-  const accumulatedTime = ceilTo((data?.totalTime || 0) / MILLISECONDS_PER_HOUR, 2)
+  const accumulatedTime = formatAccumulatedTime(data?.totalTime || 0, t)
 
   const totalAnsweredQuestions = sum(data?.pData, 'totalAnsweredQuestions', false)
 
@@ -127,7 +126,7 @@ const TodayStudyTime = ({ data, loading, isTimerTab = true, isPrint }: Props) =>
 
   const clampedRatio = Math.min(ratio, 100)
 
-  const renderChangeText = (value: number, suffix = '') => {
+  const renderChangeText = (value: number, isTimer: boolean) => {
     const color = value >= 0 ? palette.main[600] : palette.error.main
     const arrow =
       value > 0 ? (
@@ -138,7 +137,7 @@ const TodayStudyTime = ({ data, loading, isTimerTab = true, isPrint }: Props) =>
 
     return (
       <View style={styles.changeRow}>
-        <Text style={[styles.changeText, { color }]}>{`${ceilTo(Math.abs(value), 2)}${suffix}`}</Text>
+        <Text style={[styles.changeText, { color }]}>{isTimer ? `${value >= 0 ? '+' : '-'}${formatAccumulatedTime(Math.abs(value) * 3600000, t)}` : `${value >= 0 ? '+' : '-'}${ceilTo(Math.abs(value), 2)}%`}</Text>
         {arrow && <Text style={{ color, fontSize: 16, marginLeft: 4 }}>{arrow}</Text>}
       </View>
     )
@@ -151,14 +150,14 @@ const TodayStudyTime = ({ data, loading, isTimerTab = true, isPrint }: Props) =>
       <View style={{ gap: 4 }}>
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>{t('compared_to_yesterday')}</Text>
-          {renderChangeText(change, isTimerTab ? t('hour') : '%')}
+          {renderChangeText(change, isTimerTab)}
         </View>
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>{isTimerTab ? t('accumulated') : t('total_number_questions_solved')}</Text>
           <Text style={styles.detailValue}>
             {isTimerTab ? (
-              `${accumulatedTime}${t('hour')}`
+              `${accumulatedTime}`
             ) : (
               <>
                 {totalAnsweredQuestions}
@@ -197,8 +196,8 @@ const TodayStudyTime = ({ data, loading, isTimerTab = true, isPrint }: Props) =>
         <View style={styles.progressSection}>
           <CircularProgress value={clampedRatio} mainColor={mainColor} restColor={restColor} size={160}>
             <View style={styles.progressText}>
-              <Text style={styles.progressValue}>{ceilTo(currentValue, 2)}</Text>
-              <Text style={styles.progressUnit}>{isTimerTab ? t('hour') : '%'}</Text>
+              <Text style={styles.progressValue}>{isTimerTab ? formatAccumulatedTimeSplit(currentValue * 3600000, t).value : ceilTo(currentValue, 2)}</Text>
+              <Text style={styles.progressUnit}>{isTimerTab ? formatAccumulatedTimeSplit(currentValue * 3600000, t).unit : '%'}</Text>
             </View>
           </CircularProgress>
         </View>

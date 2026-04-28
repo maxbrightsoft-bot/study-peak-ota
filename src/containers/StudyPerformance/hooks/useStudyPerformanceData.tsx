@@ -21,6 +21,7 @@ import {
   getWeekOfMonthFromISOWeek,
   getWeekTimestampArray,
   getYearTimeStampArray,
+  getDayTimestampArray,
   rgbToHex,
   roundTo
 } from '../configs/helper'
@@ -102,13 +103,13 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
 
   const subjectDataRequest = useMemo(() => {
     switch (timeType) {
-      case timeTypes[0].value:
+      case 0:
         return {
           studentId,
           pTimes: getWeekTimestampArray(currentTime),
           sTimes: getWeekTimestampArray(currentTime - 1)
         }
-      case timeTypes[1].value:
+      case 1:
         const pYear = moment().year()
         const sYear = currentTime === 0 ? moment().add(-1, 'y').year() : moment().year()
         return {
@@ -116,11 +117,17 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
           pTimes: getMonthTimeStampArray(currentTime, pYear),
           sTimes: getMonthTimeStampArray(currentTime > 0 ? currentTime - 1 : 11, sYear)
         }
-      case timeTypes[2].value:
+      case 2:
         return {
           studentId,
           pTimes: getYearTimeStampArray(currentTime),
           sTimes: getYearTimeStampArray(currentTime - 1)
+        }
+      case 3:
+        return {
+          studentId,
+          pTimes: getDayTimestampArray(currentTime),
+          sTimes: getDayTimestampArray(moment(currentTime).subtract(1, 'day').valueOf())
         }
       default:
         return { pTimes: [], sTimes: [] }
@@ -303,12 +310,14 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
 
   const categoryStudyTimeCharts = useMemo(() => {
     switch (timeType) {
-      case timeTypes[0].value:
+      case 0:
         return [t('mon'), t('tue'), t('wed'), t('thu'), t('fri'), t('sat'), t('sun')]
-      case timeTypes[1].value:
+      case 1:
         return Array.from({ length: getWeekCountOfMonth(currentTime) }, (_, i) => t('week_number', { week: i + 1 }))
-      case timeTypes[2].value:
+      case 2:
         return Array.from({ length: 12 }, (_, i) => moment().month(i).format('MMM'))
+      case 3:
+        return Array.from({ length: 8 }, (_, i) => `${(i * 3).toString().padStart(2, '0')}:00`)
       default:
         return []
     }
@@ -318,7 +327,7 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
 
   const labelStudyTimeChart = useMemo(() => {
     switch (timeType) {
-      case timeTypes[0].value:
+      case 0:
         return `${t('day_of_month', {
           day: moment().isoWeek(currentTime).startOf('week').format('DD'),
           monthName: moment().format('MMM'),
@@ -328,7 +337,7 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
           monthName: moment().format('MMM'),
           month: moment().month() + 1
         })}`
-      case timeTypes[1].value:
+      case 1:
         return `${t('week_of_month', {
           week: getWeekOfMonth(moment().month(currentTime).startOf('month')),
           monthName: moment()
@@ -342,8 +351,10 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
             .format('MMM'),
           month: currentTime + 1
         })}`
-      case timeTypes[2].value:
+      case 2:
         return currentTimeOptions.find((i) => i.value === currentTime)?.label
+      case 3:
+        return moment(currentTime).format('DD/MM/YYYY')
       default:
         return ''
     }
@@ -351,7 +362,7 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
 
   const titleTooltipChart = useMemo(() => {
     switch (timeType) {
-      case timeTypes[0].value:
+      case 0:
         const month = moment().month()
         const prevTime = moment().isoWeek(currentTime - 1)
         const isSameMonth = prevTime.month() === month
@@ -364,17 +375,22 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
           })
         }
 
-      case timeTypes[1].value:
+      case 1:
         return {
           pTitle: moment().month(currentTime).format('MMM'),
           sTitle: moment()
             .month(currentTime - 1)
             .format('MMM')
         }
-      case timeTypes[2].value:
+      case 2:
         return {
           pTitle: t('year_number', { year: currentTime }),
           sTitle: t('year_number', { year: currentTime - 1 })
+        }
+      case 3:
+        return {
+          pTitle: moment(currentTime).format('DD/MM/YYYY'),
+          sTitle: moment(currentTime).subtract(1, 'day').format('DD/MM/YYYY')
         }
       default:
         return {}
@@ -383,12 +399,14 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
 
   const labelComparisonChart = useMemo(() => {
     switch (timeType) {
-      case timeTypes[0].value:
+      case 0:
         return t('study_time_compared_to_last_week')
-      case timeTypes[1].value:
+      case 1:
         return t('study_time_compared_to_last_month')
-      case timeTypes[2].value:
+      case 2:
         return t('study_time_compared_to_last_year')
+      case 3:
+        return t('study_time_compared_to_last_day')
       default:
         return ''
     }
@@ -448,12 +466,18 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
 
   const handlePrevious = () => {
     if (isDisableNavigation(currentTime, 'PREVIOUS')) return
-    handleChangeCurrentTime(currentTime - 1)
+    const currentIndex = currentTimeOptions.findIndex((i: any) => i.value === currentTime)
+    if (currentIndex > 0) {
+      handleChangeCurrentTime(currentTimeOptions[currentIndex - 1].value)
+    }
   }
 
   const handleNext = () => {
     if (isDisableNavigation(currentTime, 'NEXT')) return
-    handleChangeCurrentTime(currentTime + 1)
+    const currentIndex = currentTimeOptions.findIndex((i: any) => i.value === currentTime)
+    if (currentIndex >= 0 && currentIndex < currentTimeOptions.length - 1) {
+      handleChangeCurrentTime(currentTimeOptions[currentIndex + 1].value)
+    }
   }
 
   return {

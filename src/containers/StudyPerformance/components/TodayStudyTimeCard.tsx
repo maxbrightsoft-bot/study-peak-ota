@@ -1,12 +1,10 @@
 import { palette } from '@/theme'
-import { ceilTo } from '@/utils/helpers'
 import { MaterialIcons } from '@expo/vector-icons'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { Divider } from 'react-native-paper'
-import { MILLISECONDS_PER_HOUR } from '../configs/constants'
-import { sum } from '../configs/helper'
+import { ceilTo, formatAccumulatedTime, formatAccumulatedTimeSplit, sum } from '../configs/helper'
 
 interface Props {
   data: any
@@ -27,7 +25,7 @@ const TodayStudyTimeCard: React.FC<Props> = ({ data, isTimerTab, onOpen }) => {
 
   const change = currentValue - lastValue
 
-  const accumulatedTime = ceilTo((data?.totalTime || 0) / MILLISECONDS_PER_HOUR, 2)
+  const accumulatedTime = formatAccumulatedTime(data?.totalTime || 0, t)
 
   const totalAnsweredQuestions = sum(data?.pData, 'totalAnsweredQuestions', false)
 
@@ -43,7 +41,7 @@ const TodayStudyTimeCard: React.FC<Props> = ({ data, isTimerTab, onOpen }) => {
     return (
       <View style={styles.changeRow}>
         <Text style={[styles.changeText, { color }]}>
-          {`${value >= 0 ? '+' : '-'}${ceilTo(Math.abs(value), 2)}${suffix}`}
+          {suffix === '%' ? `${value >= 0 ? '+' : '-'}${ceilTo(Math.abs(value), 2)}%` : `${value >= 0 ? '+' : '-'}${formatAccumulatedTime(Math.abs(value) * 3600000, t)}`}
         </Text>
         {arrow && <Text style={{ color, fontSize: 16}}>{arrow}</Text>}
       </View>
@@ -58,13 +56,13 @@ const TodayStudyTimeCard: React.FC<Props> = ({ data, isTimerTab, onOpen }) => {
             <Text numberOfLines={2} ellipsizeMode="tail" style={[styles.title, { color: '#FFF', width: 100 }]}>{isTimerTab ? t('today_net_study_time') : t('today_correct_answer_rate')}</Text>
             <View style={styles.timeRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Text style={[styles.timeValue, { color: '#FFF' }]}>{ceilTo(currentValue, 2)}</Text>
-                <Text style={[styles.timeUnit, { color: '#FFF' }]}>{isTimerTab ? t('hour') : '%'}</Text>
+                <Text style={[styles.timeValue, { color: '#FFF' }]}>{isTimerTab ? formatAccumulatedTimeSplit(currentValue * 3600000, t).value : ceilTo(currentValue, 2)}</Text>
+                <Text style={[styles.timeUnit, { color: '#FFF' }]}>{isTimerTab ? formatAccumulatedTimeSplit(currentValue * 3600000, t).unit : '%'}</Text>
               </View>
               <View style={{ backgroundColor: palette.main[400], width: 1, height: 14 }} />
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Text style={[styles.subValue, { color: '#FFF' }]}>{t('compared_to_yesterday')}</Text>
-                {renderChangeText(change, isTimerTab ? t('hour') : '%')}
+                {renderChangeText(change, isTimerTab ? 'time' : '%')}
               </View>
             </View>
           </View>
@@ -77,7 +75,7 @@ const TodayStudyTimeCard: React.FC<Props> = ({ data, isTimerTab, onOpen }) => {
             <View style={styles.timeRow}>
               <Text style={[styles.subUnit, { color: '#FFF' }]}>
                 {isTimerTab ? (
-                  `${accumulatedTime}${t('hour')}`
+                  `${accumulatedTime}`
                 ) : (
                   <>
                     {totalAnsweredQuestions}

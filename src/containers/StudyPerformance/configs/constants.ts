@@ -30,6 +30,10 @@ export const TOTAL_SECONDS_IN_AN_HOUR = 60 * 60
 
 export const timeTypeOptions = (t?: any) => [
   {
+    label: t('daily_data'),
+    value: 3
+  },
+  {
     label: t('weekly_data'),
     value: 0
   },
@@ -40,7 +44,7 @@ export const timeTypeOptions = (t?: any) => [
   {
     label: t('yearly_data'),
     value: 2
-  },
+  }
 ]
 
 export enum TypeText { 'study', 'average', 'compare' }
@@ -55,3 +59,5 @@ export const DEFAULT_NOTE_FILTER: NoteSearchQuery = {
   currentPage: 1,
   pageSize: 12
 }
+
+export enum SectionKey { StudyTimeChart, SubjectDistribution, ComparisonChart }

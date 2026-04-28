@@ -3,7 +3,7 @@ import { View, Text, ActivityIndicator, Pressable } from 'react-native'
 import Svg, { Circle, G } from 'react-native-svg'
 import { StudyTimeDistribution } from '../configs/types'
 import { useTranslation } from 'react-i18next'
-import { ceilTo, formatTime } from '../configs/helper'
+import { ceilTo, formatAccumulatedTime, formatTime } from '../configs/helper'
 import { palette } from '@/theme'
 import { MaterialIcons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -104,8 +104,8 @@ const SubjectItem = ({ subject, isPrint }: SubjectItemProps) => {
   const { t } = useTranslation()
   const isIncrease = subject.change > 0
 
-  const mainColor = isIncrease ? palette.main[600] : palette.sub[400]
-  const restColor = isIncrease ? palette.main[600] : palette.sub[50]
+  const mainColor = subject.color || (isIncrease ? palette.main[600] : palette.sub[400])
+  const restColor = isIncrease ? (subject.color || palette.main[600]) : palette.sub[50]
   const arrowColor = subject.change >= 0 ? palette.main[600] : palette.error.main
 
   const ratio = isIncrease
@@ -125,10 +125,9 @@ const SubjectItem = ({ subject, isPrint }: SubjectItemProps) => {
               }}
             >
               <Text style={styles.hoursValue} numberOfLines={1}>
-                {ceilTo(subject.hours || 0, 2)}
+                {formatAccumulatedTime(subject.hours || 0, t)}
               </Text>
             </Pressable>
-            <Text style={styles.hoursUnit}>{t('hour')}</Text>
           </View>
         </CircularProgress>
       </View>
@@ -140,7 +139,7 @@ const SubjectItem = ({ subject, isPrint }: SubjectItemProps) => {
 
         <View style={styles.changeRow}>
           <Text style={[styles.changeText, { color: arrowColor }]}>
-            {`${ceilTo(Math.abs(subject.change), 2)}${t('hour')}`}
+            {formatAccumulatedTime(Math.abs(subject.change), t)}
           </Text>
           {subject.change !== 0 && (
             <Text style={{ color: arrowColor, fontSize: 16, textAlign: 'center' }}>
@@ -159,6 +158,7 @@ const SubjectItem = ({ subject, isPrint }: SubjectItemProps) => {
 
 const SubjectProgress = ({ data, loading, isPrint }: Props) => {
   const { t } = useTranslation()
+  
 
   if (loading) {
     return (

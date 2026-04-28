@@ -1,22 +1,28 @@
 import React, { FC } from 'react'
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native'
+import { Menu } from 'react-native-paper'
+import i18next from 'i18next'
 import { useTranslation } from 'react-i18next'
 import { Ionicons } from '@expo/vector-icons'
 import { ProblemKey } from '@/utils/enums'
 import { ScaledSheet } from 'react-native-size-matters'
 import { palette } from '@/theme'
 import TargetIcon from '@/assets/icons/target.svg'
-import { TextbookResult } from '@/utils/types'
-
-interface ExamResult {
-  questions: Question[]
-}
+import { CategoryResponse, TextbookResult } from '@/utils/types'
 
 interface Question {
   id: number
   isStar: boolean
   isCorrect: boolean
   questionOrder: number
+  questionGroupId?: number
+  superId?: number
+  categories?: Array<{ name: string }>
+  category?: { name: string }
+  questionTypeCategories?: Array<{
+    category?: { name: string }
+    subcategory?: { name: string }
+  }>
 }
 
 interface Props {
@@ -25,9 +31,80 @@ interface Props {
   openProblem?: ProblemKey
   changeOpen?: (key?: ProblemKey) => void
   isPrint: boolean
+  categories?: CategoryResponse[]
 }
 
-const TrickyProblem: FC<Props> = ({ keyOpen, data, openProblem, changeOpen, isPrint }) => {
+const QuestionItem = ({ question, color, categories, data }: { question: Question; color: string; categories?: CategoryResponse[]; data?: TextbookResult }) => {
+  const [visible, setVisible] = React.useState(false)
+
+  const openMenu = () => setVisible(true)
+  const closeMenu = () => setVisible(false)
+
+  const categoryNames = React.useMemo(() => {
+    const names = new Set<string>()
+
+    if (question.category?.name) names.add(question.category.name)
+    question.categories?.forEach((c) => {
+      if (c.name) names.add(c.name)
+    })
+    question.questionTypeCategories?.forEach((qtc) => {
+      if (qtc.category?.name) names.add(qtc.category.name)
+      if (qtc.subcategory?.name) names.add(qtc.subcategory.name)
+    })
+
+    if (categories) {
+      categories.forEach((cat) => {
+        if (
+          cat.questionIds?.includes(question.id) ||
+          (question.questionGroupId && cat.questionIds?.includes(question.questionGroupId)) ||
+          (question.superId && cat.questionIds?.includes(question.superId))
+        ) {
+          names.add(cat.name)
+        }
+      })
+    }
+
+    if (data?.questionGroups && question.questionGroupId) {
+      const group = data.questionGroups.find((g) => g.id === question.questionGroupId)
+      group?.articles?.forEach((article) => {
+        if (article.category?.name) names.add(article.category.name)
+        if (article.subcategory?.name) names.add(article.subcategory.name)
+      })
+    }
+
+    return Array.from(names)
+  }, [question, categories, data])
+
+  return (
+    <View style={styles.questionItemWrapper}>
+      <Menu
+        visible={visible}
+        onDismiss={closeMenu}
+        contentStyle={{ backgroundColor: '#FFF' }}
+        anchor={
+          <TouchableOpacity
+            onPress={openMenu}
+            style={styles.questionPressable}
+          >
+            <Text style={[styles.questionText, { color, fontWeight: '500' }]}>
+              {i18next.t('number_question', { number: question.questionOrder + 1 })}
+            </Text>
+          </TouchableOpacity>
+        }
+      >
+        {categoryNames.length > 0 ? (
+          categoryNames.map((name, index) => (
+            <Menu.Item key={index} title={`• ${name}`} titleStyle={styles.categoryInfoText} />
+          ))
+        ) : (
+          <Menu.Item title={i18next.t('no_category')} titleStyle={styles.categoryInfoText} />
+        )}
+      </Menu>
+    </View>
+  )
+}
+
+const TrickyProblem: FC<Props> = ({ keyOpen, data, openProblem, changeOpen, isPrint, categories }) => {
   const { t } = useTranslation()
   const isOpen = openProblem === keyOpen || isPrint
   const inCorrectQuestions = data?.studentQuestionResults.filter((i) => i.isStar && !i.isCorrect)
@@ -45,9 +122,7 @@ const TrickyProblem: FC<Props> = ({ keyOpen, data, openProblem, changeOpen, isPr
           <View style={styles.questionsContainer}>
             {inCorrectQuestions?.length ? (
               inCorrectQuestions.map((question: Question) => (
-                <Text key={question.id} style={[styles.questionText, { color: palette.error.main }]}>
-                  {t('number_question', { number: question.questionOrder + 1 })}
-                </Text>
+                <QuestionItem key={question.id} question={question} color={palette.error.main} categories={categories} data={data} />
               ))
             ) : (
               <Text style={styles.noDataText}>{t('no_data')}</Text>
@@ -64,9 +139,7 @@ const TrickyProblem: FC<Props> = ({ keyOpen, data, openProblem, changeOpen, isPr
           <View style={styles.questionsContainer}>
             {correctQuestions?.length ? (
               correctQuestions.map((question: Question) => (
-                <Text key={question.id} style={[styles.questionText, { color: palette.green_support[900] }]}>
-                  {t('number_question', { number: question.questionOrder + 1 })}
-                </Text>
+                <QuestionItem key={question.id} question={question} color={palette.green_support[900]} categories={categories} data={data} />
               ))
             ) : (
               <Text style={styles.noDataText}>{t('no_data')}</Text>
@@ -155,6 +228,18 @@ const styles = ScaledSheet.create({
     color: palette.grey[500],
     textAlign: 'center',
     paddingVertical: '12@ms'
+  },
+  questionItemWrapper: {
+    padding: 4
+  },
+  questionPressable: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 8
+  },
+  categoryInfoText: {
+    fontSize: 13,
+    color: '#000'
   }
 })
 

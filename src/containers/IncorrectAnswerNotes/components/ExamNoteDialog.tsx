@@ -11,7 +11,7 @@ import Loading from '@/components/Loading'
 import { Ionicons } from '@expo/vector-icons'
 import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 import TextField from '@/components/Input/TextField'
-import { ExamResult, QuestionData } from '@/utils/types'
+import { ExamResult, QuestionData, TextbookResult } from '@/utils/types'
 
 interface ExamNoteDialogProps {
   open: boolean
@@ -23,6 +23,7 @@ interface ExamNoteDialogProps {
   questionOptions?: { label: string; value: number }[]
   onClose: () => void
   examResultData?: ExamResult
+  textbookResult?: TextbookResult
   onSaveNote: (content: string, questionId: number) => void
 }
 
@@ -41,6 +42,7 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
   selectedQuestion,
   questionOptions = [],
   onClose,
+  textbookResult,
   onSaveNote
 }) => {
   const { t } = useTranslation()
@@ -102,15 +104,12 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
                         <Text style={styles.headerText}>{question?.questionTypeCategories?.[0]?.category?.name}</Text>
                         <View style={styles.separator} />
                         <Text style={styles.headerText}>{question?.questionTypeCategories?.[0]?.subcategory?.name}</Text>
-                        <View style={styles.separator} />
                       </>}
-                      <Text style={styles.headerText}>{question?.score}p</Text>
-
                     </View>
 
                     <View style={styles.metaRow}>
                       <View style={styles.metaLeft}>
-                        <Text style={styles.metaText}>{examResultData?.title}</Text>
+                        <Text style={styles.metaText}>{examResultData?.title ?? textbookResult?.chapterName}</Text>
                       </View>
                     </View>
                   </View>}
@@ -146,7 +145,7 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
                 </ScrollView>
                 <View style={styles.footer}>
                   <TouchableOpacity style={[styles.button, styles.confirmButton]} onPress={handleSubmit as any}>
-                    <Text style={styles.confirmButtonText}>등록</Text>
+                    <Text style={styles.confirmButtonText}>{t('register')}</Text>
                   </TouchableOpacity>
                 </View>
               </>

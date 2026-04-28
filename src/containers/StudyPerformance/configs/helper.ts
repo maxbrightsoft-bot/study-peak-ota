@@ -21,6 +21,17 @@ export const getWeekTimestampArray = (weekNumber: number) => {
   return [...weekDays, endOfSunday];
 };
 
+export const getDayTimestampArray = (startTimestamp: number) => {
+  const startOfDay = moment(startTimestamp).startOf('day');
+  const endOfDay = startOfDay.clone().endOf('day').valueOf();
+  
+  const hours = Array.from({ length: 8 }, (_, i) => 
+    startOfDay.clone().add(i * 3, 'hours').valueOf()
+  );
+  
+  return [...hours, endOfDay];
+};
+
 export const getWeekOfMonth = (date: moment.Moment) => {
   const startWeek = moment(date).startOf('month').week();
   const currentWeek = moment(date).week();
@@ -100,7 +111,7 @@ const getIsoWeeksInMonth = () => {
 
 export const getCurrentTimeOptions = (t: any, timeType: number) => {
   switch (timeType) {
-    case timeTypeOptions(t)[0].value:
+    case 0:
       const month = moment().month()
       const monthName = moment().format('MMMM');
       const isoWeeks = getIsoWeeksInMonth();
@@ -110,7 +121,7 @@ export const getCurrentTimeOptions = (t: any, timeType: number) => {
         value: isoWeek
       }));
 
-    case timeTypeOptions(t)[1].value:
+    case 1:
       return Array.from({ length: 12 }, (_, i) => {
         const monthName = moment().month(i).format('MMMM');
         return {
@@ -120,12 +131,21 @@ export const getCurrentTimeOptions = (t: any, timeType: number) => {
       }
       );
 
-    case timeTypeOptions(t)[2].value:
+    case 2:
       const currentYear = moment().year()
       return Array.from({ length: 10 }, (_, i) => ({
         label: t('year_number', { year: currentYear - i }),
         value: currentYear - i
       })).reverse()
+
+    case 3:
+      return Array.from({ length: 30 }, (_, i) => {
+        const m = moment().subtract(i, 'days');
+        return {
+          label: m.format('DD/MM/YYYY'),
+          value: m.startOf('day').valueOf()
+        }
+      }).reverse();
     default: return []
   }
 }
@@ -236,7 +256,8 @@ export const getDefaultCurrentTimeOption = (t: any, timeType: number) => {
   const currentMap = {
     0: now.isoWeek(),
     1: now.month(),
-    2: now.year()
+    2: now.year(),
+    3: now.startOf('day').valueOf()
   };
 
   const currentVal = getCurrentTimeOptions(t, timeType).find(
@@ -257,7 +278,7 @@ export const resizeArray = (arr: number[], targetLength: number, fillValue = 0) 
 
 export const getXLabel = (t: any, timeType: number, currentTime: number, label: string, isCurrentSelected = false) => {
   switch (timeType) {
-    case timeTypeOptions(t)[0].value:
+    case 0:
       const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
       const dayIndex = weekDays.indexOf(label);
       const baseDate = moment().isoWeek(isCurrentSelected ? currentTime : currentTime - 1).startOf('isoWeek');
@@ -266,11 +287,41 @@ export const getXLabel = (t: any, timeType: number, currentTime: number, label: 
 
       return targetDate.format(t('date_format'))
 
-    case timeTypeOptions(t)[1].value:
+    case 1:
       return t(isCurrentSelected ? 'current_month' : 'last_month')
 
-    case timeTypeOptions(t)[2].value:
+    case 2:
       return t(isCurrentSelected ? 'current_year' : 'last_year')
+
+    case 3:
+      return t(isCurrentSelected ? 'current_day' : 'last_day') // Assuming these translations are not strict, we can just return the date or let it fall back
     default: return ''
   }
+}
+
+export const formatAccumulatedTime = (ms: number, t: any): string => {
+  const seconds = ms / 1000;
+  console.log({ seconds, ms })
+  if (seconds < 60) {
+    return `${Math.ceil(seconds)}${t("seconds")}`;
+  }
+  const minutes = seconds / 60;
+  if (minutes < 60) {
+    return `${Math.ceil(minutes)}${t("minutes")}`;
+  }
+  const hours = minutes / 60;
+  return `${ceilTo(hours, 1)}${t("hour_h")}`;
+}
+
+export const formatAccumulatedTimeSplit = (ms: number, t: any) => {
+  const seconds = ms / 1000;
+  if (seconds < 60) {
+    return { value: Math.ceil(seconds), unit: t("seconds") };
+  }
+  const minutes = seconds / 60;
+  if (minutes < 60) {
+    return { value: Math.ceil(minutes), unit: t("minutes") };
+  }
+  const hours = minutes / 60;
+  return { value: ceilTo(hours, 2), unit: t("hour_h") };
 }

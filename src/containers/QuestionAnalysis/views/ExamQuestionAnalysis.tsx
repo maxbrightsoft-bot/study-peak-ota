@@ -36,7 +36,7 @@ const QuestionAnalysis = ({ resultData, categoryResponses, longTimeSpend, isPrin
         <Text style={{ color: palette.main[600], fontSize: 16, fontWeight: 600 }}>{t('problem_analysis')}</Text>
       </View>
       <View style={{ gap: 28 }}>
-        <TrickyProblem data={resultData} isPrint={isPrint} />
+        <TrickyProblem data={resultData} isPrint={isPrint} categories={categoryResponses} />
         <Vulnerable isPrint={isPrint} data={resultData} />
         <ProtractedProblem data={longTimeSpend} isPrint={isPrint} examResult={resultData} />
         <GradesByTerritory data={categoryResponses} isPrint={isPrint} />

@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { WebView } from 'react-native-webview'
 import { palette } from '@/theme'
 import { ceilTo, roundTo } from '@/utils/helpers'
+import { formatAccumulatedTimeSplit } from '../configs/helper'
+import { MILLISECONDS_PER_HOUR } from '../configs/constants'
 
 export type StudyTimeDistribution = {
   name: string
@@ -200,7 +202,8 @@ const SubjectDistribution = ({
       const color = colorSubjects[i]
       const isEmpty = !item.percentage && !item.hours && !item.correctRate
 
-      const mainVal = isTimerTab ? `${ceilTo(item.hours || 0, 2)}${t('hour')}` : `${roundTo(item.correctRate || 0, 1)}%`
+      const timeFormatted = formatAccumulatedTimeSplit((item.hours || 0) * MILLISECONDS_PER_HOUR, t)
+      const mainVal = isTimerTab ? `${timeFormatted.value}${timeFormatted.unit}` : `${roundTo(item.correctRate || 0, 1)}%`
 
       const subVal = isTimerTab
         ? `${ceilTo(item.percentage || 0, 2)}%`
@@ -263,23 +266,23 @@ const SubjectDistribution = ({
             <DistributionItem
               title={t('most_studied_subject')}
               subTitle={most.name}
-              staticsNumber={ceilTo(most.hours || 0, 2)}
-              unit={t('hour')}
+              staticsNumber={formatAccumulatedTimeSplit((most.hours || 0) * MILLISECONDS_PER_HOUR, t).value}
+              unit={formatAccumulatedTimeSplit((most.hours || 0) * MILLISECONDS_PER_HOUR, t).unit}
             />
             <DistributionItem
               title={t('least_studied_subject')}
               subTitle={least.name}
-              staticsNumber={ceilTo(least.hours || 0, 2)}
-              unit={t('hour')}
+              staticsNumber={formatAccumulatedTimeSplit((least.hours || 0) * MILLISECONDS_PER_HOUR, t).value}
+              unit={formatAccumulatedTimeSplit((least.hours || 0) * MILLISECONDS_PER_HOUR, t).unit}
             />
             <DistributionItem
               title={t('study_imbalance_rate')}
               subTitle={t('imbalance_rate', {
                 rate: ceilTo((most.hours || 0) / (least.hours || 1), 2)
               })}
-              staticsNumber={ceilTo((most.hours || 0) - (least.hours || 0), 2)}
+              staticsNumber={formatAccumulatedTimeSplit(Math.abs((most.hours || 0) - (least.hours || 0)) * MILLISECONDS_PER_HOUR, t).value}
               isLastItem
-              unit={t('hour')}
+              unit={formatAccumulatedTimeSplit(Math.abs((most.hours || 0) - (least.hours || 0)) * MILLISECONDS_PER_HOUR, t).unit}
             />
           </>
         ) : (

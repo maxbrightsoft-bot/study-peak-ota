@@ -4,7 +4,7 @@ import TimePeriodSelector from './TimePeriodSelector'
 import StudyTimeChart from './StudyTimeChart'
 import SubjectDistribution from './SubjectDistribution'
 import ComparisonChart from './ComparisonChart'
-import { timeTypeOptions } from '../configs/constants'
+import { SectionKey, timeTypeOptions } from '../configs/constants'
 import { getCurrentTimeOptions } from '../configs/helper'
 import useStudyPerformanceData from '../hooks/useStudyPerformanceData'
 import InforPrint from './InforPrint'
@@ -70,15 +70,17 @@ const TimeData = ({ studentId, contentRef, studentInfo, handleReadyPrint }: Prop
     loadingSubjectCumulativeData
   ])
 
+
+
   const sections = [
-    { key: 'study_time_chart' },
-    ...(studyTimeDistributionData.length ? [{ key: 'subject_distribution' }] : []),
-    { key: 'comparison_chart' }
+    { key: SectionKey.StudyTimeChart },
+    ...(studyTimeDistributionData.length ? [{ key: SectionKey.SubjectDistribution }] : []),
+    { key: SectionKey.ComparisonChart }
   ]
 
-  const renderItem = ({ item }: { item: { key: string } }) => {
+  const renderItem = ({ item }: { item: { key: SectionKey } }) => {
     switch (item.key) {
-      case 'study_time_chart':
+      case SectionKey.StudyTimeChart:
         return data ? (
           <View style={styles.section}>
             <StudyTimeChart
@@ -95,7 +97,7 @@ const TimeData = ({ studentId, contentRef, studentInfo, handleReadyPrint }: Prop
           </View>
         ) : null
 
-      case 'subject_distribution':
+      case SectionKey.SubjectDistribution:
         return (
           <View style={styles.section}>
             <SubjectDistribution
@@ -106,7 +108,7 @@ const TimeData = ({ studentId, contentRef, studentInfo, handleReadyPrint }: Prop
           </View>
         )
 
-      case 'comparison_chart':
+      case SectionKey.ComparisonChart:
         return (
           <View style={styles.section}>
             <ComparisonChart
@@ -139,7 +141,7 @@ const TimeData = ({ studentId, contentRef, studentInfo, handleReadyPrint }: Prop
       <FlatList
         ref={contentRef}
         data={sections}
-        keyExtractor={(item) => item.key}
+        keyExtractor={(item) => item.key.toString()}
         renderItem={renderItem}
         contentContainerStyle={{
           paddingBottom: 600,
