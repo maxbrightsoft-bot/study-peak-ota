@@ -46,7 +46,6 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
     t,
     contentRef,
     QADialog,
-    handlePrint,
     openActionMenu,
     handleOpenActionMenu,
     handleCloseActionMenu,
@@ -245,11 +244,11 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
             />
           )
       case ExamStatusView.CompareSolution:
-        return effectSize && <CompareSolution effectSize={effectSize} data={resultData} />
+        return effectSize && <CompareSolution effectSize={effectSize} data={resultData} isTextbook={!!chapterId} />
       case ExamStatusView.MyAnswers:
         return chapterId
-          ? textbookResult && <TextbookMyAnswer data={textbookResult} effectSize={effectSize} />
-          : resultData && <ExamMyAnswer data={resultData} categories={categoryResponses} effectSize={effectSize} />
+          ? textbookResult && <TextbookMyAnswer data={textbookResult} effectSize={effectSize} onCreateNote={handleOpenNoteDialogFromQuestion} onCreateQuestion={(q) => handleOpenQuestionDialog(null as any, q)} />
+          : resultData && <ExamMyAnswer data={resultData} categories={categoryResponses} effectSize={effectSize} onCreateNote={handleOpenNoteDialogFromQuestion} onCreateQuestion={(q) => handleOpenQuestionDialog(null as any, q)} />
       case ExamStatusView.QuestionAnalysis:
         return chapterId
           ? textbookResult && (
@@ -271,7 +270,7 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
       case ExamStatusView.SolutionOrder:
         return <SolutionOrderChart data={timelyOrderQuestions} />
       case ExamStatusView.IncorrectAnswerNotes:
-        return chapterId ? null : (
+        return (
           <>
             <IncorrectAnswerNotes
               notesContainerProps={notesContainerProps}
@@ -287,7 +286,6 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
               cancelText={t('cancel')}
               isDelete
             />
-            <ExamNoteDialog examResultData={resultData} {...noteDialogProps} selectedQuestion={selectedQuestion} />
           </>
         )
       default:
@@ -305,7 +303,7 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
           <Text style={{ fontSize: 16, fontWeight: 600, color: '#222222' }}>{t('exam_results')}</Text>
         </View>
         <View>
-          <Menu
+          {resultData && <Menu
             visible={openActionMenu}
             onDismiss={handleCloseActionMenu}
             anchorPosition="bottom"
@@ -399,7 +397,7 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
                 <Text style={{ fontWeight: '600', color: '#3498db' }}>{t('restart_exam')}</Text>
               </View>
             </TouchableRipple>
-          </Menu>
+          </Menu>}
         </View>
       </View>
       <View style={styles.container}>
@@ -417,13 +415,13 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
             )
           })}
         </View>
-        <View
+        {resultData && <View
           style={{ flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 8, gap: 10, alignItems: 'center' }}
         >
           <Text style={{ color: '#222222', fontSize: 12, fontWeight: 600 }}>{resultData?.subjectName}</Text>
           <View style={{ height: 12, width: 2, backgroundColor: palette.grey[300] }} />
           <Text style={{ color: '#222222', fontSize: 12, fontWeight: 400 }}>{resultData?.title}</Text>
-        </View>
+        </View>}
         <View style={styles.contentContainer}>{renderBody()}</View>
       </View>
       <View style={{ opacity: 0, position: 'absolute', top: -9999 }}>
@@ -468,6 +466,7 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
           handleRestartExam?.()
         }}
       />
+      <ExamNoteDialog examResultData={resultData} {...noteDialogProps} selectedQuestion={selectedQuestion} />
     </SlideDrawerRoot>
   )
 }

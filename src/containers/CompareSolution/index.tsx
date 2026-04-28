@@ -1,365 +1,311 @@
-import React, { FC, useMemo, useState } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native'
+import React, { FC, useMemo } from 'react'
+import { View, Text, ScrollView, StyleSheet } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { EffectSize, ExamResult, TextbookResult } from '@/utils/types'
-import { QuestionAnswerType } from '@/utils/enums'
-import { answerTypeOptions } from '@/utils/constants'
-import MathRender from '@/components/MathRender'
 import { palette } from '@/theme'
+import { Ionicons } from '@expo/vector-icons'
 
 interface Props {
   effectSize: EffectSize[]
   data?: ExamResult | TextbookResult
   isPrint?: boolean
+  isTextbook?: boolean
 }
 
-export type InfoQuestionAnswer = {
-  textualAnswers: string[]
-  isCorrectAnswer?: boolean
-  isCorrect?: boolean
-  title?: string
-  correctTextualAnswers?: string[]
-  questionAnswerType: QuestionAnswerType
-}
-
-const CompareSolution: FC<Props> = ({ effectSize, isPrint = false }) => {
-  const [info, setInfo] = useState<InfoQuestionAnswer>()
-  const [modalVisible, setModalVisible] = useState(false)
-  const [selectedItem, setSelectedItem] = useState<any>(null)
-  const { width } = useWindowDimensions()
-  const tableWidth = width - 40
-
-  const maxAnswerCount = useMemo(() => {
-    return Math.max(
-      5,
-      effectSize.reduce((acc, cur) => (acc = acc > cur.answersCount ? acc : cur.answersCount), 1)
-    )
-  }, [effectSize])
-
-  const handleClose = () => {
-    setModalVisible(false)
-    setInfo(undefined)
-    setSelectedItem(null)
-  }
-
-  const handleClick = ({
-    textualAnswers,
-    isCorrect,
-    title,
-    questionAnswerType
-  }: {
-    textualAnswers: string[]
-    isCorrect?: boolean
-    title?: string
-    questionAnswerType: number
-  }) => {
-    setInfo({ textualAnswers, isCorrect, title, questionAnswerType })
-    setModalVisible(true)
-  }
-
+const CompareSolution: FC<Props> = ({ effectSize: originalEffectSize, data, isTextbook }) => {
   const { t } = useTranslation()
 
-  const renderAnswer = (
-    column: string,
-    type: QuestionAnswerType | undefined,
-    answers?: string[],
-    textualAnswers?: string[],
-    isCorrect?: boolean
-  ) => {
-    switch (type) {
-      case QuestionAnswerType.SingleChoice:
-      case QuestionAnswerType.MultipleChoice:
-        if (!answers?.length) return ''
-        return answers.map((i) => t('number_question', { number: i })).join(', ')
-      default: {
-        const content = textualAnswers
-        if (!content) return ''
-        return (
-          <TouchableOpacity
-            onPress={() => {
-              handleClick({
-                textualAnswers: content,
-                isCorrect,
-                title: column,
-                questionAnswerType: type ?? 0
-              })
-            }}
-          >
-            <View style={styles.answerContainer}>
-              {isPrint || content?.length <= 2 ? (
-                <View style={styles.row}>
-                  {textualAnswers?.map((i: string, index: number) => (
-                    <React.Fragment key={index}>
-                      <MathRender content={i} style={styles.questionContent} />
-                      {index !== textualAnswers.length - 1 && <Text>,</Text>}
-                    </React.Fragment>
-                  ))}
-                </View>
-              ) : (
-                <View style={styles.row}>
-                  <MathRender content={textualAnswers?.[0] ?? ''} style={styles.questionContent} />
-                  <Text>,...</Text>
-                </View>
-              )}
-            </View>
-          </TouchableOpacity>
-        )
-      }
+  const effectSize = useMemo(() => {
+    if (!isTextbook) return originalEffectSize
+    return originalEffectSize.filter((item) => (item.selectedAnswers?.length || 0) > 0 || (item.textualAnswers?.length || 0) > 0)
+  }, [originalEffectSize, isTextbook])
+
+  const statistics = useMemo(() => {
+    const correctCount = effectSize.filter((item) => item.isCorrect).length
+    const totalCount = effectSize.length
+    const rate = totalCount > 0 ? (correctCount / totalCount) * 100 : 0
+    return {
+      correctCount,
+      totalCount,
+      rate: rate.toFixed(1)
     }
-  }
+  }, [effectSize])
 
-  const renderTableBody = (effectSize: EffectSize[]) => {
-    return effectSize.map((item: EffectSize, index: number) => {
-      switch (item.questionAnswerType) {
-        case QuestionAnswerType.SingleChoice:
-        case QuestionAnswerType.MultipleChoice:
-          return (
-            <View key={item.id} style={[styles.row, index < effectSize.length - 1 && styles.rowBorder]}>
-              <View style={[styles.cell, styles.cellProblem]}>
-                <Text style={styles.cellText}>
-                  {t('problem')}{' '}
-                  {item.parentQuestionId
-                    ? `${(item?.parentQuestionOrder || 0) + 1}.${item.questionOrder + 1}`
-                    : item.questionOrder + 1}
-                </Text>
-              </View>
-              {Array.from({ length: maxAnswerCount }, (_, colIndex) => (
-                <View
-                  key={colIndex}
-                  style={[
-                    styles.cell,
-                    item?.correctAnswers?.includes(colIndex + 1) && styles.correctAnswerCell,
-                    {
-                      borderRightWidth: item?.correctAnswers?.includes(colIndex + 1) ? 2 : 1,
-                      borderRightColor: item?.correctAnswers?.includes(colIndex + 1)
-                        ? palette.main[600]
-                        : palette.grey[100]
-                    }
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.cellText,
-                      !!item?.selectedAnswers?.length &&
-                        item?.selectedAnswers.includes(colIndex + 1) &&
-                        (item?.isCorrect ? styles.successText : styles.errorText)
-                    ]}
-                  >
-                    {item?.averageAnswers?.[colIndex] ? `${item?.averageAnswers?.[colIndex]?.toFixed(2) || 0}%` : '0%'}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          )
-        default:
-          const textColor = item?.textualAnswers?.length
-            ? item?.isCorrect
-              ? styles.successText
-              : styles.errorText
-            : styles.disabledText
-          return (
-            <View key={item.id} style={[styles.row, index < effectSize.length - 1 && styles.rowBorder]}>
-              <View style={[styles.cell, styles.cellProblem]}>
-                <Text style={styles.cellText}>
-                  {t('problem')}{' '}
-                  {item.parentQuestionId
-                    ? `${(item?.parentQuestionOrder || 0) + 1}.${item.questionOrder + 1}`
-                    : item.questionOrder + 1}
-                </Text>
-              </View>
+  const renderOptionBlock = (item: EffectSize, optionIndex: number) => {
+    const optionNum = optionIndex + 1
+    const isCorrectAnswer = item.correctAnswers?.includes(optionNum)
+    const isSelected = item.selectedAnswers?.includes(optionNum.toString()) || item.selectedAnswers?.includes(optionNum)
+    const rate = item.averageAnswers?.[optionIndex] || 0
 
-              <View style={[styles.cell, styles.cellWide]}>
-                <View style={styles.row}>
-                  <View>
-                    {renderAnswer(
-                      t('answer'),
-                      item.questionAnswerType,
-                      item.correctAnswers,
-                      item.correctTextualAnswers,
-                      true
-                    )}
-                  </View>
-                  <View>
-                    <Text>({answerTypeOptions(t).find((i) => i.value === item.questionAnswerType)?.label})</Text>
-                  </View>
-                </View>
-              </View>
+    let blockStyle: any = styles.defaultBlock
+    let textStyle: any = styles.defaultText
+    let showCheck = false
 
-              <View style={[styles.cell, styles.cellWide, styles.mySolutionCell]}>
-                <View>
-                  {renderAnswer(
-                    t('my_solution'),
-                    item.questionAnswerType,
-                    item.selectedAnswers,
-                    item.textualAnswers,
-                    item.isCorrect
-                  )}
-                </View>
-              </View>
-
-              <View style={[styles.cell, styles.rateCell]}>
-                <Text style={[styles.cellText, styles.textRight]}>{item.correctRate?.toFixed(2)}%</Text>
-              </View>
-            </View>
-          )
+    if (isCorrectAnswer) {
+      blockStyle = styles.correctBlock
+      textStyle = styles.whiteText
+      if (isSelected) {
+        showCheck = true
       }
-    })
-  }
-
-  const styles = StyleSheet.create({
-    container: {},
-    row: {
-      flexDirection: 'row',
-      minHeight: 40,
-      backgroundColor: '#FFF'
-    },
-    rowBorder: {
-      borderBottomWidth: 1,
-      borderBottomColor: palette.grey[100]
-    },
-    headerRow: {
-      borderBottomWidth: 1,
-      borderBottomColor: palette.grey[100],
-      backgroundColor: palette.bg[100]
-    },
-    subHeaderRow: {
-      borderBottomWidth: 1,
-      borderBottomColor: palette.grey[100]
-    },
-    cell: {
-      width: tableWidth / 6,
-      padding: 8,
-      justifyContent: 'center'
-    },
-    cellProblem: {
-      width: tableWidth / 6
-    },
-    cellWide: {
-      width: (tableWidth / 6) * 2
-    },
-    mySolutionCell: {
-      borderLeftWidth: 2,
-      borderLeftColor: palette.main[600],
-      borderRightWidth: 2,
-      borderRightColor: palette.main[600]
-    },
-    rateCell: {
-      borderRightWidth: 2,
-      borderRightColor: palette.main[600]
-    },
-    headerCell: {
-      backgroundColor: palette.bg[100],
-      borderBottomWidth: 1,
-      borderBottomColor: palette.grey[100]
-    },
-    subHeaderCell: {
-      backgroundColor: '#fff',
-      borderRightWidth: 1,
-      borderRightColor: palette.grey[100]
-    },
-    cellText: {
-      fontSize: 12,
-      color: '#1a1a1a'
-    },
-    headerText: {
-      fontSize: 13,
-      fontWeight: 'bold',
-      color: palette.grey[500]
-    },
-    subHeaderText: {
-      fontSize: 12,
-      color: '#666',
-      textAlign: 'center'
-    },
-    textCenter: {
-      textAlign: 'center'
-    },
-    textRight: {
-      textAlign: 'right'
-    },
-    successText: {
-      color: '#2e7d32'
-    },
-    errorText: {
-      color: '#d32f2f'
-    },
-    disabledText: {
-      color: '#9e9e9e'
-    },
-    correctAnswerCell: {
-      borderTopWidth: 2,
-      borderLeftWidth: 2,
-      borderBottomWidth: 2,
-      borderColor: palette.main[600]
-    },
-    answerContainer: {
-      flexDirection: 'row',
-      alignItems: 'center'
-    },
-    questionContent: {
-      maxWidth: 64,
-      maxHeight: 18
-    },
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      justifyContent: 'center',
-      alignItems: 'center'
-    },
-    modalContent: {
-      backgroundColor: 'white',
-      borderRadius: 8,
-      padding: 20
+    } else if (isSelected) {
+      blockStyle = styles.incorrectBlock
+      textStyle = styles.errorText
     }
-  })
+
+    const circleNumbers = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩']
+    const circleNum = circleNumbers[optionIndex] || (optionIndex + 1).toString()
+
+    return (
+      <View key={optionIndex} style={[styles.optionBlock, blockStyle]}>
+        <Text style={[styles.optionNum, textStyle]}>{circleNum}</Text>
+        <Text style={[styles.optionRate, textStyle]}>{Math.round(rate)}%</Text>
+        {showCheck && (
+          <View style={styles.checkBadge}>
+            <Ionicons name="checkmark" size={10} color="#FFF" />
+          </View>
+        )}
+      </View>
+    )
+  }
 
   return (
-    <View style={styles.container}>
-      <View
-        style={{
-          borderRadius: 6,
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: '#FFF',
-          paddingVertical: 8,
-          marginBottom: 10
-        }}
-      >
-        <Text style={{ color: palette.main[600], fontSize: 16, fontWeight: 600 }}>{t('compare_solution')}</Text>
-      </View>
-      <ScrollView horizontal showsVerticalScrollIndicator={true} showsHorizontalScrollIndicator={false}>
-        <View style={{ borderRadius: 14 }}>
-          <View style={[styles.row, styles.headerRow]}>
-            <View style={[styles.cell, styles.cellProblem]}>
-              <Text style={styles.headerText}>{t('problem_number')}</Text>
-            </View>
-            <View style={[styles.cell, { width: maxAnswerCount * (tableWidth / 6), justifyContent: 'center' }]}>
-              <Text style={[styles.headerText, styles.textCenter]}>{t('selection_rate_by_option')}</Text>
+    <ScrollView contentContainerStyle={{
+      paddingBottom: 200
+    }} style={styles.container} showsVerticalScrollIndicator={false}>
+      <View style={styles.statsCard}>
+        <View style={styles.statsRow}>
+          <View>
+            <Text style={styles.statsLabel}>{t('compare_solution')}</Text>
+            <View style={styles.statsValueRow}>
+              <Text style={styles.statsValueMain}>{statistics.correctCount}</Text>
+              <Text style={styles.statsValueSub}> / {statistics.totalCount} {t('problem_unit')}</Text>
             </View>
           </View>
-
-          <View style={[styles.row, styles.subHeaderRow]}>
-            <View style={[styles.cell, styles.cellProblem, styles.subHeaderCell]} />
-            {Array.from({ length: maxAnswerCount }, (_, index) => (
-              <View key={index} style={[styles.cell, styles.subHeaderCell]}>
-                <Text style={styles.subHeaderText}>{index + 1}</Text>
-              </View>
-            ))}
+          <View style={styles.rateBadge}>
+            <Text style={styles.rateText}>{statistics.rate}%</Text>
           </View>
-
-          <ScrollView
-            contentContainerStyle={{
-              paddingBottom: 200
-            }}
-          >
-            <View style={{ borderBottomRightRadius: 14, borderBottomLeftRadius: 14 }}>
-              {renderTableBody(effectSize)}
-            </View>
-          </ScrollView>
         </View>
-      </ScrollView>
-    </View>
+      </View>
+
+      <View style={styles.legendContainer}>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendBox, { backgroundColor: palette.main[600] }]} />
+          <Text style={styles.legendText}>{t('correct_answer')}</Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendBox, { borderColor: '#FF5252', borderWidth: 1 }]} />
+          <Text style={styles.legendText}>{t('my_answer_incorrect')}</Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendBox, { backgroundColor: palette.main[600], alignItems: 'center', justifyContent: 'center' }]}>
+            <Ionicons name="checkmark" size={12} color="#FFF" />
+          </View>
+          <Text style={styles.legendText}>{t('my_answer_correct')}</Text>
+        </View>
+      </View>
+
+      {effectSize.map((item, index) => (
+        <View key={item.id || index} style={styles.questionCard}>
+          <View style={styles.cardHeader}>
+            <View style={styles.headerLeft}>
+              <Text style={styles.questionTitle}>{t('problem')} {item.questionOrder + 1}</Text>
+              <View style={[styles.statusBadge, { backgroundColor: item.isCorrect ? '#F3E5F5' : '#FFEBEE' }]}>
+                <Text style={[styles.statusText, { color: item.isCorrect ? palette.main[600] : '#D32F2F' }]}>
+                  {item.isCorrect ? t('correct') : t('incorrect')}
+                </Text>
+              </View>
+            </View>
+            <Text style={styles.correctAnswerLabel}>
+              {t('correct_answer')} {item.correctAnswers?.map(ans => {
+                const circleNumbers = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩']
+                return circleNumbers[ans - 1] || ans
+              }).join(', ')}
+            </Text>
+          </View>
+
+          <View style={styles.optionsRow}>
+            {Array.from({ length: item.answersCount || 5 }).map((_, optIndex) => renderOptionBlock(item, optIndex))}
+          </View>
+        </View>
+      ))}
+      <View style={{ height: 40 }} />
+    </ScrollView>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+  },
+  subjectHeader: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: '#FFF',
+    marginBottom: 10,
+  },
+  subjectText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+  separator: {
+    color: '#DDD',
+    marginHorizontal: 4,
+  },
+  statsCard: {
+    padding: 16,
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    marginBottom: 12,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  statsLabel: {
+    fontSize: 12,
+    color: '#999',
+    marginBottom: 4,
+  },
+  statsValueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  statsValueMain: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: palette.main[600],
+  },
+  statsValueSub: {
+    fontSize: 14,
+    color: '#666',
+  },
+  rateBadge: {
+    backgroundColor: '#F3E5F5',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  rateText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: palette.main[600],
+  },
+  legendContainer: {
+    flexDirection: 'row',
+    padding: 12,
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    marginBottom: 16,
+    justifyContent: 'space-around',
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  legendBox: {
+    width: 16,
+    height: 16,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  legendText: {
+    fontSize: 11,
+    color: '#666',
+  },
+  questionCard: {
+    padding: 16,
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  questionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#333',
+    marginRight: 8,
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  correctAnswerLabel: {
+    fontSize: 12,
+    color: '#999',
+  },
+  optionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -4,
+  },
+  optionBlock: {
+    width: '18%',
+    aspectRatio: 1,
+    marginHorizontal: '1%',
+    marginVertical: 4,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  optionNum: {
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  optionRate: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  defaultBlock: {
+    backgroundColor: '#F5F5F5',
+  },
+  defaultText: {
+    color: '#9E9E9E',
+  },
+  correctBlock: {
+    backgroundColor: palette.main[600],
+  },
+  incorrectBlock: {
+    backgroundColor: '#FFF',
+    borderWidth: 1.5,
+    borderColor: '#FF5252',
+  },
+  whiteText: {
+    color: '#FFF',
+  },
+  errorText: {
+    color: '#FF5252',
+  },
+  checkBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    borderRadius: 6,
+    width: 14,
+    height: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+})
 
 export default CompareSolution

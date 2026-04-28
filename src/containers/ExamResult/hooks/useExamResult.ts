@@ -46,11 +46,12 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
     useState<TextbookResult>()
   const [selectedQuestion, setSelectedQuestion] = useState<QuestionData>()
   const [errorMessage, setErrorMessage] = useState<string>()
-  const [examStatusView, setExamStatusView] = useState(examStatusViewOptions(t)[0].value)
+  const [examStatusView, setExamStatusView] = useState(examStatusViewOptions(t, chapterId)[0].value)
   const [contentSize, setContentSize] = useState({ width: 0, height: 0 });
   const [isOpenConfirmRestartExamDialog, setIsOpenConfirmRestartExamDialog] = useState(false)
   const [openActionMenu, setOpenActionMenu] = useState(false)
 
+  console.log("examStatusView", examStatusView)
   const handleOpenActionMenu = () => {
     setOpenActionMenu(true)
   }

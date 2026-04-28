@@ -8,7 +8,6 @@ import CustomSelect from '@/components/Select/CustomSelect'
 import { useTranslation } from 'react-i18next'
 import { palette, TYPO } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
-import Loading from '@/components/Loading'
 
 type Props = {
   openCreateQuestionDialog: boolean
@@ -80,6 +79,7 @@ const CreateNewQuestionDialog: React.FC<Props> = ({
                 padding: 8,
                 marginTop: 4,
                 minHeight: 64,
+                color: '#222222',
                 textAlignVertical: 'top'
               }}
               numberOfLines={3}
