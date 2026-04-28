@@ -8,7 +8,7 @@ import GridItem from '@/components/Grid/GridItem'
 import Select from '@/components/Select/CustomSelect'
 import useStepItem from '../hooks/useStepItem'
 import { Ionicons } from '@expo/vector-icons'
-import { Checkbox } from 'react-native-paper'
+import Verify from '@/assets/iconJSX/verify'
 
 type Props = {
   values: any
@@ -19,12 +19,11 @@ type Props = {
 }
 
 const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: Props) => {
-  const { t, step, formatPhone, stepCount, onNext, onPrev, subjectOptions, gradeOptions } = useStepItem({
+  const { t, step, formatPhone, stepCount, onNext, onPrev, subjectOptions, gradeOptions, isCheckPhoneNumber, handleCheckPhoneNumber } = useStepItem({
     values,
     errors,
     setFieldTouched
   })
-
 
   const renderStep = () => {
     switch (step) {
@@ -62,6 +61,17 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
                 />
               )}
             </Field>
+            {isCheckPhoneNumber ? (
+              <View style={styles.checkExistButton}>
+                <Verify color='#4CAF50' />
+                <Text style={{ color: '#222222', fontWeight: '700', marginLeft: 8 }}>{t('phone_number_is_available')}</Text>
+              </View>
+            ) : (
+              <TouchableOpacity activeOpacity={0.7} style={styles.checkExistButton} onPress={handleCheckPhoneNumber}>
+                <Text style={{ color: '#FFF', fontWeight: '700' }}>{t('check_phone_number')}</Text>
+              </TouchableOpacity>
+            )}
+
           </View>
         )
       case 2:
@@ -102,11 +112,6 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
                 />
               )}
             </Field>
-            {/* <View>
-              <TouchableOpacity activeOpacity={0.7} style={styles.checkExistButton}>
-                <Text>{t('check_exist_phone_number')}</Text>
-              </TouchableOpacity>
-            </View> */}
           </View>
         )
       case 4:
@@ -194,7 +199,7 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
             }}
           >
             <TouchableOpacity style={[styles.button, styles.buttonAction]} onPress={() => onNext(step)}>
-              <Text style={{ color: '#FFF' }}>{step < stepCount - 1 ? '확인' : '회원가입'}</Text>
+              <Text style={{ color: '#FFF' }}>{step < stepCount - 1 ? t('confirm') : t('register')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -248,12 +253,10 @@ const styles = StyleSheet.create({
     gap: 8
   },
   checkExistButton: {
-    backgroundColor: palette.main[600],
-    padding: 16,
-    borderRadius: 12,
+    marginTop: 12,
     display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center'
+    flexDirection: "row",
+    alignItems: 'center',
   },
   containerSelect: {
     flex: 1,

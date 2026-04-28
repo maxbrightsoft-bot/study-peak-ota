@@ -93,7 +93,7 @@ const useLogin = () => {
       toast.error(getErrorMessage(t, error));
       academyDomain && (await removeDataStorage(ACADEMY_DOMAIN));
       await removeDataStorage(LEARNING_SPACE);
-      isLogout && (await logout());
+      isLogout && setTimeout(() => logout(), 1000);
     } finally {
       setLoading(false);
     }
@@ -127,7 +127,7 @@ const useLogin = () => {
       if (isSuccessResponse(response)) {
         const userInfo = response.data
         const idToken = userInfo.idToken;
-
+        console.log('idToken', idToken);
         if (!idToken) {
           throw new Error('NO_ID_TOKEN');
         }
