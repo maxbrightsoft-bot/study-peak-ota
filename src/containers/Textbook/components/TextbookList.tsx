@@ -8,6 +8,7 @@ import AudioGuideModal from '@/layouts/components/AudioGuideModal'
 import SearchInput from '@/components/Input/SearchInput'
 import FilterIcon from '@/assets/iconJSX/filter'
 import { palette, TYPO } from '@/theme'
+import SelectTimeDialog from '@/layouts/components/SelectTimeDialog'
 
 type Props = {
   preparedType?: PreparedType
@@ -32,7 +33,10 @@ const TextbookList = ({ preparedType, preparedFilterType }: Props) => {
     isOpenDialog,
     handleStartTextbookFromGuideModal,
     handleCloseDialog,
-    handleOpenDialog
+    handleOpenDialog,
+    isOpenTimeSelectModal,
+    handleCloseTimeSelectModal,
+    handleStartTextbook
   } = useTextbook({ preparedType, preparedFilterType })
 
   const filterCount =
@@ -60,7 +64,7 @@ const TextbookList = ({ preparedType, preparedFilterType }: Props) => {
         data={textbookList}
         contentContainerStyle={{
           paddingTop: 16,
-          paddingBottom: 300,
+          paddingBottom: 350,
           paddingHorizontal: 20
         }}
         renderItem={({ item }) => <TextbookItem textbook={item} t={t} handleOpenDialog={handleOpenDialog} />}
@@ -82,6 +86,18 @@ const TextbookList = ({ preparedType, preparedFilterType }: Props) => {
           audioUrls={selectedTextbook?.subject?.audioUrls ?? []}
           onClose={handleCloseAudioGuide}
           onStart={handleStartTextbookFromGuideModal}
+        />
+      )}
+      {isOpenTimeSelectModal && (
+        <SelectTimeDialog
+          open={isOpenTimeSelectModal}
+          t={t}
+          title={t('select_timer_limit')}
+          onClose={handleCloseTimeSelectModal}
+          onSubmit={(minutes) => {
+            if (selectedTextbook) handleStartTextbook(true, selectedTextbook, minutes)
+          }}
+          initialValue={selectedTextbook?.subject?.limitedTimeInMinutes || selectedTextbook?.limitedTimeInMinutes}
         />
       )}
       <FilterModal

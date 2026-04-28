@@ -15,7 +15,7 @@ type Props = {
   handleStartFromPage: (values: { startPage: number }) => Promise<void>
 }
 
-const ChapterDetail = ({ t, isEnglish, isMock, chapter, isStudying, handleStartFromPage, handleOpenChapterDialog }: Props) => {
+const ChapterDetail = ({ t, isEnglish, isMock, chapter, isStudying, handleOpenChapterDialog }: Props) => {
   const isCompleted = chapter.completedChapterQuestions === chapter.totalChapterQuestions
   return (
     <View style={styles.chapterCard}>
@@ -50,7 +50,7 @@ const ChapterDetail = ({ t, isEnglish, isMock, chapter, isStudying, handleStartF
           </Text>
         </View>
       </View>
-      {!isCompleted && !isMock && (
+      {!isCompleted && chapter.completedChapterQuestions > 0 && !isMock && (
         <View style={{ marginBottom: 8 }}>
           <TouchableOpacity onPress={() => handleOpenChapterDialog(chapter)}>
             <Ionicons name="chevron-forward" size={20} color={palette.grey[300]} />

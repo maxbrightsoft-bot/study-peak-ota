@@ -1,54 +1,52 @@
-import CommonDialog from '@/components/ModalBase/CommonDialog'
-import TextbookMyAnswer from '@/containers/MyAnswer/views/TextbookMyAnswer'
-import useTextbookChapterResult from '../../hooks/useTextbookChapterResult'
-import { Text, TouchableOpacity, View } from 'react-native'
-import { useTranslation } from 'react-i18next'
 import { ScaledSheet } from 'react-native-size-matters'
 import { palette } from '@/theme'
+import ExamResult from '@/containers/ExamResult/views'
 
 type Props = {
   open: boolean
   onClose: () => void
   chapterId?: number
 }
-const TextbookChapterResultDialog = ({ open, onClose, chapterId }: Props) => {
-  const { t } = useTranslation()
-  const { textbookResult, effectSize } = useTextbookChapterResult({ chapterId })
 
+const TextbookChapterResultDialog = ({ open, onClose, chapterId }: Props) => {
   return (
-    <CommonDialog title={t('solution_results')} isVisible={open} onClose={onClose}>
-      <View style={{ maxHeight: 342, marginHorizontal: -24, marginTop: -24 }}>
-        {textbookResult && <TextbookMyAnswer data={textbookResult} effectSize={effectSize} />}
-      </View>
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.button} onPress={onClose}>
-          <Text style={styles.text}>{t('cancel')}</Text>
-        </TouchableOpacity>
-      </View>
-    </CommonDialog>
+    open ? <ExamResult chapterId={chapterId} onClose={onClose}/> : null
   )
 }
 
 const styles = ScaledSheet.create({
+  content: {
+    marginHorizontal: -24,
+    marginTop: -24,
+  },
+  centered: {
+    height: 120,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 14,
+    color: palette.grey[400],
+  },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center', 
-    backgroundColor: "#FFF",
-    padding: 12
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    padding: 12,
   },
   button: {
     marginBottom: -24,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    borderRadius: 12
+    borderRadius: 12,
   },
   text: {
     color: palette.main[600],
     fontSize: 14,
     lineHeight: 22,
-    fontWeight: 500
-  }
+    fontWeight: '500',
+  },
 })
 
 export default TextbookChapterResultDialog

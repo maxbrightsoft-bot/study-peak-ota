@@ -14,12 +14,12 @@ import { getErrorMessage, toast } from "@/utils/helpers";
 import moment from "moment";
 import { getTextbookListApi, startPageApi, startTextbook } from "../apiClients/textbookService";
 import { useFocusEffect } from "@react-navigation/native";
-import { goBack, navigate } from "@/navigators/NavigationHelpers";
+import { navigate } from "@/navigators/NavigationHelpers";
 import { Routes } from "@/navigators/RouteName";
-import { AlarmType } from "@/utils/enums";
 import useAlarm from "@/layouts/hooks/useAlarm";
 import { Textbook } from "@/utils/types";
-import { BackHandler, FlatList } from "react-native";
+import { FlatList } from "react-native";
+import useServerTime from "@/hooks/useServerTime";
 
 type Props = {
   preparedType?: PreparedType
@@ -39,17 +39,27 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
   const [openFilterModal, setOpenFilterModal] = useState(false)
   const [openConfirmDialog, setOpenConfirmDialog] = useState<boolean>(false)
   const [isOpenDialog, setOpenDialog] = useState<boolean>(false);
-  const [isOpenAudioGuide, setOpenAudioGuide] =
-    useState<boolean>(false);
-  const { alarmClockProps: { panelProps: { onStart } } } = useAlarm(false, [], true)
+  const [isOpenAudioGuide, setOpenAudioGuide] = useState<boolean>(false);
+  const [isOpenTimeSelectModal, setOpenTimeSelectModal] = useState<boolean>(false)
+  const [targetPage, setTargetPage] = useState<number | undefined>()
+  const { handleStartSelectedSubjectAlarm } = useAlarm(false, [], false)
   const scrollViewRef = useRef<FlatList>(null)
+  const { getServerNow } = useServerTime()
 
-  const handleOpenAudioGuide = () => {
+  const handleOpenAudioGuide = (page?: number) => {
+    if (page) setTargetPage(page)
+    else setTargetPage(undefined)
     handleCloseDialog()
     setOpenAudioGuide(true)
   }
   const handleCloseAudioGuide = () => {
     setOpenAudioGuide(false)
+  }
+  const handleOpenTimeSelectModal = () => {
+    setOpenTimeSelectModal(true)
+  }
+  const handleCloseTimeSelectModal = () => {
+    setOpenTimeSelectModal(false)
   }
 
   const handleCloseDialog = () => {
@@ -120,22 +130,34 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
     setLoading(false)
   };
 
-  const handleStartAudio = async (textbook: Textbook) => {
-    onStart(AlarmType.Subject, textbook.limitedTimeInMinutes, textbook.subject as any, true)
+  const handleStartAudio = async (textbook: Textbook, minutes?: number, startTime?: number) => {
+    const subject = textbook.subject || { id: textbook.subjectId, name: textbook.subjectName }
+    await handleStartSelectedSubjectAlarm(true, minutes || textbook.limitedTimeInMinutes, subject as any, startTime)
   }
 
-  const handleStartTextbook = async (enable: boolean, textbook: Textbook) => {
+  const handleStartTextbook = async (enable: boolean, textbook: Textbook, minutes?: number) => {
     try {
       setLoading(true)
-      await startTextbook(textbook.id)
-      if (enable)
-        await handleStartAudio(textbook)
+      const serverNow = await getServerNow()
+
+      let startTime: number
       handleCloseAudioGuide()
+      if (!textbook.isMock) {
+        await startPageApi({ textbookId: textbook.id, startPage: targetPage });
+        startTime = moment.utc(serverNow).valueOf()
+      } else {
+        const res = await startTextbook(textbook.id)
+        startTime = moment.utc(res.data).valueOf()
+      }
+      if (enable && !textbook.isMock) {
+        await handleStartAudio(textbook, minutes, startTime)
+      }
+
     } catch (error) {
       toast.error(getErrorMessage(t, error));
     }
     finally {
-      navigate(Routes.Auth.DoTextbook, { textbookId: selectedTextbook?.id, restart: true })
+      navigate(Routes.Auth.DoTextbook, { textbookId: selectedTextbook?.id, restart: textbook?.isMock, page: targetPage })
       setLoading(false)
     }
   }
@@ -198,15 +220,19 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
 
   const handleStartTextbookFromGuideModal = (enable: boolean) => {
     if (!selectedTextbook) return
-    handleStartTextbook(enable, selectedTextbook)
+    if (!selectedTextbook.isMock) {
+      handleCloseAudioGuide()
+      handleOpenTimeSelectModal()
+    } else {
+      handleStartTextbook(enable, selectedTextbook)
+    }
   }
 
-  const handleDoTextbook = async (textbookId: number) => {
-    try {
-      const { data } = await startPageApi({ textbookId });
-      if (data) navigate(Routes.Auth.DoTextbook, { textbookId })
-    } catch (error) {
-      toast.error(getErrorMessage(t, error));
+  const handleDoTextbook = async (textbook: Textbook) => {
+    if (textbook.isMock) {
+      navigate(Routes.Auth.DoTextbook, { textbookId: textbook.id })
+    } else {
+      handleOpenAudioGuide()
     }
   };
 
@@ -264,7 +290,9 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
     handleChangeFilter,
     numberToMonth,
     handleDoTextbook,
-    handleStartTextbookFromGuideModal
+    handleStartTextbookFromGuideModal,
+    isOpenTimeSelectModal,
+    handleCloseTimeSelectModal
   };
 };
 

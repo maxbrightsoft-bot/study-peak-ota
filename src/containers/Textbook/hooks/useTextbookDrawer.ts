@@ -19,7 +19,7 @@ import useTab from "@/hooks/useTab";
 type Props = {
   textbookId?: number;
   studentId?: number;
-  onOpenAudioGuide?: () => void;
+  onOpenAudioGuide?: (page?: number) => void;
   onClose?: () => void;
 };
 
@@ -85,23 +85,8 @@ const useTextbookDrawer = ({
   const handleStartFromPage = async (values: { startPage: number }) => {
     if (!textbookId || !values.startPage) return;
 
-    setLoading(true);
-    try {
-      const { data } = await startPageApi({
-        ...values,
-        textbookId
-      });
-      if (data) {
-        navigate(Routes.Auth.DoTextbook, {
-          textbookId,
-          page: values.startPage
-        });
-        onClose?.();
-      }
-    } catch (error) {
-      toast.error(getErrorMessage(t, error));
-    }
-    setLoading(false);
+    onOpenAudioGuide?.(values.startPage);
+    handleCloseStartPageDialog();
   };
 
   const handleTextbookDetail = async () => {
@@ -173,19 +158,12 @@ const useTextbookDrawer = ({
     if (!textbook || !textbookId) return;
 
     try {
-      if (textbook.isStudying) {
-        navigate(Routes.Auth.DoTextbook, { textbookId });
-      } else if (!textbook.isMock) {
-        const { data } = await startPageApi({ textbookId });
-        if (data) {
-          navigate(Routes.Auth.DoTextbook, { textbookId });
-        }
+      if (textbook.isMock) {
+        navigate(Routes.Auth.DoTextbook, { textbookId: textbookId })
       } else {
-        setTimeout(() => {
-          onOpenAudioGuide?.();
-        }, 200);
+        onOpenAudioGuide?.();
+        onClose?.();
       }
-      onClose?.();
     } catch (error) {
       toast.error(getErrorMessage(t, error));
     }
@@ -218,11 +196,9 @@ const useTextbookDrawer = ({
 
       await restartTextbookApi(Number(textbook.id) || textbookId, req);
 
-      navigate(Routes.Auth.DoTextbook, {
-        textbookId,
-        restart: true
-      });
-      onClose?.();
+      onOpenAudioGuide?.();
+      handleCloseConfirmDialog();
+      handleCloseRestartTextbookDialog();
     } catch (error) {
       toast.error(getErrorMessage(t, error));
     }

@@ -301,7 +301,6 @@ export const getXLabel = (t: any, timeType: number, currentTime: number, label: 
 
 export const formatAccumulatedTime = (ms: number, t: any): string => {
   const seconds = ms / 1000;
-  console.log({ seconds, ms })
   if (seconds < 60) {
     return `${Math.ceil(seconds)}${t("seconds")}`;
   }

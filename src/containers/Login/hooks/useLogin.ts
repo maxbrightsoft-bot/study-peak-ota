@@ -127,7 +127,6 @@ const useLogin = () => {
       if (isSuccessResponse(response)) {
         const userInfo = response.data
         const idToken = userInfo.idToken;
-        console.log('idToken', idToken);
         if (!idToken) {
           throw new Error('NO_ID_TOKEN');
         }
