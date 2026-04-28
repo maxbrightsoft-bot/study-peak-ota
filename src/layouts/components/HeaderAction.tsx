@@ -13,12 +13,11 @@ import { currentScreen } from '@/navigators/NavigationHelpers'
 import { Routes } from '@/navigators/RouteName'
 
 const HeaderAction = () => {
-  const { user } = useAuthStore()
-  const [openTimerDialog, setOpenTimerDialog] = useState<boolean>(false)
+  const { user, isOpenTimerDialog, setIsOpenTimerDialog } = useAuthStore()
   const [openSettingDialog, setOpenSettingDialog] = useState<boolean>(false)
 
   const handleTimerDialogToggle = () => {
-    setOpenTimerDialog(state => !state)
+    setIsOpenTimerDialog(!isOpenTimerDialog)
   }
 
   const handleOpenSettingDialog = () => setOpenSettingDialog(true)
@@ -26,35 +25,26 @@ const HeaderAction = () => {
 
   const {
     timers,
-    getTimers,
     studyTimerProps,
     timeUpdateDialogProps,
     isTimerRunning,
-  } = useTimers(openTimerDialog, handleTimerDialogToggle)
+  } = useTimers(isOpenTimerDialog, handleTimerDialogToggle)
 
   const {
     isAlarmRunning,
     speaker,
-    getAlarm,
     disabledSpeaker,
     audioGuideModalProps,
     handleToggleSpeaker,
     alarmClockProps,
-  } = useAlarm(openTimerDialog, timers)
-
-  useFocusEffect(
-    useCallback(() => {
-      getTimers()
-      getAlarm()
-    }, [user?.academyDomain])
-  )
+  } = useAlarm(isOpenTimerDialog, timers)
 
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
       <TimerDropDown
         speaker={speaker}
         disabledSpeaker={disabledSpeaker}
-        openTimerDialog={openTimerDialog}
+        openTimerDialog={isOpenTimerDialog}
         alarmClockProps={alarmClockProps}
         isAlarmRunning={isAlarmRunning}
         isTimerRunning={isTimerRunning}

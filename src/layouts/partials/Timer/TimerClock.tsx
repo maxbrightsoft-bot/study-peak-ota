@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
   container: {
     padding: 16,
     justifyContent: 'center',
-    paddingTop: 50,
+    paddingTop: 20,
     alignItems: 'center',
   },
   actions: {
