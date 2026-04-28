@@ -8,7 +8,7 @@ import useAuthStore from "@/store/useAuthStore";
 
 const useDialog = () => {
   const { t } = useTranslation()
-  const { setLoadingWithoutOverlay } = useAuthStore()
+  const { setLoading } = useAuthStore()
   const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [openConfirmDialog, setOpenConfirmDialog] = useState<boolean>(false);
   const [selectedItem, setSelectedItem] = useState<any>()
@@ -16,6 +16,7 @@ const useDialog = () => {
 
   const toggleDialog = (item?: any) => {
     item && setSelectedItem(item)
+    setSelectedFile(null)
     setOpenDialog((state) => !state);
   };
 
@@ -37,7 +38,7 @@ const useDialog = () => {
 
   const handleUploadImage = async () => {
     try {
-      setLoadingWithoutOverlay(true)
+      setLoading(true)
       const [result] = await pick({
         mode: 'open',
         allowVirtualFiles: true
@@ -52,7 +53,7 @@ const useDialog = () => {
       toast.error(getErrorMessage(t, error))
     }
     finally {
-      setLoadingWithoutOverlay(false)
+      setLoading(false)
     }
   }
 

@@ -67,7 +67,7 @@ const useMessageList = () => {
     setLoadingWithoutOverlay(true)
     try {
       await deleteMessage(conversationId, id)
-
+      setMessages((prev) => prev.filter((message) => message.id !== id))
     } catch (error) {
       toast.error(getErrorMessage(t, error))
       return
