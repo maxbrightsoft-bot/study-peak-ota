@@ -6,11 +6,15 @@ import {
   StatusBar,
   StyleProp,
   TouchableWithoutFeedback,
+  useWindowDimensions,
   View,
   ViewStyle
 } from 'react-native'
 import { ReactNode, useEffect } from 'react'
 import { ScaledSheet } from 'react-native-size-matters'
+import { Portal } from 'react-native-paper'
+import useAuthStore from '@/store/useAuthStore'
+import Loading from '../Loading'
 
 interface PropsModalClose {
   isVisible: boolean
@@ -18,10 +22,14 @@ interface PropsModalClose {
   children: ReactNode
   styleContainer?: StyleProp<ViewStyle>
   style?: StyleProp<ViewStyle>
+  disableInnerTouchable?: boolean
+  position?: 'center' | 'bottom'
 }
 
 function ModalBase(props: PropsModalClose) {
-  const { isVisible, onClose, children, styleContainer } = props
+  const { isVisible, onClose, children, styleContainer, disableInnerTouchable, position = 'center' } = props
+  const { height } = useWindowDimensions()
+  const { isLoading, isLoadingWithoutOverlay } = useAuthStore()
 
   useEffect(() => {
     if (!isVisible) return
@@ -35,25 +43,33 @@ function ModalBase(props: PropsModalClose) {
   if (!isVisible) return null
 
   return (
-    <View style={styles.overlay}>
-      <StatusBar backgroundColor="rgba(0,0,0,0.3)" />
+    <Portal>
+      <View style={styles.overlay}>
+        <StatusBar backgroundColor="rgba(0,0,0,0.3)" />
 
-      <TouchableWithoutFeedback onPress={() => { Keyboard.dismiss(); onClose() }}>
-        <View style={styles.backdrop} />
-      </TouchableWithoutFeedback>
+        <TouchableWithoutFeedback onPress={() => { Keyboard.dismiss(); onClose() }}>
+          <View style={styles.backdrop} />
+        </TouchableWithoutFeedback>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.centeredView}
-        pointerEvents="box-none"
-      >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={[styles.viewContainer, styleContainer]}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={position === 'bottom' ? styles.bottomView : styles.centeredView}
+          pointerEvents="box-none"
+        >
+          <View
+            style={[
+              position === 'bottom' ? styles.bottomContainer : styles.viewContainer,
+              { maxHeight: height * 0.9 },
+              styleContainer
+            ]}
+          >
             {children}
           </View>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
-    </View>
+        </KeyboardAvoidingView>
+      </View>
+      {isLoading && <Loading isOverlay />}
+      {!isLoading && isLoadingWithoutOverlay && <Loading />}
+    </Portal>
   )
 }
 
@@ -83,10 +99,22 @@ const styles = ScaledSheet.create({
     alignItems: 'center',
     paddingHorizontal: '15@ms'
   },
+  bottomView: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    width: '100%'
+  },
   viewContainer: {
     width: '100%',
     backgroundColor: 'white',
     borderRadius: '10@ms',
+    overflow: 'hidden'
+  },
+  bottomContainer: {
+    width: '100%',
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     overflow: 'hidden'
   }
 })

@@ -4,7 +4,7 @@ import { Shadow } from 'react-native-shadow-2'
 
 interface CustomCardProps {
   children: React.ReactNode
-  style?: ViewStyle | ViewStyle[]
+  style?: any
   onPress?: (e: GestureResponderEvent) => void
   radius?: number
 }

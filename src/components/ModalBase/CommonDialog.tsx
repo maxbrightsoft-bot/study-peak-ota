@@ -17,6 +17,7 @@ interface CommonDialogProps {
   children: ReactNode
   positionTitle?: PositionFlex
   isVisibleHeader?: boolean
+  disableInnerTouchable?: boolean
 }
 
 const CommonDialog: React.FC<CommonDialogProps> = ({
@@ -28,11 +29,12 @@ const CommonDialog: React.FC<CommonDialogProps> = ({
   submitText,
   onSubmit,
   positionTitle = PositionFlex.Center,
-  isVisibleHeader = true
+  isVisibleHeader = true,
+  disableInnerTouchable
 }) => {
   const { t } = useTranslation()
   return (
-    <ModalBase isVisible={isVisible} onClose={onClose} styleContainer={styles.container}>
+    <ModalBase isVisible={isVisible} onClose={onClose} styleContainer={styles.container} disableInnerTouchable={disableInnerTouchable}>
       {isVisibleHeader && (
         <View style={styles.header}>
           <View></View>
@@ -77,7 +79,8 @@ const styles = ScaledSheet.create({
     padding: '4@ms'
   },
   content: {
-    padding: '24@ms'
+    padding: '24@ms',
+    flexShrink: 1
   },
   input: {
     borderWidth: 1,
