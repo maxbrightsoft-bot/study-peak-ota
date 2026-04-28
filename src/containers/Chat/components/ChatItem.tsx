@@ -48,7 +48,7 @@ const ChatItem = ({ t, item, toggleUpdateDialog, toggleConfirmDialog }: Props) =
       ) : (
         <View style={[styles.messageContainer, styles.otherMessage, contentType ? styles.imageMessage : null]}>
           {contentType ? (
-            <Image source={{ uri: getSafeUrl(content.replace("https://localhost:7045", BASE_URL) || '') }} style={{ width: 200, height: 200 }} />
+            <Image source={{ uri: getSafeUrl(content || '') }} style={{ width: 200, height: 200 }} />
           ) : (
             <MathRender content={content || ''} style={{ backgroundColor: '#FFF' }} textColor={palette.grey[700]} isChat />
           )}

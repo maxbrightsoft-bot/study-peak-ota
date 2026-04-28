@@ -1,7 +1,9 @@
 import { pick } from "@react-native-documents/picker"
 import { useFocusEffect } from "@react-navigation/native"
 import { useCallback, useRef, useState } from "react"
+import { Platform } from "react-native"
 import RNFS from 'react-native-fs'
+import ReactNativeBlobUtil from 'react-native-blob-util'
 
 
 const useSketchCanvas = () => {
@@ -38,14 +40,38 @@ const useSketchCanvas = () => {
   }
 
   const handleUploadImage = async () => {
-    const [result] = await pick({
-      mode: 'open',
-      copyTo: 'cachesDirectory',
-      allowVirtualFiles: true
-    })
+    try {
+      const [result] = await pick({
+        mode: 'open',
+        copyTo: 'cachesDirectory',
+        allowVirtualFiles: true
+      })
 
-    const base64 = await RNFS.readFile(result.uri, 'base64')
-    setImage(`data:image/png;base64,${base64}`)
+      let path = result.uri
+      let base64 = ''
+
+      if (Platform.OS === 'android' && path.startsWith('content://')) {
+        base64 = await ReactNativeBlobUtil.fs.readFile(path, 'base64')
+      } else {
+        if (Platform.OS === 'android' && path.startsWith('file://')) {
+          path = path.replace('file://', '')
+        }
+        if (!path) return
+        base64 = await RNFS.readFile(path, 'base64')
+      }
+
+      const mime = result.type || 'image/png'
+      if (base64) {
+        base64 = base64.replace(/\s/g, '')
+      }
+      console.log('base64 length', base64.length)
+      if (!base64) {
+        console.log('Failed to read file! base64 is empty.')
+      }
+      setImage(`data:${mime};base64,${base64}`)
+    } catch (error) {
+      console.log('handleUploadImage error', error)
+    }
   }
 
   const handleClearImage = () => {

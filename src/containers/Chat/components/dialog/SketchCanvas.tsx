@@ -38,7 +38,7 @@ const SketchCanvas = ({ t, open, onClose, onSubmit }: Props) => {
   } = useSketchCanvas()
 
   return (
-    <CommonDialog isVisible={open} onClose={onClose} title={t('update_message')}>
+    <CommonDialog isVisible={open} onClose={onClose} title={t('update_message')} disableInnerTouchable={true}>
       <View style={{ flexDirection: 'row', gap: 12 }}>
         <TouchableOpacity style={styles.iconButton} onPress={handleUndo}>
           <Ionicons name="arrow-undo" size={15} color={palette.grey[500]} />
@@ -94,15 +94,18 @@ const SketchCanvas = ({ t, open, onClose, onSubmit }: Props) => {
           }}
         >
           <SignatureCanvas
+            key={image || 'empty'}
             penColor={penColor}
             ref={ref}
             dataURL={image}
-            style={{ justifyContent: 'center' }}
+            style={styles.signature}
             onOK={handleOK}
             webStyle={webStyle}
             onEnd={handleEnd}
             clearText="Clear"
             confirmText="Save"
+            androidHardwareAccelerationDisabled={true}
+            backgroundColor={image ? "rgba(255,255,255,0)" : "rgba(255,255,255,1)"}
           />
         </View>
       </View>
@@ -161,6 +164,10 @@ const styles = ScaledSheet.create({
   confirmButtonText: {
     ...TYPO.button2,
     color: 'white'
+  },
+  signature: {
+    width: '100%',
+    height: '100%'
   }
 })
 
