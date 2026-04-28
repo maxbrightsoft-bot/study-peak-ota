@@ -166,7 +166,8 @@ const FloatingActionButton: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
   container: {
-    position: 'relative'
+    position: 'relative',
+    zIndex: 10
   },
   menuContainer: {
     position: 'absolute',
@@ -174,7 +175,8 @@ const styles = StyleSheet.create({
     right: 0,
     alignItems: 'flex-end',
     gap: 12,
-    minWidth: screenWidth
+    minWidth: screenWidth,
+    zIndex: 9999
   },
   buttonWrapper: {
     flexDirection: 'row',

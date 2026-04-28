@@ -20,5 +20,7 @@ export default ({ config }) => ({
 
     PUSHER_KEY: process.env.EXPO_PUBLIC_PUSHER_CONFIG_KEY,
     PUSHER_CLUSTER: process.env.EXPO_PUBLIC_PUSHER_CONFIG_CLUSTER,
+
+    CONSENT_POLICY_VERSION: process.env.EXPO_PUBLIC_CONSENT_POLICY_VERSION,
   },
 });
