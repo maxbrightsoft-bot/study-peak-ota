@@ -16,7 +16,7 @@ import _ from "lodash";
 import useExamSolving from "./useExamSolving";
 import { useTranslation } from "react-i18next";
 import moment from "moment";
-import { ActivityAction, ExamEvent, ExamStatus, QuestionAnswerType } from "@/utils/enums";
+import { ActivityAction, ActivityResource, AppScreen, ExamEvent, ExamStatus, QuestionAnswerType } from "@/utils/enums";
 import { formatMinutesToTime, getErrorMessage, toast } from "@/utils/helpers";
 import useCountDownTimer from "@/hooks/useCountDownTimer";
 import { useNavigation } from "@react-navigation/native";
@@ -33,6 +33,9 @@ import useServerTime from '@/hooks/useServerTime';
 import { logError } from '@/utils/helpers/crashlyticsLogger';
 import crashlytics from '@react-native-firebase/crashlytics'
 import { useActivityTracking } from '@/hooks/useActivityTracking';
+import { useKeepAwake } from 'expo-keep-awake';
+import useTimers from '@/layouts/hooks/useTimer';
+import useAlarm from '@/layouts/hooks/useAlarm';
 
 type Props = {
   examCode: string;
@@ -66,7 +69,8 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
   const [examSession, setExamSession] = useState<InfoExamSessionByCode>();
   const [openLeaveDialog, setOpenLeaveDialog] = useState<boolean>(false)
   const { getServerNow } = useServerTime();
-  const { track } = useActivityTracking()
+  const { track, trackError, trackInfo } = useActivityTracking({ screen: AppScreen.DoExam })
+  useKeepAwake();
 
   const handleOpenLeaveDialog = () => {
     setOpenLeaveDialog(true)
@@ -289,6 +293,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     setEnding(false);
     setNotFoundExam(false);
     firstLoadRef.current && setLoading(true);
+    const nowTime = getServerNow();
 
     try {
       const res = await getQuestionExam(examCode);
@@ -330,6 +335,15 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
       (firstLoadRef.current || showErrorMessage) &&
         showToast("error", getErrorMessage(t, err));
       setNotFoundExam(true);
+      trackError(err, {
+        resourceType: ActivityResource.Exam,
+        triggeredAt: new Date(nowTime).toISOString(),
+        resourceId: exam?.id,
+        metaData: {
+          examCode: exam?.code || '',
+          studentExamSessionId: String(exam?.studentExamSessionId || ''),
+        }
+      })
       logError(err, {
         action: 'GET_QUESTION_EXAM',
         examCode
@@ -354,6 +368,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
   }, [examCode, isEnding, onExamEnded]);
 
   const handleFinishExam = useCallback(async () => {
+    const nowTime = getServerNow();
     setLoadingWithoutOverlay(true);
     try {
       await finishExam(examCode);
@@ -361,14 +376,27 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
       setEndExam(true);
       exam && exam.isLate && getCheckStatus();
       track({
-        action: ActivityAction.SubmitExam,
+        action: ActivityAction.Submit,
+        resourceType: ActivityResource.Exam,
+        resourceId: String(exam?.id),
+        triggeredAt: new Date(nowTime).toISOString(),
         metaData: {
-          examId: String(exam?.id),
+          examCode: exam?.code || '',
+          studentExamSessionId: String(exam?.studentExamSessionId || ''),
+
+        }
+      })
+      trackInfo("Finish exam successful", { examCode });
+    } catch (error: any) {
+      trackError(error, {
+        resourceType: ActivityResource.Exam,
+        triggeredAt: new Date(nowTime).toISOString(),
+        resourceId: String(exam?.id),
+        metaData: {
           examCode: exam?.code || '',
           studentExamSessionId: String(exam?.studentExamSessionId || ''),
         }
       })
-    } catch (error: any) {
       logError(error, {
         action: 'FINISH_EXAM',
         examCode,
@@ -381,12 +409,30 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     setLoadingWithoutOverlay(false);
   }, [examCode, exam, getCheckStatus]);
 
+  // const {
+  //   timers,
+  //   studyTimerProps,
+  //   timeUpdateDialogProps,
+  //   isTimerRunning,
+  // } = useTimers(openTimerDialog, handleTimerDialogToggle)
+
+  // const {
+  //   audioGuideModalProps,
+  //   isAlarmRunning,
+  //   speaker,
+  //   disabledSpeaker,
+  //   audioPopupProps,
+  //   handleToggleSpeaker,
+  //   alarmClockProps,
+  //   handleStartSelectedSubjectAlarm,
+  // } = useAlarm(openTimerDialog, timers)
+
   const handlePauseAndResumeExam = async (status: ExamStatus) => {
     if (!exam) return;
+    const nowTime = getServerNow();
 
     setLoading(true);
     try {
-      const nowTime = getServerNow();
       const req: PauseOrResumeExamRequest = {
         status,
         rowVersion: exam.rowVersion,
@@ -411,6 +457,10 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
         };
       });
 
+      // if (exam.isLate && alarmClockProps.panelProps.onPauseOrResume && alarm?.subject?.name === exam?.subjectName && alarm?.duration === (convertHHMMSStoSeconds(data?.duration) || 0) * 1000) {
+      //   alarmClockProps.panelProps.onPauseOrResume()
+      // }
+
       if (isCompleted) {
         handleTeacherFinishExam();
         setLoading(false);
@@ -418,14 +468,27 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
       }
       track({
         action: status === ExamStatus.Paused ? ActivityAction.Pause : ActivityAction.Resume,
+        resourceType: ActivityResource.Exam,
+        resourceId: String(exam.id),
+        triggeredAt: new Date(nowTime).toISOString(),
         metaData: {
-          examId: String(exam.id),
           examCode: exam.code || '',
           studentExamSessionId: String(exam.studentExamSessionId || ''),
         }
       })
       showToast("info", t(status === ExamStatus.Paused ? "exam_has_been_paused" : "exam_has_been_resumed"));
     } catch (error) {
+      trackError(error, {
+        resourceType: ActivityResource.Exam,
+        triggeredAt: new Date(nowTime).toISOString(),
+        resourceId: exam?.id,
+        metaData: {
+          action: status === ExamStatus.Paused ? ActivityAction.Pause : ActivityAction.Resume,
+          examCode: exam?.code || '',
+          studentExamSessionId: String(exam?.studentExamSessionId || ''),
+        }
+      })
+
       logError(error, {
         action: 'PAUSE_OR_RESUME_EXAM',
         examCode,
@@ -444,10 +507,14 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
       studentExamSessionId: String(exam.studentExamSessionId || ''),
     })
 
+    const nowTime = getServerNow();
+
     track({
       action: ActivityAction.Start,
+      resourceType: ActivityResource.Exam,
+      resourceId: String(exam.id),
+      triggeredAt: new Date(nowTime).toISOString(),
       metaData: {
-        examId: String(exam.id),
         examCode: exam.code || '',
         studentExamSessionId: String(exam.studentExamSessionId || ''),
       }
@@ -462,18 +529,57 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     }
   }, [questionList.length]);
 
+  // const handleRestartExamWithAlarm = async (enable: boolean) => {
+  //   if (!exam) return;
+  //   setLoading(true);
+  //   const nowTime = getServerNow();
+
+  //   try {
+  //     if (enable && exam) {
+  //       const duration = convertHHMMSStoSeconds(exam.duration) || 0
+  //       await handleStartSelectedSubjectAlarm(true, duration / 60, { name: exam.subjectName } as any, Date.now())
+  //     }
+  //   } catch (error) {
+  //     console.warn('Failed to start alarm:', error)
+  //   }
+  //   try {
+  //     await restartExamApi(exam?.code || '');
+  //     handleClear()
+  //     getQuestionExams();
+  //     handleCloseAudioGuide()
+  //     track({
+  //       action: ActivityAction.Restart,
+  //       resourceType: ActivityResource.Exam,
+  //       resourceId: String(exam.id),
+  //       triggeredAt: new Date(nowTime).toISOString(),
+  //       metaData: {
+  //         examCode: exam.code || '',
+  //         studentExamSessionId: String(exam.studentExamSessionId || ''),
+  //       }
+  //     })
+  //     showToast("info", t("exam_has_been_restarted"));
+  //   } catch (error) {
+  //     showToast("error", getErrorMessage(t, error));
+  //   }
+  //   setLoading(false);
+  // };
+
   const handleRestartExam = async () => {
     if (!exam || (!exam.isLate && exam.lateStatus !== ExamStatus.Completed)) return;
 
     setLoading(true);
+    const nowTime = getServerNow();
+
     try {
       await restartExamApi(exam?.code || '');
       handleClear()
       getQuestionExams();
       track({
         action: ActivityAction.Restart,
+        resourceType: ActivityResource.Exam,
+        resourceId: String(exam.id),
+        triggeredAt: new Date(nowTime).toISOString(),
         metaData: {
-          examId: String(exam.id),
           examCode: exam.code || '',
           studentExamSessionId: String(exam.studentExamSessionId || ''),
         }
@@ -755,6 +861,21 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     openAnswerSheet,
     handleOpenAnswerSheet,
     handleCloseAnswerSheet,
+    // openTimerDialog,
+    // handleTimerDialogToggle,
+    // alarmClockProps,
+    // audioGuideModalProps,
+    // isAlarmRunning,
+    // isTimerRunning,
+    // studyTimerProps,
+    // timeUpdateDialogProps,
+    // handleToggleSpeaker,
+    // speaker,
+    // disabledSpeaker,
+    // audioPopupProps,
+    // isOpenAudioGuide,
+    // handleCloseAudioGuide,
+    // handleRestartExamWithAlarm,
     isAllQuestionsAnswered,
     scrollViewRef,
     questionRefs,

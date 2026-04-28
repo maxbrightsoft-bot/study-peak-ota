@@ -167,32 +167,25 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
             )}
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-
-            {textbook?.isMock ? (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                {(isTimerRunning || isAlarmRunning) && (
-                  <TouchableOpacity onPress={() => handleToggleSpeaker()}>
-                    {speaker ? <Ionicons name="volume-high" size={24} color={palette.grey[500]} /> : <MuteIcon />}
-                  </TouchableOpacity>
-                )}
-                <TimerDropDown
-                  speaker={speaker}
-                  isTextbook
-                  disabledSpeaker={disabledSpeaker}
-                  openTimerDialog={openTimerDialog}
-                  alarmClockProps={alarmClockProps}
-                  audioGuideModalProps={audioGuideModalProps}
-                  isAlarmRunning={isAlarmRunning}
-                  isTimerRunning={isTimerRunning}
-                  studyTimerProps={studyTimerProps}
-                  timeUpdateDialogProps={timeUpdateDialogProps}
-                  onToggleSpeaker={handleToggleSpeaker}
-                  onToggleTimerDialog={handleTimerDialogToggle}
-                />
-              </View>
-            ) : (
-              <View />
+            {(isTimerRunning || isAlarmRunning) && (
+              <TouchableOpacity onPress={() => handleToggleSpeaker()}>
+                {speaker ? <Ionicons name="volume-high" size={24} color={palette.grey[500]} /> : <MuteIcon />}
+              </TouchableOpacity>
             )}
+            <TimerDropDown
+              speaker={speaker}
+              isTextbook
+              disabledSpeaker={disabledSpeaker}
+              openTimerDialog={openTimerDialog}
+              alarmClockProps={alarmClockProps}
+              audioGuideModalProps={audioGuideModalProps}
+              isAlarmRunning={isAlarmRunning}
+              isTimerRunning={isTimerRunning}
+              studyTimerProps={studyTimerProps}
+              timeUpdateDialogProps={timeUpdateDialogProps}
+              onToggleSpeaker={handleToggleSpeaker}
+              onToggleTimerDialog={handleTimerDialogToggle}
+            />
             <FloatingActionButton
               t={t}
               isOnlyRestart={!textbook?.isMock}
@@ -257,6 +250,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
               isEnd={textbook?.status === ExamStatus.Completed}
               isMock={textbook?.isMock}
               status={textbook?.status}
+              subjectType={textbook?.type}
             />
           )}
           contentContainerStyle={styles.scrollContainer}
@@ -299,10 +293,9 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
                 alignItems: 'center'
               }}
             >
-              <Text style={{ color: '#222222', fontWeight: 500, fontSize: 14 }}>{t('end')}</Text>
+              <Text style={{ color: 'red', fontWeight: 500, fontSize: 14 }}>{t('end_exam')}</Text>
             </TouchableOpacity>
           </View>
-
           <View style={styles.navRow}>
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <TouchableOpacity
@@ -472,7 +465,6 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
           />
         )}
       </KeyboardAvoidingView>
-
     </View>
   )
 }
@@ -493,7 +485,9 @@ const styles = ScaledSheet.create({
     paddingHorizontal: 20,
     borderBottomWidth: 1,
     zIndex: 10,
-    borderColor: palette.grey[100]
+    borderColor: palette.grey[100],
+    backgroundColor: '#FFF',
+    elevation: 5
   },
   title: {
     fontSize: 16,
@@ -529,7 +523,8 @@ const styles = ScaledSheet.create({
     shadowOffset: { width: 0, height: -6 },
     shadowOpacity: 0.1,
     shadowRadius: 14,
-    elevation: 10
+    elevation: 10,
+    zIndex: 20
   },
   footerTop: {
     paddingVertical: 14,

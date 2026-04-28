@@ -53,7 +53,7 @@ const SelectAnswerSheet = ({
           alignItems: 'center'
         }}
       >
-        <Text style={{ color: '#222222', fontWeight: 500, fontSize: 14 }}>{t('end_exam')}</Text>
+        <Text style={{ color: 'red', fontWeight: 500, fontSize: 14 }}>{t('end_exam')}</Text>
       </TouchableOpacity>
     ),
     [onFishedExam]

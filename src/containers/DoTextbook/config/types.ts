@@ -90,11 +90,10 @@ export interface PreparedArticleResponse {
   title: string;
   author: string;
   tag: string;
-  articleNumber: number;
   questionGroupId: number;
   chapterId: number;
-  // category: CategoryResponse;
-  categories: CategoryResponse[];
+  category: CategoryResponse;
+  subcategory: CategoryResponse;
 }
 
 export interface CategoryResponse {

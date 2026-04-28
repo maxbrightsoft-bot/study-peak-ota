@@ -10,7 +10,7 @@ import _ from "lodash";
 import useAuthStore from "@/store/useAuthStore";
 import { useTranslation } from "react-i18next";
 import { diffFromNow, getErrorMessage, toast, toISOString } from "@/utils/helpers";
-import { ActivityAction, ExamStatus, QuestionAnswerType } from "@/utils/enums";
+import { ActivityAction, ActivityResource, AppScreen, ExamStatus, QuestionAnswerType } from "@/utils/enums";
 import moment from "moment";
 import { isTextType } from "@/utils/helpers/textbook";
 import { ExamSessionResponse } from "@/utils/types";
@@ -52,7 +52,7 @@ const useExamSolving = (props: Props) => {
     handleNextQuestion
   } = props;
   const { getServerNow } = useServerTime();
-  const { track } = useActivityTracking()
+  const { track, trackError } = useActivityTracking({ screen: AppScreen.DoExam })
 
   const getServerTimeFormatted = useCallback(() => {
     const serverNow = getServerNow();
@@ -248,11 +248,11 @@ const useExamSolving = (props: Props) => {
     }
   };
   const updateQuestionAnswer = ({ questionId, textualAnswers = [], answer }: ExamQuestion) => {
+    const { now, nowTime } = getServerTimeFormatted();
     try {
       if (!exam) return;
       const examStatus = exam.isLate ? exam.lateStatus : exam.status
       if (examStatus !== ExamStatus.InProgress) return
-      const { now, nowTime } = getServerTimeFormatted();
 
       const totalRunningTime = moment(now).diff(moment.utc(!exam.isLate ? exam.startTime : exam.startTimeSession).local(), "milliseconds") - exam.totalPausedTime
 
@@ -297,8 +297,10 @@ const useExamSolving = (props: Props) => {
 
       track({
         action: ActivityAction.Answer,
+        resourceType: ActivityResource.Exam,
+        resourceId: String(exam?.id),
+        triggeredAt: now,
         metaData: {
-          questionId,
           examId: String(exam?.id),
           status: exam?.isLate ? exam?.lateStatus : exam?.status,
           examCode: exam?.code || '',
@@ -316,11 +318,12 @@ const useExamSolving = (props: Props) => {
         status: exam?.isLate ? exam?.lateStatus : exam?.status,
         studentExamSessionId: String(exam?.studentExamSessionId || ''),
       })
-      track({
-        action: ActivityAction.Error,
+      trackError(error, {
+        resourceType: ActivityResource.Question,
+        resourceId: String(questionId),
+        triggeredAt: now,
         metaData: {
-          type: ActivityAction.Answer,
-          questionId,
+          action: ActivityAction.Answer,
           examId: String(exam?.id),
           examCode: exam?.code || '',
           status: exam?.isLate ? exam?.lateStatus : exam?.status,
@@ -331,11 +334,13 @@ const useExamSolving = (props: Props) => {
   };
 
   const updateQuestionStar = (questionId: number, isStar: boolean) => {
+    if (!exam) return;
+
+    const { now, nowTime } = getServerTimeFormatted();
+
     try {
-      if (!exam) return;
       const examStatus = exam.isLate ? exam.lateStatus : exam.status
       if (examStatus !== ExamStatus.InProgress) return
-      const { now, nowTime } = getServerTimeFormatted();
 
       const totalRunningTime = moment(now).diff(moment.utc(!exam.isLate ? exam.startTime : exam.startTimeSession).local(), "milliseconds") - exam.totalPausedTime
 
@@ -355,11 +360,13 @@ const useExamSolving = (props: Props) => {
 
       track({
         action: ActivityAction.StarAnswer,
+        resourceType: ActivityResource.Question,
+        resourceId: String(questionId),
+        triggeredAt: now,
         metaData: {
-          questionId,
-          examId: String(exam.id),
+          examId: String(exam?.id),
+          examCode: exam?.code || '',
           status: exam?.isLate ? exam?.lateStatus : exam?.status,
-          examCode: exam.code || '',
           studentExamSessionId: String(exam.studentExamSessionId || ''),
         }
       })
@@ -374,11 +381,12 @@ const useExamSolving = (props: Props) => {
         examCode: exam?.code || '',
         studentExamSessionId: String(exam?.studentExamSessionId || ''),
       })
-      track({
-        action: ActivityAction.Error,
+      trackError(error, {
+        resourceType: ActivityResource.Question,
+        resourceId: String(questionId),
+        triggeredAt: now,
         metaData: {
-          type: ActivityAction.StarAnswer,
-          questionId,
+          action: ActivityAction.StarAnswer,
           examId: String(exam?.id),
           status: exam?.isLate ? exam?.lateStatus : exam?.status,
           examCode: exam?.code || '',

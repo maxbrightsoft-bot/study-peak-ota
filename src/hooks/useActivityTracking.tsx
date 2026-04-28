@@ -31,6 +31,7 @@ class TrackingManager {
     this.queue = [];
 
     try {
+
       await createActivyityBulkApi(eventsToSend);
     } catch (err) {
       console.error("Bulk track failed:", err);
