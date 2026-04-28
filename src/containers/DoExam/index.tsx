@@ -21,6 +21,10 @@ import ArrowDown from '@/assets/iconJSX/arrowDown'
 import ArrowRight from '@/assets/iconJSX/arrowRight'
 import SelectAnswerSheet from './components/SelectAnswerSheet'
 import InfoExamCode from './components/InfoExamCode'
+import TimerDropDown from '@/layouts/components/TimerDropDown'
+import MuteIcon from '@/assets/iconJSX/mute'
+import { Ionicons } from '@expo/vector-icons'
+import AudioGuideModal from '@/layouts/components/AudioGuideModal'
 
 type Props = {
   examCode: string
@@ -70,7 +74,22 @@ const DoExam = ({ examCode }: Props) => {
     handleExamEnd,
     handleDetailExamResult,
     handleCloseLiveResultDialog,
-    handleFinishExam
+    handleFinishExam,
+    // openTimerDialog,
+    // handleTimerDialogToggle,
+    // alarmClockProps,
+    // audioGuideModalProps,
+    // isAlarmRunning,
+    // isTimerRunning,
+    // studyTimerProps,
+    // timeUpdateDialogProps,
+    // handleToggleSpeaker,
+    // speaker,
+    // disabledSpeaker,
+    // handleCloseResultDialog,
+    // isOpenAudioGuide,
+    // handleCloseAudioGuide,
+    // handleRestartExamWithAlarm
   } = useExam({ examCode })
 
   const currentQuestion = useMemo(
@@ -97,7 +116,6 @@ const DoExam = ({ examCode }: Props) => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={80}
       >
-
         <View style={styles.header}>
           <TouchableOpacity>
             <TouchableOpacity onPress={handleOpenLeaveDialog}>
@@ -111,6 +129,24 @@ const DoExam = ({ examCode }: Props) => {
             <Text style={[styles.subtitle, { color: (remainTime || 0) < 10 ? palette.red[900] : palette.grey[400] }]}>{remainTimeString || 0}</Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            {/* {(isTimerRunning || isAlarmRunning) && (
+              <TouchableOpacity onPress={() => handleToggleSpeaker()}>
+                {speaker ? <Ionicons name="volume-high" size={24} color={palette.grey[500]} /> : <MuteIcon />}
+              </TouchableOpacity>
+            )}
+            <TimerDropDown
+              speaker={speaker}
+              disabledSpeaker={disabledSpeaker}
+              openTimerDialog={openTimerDialog}
+              alarmClockProps={alarmClockProps}
+              audioGuideModalProps={audioGuideModalProps}
+              isAlarmRunning={isAlarmRunning}
+              isTimerRunning={isTimerRunning}
+              studyTimerProps={studyTimerProps}
+              timeUpdateDialogProps={timeUpdateDialogProps}
+              onToggleSpeaker={handleToggleSpeaker}
+              onToggleTimerDialog={handleTimerDialogToggle}
+            /> */}
             {(exam?.isLate || (!exam?.isLate && exam?.lateStatus === ExamStatus.Completed)) && (
               <FloatingActionButton
                 t={t}
@@ -253,7 +289,7 @@ const DoExam = ({ examCode }: Props) => {
                 alignItems: 'center'
               }}
             >
-              <Text style={{ color: '#222222', fontWeight: 500, fontSize: 14 }}>{t('end_exam')}</Text>
+              <Text style={{ color: 'red', fontWeight: 500, fontSize: 14 }}>{t('end_exam')}</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.navRow}>
@@ -406,9 +442,24 @@ const DoExam = ({ examCode }: Props) => {
             studentExamSessionId={exam?.studentExamSessionId}
           />
         )}
+        {/* {audioGuideModalProps.open && (
+          <AudioGuideModal
+            open={audioGuideModalProps.open}
+            audioUrls={audioGuideModalProps.audioUrls}
+            onClose={audioGuideModalProps.onClose}
+            onStart={audioGuideModalProps.onStart}
+          />
+        )}
+        {isOpenAudioGuide && (
+          <AudioGuideModal
+            open={isOpenAudioGuide}
+            audioUrls={[]}
+            onClose={handleCloseAudioGuide}
+            onStart={handleRestartExamWithAlarm}
+          />
+        )} */}
       </KeyboardAvoidingView>
     </View>
-
   )
 }
 
@@ -424,7 +475,9 @@ const styles = ScaledSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderColor: palette.grey[100]
+    borderColor: palette.grey[100],
+    zIndex: 10,
+    backgroundColor: '#FFF',
   },
   titleContainer: {
     gap: '4@ms'
@@ -513,7 +566,12 @@ const styles = ScaledSheet.create({
     bottom: 0,
     gap: 20,
     backgroundColor: '#FFF',
-    boxShadow: '0px -6px 14px 0px #0000000F'
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 14,
+    elevation: 10,
+    zIndex: 20
   },
   timeContainer: {
     flexDirection: 'row',

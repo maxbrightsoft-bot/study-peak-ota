@@ -22,7 +22,7 @@ import { Alert, findNodeHandle, FlatList, UIManager, View } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { PauseOrResumeExamRequest, RestartTextbookRequest } from "@/utils/types";
-import { ActivityAction, ExamStatus, SubjectType } from "@/utils/enums";
+import { ActivityAction, ActivityResource, AppScreen, ExamStatus, SubjectType } from "@/utils/enums";
 import moment from "moment";
 import { formatMinutesToTime, getErrorMessage, toast } from "@/utils/helpers";
 import _ from "lodash";
@@ -30,6 +30,7 @@ import useCountDownTimer from "@/hooks/useCountDownTimer";
 import useTimers from "@/layouts/hooks/useTimer";
 import useAlarm from "@/layouts/hooks/useAlarm";
 import useServerTime from "@/hooks/useServerTime";
+import { useKeepAwake } from 'expo-keep-awake';
 import { useActivityTracking } from "@/hooks/useActivityTracking";
 
 type Props = {
@@ -72,7 +73,8 @@ const useTextbook = ({
   const [openExpiredQuestionDialog, setOpenExpiredQuestionDialog] = useState<boolean>(false)
   const [openTextbookResultDialog, setOpenTextbookResultDialog] = useState(false)
   const { getServerNow } = useServerTime();
-  const { track } = useActivityTracking()
+  const { track, trackError } = useActivityTracking({ screen: AppScreen.DoTextbook })
+  useKeepAwake();
 
   const handleCloseTextbookResultDialog = () => {
     setOpenTextbookResultDialog(false)
@@ -201,7 +203,6 @@ const useTextbook = ({
   )
 
   const onScrollToIndex = (index: number) => {
-    console.log("index", index);
     const ref = questionRefs.current[index];
     const scrollViewNode = scrollViewRef.current
       ? findNodeHandle(scrollViewRef.current)
@@ -244,6 +245,7 @@ const useTextbook = ({
     setNotFoundTextbook(false);
     setLoadingWithoutOverlay(true);
     setStartTime(undefined);
+    const nowTime = getServerNow();
 
     try {
       const res = await getQuestionsTextbookApi(Number(textbookId));
@@ -268,7 +270,7 @@ const useTextbook = ({
         status: data?.status,
         subject: data?.subject,
         rowVersion: data?.rowVersion,
-        timestamp: Date.now()
+        timestamp: nowTime
       };
 
       setTextbook(responseTextbook);
@@ -281,6 +283,15 @@ const useTextbook = ({
       (firstLoadRef.current || showErrorMessage) &&
         toast.error(getErrorMessage(t, err));
       setNotFoundTextbook(true);
+      trackError(err, {
+        resourceType: ActivityResource.Textbook,
+        triggeredAt: nowTime,
+        resourceId: textbook?.id,
+        metaData: {
+          textbookId: textbook?.id || '',
+          studentTextbookId: String(textbook?.studentTextbookId || ''),
+        }
+      });
     }
 
     setLoadingWithoutOverlay(false);
@@ -332,7 +343,8 @@ const useTextbook = ({
   const { formattedTime } = useTextbookTimer({
     startTime,
     studyTime: totalAnswerTime,
-    textbookId: Number(textbookId)
+    textbookId: Number(textbookId),
+    status: textbook?.status
   });
 
   const { updateQuestionAnswer, updateQuestionStar, recoverAnswers } =
@@ -394,8 +406,8 @@ const useTextbook = ({
     if (!textbook || !textbookId) return;
 
     setLoading(true);
+    const nowTime = new Date(getServerNow()).toISOString();
     try {
-      const nowTime = new Date(getServerNow()).toISOString();
       const req: ChangeAnswerTimeRequest = {
         stopTime: nowTime
       };
@@ -405,6 +417,15 @@ const useTextbook = ({
       navigate(Routes.Auth.Textbook);
     } catch (error) {
       toast.error(getErrorMessage(t, error));
+      trackError(error, {
+        resourceType: ActivityResource.Textbook,
+        triggeredAt: nowTime,
+        resourceId: textbook?.id,
+        metaData: {
+          textbookId: textbook?.id || '',
+          studentTextbookId: String(textbook?.studentTextbookId || ''),
+        }
+      });
     }
     setLoading(false);
   };
@@ -437,13 +458,14 @@ const useTextbook = ({
     if (!textbook || !textbookId) return;
 
     setLoading(true);
+    const nowTime = getServerNow();
     try {
-      const nowTime = getServerNow();
       const req: PauseOrResumeExamRequest = {
         rowVersion: textbook.rowVersion,
         status,
         pauseTime: nowTime
       };
+
       const res = await pauseAndResumeTextbookApi(Number(textbook.id), req);
 
       if (alarmClockProps.panelProps.onPauseOrResume && alarm?.subject?.id === textbook.subject.id && alarm?.duration === textbook.duration * 60000) {
@@ -465,14 +487,24 @@ const useTextbook = ({
       });
       track({
         action: status === ExamStatus.Paused ? ActivityAction.Pause : ActivityAction.Resume,
+        resourceType: ActivityResource.Textbook,
+        resourceId: String(textbook?.id),
+        triggeredAt: new Date(nowTime).toISOString(),
         metaData: {
-          textbookId: String(textbook?.id),
           status: textbook?.status,
           studentTextbookId: textbook?.studentTextbookId
         }
       })
     } catch (error) {
       toast.error(getErrorMessage(t, error));
+      trackError(error, {
+        resourceType: ActivityResource.Textbook,
+        triggeredAt: nowTime,
+        resourceId: textbook?.id,
+        metaData: {
+          studentTextbookId: String(textbook?.studentTextbookId || ''),
+        }
+      });
     }
     setLoading(false);
   };
@@ -481,6 +513,7 @@ const useTextbook = ({
     if (!textbook || !textbookId) return;
 
     setLoadingWithoutOverlay(true);
+    const nowTime = getServerNow();
     try {
       const req: RestartTextbookRequest = {
         rowVersion: textbook.rowVersion,
@@ -491,14 +524,24 @@ const useTextbook = ({
       getQuestionsTextbook();
       track({
         action: ActivityAction.Restart,
+        resourceType: ActivityResource.Textbook,
+        resourceId: String(textbook?.id),
+        triggeredAt: new Date(nowTime).toISOString(),
         metaData: {
-          textbookId: String(textbook?.id),
           status: textbook?.status,
           studentTextbookId: textbook?.studentTextbookId
         }
       })
     } catch (error) {
       toast.error(getErrorMessage(t, error));
+      trackError(error, {
+        resourceType: ActivityResource.Textbook,
+        triggeredAt: nowTime,
+        resourceId: textbook?.id,
+        metaData: {
+          studentTextbookId: String(textbook?.studentTextbookId || ''),
+        }
+      });
     }
     setLoadingWithoutOverlay(false);
     handleCloseConfirmDialog();
@@ -527,12 +570,15 @@ const useTextbook = ({
   useFocusEffect(
     useCallback(() => {
       if (!textbookId) return;
+      const nowTime = getServerNow();
 
       getQuestionsTextbook();
       track({
         action: ActivityAction.Start,
+        resourceType: ActivityResource.Textbook,
+        resourceId: String(textbookId),
+        triggeredAt: new Date(nowTime).toISOString(),
         metaData: {
-          textbookId: String(textbook?.id),
           status: textbook?.status,
           studentTextbookId: textbook?.studentTextbookId
         }

@@ -39,7 +39,7 @@ const useAlarmTextbook = ({ handleCloseDialog, onStart }: Props) => {
       setLoading(true)
       await startTextbook(textbook.id)
       setLoading(false)
-      if (enable) await handleStartAudio(textbook)
+      if (enable && !textbook.isMock) await handleStartAudio(textbook)
       handleCloseAudioGuide()
     } catch (error) {
       toast.error(getErrorMessage(t, error))

@@ -9,7 +9,7 @@ import moment from "moment";
 import { diffFromNow, getErrorMessage, toast, toISOString } from "@/utils/helpers";
 import { DATE_TIME_MIN_VALUE } from "@/utils/constants";
 import { isTextType } from "@/utils/helpers/textbook";
-import { ActivityAction, QuestionAnswerType } from "@/utils/enums";
+import { ActivityAction, ActivityResource, AppScreen, QuestionAnswerType } from "@/utils/enums";
 import { getDataStorage, removeDataStorage, setDataStorage } from "@/utils/storage";
 import useServerTime from '@/hooks/useServerTime';
 import { logError } from '@/utils/helpers/crashlyticsLogger';
@@ -45,7 +45,7 @@ const useTextbookSolving = (props: Props) => {
   const userId: number | undefined = user?.id;
   const { t } = useTranslation();
   const { getServerNow } = useServerTime();
-  const { track } = useActivityTracking()
+  const { track, trackError } = useActivityTracking({ screen: AppScreen.DoTextbook })
 
   const getServerTimeFormatted = useCallback(() => {
     const serverNow = getServerNow();
@@ -228,9 +228,9 @@ const useTextbookSolving = (props: Props) => {
   };
 
   const updateQuestionAnswer = ({ questionId, textualAnswers = [], answer }: TextbookQuestion) => {
+    if (!textbook) return;
+    const { now, nowTime } = getServerTimeFormatted();
     try {
-      if (!textbook) return;
-      const { now, nowTime } = getServerTimeFormatted();
 
       const listQuestionNews = _.cloneDeep(questionList);
       const arrQuestionNew = listQuestionNews.map((item: PreparedQuestionResponse) => {
@@ -272,8 +272,10 @@ const useTextbookSolving = (props: Props) => {
 
       track({
         action: ActivityAction.Answer,
+        resourceId: String(questionId),
+        resourceType: ActivityResource.Question,
+        triggeredAt: now,
         metaData: {
-          questionId,
           textbookId: String(textbook?.id),
           status: textbook?.status,
           studentTextbookId: textbook?.studentTextbookId
@@ -282,7 +284,6 @@ const useTextbookSolving = (props: Props) => {
 
       handleUpdateAnswer(arrQuestionNew, now, nowTime, questionId);
     } catch (error) {
-      console.log({ error });
       logError(error, {
         action: 'ANSWER_QUESTION',
         questionId,
@@ -290,11 +291,12 @@ const useTextbookSolving = (props: Props) => {
         status: textbook?.status,
         studentTextbookId: textbook?.studentTextbookId
       })
-      track({
-        action: ActivityAction.Error,
+      trackError(error, {
+        resourceId: String(questionId),
+        resourceType: ActivityResource.Question,
+        triggeredAt: now,
         metaData: {
-          type: ActivityAction.Answer,
-          questionId,
+          action: ActivityAction.Answer,
           textbookId: String(textbook?.id),
           status: textbook?.status,
           studentTextbookId: textbook?.studentTextbookId
@@ -305,9 +307,9 @@ const useTextbookSolving = (props: Props) => {
 
 
   const updateQuestionStar = (questionId: number, isStar: boolean) => {
+    if (!textbook) return;
+    const { now, nowTime } = getServerTimeFormatted();
     try {
-      if (!textbook) return;
-      const { now, nowTime } = getServerTimeFormatted();
 
       const listQuestionNews = _.cloneDeep(questionList);
       const arrQuestionNew = listQuestionNews.map((item: PreparedQuestionResponse) => {
@@ -331,9 +333,10 @@ const useTextbookSolving = (props: Props) => {
       });
       track({
         action: ActivityAction.StarAnswer,
+        resourceId: String(questionId),
+        resourceType: ActivityResource.Question,
+        triggeredAt: now,
         metaData: {
-          type: ActivityAction.StarAnswer,
-          questionId,
           textbookId: String(textbook?.id),
           status: textbook?.status,
           studentTextbookId: textbook?.studentTextbookId
@@ -350,10 +353,12 @@ const useTextbookSolving = (props: Props) => {
         status: textbook?.status,
         studentTextbookId: textbook?.studentTextbookId
       })
-      track({
-        action: ActivityAction.Error,
+      trackError(error, {
+        resourceId: String(questionId),
+        resourceType: ActivityResource.Question,
+        triggeredAt: now,
         metaData: {
-          questionId,
+          action: ActivityAction.StarAnswer,
           textbookId: String(textbook?.id),
           status: textbook?.status,
           studentTextbookId: textbook?.studentTextbookId

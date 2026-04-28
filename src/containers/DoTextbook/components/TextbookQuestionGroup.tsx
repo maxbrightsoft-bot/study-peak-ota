@@ -18,31 +18,45 @@ type Props = {
   handleOpenExpiredQuestionDialog: () => void
   onOpenAnswerSheet: (id?: number) => void
   currentQuestionId?: number
+  subjectType?: SubjectType
 }
 
 const TextbookQuestionGroup = ({
   data,
   isEnd,
   status,
-  type,
   isMock,
   handleOpenExpiredQuestionDialog,
   onOpenAnswerSheet,
   currentQuestionId,
   questionRefs,
+  subjectType
 }: Props) => {
   const { t } = useTranslation()
   const questions = data.questions
   const disabled = isEnd || status === ExamStatus.Paused
   const questionContent = useMemo(() => {
-    const title = data.articles?.[0].title
-    const author = data.articles?.[0].author
-    const category = data.articles?.[0]?.categories?.[0].name
-    const subCategory = data.articles?.[0]?.categories?.[0].name
-    const titleAuthor = [title, author].filter((i) => !!i).join(', ')
-    const content = type !== SubjectType.Math ? [subCategory, titleAuthor].filter((i) => !!i).join('|') : category
-    return content
-  }, [type, data.articles?.[0].title, data.articles?.[0].author, data.articles?.[0]?.categories])
+    const title = data.articles?.[0].title;
+    const author = data.articles?.[0].author;
+    const category = data.articles?.[0]?.category?.name;
+    const subCategory = data.articles?.[0]?.subcategory?.name;
+    const titleAuthor = [title, author].filter((i) => !!i).join(", ");
+    const content =
+      subjectType !== SubjectType.Math
+        ? [subCategory, titleAuthor].filter((i) => !!i).join(", ")
+        : category;
+    return content;
+  }, [
+    subjectType,
+    data.articles?.[0].title,
+    data.articles?.[0].author,
+    data.articles?.[0]?.category?.name,
+    data.articles?.[0]?.subcategory?.name
+  ]);
+
+  const page = t("page_number", {
+    number: data.pageFrom ?? data.pageTo ?? "_"
+  });
 
   const renderAnswer = (question: PreparedQuestionResponse) => {
     switch (question.questionAnswerType) {
@@ -100,12 +114,6 @@ const TextbookQuestionGroup = ({
     )
   }
 
-  const totalScore = useMemo(() => {
-    return questions.reduce((sum, question) => {
-      return sum + (question.score || 0)
-    }, 0)
-  }, [questions])
-
   return (
     <View>
       <View style={{ flexDirection: 'row', marginBottom: 8, gap: 4 }}>
@@ -113,7 +121,7 @@ const TextbookQuestionGroup = ({
           <Text style={{ fontSize: 14, fontWeight: 500, color: palette.grey[500] }}>{questionContent}</Text>
         )}
         {questionContent && <View style={{ backgroundColor: palette.grey[300], paddingVertical: 7, width: 2 }} />}
-        <Text style={{ fontSize: 14, fontWeight: 500, color: palette.grey[500] }}>{totalScore}p</Text>
+        <Text style={{ fontSize: 14, fontWeight: 500, color: palette.grey[500] }}>{page}</Text>
       </View>
       <View style={styles.container}>
         <View style={styles.header}>
