@@ -10,6 +10,7 @@ import TimeData from '../components/TimeDataTab'
 import AddChatIcon from '@/assets/iconJSX/addChat'
 import IncorrectNotes from '../components/IncorrectNotes'
 import CreateExamNoteDialog from '../components/CreateExamNoteDialog'
+import HeaderAction from '@/layouts/components/HeaderAction'
 
 const MyData = () => {
   const {
@@ -41,9 +42,13 @@ const MyData = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('statistics')}</Text>
-        {!!academyDomain && <TouchableOpacity onPress={() => handleOpenCreateNote()}>
-          <AddChatIcon width={24} height={24} color="#222222" />
-        </TouchableOpacity>}
+        <View style={{ flexDirection: 'row', gap: 20, alignItems: 'center' }}>
+          <HeaderAction />
+          {!!academyDomain && <TouchableOpacity onPress={() => handleOpenCreateNote()}>
+            <AddChatIcon width={24} height={24} color="#222222" />
+          </TouchableOpacity>}
+        </View>
+
       </View>
       <View style={styles.tabs}>
         {(!!academyDomain ? TabList : StudySpaceTabList).map(({ label, value }, index) => {

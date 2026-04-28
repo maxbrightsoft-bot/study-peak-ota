@@ -276,15 +276,15 @@ const MyOverall: FC<OverallTabProps> = ({
             </View>
           ))}
         </ScrollView>
-        {currentIndex > 0 && currentIndex < slides.length - 1 && <View style={{ position: 'absolute', left: 0, top: '35%' }}>
+        {currentIndex > 0 && <View style={{ position: 'absolute', left: 0, top: '35%' }}>
           <TouchableOpacity onPress={handlePrev}>
-            <MaterialIcons name="arrow-back-ios-new" size={24} color={palette.grey[300]} />
+            <MaterialIcons name="arrow-back-ios-new" size={24} color={palette.grey[100]} />
           </TouchableOpacity>
         </View>}
 
         {currentIndex < slides.length - 1 && <View style={{ position: 'absolute', right: 5, top: '35%' }}>
           <TouchableOpacity onPress={handleNext}>
-            <MaterialIcons name="arrow-forward-ios" size={24} color={palette.grey[300]} />
+            <MaterialIcons name="arrow-forward-ios" size={24} color={palette.grey[100]} />
           </TouchableOpacity>
         </View>}
       </View>

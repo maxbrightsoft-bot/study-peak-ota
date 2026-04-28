@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useState } from 'react'
-import { View, Text, TouchableOpacity, Pressable, StyleSheet } from 'react-native'
+import { View, Text, Pressable, StyleSheet } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { FontAwesome6, Ionicons } from '@expo/vector-icons'
+import { FontAwesome6 } from '@expo/vector-icons'
 import { TooltipProps } from '../configs/types'
 import { palette } from '@/theme'
 import { ExamResult, NoteResponse } from '@/utils/types'
@@ -94,9 +94,12 @@ const NoteItem: FC<NoteItemProps> = ({
               number: (data?.questionOrder || 0) + 1
             })}
           </Text>
-          <Text style={styles.metaText}>{data.categoryName}</Text>
-          <View style={styles.separator} />
-          <Text style={styles.metaText}>p.{question?.score}</Text>
+          {data.categoryName && (
+            <>
+              <View style={styles.separator} />
+              <Text style={styles.metaText}>{data.categoryName}</Text>
+            </>
+          )}
         </View>
         <FontAwesome6 name="angle-right" size={20} color={palette.grey[300]} />
       </View>

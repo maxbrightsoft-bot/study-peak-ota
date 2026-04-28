@@ -19,29 +19,30 @@ const NoteCard = ({
   t: any
   item: NoteResponse
   onOpenDialog: (item?: NoteResponse | undefined) => void
-}) => (
-  <Pressable style={({ pressed }) => [styles.container, pressed && styles.pressed]} onPress={() => onOpenDialog(item)}>
-    <View style={styles.metaRow}>
-      <View style={styles.metaLeft}>
-        <Text style={styles.number}>
-          {t('number_question', {
-            number: (item?.questionOrder || 0) + 1
-          })}
-        </Text>
-        <Text style={styles.metaText}>{item.categoryName}</Text>
-        <View style={styles.separator} />
-        <Text style={styles.metaText}>p.{item?.score}</Text>
+}) => {
+  console.log(item)
+  return (
+    <Pressable style={({ pressed }) => [styles.container, pressed && styles.pressed]} onPress={() => onOpenDialog(item)}>
+      <View style={styles.metaRow}>
+        <View style={styles.metaLeft}>
+          <Text style={styles.number}>
+            {t('number_question', {
+              number: (item?.questionOrder || 0) + 1
+            })}
+          </Text>
+          <Text style={styles.metaText}>{item.categoryName}</Text>
+        </View>
+        <FontAwesome6 name="angle-right" size={20} color={palette.grey[300]} />
       </View>
-      <FontAwesome6 name="angle-right" size={20} color={palette.grey[300]} />
-    </View>
-    <MathRender fontSize={14} content={item.content} textColor={palette.grey[700]} />
-    <View style={styles.headerRow}>
-      <Text style={styles.headerText}>{item?.subjectName}</Text>
-      <View style={styles.separator} />
-      <Text style={styles.headerText}>{item?.title}</Text>
-    </View>
-  </Pressable>
-)
+      <MathRender fontSize={14} content={item.content} textColor={palette.grey[700]} />
+      <View style={styles.headerRow}>
+        {item.subjectName && <Text style={styles.headerText}>{item?.subjectName}</Text>}
+        {item.title && <View style={styles.separator} />}
+        {item.title && <Text style={styles.headerText}>{item?.title}</Text>}
+      </View>
+    </Pressable>
+  )
+}
 
 export default function IncorrectNotes({ contentRef }: { contentRef?: React.RefObject<FlatList> }) {
   const {

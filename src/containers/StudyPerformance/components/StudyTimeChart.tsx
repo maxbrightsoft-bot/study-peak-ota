@@ -2,7 +2,8 @@ import React, { useMemo, useState } from 'react'
 import { View, Text, ActivityIndicator, TouchableOpacity, StyleSheet, Dimensions } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { DataResponse, QuestionAnswerOverallResponse } from '../configs/types'
-import { calcFocusTime, ceilTo } from '../configs/helper'
+import { calcFocusTime, ceilTo, formatAccumulatedTimeSplit } from '../configs/helper'
+import { MILLISECONDS_PER_HOUR } from '../configs/constants'
 import { timeTypeOptions, TypeText } from '../configs/constants'
 import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -227,21 +228,21 @@ const StudyTimeChart = ({
       <>
         <StudyTimeDescriptionItem
           title={getLabelByTimeType(timeType, TypeText.study)}
-          staticsNumber={ceilTo(totalP, 2)}
-          unit={t('hour')}
+          staticsNumber={formatAccumulatedTimeSplit(totalP * MILLISECONDS_PER_HOUR, t).value}
+          unit={formatAccumulatedTimeSplit(totalP * MILLISECONDS_PER_HOUR, t).unit}
         />
         <Divider />
         <StudyTimeDescriptionItem
           title={getLabelByTimeType(timeType, TypeText.average)}
-          staticsNumber={ceilTo(totalP / (data?.pData.length || 1), 2)}
-          unit={t('hour')}
+          staticsNumber={formatAccumulatedTimeSplit((totalP / (data?.pData.length || 1)) * MILLISECONDS_PER_HOUR, t).value}
+          unit={formatAccumulatedTimeSplit((totalP / (data?.pData.length || 1)) * MILLISECONDS_PER_HOUR, t).unit}
         />
         <Divider />
         <StudyTimeDescriptionItem
           title={getLabelByTimeType(timeType, TypeText.compare)}
-          staticsNumber={ceilTo(totalP - totalS, 2)}
+          staticsNumber={formatAccumulatedTimeSplit(Math.abs(totalP - totalS) * MILLISECONDS_PER_HOUR, t).value}
           isCompared
-          unit={t('hour')}
+          unit={formatAccumulatedTimeSplit(Math.abs(totalP - totalS) * MILLISECONDS_PER_HOUR, t).unit}
         />
       </>
     ) : (
