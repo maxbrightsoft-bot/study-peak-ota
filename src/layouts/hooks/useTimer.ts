@@ -36,6 +36,9 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
     const [activeTimerId, setActiveTimerId] = useState<number>()
     const [loadingItem, setLoadingItem] = useState(false)
     const [isFetching, setFetching] = useState(false)
+    const [currentPage, setCurrentPage] = useState(1)
+    const [hasMore, setHasMore] = useState(true)
+    const pageSize = 15;
     const [openTimeUpdateDialog, setOpenTimeUpdateDialog] = useState<SubjectTimerResponse>()
     const { getServerNow } = useServerTime();
 
@@ -185,11 +188,12 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
             } else {
                 const start = onAcademy ? startStudentSubjectTimerApi : startSuperStudentSubjectTimerApi
                 const res = await start(data.id)
-                setTimers(
-                    mergedTimers.map(timer =>
-                        timer.id === data.id ? res.data : timer
-                    )
-                )
+                const exists = mergedTimers.some(t => t.id === data.id)
+                if (exists) {
+                    setTimers(mergedTimers.map(timer => timer.id === data.id ? res.data : timer))
+                } else {
+                    setTimers([res.data, ...mergedTimers])
+                }
                 setActiveTimerId(isStarted && isActive ? undefined : data.id)
             }
 
@@ -201,19 +205,19 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
         }
     }
 
-    const getTimers = async () => {
+    const getTimers = async (page: number = 1, isLoadMore: boolean = false) => {
         if (!user?.superId || isFetching) return
         if (
             ((onAcademy && fetchedRef.current === academyDomain) ||
                 (!onAcademy && fetchedRef.current === null)) &&
-            !open
+            !open && !isLoadMore
         ) return
 
         setFetching(true)
         try {
             const res = onAcademy
-                ? await getStudentSubjectListApi()
-                : await getSuperStudentSubjectListApi()
+                ? await getStudentSubjectListApi(pageSize, page)
+                : await getSuperStudentSubjectListApi(pageSize, page)
 
             const items: SubjectTimerResponse[] = res.data?.items ?? []
             fetchedRef.current = onAcademy ? academyDomain : null
@@ -231,18 +235,28 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
 
             const paused = await handlePauseAllTimers(activeId, newItems)
 
-            setTimers(
-                newItems.map(i =>
-                    paused.find(p => p.id === i.id) ?? i
-                )
+            const finalItems = newItems.map(i =>
+                paused.find(p => p.id === i.id) ?? i
             )
-            setActiveTimerId(activeId)
+
+            setTimers(isLoadMore ? [...timers, ...finalItems] : finalItems)
+            if (!isLoadMore) {
+                setActiveTimerId(activeId)
+            }
+            
+            setHasMore(items.length === pageSize)
+            setCurrentPage(page)
         } catch (error) {
-            setTimers([])
+            if (!isLoadMore) setTimers([])
             toast.error(getErrorMessage(t, error))
         } finally {
             setFetching(false)
         }
+    }
+
+    const loadMoreTimers = () => {
+        if (!hasMore || isFetching) return
+        getTimers(currentPage + 1, true)
     }
 
     const selectedTimer = timers.find(i => i.id === activeTimerId)
@@ -374,6 +388,7 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
     const isTimerRunning = timers.some(t => t.status === TimerStatus.Started)
 
     const studyTimerProps: StudyTimerTabProps = {
+        getTimers,
         isFetching,
         loadingItem,
         subjects: timers,
@@ -381,7 +396,9 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
         time: seconds,
         onStartOrPause: handleStartOrPauseTimer,
         onEditTimer: handleOpenDialogEditTimer,
-        onStopTimer: handleStopTimer
+        onStopTimer: handleStopTimer,
+        hasMore,
+        loadMoreTimers
     }
 
     const timeUpdateDialogProps: TimeUpdateDialogProps = {

@@ -2,7 +2,7 @@ import { palette } from '@/theme'
 import { formatMinutesToTime } from '@/utils/helpers'
 import React, { FC } from 'react'
 import { useTranslation } from 'react-i18next'
-import { View, Text, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet, TextInput } from 'react-native'
 
 interface CircularTimerProps {
   subject?: string
@@ -21,7 +21,8 @@ const CircularTimer: FC<CircularTimerProps> = ({
   edit,
   value = 0,
   remainSeconds = 0,
-  size
+  size,
+  onChange
 }) => {
   const { t } = useTranslation()
 
@@ -31,13 +32,34 @@ const CircularTimer: FC<CircularTimerProps> = ({
     <View style={[styles.container, subject && styles.alarmColor, ...(size ? [{ width: size, height: size }] : [])]}>
       <View style={styles.center}>
         {subject && <Text style={[styles.text, { color: '#FFF' }]}>{subject}</Text>}
-        <Text style={[styles.text, subject && { color: '#FFF' }]}>
-          {isOnlyDisplay
-            ? t('minutes_short_format', {
-              mins: Math.floor(minutes)
-            })
-            : formatMinutesToTime(minutes)}
-        </Text>
+        {edit && onChange && isOnlyDisplay ? (
+          <View style={styles.inputRow}>
+            <TextInput
+              style={[styles.text, styles.input, subject && { color: '#FFF' }]}
+              value={value === 0 ? '' : String(value)}
+              placeholder="0"
+              placeholderTextColor={subject ? 'rgba(255,255,255,0.5)' : palette.grey[300]}
+              onChangeText={(text) => {
+                const num = parseInt(text.replace(/[^0-9]/g, ''), 10) || 0;
+                onChange(num);
+              }}
+              keyboardType="number-pad"
+              maxLength={3}
+              selectTextOnFocus
+            />
+            <Text style={[styles.text, subject && { color: '#FFF' }]}>
+              {t('minutes_short_format', { mins: '' })}
+            </Text>
+          </View>
+        ) : (
+          <Text style={[styles.text, subject && { color: '#FFF' }]}>
+            {isOnlyDisplay
+              ? t('minutes_short_format', {
+                mins: Math.floor(minutes)
+              })
+              : formatMinutesToTime(minutes)}
+          </Text>
+        )}
       </View>
     </View>
   )
@@ -68,5 +90,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 32,
     color: palette.main[600]
-  }
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  input: {
+    padding: 0,
+    margin: 0,
+    textAlign: 'center',
+    minWidth: 32,
+  },
 })

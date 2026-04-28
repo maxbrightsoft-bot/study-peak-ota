@@ -23,9 +23,6 @@ const TimerDialog: FC<Props> = ({
   onToggle,
   studyTimerProps,
   alarmClockProps,
-  speaker,
-  disabledSpeaker,
-  onToggleSpeaker
 }) => {
   const { t } = useTranslation()
   const [value, setValue] = useState(0)

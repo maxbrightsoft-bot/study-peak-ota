@@ -1,4 +1,4 @@
-import { TimerStatus } from "../../utils";
+import { TimerStatus } from "@/utils/enums";
 
 export type SubjectTimerDetailResponse = {
   id: number;
@@ -53,22 +53,14 @@ export type TimerBase = {
   name: string;
   rowVersion: string;
   startTime: string;
+  stoppedAt: string;
   status: TimerStatus;
   timerId: number;
 }
-export type Timer = TimerBase & {
-  duration: number;
-  id: number;
-  lastPauseTime: string;
-  lastResumeTime: string;
-  limitedTime: number;
-  limitedTimeReached: boolean;
-  name: string;
-  rowVersion: string;
-  startTime: string;
-  status: TimerStatus;
-  timerId: number;
-  records: TimeLine[];
+
+export type Timer = Omit<TimerBase, 'name' | 'timerId'> & {
+  subjectId: number
+  subjectName: string
 }
 
 export interface SubjectTimersRequest {

@@ -15,10 +15,8 @@ const TimeLineTabPanel: React.FC<Props> = ({
   if (value !== index) return null;
 
   return (
-    <View>
-      <Text>
-        {children}
-      </Text>
+    <View style={{ flex: 1 }}>
+      {children}
     </View>
   );
 };

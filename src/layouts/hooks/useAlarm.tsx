@@ -341,6 +341,7 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
   const isAlarmRunning = alarm?.status === TimerStatus.Started
 
   const alarmClockProps: AlarmClockTabProps = {
+    getAlarm,
     isLoading: isFetching || loadingItem,
     isPlaying: alarm?.status === TimerStatus.Started || alarm?.status === TimerStatus.Paused,
     alarmProps: {

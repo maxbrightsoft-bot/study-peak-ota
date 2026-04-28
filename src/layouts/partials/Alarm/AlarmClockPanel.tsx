@@ -65,7 +65,7 @@ const AlarmClockPanel: FC<AlarmClockPanelProps> = ({
               </TouchableOpacity>
             </View>
             <View style={styles.flex}>
-              <CircularTimer value={value} edit isOnlyDisplay />
+              <CircularTimer value={value} edit isOnlyDisplay onChange={onChange} />
             </View>
             <View style={styles.flex}>
               <TouchableOpacity onPress={handleIncrease} style={styles.counterBtn} disabled={isLoading || value >= max}>

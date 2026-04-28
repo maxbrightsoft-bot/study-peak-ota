@@ -94,6 +94,7 @@ const useLayoutApp = () => {
       }
     } catch (err) {
       console.log({ err })
+      toast.error(getErrorMessage(t, err))
     }
     setLoadingWithoutOverlay(false)
   }

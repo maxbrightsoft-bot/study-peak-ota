@@ -1,4 +1,4 @@
-import React, { FC } from 'react'
+import React, { FC, useEffect } from 'react'
 import { View, StyleSheet, ScrollView } from 'react-native'
 
 import AlarmClockPanel, { AlarmClockPanelProps } from './AlarmClockPanel'
@@ -10,9 +10,14 @@ export interface AlarmClockTabProps {
   isPlaying: boolean
   panelProps: AlarmClockPanelProps
   alarmProps: AlarmClockProps
+  getAlarm: () => Promise<void>
 }
 
-const AlarmClockTab: FC<AlarmClockTabProps> = ({ isLoading, isPlaying, panelProps, alarmProps }) => {
+const AlarmClockTab: FC<AlarmClockTabProps> = ({ isLoading, isPlaying, panelProps, alarmProps, getAlarm }) => { 
+  useEffect(() => {
+    getAlarm()
+  }, [])
+
   return (
     <View style={styles.container}>
       <ScrollView>
