@@ -42,3 +42,24 @@ export type SubjectTimerSearchQuery = BaseSearchQuery<string> & {
     startDate?: number
     endDate?: number
 }
+
+export type UpdateSubjectTimerInfoRequest = {
+  rowVersion: string
+  startTime?: number
+  stoppedTime?: number
+  totalTime?: number
+}
+
+export type UpdateSubjectTimersInfoRequestContent = {
+  id: number
+  rowVersion: string
+  startTime?: number
+  stoppedTime?: number
+  totalTime?: number
+}
+
+export type UpdateSubjectTimersInfoRequest = {
+  startDate: number
+  endDate: number
+  timers: UpdateSubjectTimersInfoRequestContent[]
+}

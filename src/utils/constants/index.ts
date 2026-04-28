@@ -21,6 +21,8 @@ export const DEFAULT_PAGING_RESPONSE: PagingResponse = {
   totalItems: 0,
   totalPages: 0,
 }
+
+export const CONSENT_POLICY_VERSION = extra.CONSENT_POLICY_VERSION || ''
 export const TOAST_EXAM_STATUS = 'TOAST_EXAM_STATUS'
 export const STATUS_BAR_HEIGHT = Platform.OS === 'ios' ? 44 : StatusBar.currentHeight || 0;
 export const HEADER_HEIGHT = Platform.OS === 'ios' ? 100 : 90;
@@ -93,3 +95,5 @@ export const BRIEF_GRADE_OPTIONS = [
 
 export * from './language'
 export * from './exam'
+export * from './timer'
+export * from './error'

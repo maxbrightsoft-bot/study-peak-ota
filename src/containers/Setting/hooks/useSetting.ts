@@ -1,14 +1,15 @@
 import { updateInfoLogin } from "@/containers/StepLogin/apiClients/authService"
 import useAuthStore from "@/store/useAuthStore"
 import { getErrorMessage, toast } from "@/utils/helpers"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { UserInfo } from "../configs/types"
 import { GRADE_OPTIONS } from "@/containers/StepLogin/configs/constants"
 import { getDataStorage } from "@/utils/storage"
 import { APPLE_USER_KEY } from "@/utils/constants"
-import { removeAccountApi } from "../apiClients"
+import { removeAccountApi, agreeConsentApi } from "../apiClients"
 import { useLanguage } from "@/hooks/useLanguage"
+import { POLICY_VERSION } from "../configs/policyContent"
 
 const useSetting = () => {
   const [openNoticeDialog, setOpenNoticeDialog] = useState<boolean>(false)
@@ -19,6 +20,14 @@ const useSetting = () => {
   const [openConfirmRemoveAccount, setOpenConfirmRemoveAccount] = useState(false)
   const [openLanguageDialog, setOpenLanguageDialog] = useState(false)
   const { changeLanguage } = useLanguage()
+
+  const [openPrivacyPolicy, setOpenPrivacyPolicy] = useState(false)
+  const [openTermsOfService, setOpenTermsOfService] = useState(false)
+  const [privacyPolicyAgreed, setPrivacyPolicyAgreed] = useState(false)
+  const [termsOfServiceAgreed, setTermsOfServiceAgreed] = useState(false)
+
+  const handleTogglePrivacyPolicy = () => setOpenPrivacyPolicy(prev => !prev)
+  const handleToggleTermsOfService = () => setOpenTermsOfService(prev => !prev)
 
   const handleToggleLanguageDialog = () => setOpenLanguageDialog(prev => !prev)
 
@@ -51,6 +60,10 @@ const useSetting = () => {
   const subjectOptions = useMemo(() => {
     return [
       {
+        label: t("none"),
+        value: '',
+      },
+      {
         label: t("liberal_arts"),
         value: t("liberal_arts"),
       },
@@ -74,13 +87,13 @@ const useSetting = () => {
     try {
       setLoading(true)
       await removeAccountApi()
-      logout()
-      toast.success(t('removed_account'))
+      toast.success(t('removed_account_success'))
+      handleToggleConfirmRemoveAccount()
+      setTimeout(() => logout(), 1000)
     } catch (error: any) {
       toast.error(getErrorMessage(t, error))
     } finally {
       setLoading(false)
-      handleToggleConfirmRemoveAccount()
     }
   }
 
@@ -104,7 +117,13 @@ const useSetting = () => {
     handleToggleConfirmRemoveAccount,
     openLanguageDialog,
     handleToggleLanguageDialog,
-    changeLanguage
+    changeLanguage,
+    openPrivacyPolicy,
+    openTermsOfService,
+    privacyPolicyAgreed,
+    termsOfServiceAgreed,
+    handleTogglePrivacyPolicy,
+    handleToggleTermsOfService,
   }
 }
 

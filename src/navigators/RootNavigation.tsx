@@ -13,7 +13,6 @@ import { PaperProvider } from 'react-native-paper'
 import { MainRoutes } from './RouteName'
 import RNBootSplash from 'react-native-bootsplash'
 import { audioToastConfig } from '@/layouts/partials/Alarm/AudioToastContent'
-import { BASE_URL } from '@/utils/constants'
 import { GoogleSignin } from '@react-native-google-signin/google-signin'
 
 const Stack = createNativeStackNavigator()
@@ -37,14 +36,12 @@ const RootNavigation: React.FC = () => {
     }
   }, [user?.id])
 
-  // console.log({
-  //   env: BASE_URL,
-  //   language: language?.code,
-  //   user,
-  //   isLoading,
-  //   currentScreen: currentScreen(),
-  //   selectedAcademy
-  // })
+  console.log({
+    user,
+    isLoading,
+    currentScreen: currentScreen(),
+    selectedAcademy
+  })
 
   return (
     <SafeAreaProvider>

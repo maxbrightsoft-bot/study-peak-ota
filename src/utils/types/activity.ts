@@ -1,17 +1,17 @@
-import { ActivityAction } from "../enums";
+import { ActivityAction, ActivityResource, AppScreen } from "../enums";
 
 export type CreateActivityRequest = {
   action: ActivityAction
-  metaData: string
-  deviceInfo?: DeviceInfo
-}
-
-export type DeviceInfo = {
-  deviceId?: string
-  platform?: string
-  osVersion?: string
-  appVersion?: string
-  model?: string
+  metaData?: string
+  screen: AppScreen
+  resourceType?: ActivityResource
+  resourceId?: string
+  deviceId: string
+  platform: string
+  osVersion: string
+  appVersion: string
+  deviceModel: string
   ipAddress?: string
   timezone?: string
+  triggeredAt?: string
 }

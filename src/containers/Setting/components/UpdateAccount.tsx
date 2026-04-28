@@ -123,8 +123,9 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
             handleUpdateInfo(values)
           }}
         >
-          {({ values, setFieldValue, handleChange, handleSubmit }) => (
-            <>
+          {({ values, setFieldValue, handleChange, handleSubmit }) =>
+          {
+            return <>
               <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
                 <View>
                   <View style={styles.profile}>
@@ -147,10 +148,10 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
                       </TouchableOpacity>
                     </View>
 
-                    {Platform.OS === 'android' && <View style={styles.profileRow}>
-                      <GoogleIcon />
+                    <View style={styles.profileRow}>
+                      {Platform.OS === 'android' && <GoogleIcon />}
                       <Text style={styles.email}>{user?.email}</Text>
-                    </View>}
+                    </View>
                   </View>
 
                   <View style={styles.card}>
@@ -228,8 +229,8 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
               <TouchableOpacity style={styles.button} onPress={() => handleSubmit()}>
                 <Text style={styles.buttonText}>{t('save')}</Text>
               </TouchableOpacity>
-            </>
-          )}
+            </>}
+          }
         </Formik>
       </View>
     </SlideDrawerRoot>

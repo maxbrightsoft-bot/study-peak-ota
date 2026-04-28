@@ -1,21 +1,38 @@
-export enum ActivityAction
+export enum ActivityAction {
+    Start,
+    End,
+    Submit,
+    Answer,
+    StarAnswer,
+    Pause,
+    Resume,
+    Restart,
+    View,
+    Error,
+    Info,
+    Warning,
+}
+
+export enum AppScreen {
+    Home,
+    ExamList,
+    ExamResult,
+    Textbook,
+    DoExam,
+    DoTextbook,
+    ExamSession,
+    Statistic,
+    Profile,
+    Notes,
+    Settings,
+    Chat,
+    Login
+}
+
+export enum ActivityResource
     {
-        Start,
-        SubmitExam,
-        End,
-
-        Answer,
-        StarAnswer,
-        View,
-        Restart,
-
-        Pause,
-        Resume,
-        Stop,
-        Submit,
-        Get,
-        Create,
-        Update,
-        Delete,
-        Error
+        Exam,
+        Textbook,
+        Question,
+        User
     }

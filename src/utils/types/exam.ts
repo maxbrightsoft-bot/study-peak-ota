@@ -62,12 +62,15 @@ export type ExamSessionResponse = {
 };
 
 export type Category = {
-    id: number;
-    name: string;
-    numberOfChildren?: number;
-    numberOfQuestions?: number;
-    parentCategoryId?: number | null;
-    path?: string;
+    parentCategoryId?: number
+    name: string
+    path: string
+    numberOfQuestions: number
+    numberOfChildren: number
+    id: number
+    subjectId: number
+    subjectName: string
+    superId: number
 };
 
 export type Question = {
@@ -85,14 +88,15 @@ export type Question = {
     parentQuestionOrder: number
     overallCorrectRate: number
     skipRate: number
-    selectedAnswers?: any[]
-    correctAnswers?: any[]
+    selectedAnswers?: string[]
+    correctAnswers?: string[]
     correctTextualAnswers?: string[]
     textualAnswers?: string[]
     topDuration?: number | null
     questionOrder: number
     questionAnswerType?: QuestionAnswerType
     questionTypeCategories?: QuestionTypeCategoryResponse[]
+    unit?: string
 }
 
 export type ExamResult = {
@@ -305,4 +309,6 @@ export interface InfoExamSessionByCode {
   gradeYear: number
   classes: string[]
   teacherName: string
+  duration?: number
+  isLate?: boolean
 }
