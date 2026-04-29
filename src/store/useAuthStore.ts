@@ -44,6 +44,8 @@ interface StoreState {
   language: LanguageResponse | null;
   timers: SubjectTimerResponse[];
   alarm: AlarmResponse | null;
+  activeTimerId: number | undefined;
+  activeTimerSeconds: number | undefined;
   isOpenTimerDialog: boolean;
 
   pusher?: Pusher;
@@ -66,6 +68,8 @@ interface StoreActions {
 
   setTimers: (timers: SubjectTimerResponse[] | null) => void;
   setAlarm: (alarm: AlarmResponse | null) => void;
+  setActiveTimerId: (id: number | undefined) => void;
+  setActiveTimerSeconds: (seconds: number | undefined) => void;
   setIsOpenTimerDialog: (isOpen: boolean) => void;
 
   initializePusher: (
@@ -107,6 +111,8 @@ const useAuthStore = create<AuthStore>()(
       language:  null,
       timers: [],
       alarm: null,
+      activeTimerId: undefined,
+      activeTimerSeconds: undefined,
       isOpenTimerDialog: false,
       hasEnteredSelectAcademy: true,
       pusher: undefined,
@@ -190,6 +196,16 @@ const useAuthStore = create<AuthStore>()(
         });
       },
 
+      setActiveTimerId: (id) => {
+        set((state) => {
+          state.activeTimerId = id;
+        });
+      },
+      setActiveTimerSeconds: (seconds) => {
+        set((state) => {
+          state.activeTimerSeconds = seconds;
+        });
+      },
       setIsOpenTimerDialog: (isOpen) => {
         set((state) => {
           state.isOpenTimerDialog = isOpen;
@@ -337,6 +353,8 @@ const useAuthStore = create<AuthStore>()(
           timers: [],
           alarm: null,
 
+          activeTimerId: undefined,
+          activeTimerSeconds: undefined,
           pusher: undefined,
           channel: undefined,
         }));
