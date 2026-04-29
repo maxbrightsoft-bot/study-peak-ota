@@ -27,13 +27,12 @@ import { removeDataStorage, setDataStorage } from "@/utils/storage"
 import useServerTime from "@/hooks/useServerTime"
 
 const useTimers = (open: boolean, handleToggle: () => void) => {
-    const { user, timers, setTimers } = useAuthStore()
+    const { user, timers, setTimers, activeTimerId, activeTimerSeconds, setActiveTimerId, setActiveTimerSeconds } = useAuthStore()
     const saveIntervalRef = useRef<NodeJS.Timeout | null>(null)
     const timerIntervalRef = useRef<NodeJS.Timeout | null>(null)
     const fetchedRef = useRef<string | null | undefined>(undefined)
     const { t } = useTranslation()
-    const [seconds, setSeconds] = useState<number>()
-    const [activeTimerId, setActiveTimerId] = useState<number>()
+
     const [loadingItem, setLoadingItem] = useState(false)
     const [isFetching, setFetching] = useState(false)
     const [currentPage, setCurrentPage] = useState(1)
@@ -52,7 +51,7 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
                 (!onAcademy && fetchedRef.current !== null)) &&
             data.id !== activeTimerId
         ) return
-        setSeconds(time)
+        setActiveTimerSeconds(time)
     }
 
     const handleOpenDialogEditTimer = (data: SubjectTimerResponse) => {
@@ -188,7 +187,9 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
                 }
             } else {
                 let timerSelected = data
-                if(isTimerRunning || data.status === TimerStatus.Stopped || data.status === TimerStatus.NotStarted) {
+                console.log({ data });
+                
+                if(isTimerRunning ||  data.status == null || data.status === TimerStatus.Stopped || data.status === TimerStatus.NotStarted) {
                     const start = onAcademy ? startStudentSubjectTimerApi : startSuperStudentSubjectTimerApi
                     const res = await start(data.id)
                     timerSelected = res.data
@@ -408,7 +409,7 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
         loadingItem,
         subjects: timers,
         activeTimerId,
-        time: seconds,
+        time: activeTimerSeconds,
         onStartOrPause: handleStartOrPauseTimer,
         onEditTimer: handleOpenDialogEditTimer,
         onStopTimer: handleStopTimer,
@@ -417,7 +418,7 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
     }
 
     const timeUpdateDialogProps: TimeUpdateDialogProps = {
-        seconds,
+        seconds: activeTimerSeconds,
         data: openTimeUpdateDialog,
         activeTimerId,
         open: !!openTimeUpdateDialog,

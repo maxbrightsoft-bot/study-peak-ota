@@ -99,12 +99,22 @@ const useMessageList = () => {
 
 
   const handleUpdateMessage = async (conversationId: number, id: number, message: string, callback: any) => {
+    const oldMessage = messages.find((m) => m.id === id)
+    if (!oldMessage) return
+
+    setMessages((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, content: message } : m))
+    )
+
     try {
       setLoadingWithoutOverlay(true)
       await updateMessage(conversationId, id, message)
     } catch (error) {
       console.log({ error });
       toast.error(getErrorMessage(t, error))
+      setMessages((prev) =>
+        prev.map((m) => (m.id === id ? { ...m, content: oldMessage.content } : m))
+      )
     }
     finally {
       setLoadingWithoutOverlay(false)

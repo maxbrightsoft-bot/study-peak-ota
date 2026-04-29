@@ -17,7 +17,7 @@ import { AntDesign, Ionicons } from '@expo/vector-icons'
 const StudyTimerCard = () => {
   const { setIsOpenTimerDialog } = useAuthStore()
   const { t } = useTranslation()
-  const { studyTimerProps, getTimers } = useTimers(false, () => {})
+  const { studyTimerProps, getTimers } = useTimers(false, () => { })
   const { subjects, activeTimerId, time, onStartOrPause, loadingItem, isFetching } = studyTimerProps
 
   const [selectedId, setSelectedId] = useState<number | null>(null)
@@ -60,12 +60,12 @@ const StudyTimerCard = () => {
   }
 
   const selectedTimer = subjects.find(s => s.id === selectedId)
-  
+
   const getDisplayTimeInSeconds = () => {
     if (!selectedTimer) return 0
     const limitedTime = Math.floor(selectedTimer.limitedTime / 1000)
     const duration = Math.floor(selectedTimer.duration / 1000)
-    
+
     switch (selectedTimer.status) {
       case TimerStatus.Started:
         return selectedTimer.limitedTimeReached
@@ -73,6 +73,8 @@ const StudyTimerCard = () => {
           : activeTimerId !== selectedTimer.id
             ? duration
             : (time ?? duration)
+      case TimerStatus.Stopped:
+        return 0
       default:
         return duration
     }
@@ -132,8 +134,8 @@ const StudyTimerCard = () => {
 
           <View style={styles.timerRow}>
             <Text style={styles.timerText}>{formatTime(displayTime)}</Text>
-            <TouchableOpacity 
-              style={[styles.startBtn, loadingItem && { opacity: 0.7 }]} 
+            <TouchableOpacity
+              style={[styles.startBtn, loadingItem && { opacity: 0.7 }]}
               onPress={handleStartStop}
               disabled={loadingItem}
             >
