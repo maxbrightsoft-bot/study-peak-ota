@@ -43,6 +43,8 @@ export const getDisplayTime = (t: any, data?: TimerBase, activeTimerId?: number,
                     : formatTime(Math.max(seconds ?? 0, 0), t)
         case TimerStatus.NotStarted:
             return null
+        case TimerStatus.Stopped:
+            return formatTime(0, t)
         default:
             return formatTime(duration, t)
     }

@@ -16,7 +16,7 @@ type Props = {
 }
 
 const ChapterDetail = ({ t, isEnglish, isMock, chapter, isStudying, handleOpenChapterDialog }: Props) => {
-  const isCompleted = chapter.completedChapterQuestions === chapter.totalChapterQuestions
+  const isCompleted = chapter.completedChapterQuestions === chapter.totalChapterQuestions && chapter.completedChapterQuestions > 0
   return (
     <View style={styles.chapterCard}>
       <View style={{ flex: 1 }}>

@@ -38,7 +38,8 @@ const NoteItem = ({
   const { t } = useTranslation()
   const startTime = timeSpanToLocalMoment(schedule.startTime, schedule.date)
   const endTime = timeSpanToLocalMoment(schedule.endTime, schedule.date)
-  const enableCheckSchedule = moment(endTime).isSameOrBefore(moment()) && (schedule.type === ScheduleType.Personal || schedule.status === ScheduleStatus.Default)
+  const isFuture = moment().isBefore(startTime)
+  const enableCheckSchedule = !isFuture && (schedule.type === ScheduleType.Personal || schedule.status === ScheduleStatus.Default)
 
   const handleCheckSchedule = () => {
     if (!enableCheckSchedule) return
@@ -109,9 +110,11 @@ const NoteItem = ({
       <View style={styles.content}>
         <View style={{ gap: 12 }}>
           <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
-            <TouchableOpacity style={{ padding: 4 }} onPress={handleCheckSchedule} disabled={!enableCheckSchedule}>
-              {renderStatus(schedule)}
-            </TouchableOpacity>
+            {!isFuture && (
+              <TouchableOpacity style={{ padding: 4 }} onPress={handleCheckSchedule} disabled={!enableCheckSchedule}>
+                {renderStatus(schedule)}
+              </TouchableOpacity>
+            )}
             <Text style={[styles.title, { textDecorationLine: schedule.status === ScheduleStatus.Completed ? 'line-through' : 'none' }]}>{schedule.title}</Text>
           </View>
           <View style={{ flexDirection: 'row', gap: 4 }}>
@@ -121,9 +124,11 @@ const NoteItem = ({
           </View>
         </View>
       </View>
-      <TouchableOpacity onPress={() => handleOpenTooltip(idx)} style={styles.moreButton} disabled={!enableCheckSchedule}>
-        <Ionicons name="ellipsis-vertical-sharp" size={20} color={palette.grey[500]} />
-      </TouchableOpacity>
+      {!isFuture && (
+        <TouchableOpacity onPress={() => handleOpenTooltip(idx)} style={styles.moreButton}>
+          <Ionicons name="ellipsis-vertical-sharp" size={20} color={palette.grey[500]} />
+        </TouchableOpacity>
+      )}
       {renderTooltipMenu()}
     </View>
   )
