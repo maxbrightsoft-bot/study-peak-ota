@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react'
-import { KeyboardAvoidingView, Platform, ScrollView, TextInput, TouchableOpacity, View } from 'react-native'
+import { KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, View } from 'react-native'
 import { HelperText, Text } from 'react-native-paper'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import CommonDialog from '@/components/ModalBase/CommonDialog'
 import CustomSelect from '@/components/Select/CustomSelect'
+import TextField from '@/components/Input/TextField'
 import { useTranslation } from 'react-i18next'
 import { palette, TYPO } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -70,24 +71,13 @@ const CreateNewQuestionDialog: React.FC<Props> = ({
             <Text variant="labelLarge" style={{ color: palette.grey[700] }}>
               {t('question_content')}
             </Text>
-            <TextInput
+            <TextField
               multiline
-              style={{
-                borderColor: '#ccc',
-                borderWidth: 1,
-                borderRadius: 4,
-                padding: 8,
-                marginTop: 4,
-                minHeight: 64,
-                color: '#222222',
-                textAlignVertical: 'top'
-              }}
               numberOfLines={3}
               placeholder={t('the_problem_is_difficult')}
               value={formik.values.content}
               onChangeText={formik.handleChange('content')}
               onBlur={formik.handleBlur('content')}
-              // error={formik.touched.content && !!formik.errors.content}
             />
             <HelperText type={formik.errors.content ? 'error' : 'info'}>
               {formik.errors.content

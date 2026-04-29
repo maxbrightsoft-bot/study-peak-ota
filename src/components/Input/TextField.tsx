@@ -77,11 +77,27 @@ const TextField = ({
   lineHeight = 20,
   rightComponent
 }: TextFieldProps) => {
-  const [active, setIsActive] = useState(false)
+  const internalRef = React.useRef<any>(null)
+  const resolvedRef = inputRef || internalRef
+  const nativeText = React.useRef(value ?? '')
+
+  React.useEffect(() => {
+    if (value !== undefined && value !== nativeText.current) {
+      nativeText.current = value
+      resolvedRef.current?.setNativeProps({ text: value })
+    }
+  }, [value])
+
+  const _onChangeText = useCallback(
+    (text: string) => {
+      nativeText.current = text
+      onChangeText && onChangeText(text)
+    },
+    [onChangeText]
+  )
 
   const onFocusClick = useCallback(
     (e: any) => {
-      setIsActive(true)
       onFocus && onFocus(e)
     },
     [onFocus]
@@ -89,7 +105,6 @@ const TextField = ({
 
   const onBlurClick = useCallback(
     (e: any) => {
-      setIsActive(false)
       onBlur && onBlur(e)
     },
     [onBlur]
@@ -136,14 +151,14 @@ const TextField = ({
       {renderLabel()}
       <View style={[styles.inputContainer, containerInputStyle, { paddingVertical: 8 }]}>
         <TextInput
-          ref={inputRef}
+          ref={resolvedRef}
           style={[
             styles.textInput,
             { flex: 1, paddingHorizontal: 12, paddingVertical: 8 },
+            multiline && numberOfLines ? { textAlignVertical: 'top' } : null,
+            inputHeight ? { height: inputHeight } : null,
             textInputStyle,
             textInputRightStyle,
-            inputHeight ? { height: inputHeight } : null,
-            multiline && numberOfLines ? { textAlignVertical: 'top' } : null
           ]}
           onFocus={onFocusClick}
           onBlur={onBlurClick}
@@ -151,13 +166,13 @@ const TextField = ({
           numberOfLines={numberOfLines}
           multiline={multiline}
           pointerEvents={pointerEvents}
-          onChangeText={onChangeText}
+          onChangeText={_onChangeText}
           onEndEditing={onEndEditing}
           keyboardType={_keyboardType}
           placeholder={placeholder}
           secureTextEntry={secureTextEntry}
           placeholderTextColor={palette.grey[400]}
-          value={value}
+          defaultValue={value ?? ''}
           maxLength={maxLength}
           underlineColorAndroid="transparent"
         />
@@ -172,4 +187,4 @@ const TextField = ({
   )
 }
 
-export default React.memo(TextField)
+export default TextField

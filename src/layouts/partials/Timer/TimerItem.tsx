@@ -17,7 +17,7 @@ interface Props {
   seconds?: number;
   loading: boolean;
   activeTimerId?: number;
-  onStartOrPauseTimer: (data: SubjectTimerResponse, isRestart?: boolean) => void;
+  onStartOrPauseTimer: (data: SubjectTimerResponse, isRestart?: boolean, isTimerRunning?: boolean) => void;
   onStopTimer: (data: SubjectTimerResponse, stopTime?: number, callback?: () => void) => void;
   onEditTimer: (data: SubjectTimerResponse) => void;
 }
