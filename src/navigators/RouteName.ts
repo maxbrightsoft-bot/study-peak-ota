@@ -14,12 +14,14 @@ export const Routes = {
         Profile: "PROFILE",
         Question: "QUESTION",
         StudentExamHistory: "STUDENT_EXAM_HISTORY",
+        AcademyInvitation: "AUTH_ACADEMY_INVITATION",
     },
     UnAuth: {
         Splash: 'SPLASH',
         Login: 'LOGIN',
         LoginParentPhone: 'LOGIN_PARENT_PHONE',
         LoginQRCode: 'LOGIN_QR',
+        AcademyInvitation: 'ACADEMY_INVITATION',
     },
 
 }
@@ -34,6 +36,7 @@ export const hiddenTabBar = [
     Routes.Auth.SelectAcademy,
     Routes.Auth.DoExam,
     Routes.Auth.DoTextbook,
+    Routes.Auth.AcademyInvitation,
 ]
 
 export const noLayoutScreens = [
@@ -44,4 +47,5 @@ export const noLayoutScreens = [
     Routes.Auth.Question,
     Routes.Auth.StudyPerformance,
     Routes.Auth.StudentExamHistory,
+    Routes.Auth.AcademyInvitation,
 ];

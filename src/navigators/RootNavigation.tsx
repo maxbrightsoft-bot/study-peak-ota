@@ -10,7 +10,7 @@ import { useLanguage } from '@/hooks/useLanguage'
 import Loading from '@/components/Loading'
 import Toast from 'react-native-toast-message'
 import { PaperProvider } from 'react-native-paper'
-import { MainRoutes } from './RouteName'
+import { MainRoutes, Routes } from './RouteName'
 import RNBootSplash from 'react-native-bootsplash'
 import { audioToastConfig } from '@/layouts/partials/Alarm/AudioToastContent'
 import { GoogleSignin } from '@react-native-google-signin/google-signin'
@@ -44,10 +44,29 @@ const RootNavigation: React.FC = () => {
     selectedAcademy
   })
 
+  const linking: any = {
+    prefixes: ['com.max.britghtsoft.touchstudymobile://', 'exp+touch-study-mobile://', 'https://*', 'http://*'],
+    config: {
+      screens: {
+        [MainRoutes.UnAuthStack]: {
+          screens: {
+            [Routes.UnAuth.AcademyInvitation]: ':domain/invitations',
+          },
+        },
+        [MainRoutes.AuthStack]: {
+          screens: {
+            [Routes.Auth.AcademyInvitation]: ':domain/invitations',
+          },
+        },
+      },
+    },
+  };
+
   return (
     <SafeAreaProvider>
       <PaperProvider>
         <NavigationContainer
+          linking={linking}
           onReady={() => RNBootSplash.hide()}
           ref={(navigatorRef) => {
             if (navigatorRef) {
