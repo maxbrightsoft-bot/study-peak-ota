@@ -43,6 +43,7 @@ import _ from 'lodash'
 import { Role } from '@/utils/enums'
 import useAuthStore from '@/store/useAuthStore'
 import { getErrorMessage, toast } from '@/utils/helpers'
+import { useFocusEffect } from '@react-navigation/native'
 
 type Props = {
   studentId?: number
@@ -270,6 +271,12 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
     getSubjectList()
     handleGetOverallData()
   }, [load])
+
+  useFocusEffect(
+    useCallback(() => {
+      setLoad((prev) => !prev)
+    }, [])
+  )
 
   const studyTimeDistributionData: StudyTimeDistribution[] = useMemo(() => {
     if (!subjectData || !subjectData.pData) return []
