@@ -449,10 +449,11 @@ const ChartSlide = memo(({ title, isTimeChart, payload }: Props) => {
   const [loading, setLoading] = useState<boolean>(true)
   const hasRendered = useRef(false)
   const isReady = useRef(false)
+  const pendingPayload = useRef<any>(null)
 
   useEffect(() => {
-    if (!isReady.current && webRef.current) {
-      isReady.current = true
+    pendingPayload.current = payload
+    if (isReady.current && webRef.current) {
       webRef.current.postMessage(JSON.stringify(payload))
     }
   }, [payload])
@@ -492,12 +493,15 @@ const ChartSlide = memo(({ title, isTimeChart, payload }: Props) => {
             console.log('MESSAGE FROM WEB', msg)
 
             if (msg.type === 'READY') {
-              isReady.current = true
-              webRef.current?.postMessage(JSON.stringify(payload))
+              if (!isReady.current) {
+                isReady.current = true
+                const data = pendingPayload.current ?? payload
+                webRef.current?.postMessage(JSON.stringify(data))
+              }
             }
 
             if (msg.type === 'RENDERED') {
-              isReady.current = true
+              hasRendered.current = true
               setLoading(false)
             }
           }}

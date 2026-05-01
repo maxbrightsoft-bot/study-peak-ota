@@ -13,13 +13,14 @@ import useAuthStore from '@/store/useAuthStore'
 import moment from 'moment'
 import { ms } from 'react-native-size-matters'
 import { AntDesign, Ionicons } from '@expo/vector-icons'
+import useServerTime from '@/hooks/useServerTime'
 
 const StudyTimerCard = () => {
   const { setIsOpenTimerDialog } = useAuthStore()
   const { t } = useTranslation()
   const { studyTimerProps, getTimers } = useTimers(false, () => { })
   const { subjects, activeTimerId, time, onStartOrPause, loadingItem, isFetching } = studyTimerProps
-
+  const { getServerNow } = useServerTime()
   const [selectedId, setSelectedId] = useState<number | null>(null)
 
   useEffect(() => {
@@ -62,17 +63,23 @@ const StudyTimerCard = () => {
   const selectedTimer = subjects.find(s => s.id === selectedId)
 
   const getDisplayTimeInSeconds = () => {
+    const nowTime = getServerNow()
     if (!selectedTimer) return 0
     const limitedTime = Math.floor(selectedTimer.limitedTime / 1000)
     const duration = Math.floor(selectedTimer.duration / 1000)
 
     switch (selectedTimer.status) {
       case TimerStatus.Started:
-        return selectedTimer.limitedTimeReached
-          ? limitedTime
-          : activeTimerId !== selectedTimer.id
-            ? duration
-            : (time ?? duration)
+        if (selectedTimer.limitedTimeReached) return limitedTime
+        if (activeTimerId !== selectedTimer.id) return duration
+        if (time != null) return time
+        {
+          const ref = selectedTimer.lastResumeTime && selectedTimer.lastResumeTime !== '0001-01-01T00:00:00'
+            ? selectedTimer.lastResumeTime
+            : selectedTimer.startTime
+          const elapsedMs = ref ? nowTime - new Date(ref + (ref.endsWith('Z') ? '' : 'Z')).getTime() : 0
+          return duration + Math.floor(Math.max(0, elapsedMs) / 1000)
+        }
       case TimerStatus.Stopped:
         return 0
       default:

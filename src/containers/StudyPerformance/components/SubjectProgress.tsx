@@ -125,7 +125,7 @@ const SubjectItem = ({ subject, isPrint }: SubjectItemProps) => {
               }}
             >
               <Text style={styles.hoursValue} numberOfLines={1}>
-                {formatAccumulatedTime(subject.hours || 0, t)}
+                {formatAccumulatedTime((subject.hours || 0)  * 60 * 60 * 1000 || 0, t)}
               </Text>
             </Pressable>
           </View>
@@ -139,7 +139,7 @@ const SubjectItem = ({ subject, isPrint }: SubjectItemProps) => {
 
         <View style={styles.changeRow}>
           <Text style={[styles.changeText, { color: arrowColor }]}>
-            {formatAccumulatedTime(Math.abs(subject.change), t)}
+            {formatAccumulatedTime(Math.abs(subject.change * 60 * 60 * 1000), t)}
           </Text>
           {subject.change !== 0 && (
             <Text style={{ color: arrowColor, fontSize: 16, textAlign: 'center' }}>
@@ -159,7 +159,6 @@ const SubjectItem = ({ subject, isPrint }: SubjectItemProps) => {
 const SubjectProgress = ({ data, loading, isPrint }: Props) => {
   const { t } = useTranslation()
   
-
   if (loading) {
     return (
       <View style={styles.container}>

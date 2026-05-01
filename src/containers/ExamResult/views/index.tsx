@@ -236,6 +236,7 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
           : resultData && (
             <MyOverall
               resultData={resultData}
+              examCode={examCode || code || ''}
               subcategoriesOverallChartContainerProps={subcategoriesOverallChartContainer}
               overallChartContainerProps={overallChartContainer}
               categoriesOverallChartContainerProps={categoriesOverallChartContainer}

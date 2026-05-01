@@ -18,8 +18,8 @@ type Props = {
   exams?: Array<ExamSessionResponse>
   courses?: Course[]
   questions?: Array<ConversationQuestion>
-  handleChangeExam: (value: string) => void
-  handleChangeCourse: (value: string) => void
+  handleChangeExam: (value: string | undefined) => void
+  handleChangeCourse: (value: string | undefined) => void
   handleCreateConversation: any
   examSessionValue?: string
   courseValue?: string
@@ -90,23 +90,45 @@ export default function CreateQuestionConversationDialog({
                 <View style={styles.content}>
                   <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
                     <View>
-                      <Text style={styles.labelText}>{t('half_selection')}</Text>
+                      <View style={styles.labelRow}>
+                        <Text style={styles.labelText}>{t('half_selection')}</Text>
+                      </View>
                       <CustomSelect
-                        onValueChange={handleChangeCourse}
+                        onValueChange={(v) => {
+                          handleChangeCourse(v as any)
+                          if (!v) {
+                            handleChangeExam(undefined as any)
+                            setFieldValue('questionId', null)
+                          }
+                        }}
                         value={courseValue && Number(courseValue)}
                         options={courseOptions}
+                        placeholder={t('select_placeholder')}
                       />
                     </View>
                     <View>
-                      <Text style={styles.labelText}>{t('test_selection')}</Text>
-                      <CustomSelect onValueChange={handleChangeExam} value={examSessionValue} options={examOptions} />
+                      <View style={styles.labelRow}>
+                        <Text style={styles.labelText}>{t('test_selection')}</Text>
+                      </View>
+                      <CustomSelect
+                        onValueChange={(v) => {
+                          handleChangeExam(v as any)
+                          if (!v) setFieldValue('questionId', null)
+                        }}
+                        value={examSessionValue}
+                        options={examOptions}
+                        placeholder={t('select_placeholder')}
+                      />
                     </View>
                     <View>
-                      <Text style={styles.labelText}>{t('question_selection')}</Text>
+                      <View style={styles.labelRow}>
+                        <Text style={styles.labelText}>{t('question_selection')}</Text>
+                      </View>
                       <CustomSelect
                         onValueChange={(value) => setFieldValue('questionId', value)}
                         value={values.questionId}
                         options={questionOptions}
+                        placeholder={t('select_placeholder')}
                       />
                     </View>
                     <View>
@@ -172,12 +194,22 @@ const styles = ScaledSheet.create({
     borderBottomWidth: 1,
     borderColor: palette.grey[100]
   },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8
+  },
   labelText: {
     fontSize: '12@ms',
     fontWeight: 400,
     color: '#222222',
     lineHeight: 20,
-    marginBottom: 8
+  },
+  optionalText: {
+    fontSize: '11@ms',
+    color: palette.grey[400],
+    fontWeight: '400'
   },
   title: {
     fontSize: 16,

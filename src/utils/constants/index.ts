@@ -46,7 +46,9 @@ export const GOOGLE_RECAPTCHA_KEY =
   extra.GOOGLE_RECAPTCHA_KEY || ""
 
 export const GOOGLE_CLIENT_ID = extra.GOOGLE_CLIENT_ID || ""
-
+export const IOS_GOOGLE_CLIENT_ID = extra.IOS_GOOGLE_CLIENT_ID || ""
+export const WEB_GOOGLE_CLIENT_ID = extra.WEB_GOOGLE_CLIENT_ID || ""
+export const ANDROID_GOOGLE_CLIENT_ID = extra.ANDROID_GOOGLE_CLIENT_ID || ""
 export const GOOGLE_RECAPTCHA_ID =
   extra.GOOGLE_RECAPTCHA_ID || ""
 
