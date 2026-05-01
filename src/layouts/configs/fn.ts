@@ -123,3 +123,22 @@ export const convertInactiveTimer = async (item: SubjectTimerResponse, userSuper
 export const getDefaultAltName = (name: string) => {
     return name.toUpperCase().split(" ").slice(0, 2).map((c: string) => c.charAt(0))
 }
+
+const SUBJECT_ORDER: string[] = ['국어', '수학', '영어', '사회', '과학']
+
+const getSubjectSortIndex = (name: string): number => {
+    const normalized = name.trim()
+    for (let i = 0; i < SUBJECT_ORDER.length; i++) {
+        if (normalized.startsWith(SUBJECT_ORDER[i])) return i
+    }
+    return SUBJECT_ORDER.length
+}
+
+export const sortTimersBySubject = <T extends { name: string }>(items: T[]): T[] => {
+    return [...items].sort((a, b) => {
+        const ia = getSubjectSortIndex(a.name)
+        const ib = getSubjectSortIndex(b.name)
+        if (ia !== ib) return ia - ib
+        return a.name.localeCompare(b.name)
+    })
+}

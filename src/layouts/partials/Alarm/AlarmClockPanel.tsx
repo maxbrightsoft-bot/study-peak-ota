@@ -244,7 +244,8 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
     justifyContent: 'center',
     gap: 4,
-    borderRadius: 6
+    borderRadius: 6,
+    marginBottom: 8
   },
 
   subjectText: {

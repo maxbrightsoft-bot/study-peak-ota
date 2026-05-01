@@ -17,7 +17,7 @@ import { SubjectTimerResponse } from "../../utils/types"
 import { StudyTimerTabProps } from "../partials/Timer/StudyTimerTab"
 import { TimeUpdateDialogProps } from "../partials/Timer/TimeUpdateDialog"
 import { INTERVAL_SAVE_TIMER, TIMER_KEY } from "../configs/constants"
-import { convertInactiveTimer } from "../configs/fn"
+import { convertInactiveTimer, sortTimersBySubject } from "../configs/fn"
 import useAuthStore from "@/store/useAuthStore"
 import { TimerStatus } from "@/utils/enums"
 import { getCountTime, getErrorMessage, toast } from "@/utils/helpers"
@@ -76,7 +76,7 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
                 stopTime: moment(nowTime).utc().valueOf(),
                 rowVersion: data.rowVersion
             })
-            setTimers(timers.map(timer => timer.id === data.id ? res.data : timer))
+            setTimers(sortTimersBySubject(timers.map(timer => timer.id === data.id ? res.data : timer)))
             setActiveTimerId(isStarted && isActive ? undefined : data.id)
             handleChangeTime(res.data, 0)
             await removeDataStorage(timerKey)
@@ -105,7 +105,7 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
                 rowVersion: data.rowVersion
             })
             if (updateState) {
-                setTimers(timers.map(i => i.id === data.id ? res.data : i))
+                setTimers(sortTimersBySubject(timers.map(i => i.id === data.id ? res.data : i)))
             }
             onSuccess?.(res.data)
             await removeDataStorage(timerKey)
@@ -164,11 +164,11 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
                 if (!isActive && !isPaused) {
                     setActiveTimerId(data.id)
                     setTimers(
-                        mergedTimers.map(timer =>
+                        sortTimersBySubject(mergedTimers.map(timer =>
                             timer.id === data.id
                                 ? { ...timer, lastResumeTime: moment(nowTime).utc().toISOString() }
                                 : timer
-                        )
+                        ))
                     )
                 } else {
                     const pause = onAcademy ? pauseStudentSubjectApi : pauseSuperStudentSubjectApi
@@ -179,9 +179,9 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
                         rowVersion: data.rowVersion
                     })
                     setTimers(
-                        mergedTimers.map(timer =>
+                        sortTimersBySubject(mergedTimers.map(timer =>
                             timer.id === data.id ? res.data : timer
-                        )
+                        ))
                     )
                     setActiveTimerId(isStarted && isActive ? undefined : data.id)
                 }
@@ -205,9 +205,9 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
                 }
                 const exists = mergedTimers.some(t => t.id === data.id)
                 if (exists) {
-                    setTimers(mergedTimers.map(timer => timer.id === data.id ? timerSelected : timer))
+                    setTimers(sortTimersBySubject(mergedTimers.map(timer => timer.id === data.id ? timerSelected : timer)))
                 } else {
-                    setTimers([timerSelected, ...mergedTimers])
+                    setTimers(sortTimersBySubject([timerSelected, ...mergedTimers]))
                 }
                 setActiveTimerId(isStarted && isActive ? undefined : data.id)
                 handleChangeTime(timerSelected, 0)
@@ -255,7 +255,7 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
                 paused.find(p => p.id === i.id) ?? i
             )
 
-            setTimers(isLoadMore ? [...timers, ...finalItems] : finalItems)
+            setTimers(sortTimersBySubject(isLoadMore ? [...timers, ...finalItems] : finalItems))
             if (!isLoadMore) {
                 setActiveTimerId(activeId)
             }
@@ -294,11 +294,11 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
                 { savedTime: moment(nowTime).utc().valueOf() }
             )
             setTimers(
-                timers.map(timer =>
+                sortTimersBySubject(timers.map(timer =>
                     timer.id === selectedTimer.id
                         ? res.data.data
                         : timer
-                )
+                ))
             )
         } catch { }
     }, [

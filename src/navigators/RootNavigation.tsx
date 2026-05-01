@@ -14,12 +14,13 @@ import { MainRoutes } from './RouteName'
 import RNBootSplash from 'react-native-bootsplash'
 import { audioToastConfig } from '@/layouts/partials/Alarm/AudioToastContent'
 import { GoogleSignin } from '@react-native-google-signin/google-signin'
+import { IOS_GOOGLE_CLIENT_ID, WEB_GOOGLE_CLIENT_ID } from '@/utils/constants'
 
 const Stack = createNativeStackNavigator()
 
 GoogleSignin.configure({
-  iosClientId: process.env.EXPO_PUBLIC_IOS_GOOGLE_CLIENT_ID,
-  webClientId: process.env.EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID,
+  iosClientId: IOS_GOOGLE_CLIENT_ID,
+  webClientId: WEB_GOOGLE_CLIENT_ID,
   offlineAccess: false
 })
 

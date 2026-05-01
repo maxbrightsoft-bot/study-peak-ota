@@ -72,18 +72,18 @@ const useCreateQuestionConversationDialog = ({
     courseId
   }: {
     content: string,
-    questionId: number,
-    examSessionId: string,
-    studentExamSessionId: string,
-    courseId: number
+    questionId?: number,
+    examSessionId?: string,
+    studentExamSessionId?: string,
+    courseId?: number
   }) => {
     setLoadingWithoutOverlay(true)
     try {
       await createConversationApi({
-        courseId,
-        examSessionId,
-        studentExamSessionId,
-        questionId,
+        courseId: !!courseId ? Number(courseId) : undefined,
+        examSessionId: !!examSessionId ? Number(examSessionId) : undefined,
+        studentExamSessionId: !!studentExamSessionId ? Number(studentExamSessionId) : undefined,
+        questionId: !!questionId ? Number(questionId) : undefined,
         content
       });
       toggleDialog();

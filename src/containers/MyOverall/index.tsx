@@ -9,11 +9,11 @@ import { palette, TYPO } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
 import { formatNumber, utcToLocalTime } from '@/utils/helpers'
 import ChartSlide from './components/ChartSlide'
-import NextIcon from '@/assets/iconJSX/next'
 import { useWindowDimensions } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
 
 interface OverallTabProps {
+  examCode: string
   resultData: ExamResult | undefined
   overallChartContainerProps: OverallChartContainerProps
   categoriesOverallChartContainerProps: CategoriesOverallChartContainerProps
@@ -25,6 +25,7 @@ interface OverallTabProps {
 }
 
 const MyOverall: FC<OverallTabProps> = ({
+  examCode,
   resultData,
   categoriesOverallChartContainerProps,
   subcategoriesOverallChartContainerProps,
@@ -196,6 +197,10 @@ const MyOverall: FC<OverallTabProps> = ({
             </View>
 
             <View style={{ gap: 8 }}>
+              <View style={styles.columnItem}>
+                <Text style={styles.overviewLabel}>{t('exam_code')}</Text>
+                <Text style={styles.overviewValue}>{examCode}</Text>
+              </View>
               <View style={styles.columnItem}>
                 <Text style={styles.overviewLabel}>{t('exam_date')}</Text>
                 <Text style={styles.overviewValue}>{utcToLocalTime(resultData?.startTime, t('date_format'))}</Text>
