@@ -27,6 +27,12 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
+          <string>com.max.britghtsoft.touchstudymobile</string>
+        </array>
+      </dict>
+      <dict>
+        <key>CFBundleURLSchemes</key>
+        <array>
           <string>com.googleusercontent.apps.152811895076-4fh9ctjtl077laeh3itrtn3fejdtlcqc</string>
         </array>
       </dict>
