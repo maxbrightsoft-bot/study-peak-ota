@@ -4,6 +4,8 @@ import { timeSpanToLocalMoment } from '@/utils/helpers'
 import { ScheduleStatus } from '../configs/type'
 import RecentTextbook from '../components/RecentTextbook'
 import { ScrollView, View, Text, TouchableOpacity } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import { Routes } from '@/navigators/RouteName'
 import CalendarSchedule from '../components/CalendarSchedule'
 import { palette, TYPO } from '@/theme'
 import useProblemSolving from '../hooks/useProblemSolving'
@@ -14,8 +16,10 @@ import CreateNewScheduleDialog from '../components/Dialog/CreateNewScheduleDialo
 import { ScaledSheet } from 'react-native-size-matters'
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
 import StudyTimerCard from '../components/StudyTimerCard'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 const StudySpaceView = () => {
+  const navigation = useNavigation<any>()
   const {
     t,
     user,
@@ -71,6 +75,15 @@ const StudySpaceView = () => {
           >
             <Text style={styles.fabIcon}>＋</Text>
             <Text style={styles.fabText}>{t('add_new_schedule')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.fabButton, { backgroundColor: palette.secondary.main, alignSelf: 'flex-start' }]}
+            onPress={() => navigation.navigate(Routes.AcademyRequest, { domain: 'thinkmap' })}
+            activeOpacity={0.85}
+          >
+            <MaterialCommunityIcons name="test-tube" size={16} color="#fff" />
+            <Text style={styles.fabText}>Demo Thinkmap</Text>
           </TouchableOpacity>
           <View style={{ marginBottom: 24 }}>
             <Calendar

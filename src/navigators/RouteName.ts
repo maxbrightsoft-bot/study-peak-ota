@@ -23,7 +23,9 @@ export const Routes = {
         LoginQRCode: 'LOGIN_QR',
         AcademyInvitation: 'ACADEMY_INVITATION',
     },
-
+    AcademyRequest: "ACADEMY_REQUEST",
+    AcademyInvitation: "ACADEMY_INVITATION",
+    AcademyLogin: "ACADEMY_LOGIN",
 }
 
 export const MainRoutes = {
@@ -37,6 +39,7 @@ export const hiddenTabBar = [
     Routes.Auth.DoExam,
     Routes.Auth.DoTextbook,
     Routes.Auth.AcademyInvitation,
+    Routes.AcademyRequest,
 ]
 
 export const noLayoutScreens = [
@@ -48,4 +51,5 @@ export const noLayoutScreens = [
     Routes.Auth.StudyPerformance,
     Routes.Auth.StudentExamHistory,
     Routes.Auth.AcademyInvitation,
+    Routes.AcademyRequest,
 ];

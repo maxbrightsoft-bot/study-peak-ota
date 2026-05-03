@@ -35,6 +35,7 @@ interface EventHandler<T = any> {
 interface StoreState {
   isLoading: boolean;
   redirectUrl: string | null,
+  redirectParams: any | null,
   hasConsented: boolean,
   isLoadingWithoutOverlay: boolean;
   user: UserResponse | null;
@@ -61,7 +62,7 @@ interface StoreActions {
   setLoading: (isLoading: boolean) => void;
   setLoadingWithoutOverlay: (isLoading: boolean) => void;
   setLanguage: (lang: LanguageResponse) => void;
-  setRedirectUrl: (url: string) => void
+  setRedirectUrl: (url: string, params?: any) => void
   clearRedirectUrl: () => void
   setCrashlyticsUser: (user?: any) => void
   clearCrashlyticsUser: () => void
@@ -108,6 +109,7 @@ const useAuthStore = create<AuthStore>()(
       hasConsented: true,
       selectedAcademy: null,
       redirectUrl: null,
+      redirectParams: null,
       language:  null,
       timers: [],
       alarm: null,
@@ -180,8 +182,8 @@ const useAuthStore = create<AuthStore>()(
         });
       },
 
-      setRedirectUrl: (url) => set({ redirectUrl: url }),
-      clearRedirectUrl: () => set({ redirectUrl: null }),
+      setRedirectUrl: (url, params) => set({ redirectUrl: url, redirectParams: params }),
+      clearRedirectUrl: () => set({ redirectUrl: null, redirectParams: null }),
 
       setTimers: (timers) => {
         set((state) => {

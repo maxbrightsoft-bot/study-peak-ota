@@ -22,7 +22,7 @@ import { PusherChannel } from '@pusher/pusher-websocket-react-native'
 const useLayoutApp = () => {
   const { t } = useTranslation()
   const navigation = useNavigation();
-  const { user, academies, setUser, setLoadingWithoutOverlay, logout, setAcademies, setSelectAcademy, initializePusher, pusher, subscribeChannel, disconnectPusher, redirectUrl, clearRedirectUrl } = useAuthStore()
+  const { user, academies, setUser, setLoadingWithoutOverlay, logout, setAcademies, setSelectAcademy, initializePusher, pusher, subscribeChannel, disconnectPusher, redirectUrl, redirectParams, clearRedirectUrl } = useAuthStore()
   const { handleLoginAccessToken } = useLogin()
   const superId = user?.superId
   const [academyMenuVisible, setAcademyMenuVisible] = useState(false)
@@ -107,13 +107,13 @@ const useLayoutApp = () => {
   useEffect(() => {
     if (redirectUrl) {
       const timer = setTimeout(() => {
-        navigation.navigate(redirectUrl as never);
+        (navigation as any).navigate(redirectUrl, redirectParams);
         clearRedirectUrl();
       }, 200);
 
       return () => clearTimeout(timer);
     }
-  }, [redirectUrl]);
+  }, [redirectUrl, redirectParams]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", nextAppState => {

@@ -3,6 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack'
 import Login from '@/screens/Auth/Login'
 import LoginParentPhoneScreen from '@/screens/Auth/LoginParentPhone'
 import AcademyInvitationScreen from '@/screens/AcademyInvitation'
+import AcademyRequestScreen from '@/screens/AcademyRequest'
 import { Routes } from './RouteName'
 
 const Stack = createStackNavigator()
@@ -12,6 +13,7 @@ const UnAuthorized = () => {
       <Stack.Screen name={Routes.UnAuth.Login} component={Login} />
       <Stack.Screen name={Routes.UnAuth.LoginParentPhone} component={LoginParentPhoneScreen} />
       <Stack.Screen name={Routes.UnAuth.AcademyInvitation} component={AcademyInvitationScreen} />
+      <Stack.Screen name={Routes.AcademyRequest} component={AcademyRequestScreen} />
     </Stack.Navigator>
   )
 }

@@ -6,5 +6,11 @@
 	<array>
 		<string>Default</string>
 	</array>
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:student.studypeak.io</string>
+		<string>applinks:rsglhbbr-8080.asse.devtunnels.ms</string>
+		<string>applinks:student-studypeak.brightsoftsolution.com</string>
+	</array>
 </dict>
 </plist>

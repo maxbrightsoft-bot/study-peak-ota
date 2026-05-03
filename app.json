@@ -28,7 +28,12 @@
           }
         ]
       },
-      "appleTeamId": "9PC7DVBBJ8"
+      "appleTeamId": "9PC7DVBBJ8",
+      "associatedDomains": [
+        "applinks:student.studypeak.io",
+        "applinks:rsglhbbr-8080.asse.devtunnels.ms",
+        "applinks:student-studypeak.brightsoftsolution.com"
+      ]
     },
     "android": {
       "versionCode": 2,
@@ -40,6 +45,18 @@
           "data": [
             {
               "scheme": "com.max.britghtsoft.touchstudymobile"
+            },
+            {
+              "scheme": "https",
+              "host": "student.studypeak.io"
+            },
+            {
+              "scheme": "https",
+              "host": "rsglhbbr-8080.asse.devtunnels.ms"
+            },
+            {
+              "scheme": "https",
+              "host": "student-studypeak.brightsoftsolution.com"
             }
           ],
           "category": [
