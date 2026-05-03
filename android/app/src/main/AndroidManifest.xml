@@ -22,23 +22,31 @@
         <action android:name="android.intent.action.MAIN"/>
         <category android:name="android.intent.category.LAUNCHER"/>
       </intent-filter>
+      <!-- Intent filter for custom schemes (always works) -->
       <intent-filter>
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="com.max.britghtsoft.touchstudymobile"/>
         <data android:scheme="com.googleusercontent.apps.152811895076-4fh9ctjtl077laeh3itrtn3fejdtlcqc"/>
-        <data android:scheme="com.max.britghtsoft.touchstudymobile"/>
         <data android:scheme="exp+touch-study-mobile"/>
       </intent-filter>
-      <intent-filter android:autoVerify="true" data-generated="true">
+
+      <!-- Intent filter for Production App Links (Requires assetlinks.json on server) -->
+      <intent-filter android:autoVerify="true">
         <action android:name="android.intent.action.VIEW"/>
-        <data android:scheme="com.max.britghtsoft.touchstudymobile"/>
-        <data android:scheme="https" android:host="student.studypeak.io"/>
-        <data android:scheme="https" android:host="rsglhbbr-8080.asse.devtunnels.ms"/>
-        <data android:scheme="https" android:host="student-studypeak.brightsoftsolution.com"/>
-        <category android:name="android.intent.category.BROWSABLE"/>
         <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data android:scheme="https" android:host="student.studypeak.io"/>
+        <data android:scheme="https" android:host="student-studypeak.brightsoftsolution.com"/>
+      </intent-filter>
+
+      <!-- Intent filter for Dev/Test links (No auto-verify, manually enabled in settings) -->
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data android:scheme="https" android:host="rsglhbbr-8080.asse.devtunnels.ms"/>
       </intent-filter>
     </activity>
   </application>
