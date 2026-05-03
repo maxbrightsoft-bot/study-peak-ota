@@ -57,6 +57,8 @@ const useLogin = () => {
       ? await setDataStorage(LEARNING_SPACE, 'true')
       : await removeDataStorage(LEARNING_SPACE);
 
+    console.log('redirectUrl', redirectUrl);
+
     setRedirectUrl(redirectUrl);
     setUser(data);
   };
@@ -72,14 +74,24 @@ const useLogin = () => {
       const { isFirstLogin, token, user, loginMethod } = await apiLogin();
       const isAcademy = !!user?.academyDomain || !!user?.isLearningSpace;
 
+      console.log('isFirstLogin', isFirstLogin);
+      console.log('token', token);
+      console.log('user', user);
+      console.log('loginMethod', loginMethod);
+      console.log('isAcademy', isAcademy);
+
+
       let redirectUrl: string;
       if (isFirstLogin && isAcademy) {
         redirectUrl = Platform.OS === 'ios' ? Routes.Auth.Home : Routes.Auth.Onboarding;
       } else if (redirectUrlProp) {
         redirectUrl = redirectUrlProp;
       } else if (isAcademy) {
+        console.log('isAcademy', isAcademy);
+
         redirectUrl = Routes.Auth.Home;
       } else {
+        console.log('else', isAcademy);
         setHasEnteredSelectAcademy(false);
         redirectUrl = Routes.Auth.SelectAcademy;
       }
@@ -101,7 +113,7 @@ const useLogin = () => {
 
   const handleAuthGoogle = async (data: LoginRequest) => {
     const academyDomain = await getAcademyDomain();
-    let loginResponse = await apiLoginGoogle(data, true);
+    let loginResponse = await apiLoginGoogle(data, !academyDomain, academyDomain);
 
     if (loginResponse.status === 204 && academyDomain) {
       await removeDataStorage(ACADEMY_DOMAIN);
@@ -113,7 +125,8 @@ const useLogin = () => {
   };
 
   const handleAuthApple = async (data: LoginRequest) => {
-    let loginResponse = await apiLoginApple(data, true);
+    const academyDomain = await getAcademyDomain();
+    let loginResponse = await apiLoginApple(data, !academyDomain, academyDomain);
 
     return loginResponse.data;
   };

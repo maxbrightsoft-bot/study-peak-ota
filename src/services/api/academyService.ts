@@ -24,3 +24,33 @@ export const acceptEmailInvitations = (domain: string, token: string) =>
       }
     }
   );
+const ACADEMY_URL = `${BASE_URL}/api/academy`;
+
+export const createAcademyRequestApi = (
+  domain: string,
+  request: { role: Role; courseId?: number },
+  isSuper: boolean = false
+) =>
+  api.post(
+    `${isSuper ? SUPER_ADMIN_ACADEMY_URL : ACADEMY_URL}/${domain}/requests`,
+    request
+  );
+
+export const getAcademyRequestApi = (
+  domain: string,
+  role: Role,
+  courseId?: number,
+  isSuper: boolean = false
+) =>
+  api.get(
+    `${isSuper ? SUPER_ADMIN_ACADEMY_URL : ACADEMY_URL}/${domain}/requests/${role}`,
+    {
+      params: {
+        courseId
+      }
+    }
+  );
+
+export const switchAcademy = (academyId: number, role: Role, isLearningSpace: boolean = false) => api.post(`${ACADEMY_URL}/${academyId}/switch-academy/${role}`, undefined, { params: { isLearningSpace } });
+
+export const switchSuperAdminAcademy = (academyId: number, role: Role) => api.post(`${SUPER_ADMIN_ACADEMY_URL}/${academyId}/switch-academy/${role}`);

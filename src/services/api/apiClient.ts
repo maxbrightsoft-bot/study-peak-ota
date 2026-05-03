@@ -41,7 +41,6 @@ export const apiUpload: AxiosInstance = axios.create({
         if (token && !config.headers.noAuth) {
           config.headers.Authorization = `Bearer ${token}`
         }
-
         const academyDomainStorage = await getDataStorage(ACADEMY_DOMAIN)
         const academyDomain = academyDomainStorage
         const isLearningSpace = !!(await getDataStorage(LEARNING_SPACE)) === true

@@ -31,6 +31,16 @@ if (!Array.prototype.findLastIndex) {
     return -1;
   };
 }
+if (!Array.prototype.findLast) {
+  Array.prototype.findLast = function (callback, thisArg) {
+    for (let i = this.length - 1; i >= 0; i--) {
+      if (callback.call(thisArg, this[i], i, this)) {
+        return this[i];
+      }
+    }
+    return undefined;
+  };
+}
 
 export default function App() {
   LogBox.ignoreAllLogs();
@@ -76,4 +86,4 @@ async function checkOtaUpdate() {
   } catch (e) {
     console.log("[OTA] Error:", e);
   }
-}
+} 

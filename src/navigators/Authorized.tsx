@@ -20,6 +20,7 @@ import QuestionScreen from '@/screens/Question'
 import { Platform } from 'react-native'
 import StudentExamHistoryScreen from '@/screens/StudentExamHistory'
 import AcademyInvitationScreen from '@/screens/AcademyInvitation'
+import AcademyRequestScreen from '@/screens/AcademyRequest'
 import ConsentScreen from '@/containers/Setting/components/ConsentScreen'
 import { getConsentStatusApi, agreeConsentApi } from '@/containers/Setting/apiClients'
 import { toast, getErrorMessage } from '@/utils/helpers'
@@ -99,6 +100,7 @@ const Authorized = ({ route }: { route: any }) => {
         <Tab.Screen name={Routes.Auth.Question} component={QuestionScreen} />
         <Tab.Screen name={Routes.Auth.StudentExamHistory} component={StudentExamHistoryScreen} />
         <Tab.Screen name={Routes.Auth.AcademyInvitation} component={AcademyInvitationScreen} />
+        <Tab.Screen name={Routes.AcademyRequest} component={AcademyRequestScreen} />
       </Tab.Navigator>
     </LayoutApp>
   )

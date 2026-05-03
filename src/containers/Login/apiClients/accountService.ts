@@ -16,20 +16,22 @@ export const getInfo = (role: string, isLearningSpace: boolean) =>
     },
   });
 
-export const apiLoginGoogle = (body: LoginRequest, isLearningSpace: boolean) =>
+export const apiLoginGoogle = (body: LoginRequest, isLearningSpace: boolean, domain?: string | null) =>
   api.post(`${AUTH_URL}/login`,
     body, {
     headers: {
-      [NoAcademyHeaders]: isLearningSpace
+      [AcademyHeaders]: domain,
+      [NoAcademyHeaders]: isLearningSpace,
     }
   }
   );
 
-export const apiLoginApple = (body: LoginRequest, isLearningSpace: boolean) =>
+export const apiLoginApple = (body: LoginRequest, isLearningSpace: boolean, domain?: string | null) =>
   api.post(`${AUTH_URL}/login-apple`,
     body, {
     headers: {
-      [NoAcademyHeaders]: isLearningSpace
+      [AcademyHeaders]: domain,
+      [NoAcademyHeaders]: isLearningSpace,
     }
   }
   );
@@ -54,11 +56,12 @@ export const apiLoginWithAccessToken = (
     },
   });
 
-export const apiLoginEmail = (body: LoginEmailRequest) =>
+export const apiLoginEmail = (body: LoginEmailRequest, isLearningSpace: boolean, domain?: string | null) =>
   api.post(`${AUTH_URL}/login/demo`, body, {
     headers: {
-      [NoAcademyHeaders]: true,
-    },
+      [AcademyHeaders]: domain,
+      [NoAcademyHeaders]: isLearningSpace,
+    }
   });
 
 

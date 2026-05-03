@@ -7,7 +7,7 @@ import { apiLoginEmail } from '../apiClients/accountService';
 import useLogin from './useLogin';
 import { useEffect, useState } from 'react';
 import { getErrorMessage, toast } from '@/utils/helpers';
-import { KEEP_LOGIN } from '@/utils/constants';
+import { KEEP_LOGIN, ACADEMY_DOMAIN } from '@/utils/constants';
 import { getDataStorage } from '@/utils/storage';
 
 const useLoginEmail = () => {
@@ -40,7 +40,8 @@ const useLoginEmail = () => {
         isKeepMeLoggedIn: keepLogin === 'true'
       };
       await handleLogin(async () => {
-        const response = await apiLoginEmail(loginData);
+        const academyDomain = await getDataStorage(ACADEMY_DOMAIN);
+        const response = await apiLoginEmail(loginData, !academyDomain, academyDomain);
         return response.data;
       }, false);
     },
