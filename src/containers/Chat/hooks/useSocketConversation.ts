@@ -45,7 +45,6 @@ const useSocketConversation = ({
       conversationChannel = `presence-conversation-channel-${selectedConversation.id}-${normalizedDomain}`
     }
 
-
     roleChannel = `conversations-channel-Student-${normalizedDomain}`
 
     userChannel = `conversations-channel-${user.id}-${normalizedDomain}`

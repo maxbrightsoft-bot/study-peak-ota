@@ -12,7 +12,7 @@ import { ACADEMY_DOMAIN, ACCESS_TOKEN } from '@/utils/constants'
 import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import useTimers from './useTimer'
 import useAlarm from './useAlarm'
-import { getSocket, initSocket } from '@/services'
+
 import { AppState } from 'react-native'
 import { currentScreen, navigate } from '@/navigators/NavigationHelpers'
 import { Routes } from '@/navigators/RouteName'
@@ -296,38 +296,7 @@ const useLayoutApp = () => {
     }, [user?.academyDomain])
   )
 
-  useEffect(() => {
-    const startSocket = async () => {
-      const socket = await initSocket()
 
-      const token = await getAccessToken()
-      const academyDomain = await getAcademyDomain()
-      const isLearningSpace = await getLearningSpace()
-
-      socket.auth = {
-        token,
-        academyDomain,
-        super: `${!isLearningSpace && !academyDomain}`
-      }
-
-      socket.connect()
-
-      socket.on('connect', () => {
-        console.log('SOCKET CONNECTED', socket.id)
-      })
-
-      socket.on('connect_error', err => {
-        console.log('CONNECT ERROR', err.message)
-      })
-    }
-
-    startSocket()
-
-    return () => {
-      const socket = getSocket()
-      socket?.disconnect()
-    }
-  }, [])
 
   return {
     headerProps: {

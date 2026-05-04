@@ -9,7 +9,7 @@ import {
     getAcademyRequestApi,
     switchAcademy
 } from "@/services/api/academyService"
-import { createSocket } from "@/services/socket"
+import { getSocket } from "@/services"
 import { Role } from "@/utils/enums"
 import { getErrorMessage, toast } from "@/utils/helpers"
 import { ErrorMessageCodes } from "@/utils/constants/error"
@@ -46,7 +46,7 @@ const useAcademyRequest = () => {
     const role = Role.Student
     const isSuper = !!user && !user.academyDomain && !user.isLearningSpace
     const channel = useRef<string>("")
-    const socket = useRef<Socket | null>(null)
+    const socket = getSocket()
     const isFetched = useRef<boolean>(false)
 
     const getAcademyRequestError = (error: any) => {
@@ -75,6 +75,7 @@ const useAcademyRequest = () => {
                 courseId,
                 isSuper
             )
+            
             setAcademyRequest(res.data ?? null)
             if (!isFetched.current) isFetched.current = true
         } catch (err: any) {
@@ -82,7 +83,9 @@ const useAcademyRequest = () => {
             if (err?.response?.status === 404) setNotFound(true)
             getAcademyRequestError(err)
         }
-        setLoading(false)
+        finally {
+            setLoading(false)
+        }
     }
 
     const sendAcademyRequest = async () => {
@@ -102,7 +105,9 @@ const useAcademyRequest = () => {
         } catch (err: any) {
             toast.error(getErrorMessage(t, err))
         }
-        setRequestSending(false)
+        finally {
+            setRequestSending(false)
+        }
     }
 
     const handleSwitchAcademy = async (isLearningSpace: boolean) => {
@@ -156,7 +161,6 @@ const useAcademyRequest = () => {
             navigation.navigate(MainRoutes.UnAuthStack, {
                 screen: Routes.UnAuth.Login,
                 params: { 
-                    domain: academyDomain,
                     redirectUrl: Routes.AcademyRequest,
                     params: {
                         domain: academyDomain,
@@ -170,39 +174,34 @@ const useAcademyRequest = () => {
     }, [user?.id, isSuper, role, academyDomain, courseId])
 
     useEffect(() => {
-        if (!!academyDomain && !!user?.superId) {
-            if (socket.current && socket.current.connected) socket.current.disconnect();
-            socket.current = createSocket()
-        }
-        if (socket.current) {
-            channel.current = `academy-${academyDomain.trim().toUpperCase()}-channel-${user?.superId}`
 
-            socket.current.emit("subscribe", channel.current)
-            socket.current.on(
+        if (!!academyDomain && !!user?.superId && !!socket) {
+            channel.current = `academy-${academyDomain.trim().toUpperCase()}-channel-${user?.superId}`
+            
+            socket.emit("subscribe", channel.current)
+            socket.on(
                 AcademyRequestEvent.NEW_ACADEMY_REQUEST_EVENT,
                 handleUpdateRequest
             )
-            socket.current.on(
+            socket.on(
                 AcademyRequestEvent.RESOLVED_ACADEMY_REQUEST_EVENT,
                 handleUpdateRequest
             )
-            socket.current.connect()
         }
         return () => {
-            if (socket.current) {
-                socket.current.emit("unsubscribe", channel.current)
-                socket.current.off(
+            if (socket) {
+                socket.emit("unsubscribe", channel.current)
+                socket.off(
                     AcademyRequestEvent.NEW_ACADEMY_REQUEST_EVENT,
                     handleUpdateRequest
                 )
-                socket.current.off(
+                socket.off(
                     AcademyRequestEvent.RESOLVED_ACADEMY_REQUEST_EVENT,
                     handleUpdateRequest
                 )
-                socket.current.disconnect()
             }
         }
-    }, [user?.superId, academyDomain])
+    }, [user?.superId, academyDomain, socket?.id, !!socket])
 
     return {
         t,
