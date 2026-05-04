@@ -7,7 +7,7 @@ import { ACADEMY_DOMAIN, LEARNING_SPACE } from '@/utils/constants'
 import { getDataStorage } from '@/utils/storage'
 import { Platform, Text } from 'react-native'
 import { palette } from '@/theme'
-import { Language } from '../enums'
+import { Language, Role } from '../enums'
 
 export const toast = {
   success: (message: string) =>
@@ -206,6 +206,16 @@ export const formatTimeSecond = (duration: number, t: any) => {
     mins: Math.floor(duration / 60),
     seconds: duration % 60
   })}`
+}
+
+export const formatRole = (roles: string[], t: any) => {
+  if(roles.includes(Role.Admin)) return t("admin");
+  if(roles.includes(Role.AcademyAdminTeacher)) return t("academy_admin_teacher");
+  if(roles.includes(Role.AcademyAdmin)) return t("academy_admin");
+  if(roles.includes(Role.Teacher)) return t("teacher");
+  if(roles.includes(Role.Student)) return t("student");
+
+  return ""
 }
 
 export const formatDuration = (t: any, duration: number) => {

@@ -7,6 +7,7 @@ import Authorized from './Authorized'
 import UnAuthorized from './UnAuthorized'
 import useAuthStore from '@/store/useAuthStore'
 import { useLanguage } from '@/hooks/useLanguage'
+import { useSocketInit } from '@/hooks/useSocketInit'
 import Loading from '@/components/Loading'
 import Toast from 'react-native-toast-message'
 import { PaperProvider } from 'react-native-paper'
@@ -79,6 +80,7 @@ const linking: any = {
 const RootNavigation: React.FC = () => {
   const { language, user, isLoading, setCrashlyticsUser, selectedAcademy, isLoadingWithoutOverlay, setLoading } = useAuthStore()
   useLanguage()
+  useSocketInit()
 
   useEffect(() => {
     setLoading(false)

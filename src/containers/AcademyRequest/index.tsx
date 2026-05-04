@@ -5,6 +5,8 @@ import { useTranslation } from "react-i18next";
 import { palette, TYPO } from "@/theme";
 import useAcademyRequest, { AcademyEnrollmentRequestStatus } from "./hooks/useAcademyRequest";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import { formatRole } from "@/utils/helpers";
+import { Role } from "@/utils/enums";
 
 const AcademyRequest = () => {
   const {
@@ -18,7 +20,6 @@ const AcademyRequest = () => {
     sendAcademyRequest,
     handleSwitchAcademy,
     goHome,
-    academyDomain,
   } = useAcademyRequest();
 
   if (isNotFound) {
@@ -100,7 +101,7 @@ const AcademyRequest = () => {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {!isFetched || isLoading ? (
+        {isLoading ? (
           <View style={styles.centerContainer}>
             <ActivityIndicator size="large" color={palette.main[600]} />
           </View>
@@ -114,11 +115,14 @@ const AcademyRequest = () => {
 
               <View style={styles.infoContainer}>
                 {!!academyRequest && renderInfoRow(t("academy"), academyRequest.academyName)}
+                {!!academyRequest && renderInfoRow(t("role"), formatRole([Role.Student], t))}
                 {!!academyRequest?.course?.name && renderInfoRow(t("class"), academyRequest.course.name)}
 
                 {!!otherRole && (
                   <View style={styles.otherRoleContainer}>
                     {renderInfoRow(t("academy"), otherRole.academyName)}
+                    {!!otherRole && renderInfoRow(t("role"), formatRole([Role.Student], t))}
+                    {!!otherRole?.course?.name && renderInfoRow(t("class"), otherRole.course.name)}
                     <View style={styles.currentRoleRow}>
                       <Text style={[styles.infoLabel, { color: palette.error.dark }]}>{t("current_role")}:</Text>
                       <Text style={styles.infoValue}>{otherRole.roleName}</Text>
@@ -209,7 +213,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   statusChip: {
-    height: 28,
+    height: 40,
+    justifyContent: "center",
     borderRadius: 8,
   },
   infoContainer: {
