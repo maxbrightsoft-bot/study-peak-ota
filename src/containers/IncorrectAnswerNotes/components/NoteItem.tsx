@@ -83,9 +83,9 @@ const NoteItem: FC<NoteItemProps> = ({
     // </TouchableOpacity>
     <Pressable style={({ pressed }) => [styles.container, pressed && styles.pressed]} onPress={handleItemClick}>
       <View style={styles.headerRow}>
-        <Text style={styles.headerText}>{examResultData?.title}</Text>
+        <Text style={styles.headerText}>{examResultData?.title || data?.title}</Text>
         <View style={styles.separator} />
-        <Text style={styles.headerText}>{examResultData?.subjectName}</Text>
+        <Text style={styles.headerText}>{examResultData?.subjectName || data?.subjectName}</Text>
       </View>
       <View style={styles.metaRow}>
         <View style={styles.metaLeft}>
@@ -94,16 +94,13 @@ const NoteItem: FC<NoteItemProps> = ({
               number: (data?.questionOrder || 0) + 1
             })}
           </Text>
-          {data.categoryName && (
-            <>
-              <View style={styles.separator} />
-              <Text style={styles.metaText}>{data.categoryName}</Text>
-            </>
-          )}
+          <Text style={styles.metaText}>{data.categoryName}</Text>
+          <View style={styles.separator} />
+          <Text style={styles.metaText}>p.{question?.score ?? data?.score}</Text>
         </View>
         <FontAwesome6 name="angle-right" size={20} color={palette.grey[300]} />
       </View>
-      <MathRender content={data.content} textColor={palette.grey[700]} maxLines={1}/>
+      <MathRender content={data.content} textColor={palette.grey[700]} maxLines={1} />
     </Pressable>
   )
 }
