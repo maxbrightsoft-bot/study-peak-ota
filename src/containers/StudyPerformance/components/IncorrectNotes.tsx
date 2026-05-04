@@ -1,47 +1,13 @@
 import SearchInput from '@/components/Input/SearchInput'
 import { palette } from '@/theme'
-import React from 'react'
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, SafeAreaView, StatusBar, Pressable } from 'react-native'
-import CustomSelect from '@/components/Select/CustomSelect'
+import React, { useMemo } from 'react'
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, SafeAreaView, StatusBar, ScrollView } from 'react-native'
 import useNotes from '../hooks/useNotes'
-import { NoteResponse } from '@/utils/types'
+import { GroupedNoteResponse } from '@/utils/types'
 import { FontAwesome6 } from '@expo/vector-icons'
-import MathRender from '@/components/MathRender'
-import SortIcon from '@/assets/iconJSX/sort'
 import NoteDialog from './NoteDialog'
-import { OrderBy } from '@/utils/enums'
-
-const NoteCard = ({
-  t,
-  item,
-  onOpenDialog
-}: {
-  t: any
-  item: NoteResponse
-  onOpenDialog: (item?: NoteResponse | undefined) => void
-}) => {
-  return (
-    <Pressable style={({ pressed }) => [styles.container, pressed && styles.pressed]} onPress={() => onOpenDialog(item)}>
-      <View style={styles.metaRow}>
-        <View style={styles.metaLeft}>
-          <Text style={styles.number}>
-            {t('number_question', {
-              number: (item?.questionOrder || 0) + 1
-            })}
-          </Text>
-          <Text style={styles.metaText}>{item.categoryName}</Text>
-        </View>
-        <FontAwesome6 name="angle-right" size={20} color={palette.grey[300]} />
-      </View>
-      <MathRender fontSize={14} content={item.content} textColor={palette.grey[700]} />
-      <View style={styles.headerRow}>
-        {item.subjectName && <Text style={styles.headerText}>{item?.subjectName}</Text>}
-        {item.title && <View style={styles.separator} />}
-        {item.title && <Text style={styles.headerText}>{item?.title}</Text>}
-      </View>
-    </Pressable>
-  )
-}
+import GroupedNoteCard from './GroupedNoteCard'
+import FilterBottomSheet from './FilterBottomSheet'
 
 export default function IncorrectNotes({ contentRef }: { contentRef?: React.RefObject<FlatList> }) {
   const {
@@ -50,17 +16,13 @@ export default function IncorrectNotes({ contentRef }: { contentRef?: React.RefO
     open,
     search,
     onChangeSearch,
-    handleSort,
     selectedNote,
     openConfirm,
     subjectValue,
     imageUrl,
-    filter,
-    categoryValue,
     handleChangeSubject,
-    handleChangeCategory,
-    categoryNoteOptions,
     subjectNoteOptions,
+    categoryNoteOptions,
     toggleConfirmDialog,
     handleCloseDialog,
     handleOpenDialog,
@@ -68,8 +30,17 @@ export default function IncorrectNotes({ contentRef }: { contentRef?: React.RefO
     handleSaveNote,
     handleUploadImage,
     isLoadingNotes,
-    handleLoadMore
+    handleLoadMore,
+    isFilterVisible,
+    openFilter,
+    closeFilter,
+    handleApplyFilter,
+    filter
   } = useNotes()
+
+  const allSubjects = useMemo(() => {
+    return [{ label: t('filter_all'), value: 'all' }, ...subjectNoteOptions]
+  }, [subjectNoteOptions])
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -77,44 +48,58 @@ export default function IncorrectNotes({ contentRef }: { contentRef?: React.RefO
 
       <FlatList
         ref={contentRef}
-        data={notes}
-        keyExtractor={(item) => item.id.toString()}
+        data={notes as unknown as GroupedNoteResponse[]}
+        keyExtractor={(item, index) => `${item.subjectName}-${item.categoryName}-${index}`}
         onEndReached={handleLoadMore}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
           <>
-            <SearchInput
-              style={styles.search}
-              value={search}
-              onChangeText={onChangeSearch}
-              placeholder="오답노트 검색"
-            />
-
-            <View style={styles.filterRow}>
-              <CustomSelect
-                placeholder="과목"
-                style={[styles.filter, subjectValue]}
-                options={subjectNoteOptions}
-                value={subjectValue}
-                onValueChange={handleChangeSubject}
-              />
-              <CustomSelect
-                placeholder="세부 카테고리"
-                style={styles.filter}
-                options={categoryNoteOptions}
-                value={categoryValue}
-                onValueChange={handleChangeCategory}
-              />
+            <View style={styles.topHeaderRow}>
+              <View style={styles.searchFlex}>
+                <SearchInput
+                  value={search}
+                  onChangeText={onChangeSearch}
+                  placeholder={t('search_incorrect_notes')}
+                />
+              </View>
+              <TouchableOpacity style={styles.filterBtn} onPress={openFilter}>
+                <FontAwesome6 name="sliders" size={16} color="#4B5563" />
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity style={styles.sortBtn} activeOpacity={0.7} onPress={() => handleSort()}>
-              <Text style={styles.sortText}>{filter.sortColumnDirection === OrderBy.DESC ? t('recent') : t('oldest')}</Text>
-              <SortIcon />
-            </TouchableOpacity>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.chipScroll}
+              contentContainerStyle={styles.chipScrollContent}
+            >
+              {allSubjects.map((sub, idx) => {
+                const isActive = (subjectValue || 'all') === sub.value
+                return (
+                  <TouchableOpacity
+                    key={idx}
+                    style={[styles.subjectChip, isActive && styles.subjectChipActive]}
+                    onPress={() => handleChangeSubject(sub.value === 'all' ? null : String(sub.value))}
+                  >
+                    {sub.label !== '전체' && isActive && (
+                      <View style={[styles.chipDot, { backgroundColor: '#FFF' }]} />
+                    )}
+                    {sub.label !== '전체' && !isActive && (
+                      <View style={[styles.chipDot, { backgroundColor: '#D1D5DB' }]} />
+                    )}
+                    <Text style={[styles.subjectChipText, isActive && styles.subjectChipTextActive]}>
+                      {sub.label}
+                    </Text>
+                  </TouchableOpacity>
+                )
+              })}
+            </ScrollView>
           </>
         }
-        renderItem={({ item }) => <NoteCard item={item} t={t} onOpenDialog={handleOpenDialog} />}
-        ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+        renderItem={({ item }) => <GroupedNoteCard item={item} t={t} onOpenDialog={handleOpenDialog} />}
+        ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
       />
+
       {selectedNote && (
         <NoteDialog
           onSaveNote={handleSaveNote}
@@ -140,143 +125,82 @@ export default function IncorrectNotes({ contentRef }: { contentRef?: React.RefO
           handleUploadImage={handleUploadImage}
         />
       )}
+
+      <FilterBottomSheet
+        isVisible={isFilterVisible}
+        onClose={closeFilter}
+        onApply={handleApplyFilter}
+        initialFilter={filter}
+        subjectOptions={subjectNoteOptions}
+        categoryOptions={categoryNoteOptions}
+      />
     </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
   safe: {
-    backgroundColor: palette.bg[100]
+    backgroundColor: '#F9FAFB'
   },
   list: {
     padding: 20,
     paddingBottom: 200
   },
-
-  filterRow: {
+  topHeaderRow: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 10
+    alignItems: 'center',
+    marginBottom: 16,
   },
-  chip: {
+  searchFlex: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    marginRight: 10,
+  },
+  filterBtn: {
+    width: 48,
+    height: 48,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  chipScroll: {
+    marginBottom: 20,
+  },
+  chipScrollContent: {
+    paddingRight: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  subjectChip: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    gap: 4
-  },
-  search: {
-    backgroundColor: '#FFFFFF'
-  },
-  chipActive: {
-    backgroundColor: '#1A1A1A'
-  },
-  filter: {
-    backgroundColor: '#FFFFFF',
-    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderWidth: 1,
-    minWidth: 100,
-    borderColor: palette.grey[200]
+    borderColor: '#F3F4F6',
   },
-  chipText: {
-    fontSize: 13,
-    color: '#3A3A3A',
+  subjectChipActive: {
+    backgroundColor: '#7C3AED',
+    borderColor: '#7C3AED',
+  },
+  chipDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
+  },
+  subjectChipText: {
+    fontSize: 14,
+    color: '#4B5563',
     fontWeight: '500'
   },
-  chipTextActive: {
+  subjectChipTextActive: {
     color: '#FFFFFF'
-  },
-  chipArrow: {
-    fontSize: 9,
-    color: '#3A3A3A'
-  },
-
-  sortRow: {
-    alignItems: 'flex-end',
-    marginBottom: 10
-  },
-  sortBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: palette.grey[200],
-    alignSelf: 'flex-end',
-    marginBottom: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    gap: 4
-  },
-  sortText: {
-    fontSize: 12,
-    color: '#222222',
-    fontWeight: '400'
-  },
-  sortIcon: {
-    fontSize: 13,
-    color: '#3A3A3A'
-  },
-  container: {
-    backgroundColor: '#FFF',
-    borderRadius: 14,
-    padding: 16,
-    gap: 12
-  },
-
-  pressed: {
-    opacity: 0.85
-  },
-
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    marginTop: -10
-  },
-  headerText: {
-    fontSize: 12,
-    lineHeight: 20,
-    color: palette.grey[400],
-    fontWeight: 500
-  },
-  separator: {
-    width: 1,
-    height: 10,
-    backgroundColor: palette.grey[400],
-    marginHorizontal: 10
-  },
-
-  metaRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 6
-  },
-
-  metaLeft: {
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-
-  number: {
-    fontSize: 16,
-    fontWeight: '700',
-    lineHeight: 25,
-    color: palette.grey[900],
-    marginRight: 12
-  },
-
-  metaText: {
-    fontSize: 12,
-    color: palette.grey[500]
-  },
-
-  description: {
-    fontSize: 20,
-    color: '#111'
   }
 })
