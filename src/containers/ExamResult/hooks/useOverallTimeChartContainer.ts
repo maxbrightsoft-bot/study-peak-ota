@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import {
     getQuestionTimeCategoriesResultsApi,
 } from "../apiClients"
@@ -32,10 +32,10 @@ const useOverallTimeChartContainer = (
         }
         fetchData()
     }, [examCode, isGetDataResult, JSON.stringify(categories), studentExamSessionId])
-    return {
+    return useMemo(() => ({
         isLoading,
         categories
-    }
+    }), [isLoading, categories])
 }
 
 export default useOverallTimeChartContainer

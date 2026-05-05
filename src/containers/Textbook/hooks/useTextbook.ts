@@ -27,7 +27,8 @@ type Props = {
 }
 
 const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
-  const { selectedAcademy, setLoading } = useAuthStore()
+   const selectedAcademy = useAuthStore(state => state.selectedAcademy)
+  const setLoading = useAuthStore(state => state.setLoading)
   const { t } = useTranslation();
   const [textbookList, setTextbookList] = useState<Textbook[]>([]);
   const [textbookFilter, setTextbookFilter] = useState<TextbookQuery>(

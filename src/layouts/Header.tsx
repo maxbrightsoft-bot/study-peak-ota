@@ -16,7 +16,10 @@ type Props = {
 
 const Header = ({ headerProps }: Props) => {
   const { t } = useTranslation()
-  const { user, academies, selectedAcademy, logout } = useAuthStore()
+  const user = useAuthStore(state => state.user)
+  const academies = useAuthStore(state => state.academies)
+  const selectedAcademy = useAuthStore(state => state.selectedAcademy)
+  const logout = useAuthStore(state => state.logout)
   const {
     academyMenuVisible,
     openNoticeDialog,

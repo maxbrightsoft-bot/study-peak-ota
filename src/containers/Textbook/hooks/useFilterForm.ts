@@ -38,10 +38,12 @@ const useFilterForm = () => {
       .format(t("month_format"));
   };
 
-  const subjectOptions = subjects.map((subject) => ({
-    label: `${subject.name}`,
-    value: subject.id
-  }));
+  const subjectOptions = useMemo(() => {
+    return subjects.map((subject) => ({
+      label: `${subject.name}`,
+      value: subject.id
+    }))
+  }, [subjects])
 
   const monthOptions = useMemo(() => {
     return Array.from({ length: 7 }, (_, index) => ({

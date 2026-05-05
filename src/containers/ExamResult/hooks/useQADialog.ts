@@ -11,7 +11,7 @@ const useCreateQuestionDialog = (handleSelectQuestion: (question?: QuestionData)
     const [isOpenQuestionDialog, setOpenQuestionDialog] = useState<boolean>(false)
     const [questionIdContextMenu, setQuestionIdContextMenu] = useState<number>()
     const { t } = useTranslation()
-    const { setLoadingWithoutOverlay} = useAuthStore()
+    const setLoadingWithoutOverlay = useAuthStore(state => state.setLoadingWithoutOverlay)
 
     const handleCloseQuestionContextMenu = () => {
         setQuestionIdContextMenu(0)

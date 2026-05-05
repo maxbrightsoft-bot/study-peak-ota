@@ -11,12 +11,13 @@ import { TimerStatus } from '@/utils/enums'
 import Pause from '@/assets/iconJSX/pause'
 import useAuthStore from '@/store/useAuthStore'
 import moment from 'moment'
-import { ms } from 'react-native-size-matters'
 import { AntDesign, Ionicons } from '@expo/vector-icons'
 import useServerTime from '@/hooks/useServerTime'
+import { parseUTC } from '@/utils/helpers'
+
 
 const StudyTimerCard = () => {
-  const { setIsOpenTimerDialog } = useAuthStore()
+  const setIsOpenTimerDialog = useAuthStore(state => state.setIsOpenTimerDialog)
   const { t } = useTranslation()
   const { studyTimerProps, getTimers } = useTimers(false, () => { })
   const { subjects, activeTimerId, time, onStartOrPause, loadingItem, isFetching } = studyTimerProps
@@ -77,7 +78,8 @@ const StudyTimerCard = () => {
           const ref = selectedTimer.lastResumeTime && selectedTimer.lastResumeTime !== '0001-01-01T00:00:00'
             ? selectedTimer.lastResumeTime
             : selectedTimer.startTime
-          const elapsedMs = ref ? nowTime - new Date(ref + (ref.endsWith('Z') ? '' : 'Z')).getTime() : 0
+          const start = parseUTC(ref)
+          const elapsedMs = isNaN(start) ? 0 : nowTime - start
           return duration + Math.floor(Math.max(0, elapsedMs) / 1000)
         }
       case TimerStatus.Stopped:

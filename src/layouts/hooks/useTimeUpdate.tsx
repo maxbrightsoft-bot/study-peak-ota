@@ -22,7 +22,8 @@ const useTimeUpdate = (
     const [value, setValue] = useState<number>(0)
     const today = moment()
     const [selectedDate, setSelectedDate] = useState<moment.Moment>()
-    const { user, setLoading } = useAuthStore()
+    const user = useAuthStore(state => state.user)
+    const setLoading = useAuthStore(state => state.setLoading)
     const academyDomain = user?.academyDomain?.toLowerCase?.() ?? ""
     const onAcademy = academyDomain || user?.isLearningSpace
     const originTimeLine = useRef<Timer[]>([])

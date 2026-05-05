@@ -64,7 +64,6 @@ const useSketchCanvas = () => {
       if (base64) {
         base64 = base64.replace(/\s/g, '')
       }
-      console.log('base64 length', base64.length)
       if (!base64) {
         console.log('Failed to read file! base64 is empty.')
       }

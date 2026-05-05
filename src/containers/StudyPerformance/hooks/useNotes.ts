@@ -20,7 +20,7 @@ import { NoteSortColumn, OrderBy } from "@/utils/enums"
 
 const useNotes = (
 ) => {
-    const { setLoadingWithoutOverlay } = useAuthStore()
+    const setLoadingWithoutOverlay = useAuthStore(state => state.setLoadingWithoutOverlay)
     const { t } = useTranslation()
     const [filter, setFilter] = useState<NoteSearchQuery>(DEFAULT_NOTE_FILTER)
     const [totalPages, setTotalPages] = useState<number>(0)

@@ -62,7 +62,8 @@ const useExamSolving = (props: Props) => {
     return { time, now, nowTime };
   }, [getServerNow]);
 
-  const { user, selectedAcademy } = useAuthStore()
+  const user = useAuthStore(state => state.user)
+  const selectedAcademy = useAuthStore(state => state.selectedAcademy)
   const academyId = selectedAcademy?.id
   const academyDomain: string | undefined = user?.academyDomain;
   const userId: number | undefined = user?.id;

@@ -111,7 +111,7 @@ const ChatContainer = ({
       >
         <View style={styles.container}>
           <View style={styles.header}>
-            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', flex: 1 }}>
               <Text style={styles.examTitle}>{examTitle}</Text>
               {studentTotalAttemptTime > 1 && (
                 <Text style={[TYPO.button4, { color: isSelected ? palette.main[600] : palette.red[900] }]}>
@@ -327,7 +327,8 @@ const styles = ScaledSheet.create({
   },
   examTitle: {
     ...TYPO.button3,
-    color: palette.grey[900]
+    color: palette.grey[900],
+    flex: 1
   },
   dateTitle: {
     ...TYPO.button4,

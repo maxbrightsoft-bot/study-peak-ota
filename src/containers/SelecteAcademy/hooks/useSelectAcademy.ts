@@ -11,7 +11,12 @@ import { useTranslation } from "react-i18next"
 
 const useSelectAcademy = () => {
   const { t } = useTranslation()
-  const { academies, user, setLoading, setAcademies, setSelectAcademy, setHasEnteredSelectAcademy } = useAuthStore()
+  const academies = useAuthStore(state => state.academies)
+  const user = useAuthStore(state => state.user)
+  const setLoading = useAuthStore(state => state.setLoading)
+  const setAcademies = useAuthStore(state => state.setAcademies)
+  const setSelectAcademy = useAuthStore(state => state.setSelectAcademy)
+  const setHasEnteredSelectAcademy = useAuthStore(state => state.setHasEnteredSelectAcademy)
   const { handleLoginAccessToken } = useLogin()
   const [academy, setAcademy] = useState<number>()
 

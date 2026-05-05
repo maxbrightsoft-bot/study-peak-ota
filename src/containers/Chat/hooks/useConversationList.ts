@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { getListConversation } from "../apiClient/studentStatusService";
 import { CONVERSATION_DEFAULT_FILTER } from "../configs/constants";
 import _ from "lodash"
@@ -12,7 +12,9 @@ import { useFocusEffect } from "@react-navigation/native";
 import { getSocket } from "@/services";
 
 const useConversationList = () => {
-  const { user, setLoading, selectedAcademy } = useAuthStore()
+  const user = useAuthStore(state => state.user)
+  const setLoading = useAuthStore(state => state.setLoading)
+  const selectedAcademy = useAuthStore(state => state.selectedAcademy)
   const academyDomain = user?.academyDomain
   const channel1 = useRef('')
   const channel2 = useRef('')
@@ -27,9 +29,21 @@ const useConversationList = () => {
   const inputSearch = useRef<any>(null);
   const socket = getSocket()
 
-  const onChangeSearch = (value: string) => {
+  const onChangeSearch = useCallback((value: string) => {
     setSearch(value);
-  };
+  }, []);
+
+  const getConversationList = useCallback(async (textSearch?: string) => {
+    setLoading(true)
+    try {
+      const res = await getListConversation({ ...conversationFilter, textSearch })
+      setConversations(res.data.items || [])
+
+    } catch (error) {
+      toast.error(getErrorMessage(t, error))
+    }
+    setLoading(false)
+  }, [conversationFilter, setLoading, t])
 
   useEffect(() => {
     if (inputSearch.current) {
@@ -45,59 +59,55 @@ const useConversationList = () => {
         clearTimeout(inputSearch.current);
       }
     };
-  }, [search]);
+  }, [search, getConversationList]);
 
-  const handleCloseFilterModal = () => {
+  const handleCloseFilterModal = useCallback(() => {
     setOpenFilterModal(false)
-  }
+  }, [])
 
-  const handleOpenFilterModal = () => {
+  const handleOpenFilterModal = useCallback(() => {
     setOpenFilterModal(true)
-  }
+  }, [])
 
-  const handleChangeSelectedConversation = (val: ConversationsResponse) => {
+  const handleChangeSelectedConversation = useCallback((val: ConversationsResponse) => {
     setSelectedConversation(val)
-    setConversations(conversations.map(i => ({ ...i, totalUnReadMessage: i.id === val.id ? 0 : i.totalUnReadMessage })))
-  }
+    setConversations(prev => prev.map(i => i.id === val.id ? { ...i, totalUnReadMessage: 0 } : i))
+  }, [])
 
-  const handleVisibleCreateConversationDialog = () => {
+  const handleVisibleCreateConversationDialog = useCallback(() => {
     setVisibleCreateConversationDialog(true)
-  }
+  }, [])
 
-  const handleCloseCreateConversationDialog = () => {
+  const handleCloseCreateConversationDialog = useCallback(() => {
     setVisibleCreateConversationDialog(false)
-  }
+  }, [])
 
-  const handleChangeFilter = (filter: ConversationFilter) => {
+  const handleChangeFilter = useCallback((filter: ConversationFilter) => {
     setConversationFilter((state: ConversationFilter) => ({
       ...state,
       ...filter
     }))
-  }
+  }, [])
 
-  const getConversationList = async (textSearch?: string) => {
-    setLoading(true)
-    try {
-      const res = await getListConversation({ ...conversationFilter, textSearch })
-      setConversations(res.data.items || [])
-
-    } catch (error) {
-      toast.error(getErrorMessage(t, error))
-    }
-    setLoading(false)
-  }
-
-  const handleChangeUnreadMessagesConversationCount = (data: string) => {
+  const handleChangeUnreadMessagesConversationCount = useCallback((data: string) => {
     const conversationCount: any = JSON.parse(data)
-    setConversations((conversations) => conversations.map(i => ({ ...i, totalUnReadMessage: conversationCount.conversationId === i.id ? conversationCount.totalUnReadMessage : i.totalUnReadMessage })))
-  }
+    setConversations((prev) => prev.map(i => 
+      conversationCount.conversationId === i.id 
+        ? { ...i, totalUnReadMessage: conversationCount.totalUnReadMessage } 
+        : i
+    ))
+  }, [])
 
-  const handleNewMessageCount = (data: string) => {
+  const handleNewMessageCount = useCallback((data: string) => {
     const conversationCount: any = JSON.parse(data)
-    setConversations((conversations) => conversations.map(i => ({ ...i, totalUnReadMessage: conversationCount.conversationId === i.id ? conversationCount.totalUnReadMessage : i.totalUnReadMessage })))
-  }
+    setConversations((prev) => prev.map(i => 
+      conversationCount.conversationId === i.id 
+        ? { ...i, totalUnReadMessage: conversationCount.totalUnReadMessage } 
+        : i
+    ))
+  }, [])
 
-  const getListCourseByStudent = async () => {
+  const getListCourseByStudent = useCallback(async () => {
     setLoading(true)
     try {
       const res = await getListCourseByStudentApi({ studentId: user?.id || 0 })
@@ -107,21 +117,21 @@ const useConversationList = () => {
       toast.error(getErrorMessage(t, error))
     }
     setLoading(false)
-  }
+  }, [user?.id, setLoading, t])
 
-  const handleCompletedConversation = (data: string) => {
+  const handleCompletedConversation = useCallback((data: string) => {
     if (!data) return
     const item = JSON.parse(data)
     setConversations((prev) => prev.map((conversation) => {
       if (conversation.id === item.id) return item
       return conversation
     }))
-  }
+  }, [])
 
   useEffect(() => {
     if (!user?.id || !user?.academyDomain) return
     getListCourseByStudent()
-  }, [user?.id, user?.academyDomain])
+  }, [user?.id, user?.academyDomain, getListCourseByStudent])
 
   useEffect(() => {
     if (
@@ -142,7 +152,7 @@ const useConversationList = () => {
       socket?.off("unread-messages-count-event", handleChangeUnreadMessagesConversationCount);
       socket?.off("new-message-conversations-event", handleNewMessageCount);
     };
-  }, [selectedConversation?.id, academyDomain, user?.id, socket?.id]);
+  }, [selectedConversation?.id, academyDomain, user?.id, socket, handleCompletedConversation, handleChangeUnreadMessagesConversationCount, handleNewMessageCount]);
 
   useFocusEffect(
     useCallback(() => {
@@ -151,14 +161,14 @@ const useConversationList = () => {
         setSelectedConversation(undefined)
         setSearch('')
       };
-    }, [])
+    }, [getConversationList])
   );
 
   useEffect(() => {
     getConversationList()
-  }, [JSON.stringify(conversationFilter), selectedAcademy?.id])
+  }, [conversationFilter.currentPage, conversationFilter.pageSize, selectedAcademy?.id, getConversationList])
 
-  return {
+  return useMemo(() => ({
     t,
     user,
     courses,
@@ -178,7 +188,12 @@ const useConversationList = () => {
     handleCloseCreateConversationDialog,
     handleVisibleCreateConversationDialog,
 
-  }
+  }), [
+    t, user, courses, conversationFilter, selectedConversation, conversations, search,
+    onChangeSearch, handleCloseFilterModal, handleOpenFilterModal, handleChangeFilter,
+    handleCompletedConversation, handleChangeSelectedConversation, getConversationList,
+    isVisibleCreateConversationDialog, handleCloseCreateConversationDialog, handleVisibleCreateConversationDialog
+  ])
 }
 
 export default useConversationList

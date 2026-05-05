@@ -20,7 +20,14 @@ import useAlarm from "@/layouts/hooks/useAlarm";
 import { ScrollView } from "react-native";
 
 const useProblemSolving = () => {
-  const { user, selectedAcademy: academy, setLoading, setLoadingWithoutOverlay, pusher, subscribeChannel, unsubscribeChannelSafe } = useAuthStore()
+  const user = useAuthStore(state => state.user)
+  const academy = useAuthStore(state => state.selectedAcademy)
+  const setLoading = useAuthStore(state => state.setLoading)
+  const setLoadingWithoutOverlay = useAuthStore(state => state.setLoadingWithoutOverlay)
+  const pusher = useAuthStore(state => state.pusher)
+  const subscribeChannel = useAuthStore(state => state.subscribeChannel)
+  const unsubscribeChannelSafe = useAuthStore(state => state.unsubscribeChannelSafe)
+
   const [open, setOpen] = useState<boolean>(false);
   const [openSchedule, setOpenSchedule] = useState<boolean>(false);
   const [codeExam, setCodeExam] = useState<string>("");

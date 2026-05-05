@@ -1,5 +1,5 @@
 import { palette } from '@/theme'
-import React from 'react'
+import React, { forwardRef, useCallback, useMemo } from 'react'
 import { View, StyleSheet } from 'react-native'
 import { Dropdown, IDropdownRef } from 'react-native-element-dropdown'
 import { useTranslation } from 'react-i18next'
@@ -13,17 +13,50 @@ type Props = {
   disabled?: boolean
   placeholder?: string
   icon?: any
+  search?: boolean
+  onChangeText?: (keyword: string) => void
+  searchPlaceholder?: string
   searchQuery?: ((keyword: string, labelValue: string) => boolean)
-  ref?: React.LegacyRef<IDropdownRef> | undefined
 }
 
-const CustomSelect = ({ ref, value, onValueChange, style, options, disabled, placeholder, icon, searchQuery }: Props) => {
-  const { t } = useTranslation()
+const DefaultIcon = ({ disabled }: { disabled?: boolean }) => (
+  <Ionicons
+    name="caret-down-outline"
+    size={20}
+    color={disabled ? palette.grey[300] : '#222222'}
+  />
+)
 
-  return (
-    <View>
+const CustomSelect = forwardRef<IDropdownRef, Props>(
+  (
+    {
+      value,
+      onValueChange,
+      style,
+      options,
+      disabled,
+      placeholder,
+      icon,
+      search,
+      onChangeText,
+      searchPlaceholder,
+      searchQuery
+    },
+    ref
+  ) => {
+    const { t } = useTranslation()
+
+    const renderRightIcon = () => (icon ? icon() : <DefaultIcon disabled={disabled} />)
+
+    const translatedSearchPlaceholder = searchPlaceholder ?? t('search_placeholder')
+    const translatedPlaceholder = placeholder ?? t('select_placeholder')
+
+    return (
       <Dropdown
         ref={ref}
+        search={search}
+        onChangeText={onChangeText}
+        searchPlaceholder={translatedSearchPlaceholder}
         searchQuery={searchQuery}
         data={options}
         labelField="label"
@@ -31,18 +64,29 @@ const CustomSelect = ({ ref, value, onValueChange, style, options, disabled, pla
         value={value ?? null}
         disable={disabled}
         onChange={(item) => onValueChange?.(item.value)}
-        placeholder={placeholder ?? t('select_placeholder')}
+        onFocus={() => {
+          if (search && onChangeText) {
+            onChangeText('')
+          }
+        }}
+        placeholder={translatedPlaceholder}
         style={[styles.dropdown, style, disabled && styles.disabledDropdown]}
         selectedTextStyle={styles.selectedTextStyle}
         placeholderStyle={styles.placeholderStyle}
         itemTextStyle={styles.itemTextStyle}
         iconStyle={styles.iconStyle}
         containerStyle={styles.dropdownContainer}
-        renderRightIcon={icon ?? (() => <Ionicons name="caret-down-outline" size={20} color={disabled ? palette.grey[300] : "#222222"} />)}
+        inputSearchStyle={styles.inputSearchStyle}
+        renderRightIcon={renderRightIcon}
+        dropdownPosition="top"
+        flatListProps={{
+          keyboardShouldPersistTaps: 'handled'
+        }}
       />
-    </View>
-  )
-}
+    )
+
+  }
+)
 
 const styles = StyleSheet.create({
   container: {
@@ -73,7 +117,7 @@ const styles = StyleSheet.create({
     elevation: 0,
 
     borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderColor: '#E5E5E5'
   },
 
   placeholderStyle: {
@@ -96,6 +140,12 @@ const styles = StyleSheet.create({
   iconStyle: {
     width: 24,
     height: 24
+  },
+
+  inputSearchStyle: {
+    height: 40,
+    fontSize: 14,
+    color: '#222222'
   }
 })
 

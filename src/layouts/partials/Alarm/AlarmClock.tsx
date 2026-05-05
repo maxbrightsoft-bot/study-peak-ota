@@ -31,7 +31,7 @@ const AlarmClock: FC<AlarmClockProps> = ({
   onResume
 }) => {
   const { t } = useTranslation()
-  const { alarm } = useAuthStore()
+  const alarm = useAuthStore(state => state.alarm)
   const isPlaying = alarmStatus === TimerStatus.Started
 
   const handlePauseOrResume = () => {

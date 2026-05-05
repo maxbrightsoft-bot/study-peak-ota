@@ -29,7 +29,10 @@ import { CONSENT_POLICY_VERSION } from '@/utils/constants'
 
 const Tab = createBottomTabNavigator()
 const Authorized = ({ route }: { route: any }) => {
-  const { user, setLoading, hasConsented, setHasConsented } = useAuthStore()
+  const user = useAuthStore(state => state.user)
+  const setLoading = useAuthStore(state => state.setLoading)
+  const hasConsented = useAuthStore(state => state.hasConsented)
+  const setHasConsented = useAuthStore(state => state.setHasConsented)
   const { headerProps } =
     useLayoutApp()
   const { t } = useTranslation()

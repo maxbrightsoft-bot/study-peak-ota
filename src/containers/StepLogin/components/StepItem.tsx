@@ -9,6 +9,7 @@ import Select from '@/components/Select/CustomSelect'
 import useStepItem from '../hooks/useStepItem'
 import { Ionicons } from '@expo/vector-icons'
 import Verify from '@/assets/iconJSX/verify'
+import SchoolSearchSelect from '@/components/Select/SchoolSearchSelect'
 
 type Props = {
   values: any
@@ -120,11 +121,10 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
             <Text style={styles.title}>{t('school_name')}</Text>
             <Field name="schoolName">
               {() => (
-                <TextField
-                  error={touched.schoolName && errors.schoolName && t('school_name_is_required')}
+                <SchoolSearchSelect
                   value={values.schoolName}
-                  style={styles.input}
-                  onChangeText={(value: string) => setFieldValue('schoolName', value)}
+                  onValueChange={(value: string) => setFieldValue('schoolName', value)}
+                  placeholder={t('school_name')}
                 />
               )}
             </Field>
@@ -167,7 +167,7 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
   }
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         {step !== 0 && (
           <View

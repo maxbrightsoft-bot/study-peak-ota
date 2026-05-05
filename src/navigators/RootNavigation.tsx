@@ -60,7 +60,6 @@ const linking: any = {
       }
     }
     const requestMatch = path.match(/^\/?(?:student\/)?requests\/([^/?]+)(?:\?(.*))?$/)
-    console.log(requestMatch)
     if (requestMatch?.[1]) {
       const domain = requestMatch[1]
       const query = requestMatch[2] ?? ''
@@ -78,7 +77,11 @@ const linking: any = {
 }
 
 const RootNavigation: React.FC = () => {
-  const { language, user, isLoading, setCrashlyticsUser, selectedAcademy, isLoadingWithoutOverlay, setLoading } = useAuthStore()
+  const user = useAuthStore(state => state.user)
+  const isLoading = useAuthStore(state => state.isLoading)
+  const setCrashlyticsUser = useAuthStore(state => state.setCrashlyticsUser)
+  const isLoadingWithoutOverlay = useAuthStore(state => state.isLoadingWithoutOverlay)
+  const setLoading = useAuthStore(state => state.setLoading)
   useLanguage()
   useSocketInit()
 

@@ -18,8 +18,8 @@ type Props = {
   exams?: Array<ExamSessionResponse>
   courses?: Course[]
   questions?: Array<ConversationQuestion>
-  handleChangeExam: (value: string | undefined) => void
-  handleChangeCourse: (value: string | undefined) => void
+  handleChangeExam: (value: string) => void
+  handleChangeCourse: (value: string) => void
   handleCreateConversation: any
   examSessionValue?: string
   courseValue?: string
@@ -32,7 +32,7 @@ const schema = Yup.object().shape({
   content: Yup.string().required()
 })
 
-export default function CreateQuestionConversationDialog({
+const CreateQuestionConversationDialog = ({
   t,
   open,
   toggleDialog,
@@ -45,7 +45,15 @@ export default function CreateQuestionConversationDialog({
   handleCreateConversation,
   examSessionValue,
   courseValue
-}: Props) {
+}: Props) => {
+  const formikRef = React.useRef<any>(null)
+
+  useEffect(() => {
+    if (examSessionValue && questions?.length && formikRef.current) {
+      formikRef.current.setFieldValue('questionId', questions[0].id)
+    }
+  }, [examSessionValue, questions])
+
   return (
     <SlideDrawerRoot visible={open}>
       <View style={styles.container}>
@@ -64,10 +72,11 @@ export default function CreateQuestionConversationDialog({
           keyboardVerticalOffset={80}
         >
           <Formik
+            innerRef={formikRef}
             enableReinitialize
             initialValues={{
               content: '',
-              questionId: examSessionValue && questions ? questions[0]?.superId : null
+              questionId: examSessionValue && questions?.length ? questions[0]?.id : null
             }}
             validationSchema={schema}
             onSubmit={(values) => {
@@ -80,15 +89,13 @@ export default function CreateQuestionConversationDialog({
             }}
           >
             {({ values, errors, handleChange, handleSubmit, setFieldValue }) => {
-              useEffect(() => {
-                if (examSessionValue && questions?.length) {
-                  setFieldValue('questionId', questions[0].id)
-                }
-              }, [examSessionValue, questions])
-
               return (
                 <View style={styles.content}>
-                  <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
+                  <ScrollView
+                    contentContainerStyle={styles.body}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                  >
                     <View>
                       <View style={styles.labelRow}>
                         <Text style={styles.labelText}>{t('half_selection')}</Text>
@@ -161,6 +168,8 @@ export default function CreateQuestionConversationDialog({
     </SlideDrawerRoot>
   )
 }
+
+export default CreateQuestionConversationDialog
 
 const styles = ScaledSheet.create({
   overlay: {

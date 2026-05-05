@@ -13,7 +13,7 @@ import useAuthStore from "@/store/useAuthStore";
 const useStudentExamHistory = ({ examSessionId, examCode }: { examSessionId: string; examCode: string; }) => {
   const [historyData, setHistoryData] = useState<ExamSessionResponse[]>([]);
   const [selectedExam, setSelectedExam] = useState<ExamSessionResponse | null>(null);
-  const { setLoadingWithoutOverlay } = useAuthStore()
+  const setLoadingWithoutOverlay = useAuthStore(state => state.setLoadingWithoutOverlay)
   const [search, setSearch] = useState<string>("");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [examFilter, setExamFilter] = useState<StudentExamSessionQuery>({
@@ -119,7 +119,7 @@ const useStudentExamHistory = ({ examSessionId, examCode }: { examSessionId: str
     setExamFilter({ sortColumnName: key, sortColumnDirection });
   };
 
-  return {
+  return useMemo(() => ({
     t,
     search,
     selectedExam,
@@ -134,7 +134,22 @@ const useStudentExamHistory = ({ examSessionId, examCode }: { examSessionId: str
     handleDelete,
     handleSelect,
     handleSelectSession
-  };
+  }), [
+    t,
+    search,
+    selectedExam,
+    historyData,
+    selectedIds,
+    examFilter,
+    handleCloseExamResult,
+    handleChangeTextSearch,
+    handleSort,
+    handleViewAttempt,
+    handleBack,
+    handleDelete,
+    handleSelect,
+    handleSelectSession
+  ]);
 };
 
 export default useStudentExamHistory;
