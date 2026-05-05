@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,41 +12,50 @@ import {
   ScrollView,
   StyleProp,
   ViewStyle,
+  TextInput,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { useTranslation } from 'react-i18next';
 
 const { height: SCREEN_H } = Dimensions.get('window');
 
+// ─── Formula data ─────────────────────────────────────────────────────────────
+interface FormulaItem {
+  label: string;
+  latex: string;
+  display: string;
+}
+
 const FORMULA_CATEGORIES = [
   {
-    category: '분수 & 제곱근',
+    category: 'math_editor.fractions_roots',
     items: [
-      { label: '분수', latex: '\\frac{a}{b}', display: 'a/b' },
-      { label: '제곱근', latex: '\\sqrt{x}', display: '√x' },
-      { label: 'n제곱근', latex: '\\sqrt[n]{x}', display: 'ⁿ√x' },
-      { label: '대분수', latex: 'a\\frac{b}{c}', display: 'a b/c' },
+      { label: 'math_editor.fraction', latex: '\\frac{a}{b}', display: 'a/b' },
+      { label: 'math_editor.square_root', latex: '\\sqrt{x}', display: '√x' },
+      { label: 'math_editor.nth_root', latex: '\\sqrt[n]{x}', display: 'ⁿ√x' },
+      { label: 'math_editor.mixed_fraction', latex: 'a\\frac{b}{c}', display: 'a b/c' },
     ],
   },
   {
-    category: '지수 & 첨자',
+    category: 'math_editor.exponents',
     items: [
-      { label: '거듭제곱', latex: 'x^{n}', display: 'xⁿ' },
-      { label: '아래 첨자', latex: 'x_{n}', display: 'xₙ' },
-      { label: '위아래 첨자', latex: 'x_{n}^{m}', display: 'xₙᵐ' },
-      { label: 'e의 지수', latex: 'e^{x}', display: 'eˣ' },
+      { label: 'math_editor.power', latex: 'x^{n}', display: 'xⁿ' },
+      { label: 'math_editor.subscript', latex: 'x_{n}', display: 'xₙ' },
+      { label: 'math_editor.sub_superscript', latex: 'x_{n}^{m}', display: 'xₙᵐ' },
+      { label: 'math_editor.e_power', latex: 'e^{x}', display: 'eˣ' },
     ],
   },
   {
-    category: '적분 & 합',
+    category: 'math_editor.integrals_sums',
     items: [
-      { label: '적분', latex: '\\int_{a}^{b} f(x)\\,dx', display: '∫ f(x)dx' },
-      { label: '합산', latex: '\\sum_{i=1}^{n} a_i', display: '∑aᵢ' },
-      { label: '곱', latex: '\\prod_{i=1}^{n} a_i', display: '∏aᵢ' },
-      { label: '극한', latex: '\\lim_{x \\to \\infty}', display: 'lim x→∞' },
+      { label: 'math_editor.integral', latex: '\\int_{a}^{b} f(x)\\,dx', display: '∫f(x)dx' },
+      { label: 'math_editor.summation', latex: '\\sum_{i=1}^{n} a_i', display: '∑aᵢ' },
+      { label: 'math_editor.product', latex: '\\prod_{i=1}^{n} a_i', display: '∏aᵢ' },
+      { label: 'math_editor.limit', latex: '\\lim_{x \\to \\infty}', display: 'lim x→∞' },
     ],
   },
   {
-    category: '삼각함수',
+    category: 'math_editor.trigonometry',
     items: [
       { label: 'sin', latex: '\\sin(x)', display: 'sin(x)' },
       { label: 'cos', latex: '\\cos(x)', display: 'cos(x)' },
@@ -55,322 +64,495 @@ const FORMULA_CATEGORIES = [
     ],
   },
   {
-    category: '기호',
+    category: 'math_editor.symbols',
     items: [
-      { label: '파이', latex: '\\pi', display: 'π' },
-      { label: '무한대', latex: '\\infty', display: '∞' },
-      { label: '델타', latex: '\\Delta', display: 'Δ' },
-      { label: '알파', latex: '\\alpha', display: 'α' },
-      { label: '베타', latex: '\\beta', display: 'β' },
-      { label: '세타', latex: '\\theta', display: 'θ' },
-      { label: '람다', latex: '\\lambda', display: 'λ' },
-      { label: '시그마', latex: '\\Sigma', display: 'Σ' },
+      { label: 'math_editor.pi', latex: '\\pi', display: 'π' },
+      { label: 'math_editor.infinity', latex: '\\infty', display: '∞' },
+      { label: 'math_editor.delta', latex: '\\Delta', display: 'Δ' },
+      { label: 'math_editor.alpha', latex: '\\alpha', display: 'α' },
+      { label: 'math_editor.beta', latex: '\\beta', display: 'β' },
+      { label: 'math_editor.theta', latex: '\\theta', display: 'θ' },
+      { label: 'math_editor.lambda', latex: '\\lambda', display: 'λ' },
+      { label: 'math_editor.sigma', latex: '\\Sigma', display: 'Σ' },
     ],
   },
   {
-    category: '방정식',
+    category: 'math_editor.equations',
     items: [
-      { label: '이차방정식', latex: 'ax^2+bx+c=0', display: 'ax²+bx+c=0' },
-      { label: '근의 공식', latex: 'x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}', display: 'x=(-b±√Δ)/2a' },
-      { label: '미분', latex: "f'(x)=\\lim_{h\\to 0}\\frac{f(x+h)-f(x)}{h}", display: "f'(x)" },
-      { label: '도함수', latex: '\\frac{dy}{dx}', display: 'dy/dx' },
+      { label: 'math_editor.quadratic_eq', latex: 'ax^2+bx+c=0', display: 'ax²+bx+c=0' },
+      { label: 'math_editor.quadratic_formula', latex: 'x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}', display: 'x=(-b±√Δ)/2a' },
+      { label: 'math_editor.derivative', latex: "f'(x)=\\lim_{h\\to 0}\\frac{f(x+h)-f(x)}{h}", display: "f'(x)" },
+      { label: 'math_editor.derivative_func', latex: '\\frac{dy}{dx}', display: 'dy/dx' },
     ],
   },
 ];
 
-const makePreviewHTML = (latex: string) => `
-<!DOCTYPE html><html>
+// ─── Editor HTML ──────────────────────────────────────────────────────────────
+const EDITOR_HTML = `<!DOCTYPE html><html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-  <style>
-    body { display:flex; align-items:center; justify-content:center;
-           min-height:80px; margin:0; background:#f8f9fa; }
-    #math { font-size:22px; padding:12px; }
-  </style>
-</head>
-<body>
-  <div id="math"></div>
-  <script>
-    try {
-      katex.render(${JSON.stringify(latex)}, document.getElementById('math'),
-        { throwOnError:false, displayMode:true });
-    } catch(e) {
-      document.getElementById('math').textContent = ${JSON.stringify(latex)};
-    }
-  </script>
-</body></html>
-`;
-
-const EDITOR_HTML = `
-<!DOCTYPE html><html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"><\/script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body {
-  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-  background:#fff;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  overflow: hidden;
-}
-#toolbar{display:flex;align-items:center;gap:2px;padding:6px 8px;border-bottom:1px solid #dee2e6}
-.tool-btn{padding:4px 8px;border:none;background:transparent;border-radius:4px;
-cursor:pointer;font-size:14px;color:#343a40;min-width:30px;text-align:center}
-.tool-btn.active{background:#212529;color:#fff}
-.tool-btn.bold{font-weight:700}
-.tool-btn.italic{font-style:italic}
-.tool-btn.underline{text-decoration:underline}
-.divider{width:1px;height:18px;background:#dee2e6;margin:0 4px}
-#editor{min-height:80px;padding:10px 12px;font-size:15px;color:#495057;
-line-height:1.8;outline:none;word-break:break-word}
-#editor:empty:before{content:attr(data-placeholder);color:#adb5bd;pointer-events:none}
-.math-chip{display:inline-block;vertical-align:middle;background:#f1f3f5;
-border:1px solid #ced4da;border-radius:4px;padding:2px 6px;margin:0 2px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:sans-serif;font-size:15px;color:#212529;background:#fff}
+#toolbar{display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid #dee2e6;flex-wrap:wrap}
+.fmt-bold{font-weight:700;min-width:28px;height:28px;border:1px solid #ced4da;border-radius:6px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
+.fmt-italic{font-style:italic;min-width:28px;height:28px;border:1px solid #ced4da;border-radius:6px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
+.fmt-underline{text-decoration:underline;min-width:28px;height:28px;border:1px solid #ced4da;border-radius:6px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
+.fmt-btn-active{background:#212529!important;color:#fff!important;border-color:#212529!important}
+#sigmaBtn{min-width:28px;height:28px;border:1px solid #ced4da;border-radius:6px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px}
+#editor{min-height:60px;padding:8px 10px;outline:none;line-height:1.8;word-break:break-word}
+.math-chip{display:inline-block;background:#f0f4ff;border:1px solid #c7d2fe;border-radius:6px;padding:1px 6px;margin:0 2px;cursor:default;user-select:none;vertical-align:middle}
 </style>
 </head>
 <body>
-
 <div id="toolbar">
-  <button class="tool-btn bold"      onclick="execCmd('bold')">B</button>
-  <button class="tool-btn italic"    onclick="execCmd('italic')">I</button>
-  <button class="tool-btn underline" onclick="execCmd('underline')">U</button>
-  <div class="divider"></div>
-  <button class="tool-btn"           onclick="openPicker()">∑</button>
+  <button class="fmt-bold"      id="btnB" onclick="fmt('bold')"><b>B</b></button>
+  <button class="fmt-italic"    id="btnI" onclick="fmt('italic')"><i>I</i></button>
+  <button class="fmt-underline" id="btnU" onclick="fmt('underline')"><u>U</u></button>
+  <button id="sigmaBtn" onclick="openPicker()">∑</button>
 </div>
-
-<div id="editor" contenteditable="true" data-placeholder="메시지 보내기"></div>
-
+<div id="editor" contenteditable="true" spellcheck="false"></div>
 <script>
-let savedRange = null;
-let activeFormat = null;
-const editor = document.getElementById('editor');
-
-function renderToolbar() {
-  ['bold','italic','underline'].forEach(cmd => {
-    document.querySelector('.tool-btn.' + cmd)
-      ?.classList.toggle('active', activeFormat === cmd);
-  });
+var editor=document.getElementById('editor');
+var chipCounter=0;
+function fmt(cmd){document.execCommand(cmd,false,null);updateToolbar();}
+function updateToolbar(){
+  document.getElementById('btnB').classList.toggle('fmt-btn-active',document.queryCommandState('bold'));
+  document.getElementById('btnI').classList.toggle('fmt-btn-active',document.queryCommandState('italic'));
+  document.getElementById('btnU').classList.toggle('fmt-btn-active',document.queryCommandState('underline'));
 }
-
-function restoreSelection() {
-  const sel = window.getSelection();
-  if (savedRange && sel) { sel.removeAllRanges(); sel.addRange(savedRange); }
-}
-
-document.addEventListener('selectionchange', () => {
-  const sel = window.getSelection();
-  if (!sel || !sel.rangeCount || !editor.contains(sel.anchorNode)) return;
-  savedRange = sel.getRangeAt(0).cloneRange();
-});
-
-function execCmd(cmd) {
-  activeFormat = activeFormat === cmd ? null : cmd;
-  renderToolbar();
-
-  editor.focus();
-  restoreSelection();
-  document.execCommand('styleWithCSS', false, true);
-
-  ['bold', 'italic', 'underline'].forEach(f => {
-    const isOn = document.queryCommandState(f);
-    const shouldBeOn = activeFormat === f;
-    if (isOn !== shouldBeOn) {
-      document.execCommand(f, false, null);
-    }
-  });
-}
-
-function openPicker() {
-  const sel = window.getSelection();
-  if (sel && sel.rangeCount) savedRange = sel.getRangeAt(0).cloneRange();
-  window.ReactNativeWebView && window.ReactNativeWebView.postMessage(
-    JSON.stringify({ type: 'openPicker' }));
-}
-
-window.receiveLatex = function(latex) {
-  editor.focus();
-  restoreSelection();
-
-  const span = document.createElement('span');
-  span.className = 'math-chip';
-  span.setAttribute('data-latex', latex);
-  try { katex.render(latex, span, { throwOnError: false, displayMode: false }); }
-  catch(e) { span.textContent = latex; }
-
-  const sel = window.getSelection();
-  if (sel && sel.rangeCount) {
-    const range = sel.getRangeAt(0);
-    range.deleteContents();
-    const before = document.createTextNode('\u00A0');
-    range.insertNode(before); range.setStartAfter(before);
-    range.insertNode(span);   range.setStartAfter(span);
-    const after = document.createTextNode('\u00A0');
-    range.insertNode(after);  range.setStartAfter(after);
-    range.collapse(true);
-    sel.removeAllRanges(); sel.addRange(range);
-    savedRange = range.cloneRange();
-  } else {
-    editor.appendChild(span);
-  }
-
-  notifyChange();
-  notifyHeight();
-};
-
-function notifyChange() {
-  let text = '';
-  function walk(node) {
-    if (node.nodeType === Node.TEXT_NODE) {
-      text += node.textContent;
-    } else if (node.classList && node.classList.contains('math-chip')) {
-      text += '$$' + node.getAttribute('data-latex') + '$$';
-    } else {
+function openPicker(){window.ReactNativeWebView.postMessage(JSON.stringify({type:'openPicker'}));}
+function notifyChange(){
+  var out='';
+  function walk(node){
+    if(node.nodeType===3){out+=node.textContent.replace(/\u200B/g,'');}
+    else if(node.classList&&node.classList.contains('math-chip')){out+='$$'+node.getAttribute('data-latex')+'$$';}
+    else{
+      var t=node.nodeName;
+      if(t==='B'||t==='STRONG')out+='<b>';
+      else if(t==='I'||t==='EM')out+='<i>';
+      else if(t==='U')out+='<u>';
       node.childNodes.forEach(walk);
+      if(t==='B'||t==='STRONG')out+='</b>';
+      else if(t==='I'||t==='EM')out+='</i>';
+      else if(t==='U')out+='</u>';
     }
   }
   editor.childNodes.forEach(walk);
-  window.ReactNativeWebView && window.ReactNativeWebView.postMessage(
-    JSON.stringify({ type: 'change', value: text }));
+  window.ReactNativeWebView.postMessage(JSON.stringify({type:'change',value:out}));
 }
 
-function notifyHeight() {
-  window.ReactNativeWebView && window.ReactNativeWebView.postMessage(
-    JSON.stringify({ type: 'height', value: document.body.scrollHeight }));
-}
+// Click on existing chip to edit
+document.addEventListener('click', function(e){
+  var target = e.target;
+  while(target && target !== editor){
+    if(target.classList && target.classList.contains('math-chip')){
+      var id = target.getAttribute('id');
+      var latex = target.getAttribute('data-latex');
+      window.ReactNativeWebView.postMessage(JSON.stringify({type:'editChip',id:id,latex:latex}));
+      return;
+    }
+    target = target.parentNode;
+  }
+});
 
-new ResizeObserver(notifyHeight).observe(document.body);
+window.receiveLatex=function(latex, idToEdit){
+  var chip;
+  if(idToEdit) {
+    chip = document.getElementById(idToEdit);
+  }
+  if(!chip) {
+    chip=document.createElement('span');
+    chip.className='math-chip';
+    chip.id='chip_'+(++chipCounter);
+    chip.setAttribute('contenteditable','false');
+  }
+  
+  chip.setAttribute('data-latex',latex);
+  try{katex.render(latex,chip,{throwOnError:false,displayMode:false});}
+  catch(e){chip.textContent=latex;}
+
+  if(!idToEdit){
+    var sel=window.getSelection();
+    if(sel&&sel.rangeCount){
+      var r=sel.getRangeAt(0);r.deleteContents();r.insertNode(chip);
+      r.setStartAfter(chip);r.setEndAfter(chip);sel.removeAllRanges();sel.addRange(r);
+    } else {editor.appendChild(chip);}
+  }
+  notifyChange();
+};
+window.setEditorValue=function(val){
+  if(!val){editor.innerHTML='';return;}
+  var parts=val.split('$$');
+  var html='';
+  for(var i=0;i<parts.length;i++){
+    if(i%2===1){
+      var latex=parts[i];
+      var id='chip_'+(++chipCounter);
+      html+='<span class="math-chip" id="'+id+'" data-latex="'+latex.replace(/"/g,'&quot;')+'" contenteditable="false"></span>';
+    }else{
+      html+=parts[i];
+    }
+  }
+  editor.innerHTML=html;
+  var chips=editor.querySelectorAll('.math-chip');
+  chips.forEach(function(chip){
+    var ltx=chip.getAttribute('data-latex');
+    try{katex.render(ltx,chip,{throwOnError:false,displayMode:false});}
+    catch(e){chip.textContent=ltx;}
+  });
+};
+editor.addEventListener('input',notifyChange);
+editor.addEventListener('keyup',updateToolbar);
+editor.addEventListener('mouseup',updateToolbar);
 <\/script>
-</body></html>
-`;
+</body></html>`;
 
-interface FormulaItem { label: string; latex: string; display: string; }
+// ─── makePreviewHTML: embed latex directly in HTML (old approach, reliable) ──
+const makePreviewHTML = (latex: string) => `<!DOCTYPE html><html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"><\/script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{display:flex;align-items:center;justify-content:center;min-height:130px;background:#f8f9fa;font-family:sans-serif}
+#math{font-size:22px;padding:12px;text-align:center;max-width:100%;overflow-x:auto}
+#hint{font-size:12px;color:#adb5bd;padding:12px}
+</style>
+</head>
+<body>
+<div id="math"></div>
+<div id="hint">${!latex.trim() ? '수식을 입력하거나 템플릿을 선택하세요' : ''}</div>
+<script>
+if (${JSON.stringify(!!latex.trim())}) {
+  try { katex.render(${JSON.stringify(latex)}, document.getElementById('math'), {throwOnError:false,displayMode:true}); }
+  catch(e) { document.getElementById('hint').textContent = e.message||'Error'; }
+}
+<\/script>
+</body></html>`;
+
+// ─── MathLive WYSIWYG HTML ──────────────────────────────────────────────────
+const MATHLIVE_HTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+<script defer src="https://unpkg.com/mathlive@0.98.6/dist/mathlive.min.js"></script>
+<style>
+  body { margin: 0; padding: 12px; box-sizing: border-box; display: flex; justify-content: center; align-items: flex-start; height: 100vh; overflow: hidden; background: #fafafa; font-family: sans-serif; }
+  math-field {
+    width: 100%;
+    min-height: 85px;
+    font-size: 42px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1.5px solid #6c63ff;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    outline: none;
+  }
+  math-field:focus-within {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
+  }
+  /* Hide keyboard toggle inside the input field */
+  math-field::part(virtual-keyboard-toggle) { display: none !important; }
+  math-field::part(menu-toggle) { display: none !important; }
+  /* Hide close button to keep keyboard always visible */
+  math-virtual-keyboard::part(close-toggle) { display: none !important; }
+  /* Hide custom MathLive context menu */
+  .ML__menu, [part="menu"], [role="menu"] { display: none !important; opacity: 0 !important; pointer-events: none !important; }
+</style>
+</head>
+<body>
+  <math-field id="mf"></math-field>
+  <script>
+    const mf = document.getElementById('mf');
+    
+    // Intercept and kill contextmenu events before MathLive can show its menu
+    window.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    }, { capture: true, passive: false });
+    
+    mf.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    }, { capture: true, passive: false });
+    
+    // MutationObserver to kill any menu elements MathLive might try to attach to the body
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === 1 && (node.className?.includes?.('ML__menu') || node.getAttribute?.('role') === 'menu' || node.tagName === 'MATH-CONTEXT-MENU')) {
+            node.remove();
+          }
+        });
+      });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    
+    // Wait for the custom element to upgrade before modifying its properties/methods
+    customElements.whenDefined('math-field').then(() => {
+      // Disable MathLive's custom context menu completely
+      mf.menuItems = [];
+      mf.showMenu = function() { return false; }; // Overwrite internal method
+      
+      mf.addEventListener('input', (ev) => {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'change', value: mf.value }));
+      });
+
+      mf.addEventListener('focusout', () => {
+        setTimeout(() => window.mathVirtualKeyboard.show(), 10);
+      });
+
+      // Always show keyboard and prevent closing
+      window.mathVirtualKeyboard.show();
+    });
+
+    window.setLatex = function(latex) {
+      customElements.whenDefined('math-field').then(() => {
+        if (typeof latex === 'string' && mf.value !== latex) {
+          mf.value = latex;
+        }
+      });
+    };
+    
+    if (typeof window.__pendingLatex !== 'undefined') {
+      window.setLatex(window.__pendingLatex);
+    }
+    
+    window.insertLatex = function(latex) {
+      mf.insert(latex);
+      mf.focus();
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'change', value: mf.value }));
+    };
+    
+    window.addEventListener('load', () => {
+      setTimeout(() => { 
+        mf.focus(); 
+        window.mathVirtualKeyboard.show();
+      }, 150);
+    });
+  </script>
+</body>
+</html>`;
+
 
 function FormulaBottomSheet({
-  visible, onClose, onSelect,
-}: { visible: boolean; onClose: () => void; onSelect: (i: FormulaItem) => void; }) {
-  const [selected, setSelected] = useState<FormulaItem | null>(null);
+  visible, onClose, onSelect, initialLatex = '',
+}: {
+  visible: boolean;
+  onClose: () => void;
+  onSelect: (item: FormulaItem) => void;
+  initialLatex?: string;
+}) {
+  const { t } = useTranslation();
+
   const [activeCat, setActiveCat] = useState(0);
-  const slide = useRef(new Animated.Value(SCREEN_H)).current;
+  const [latexInput, setLatexInput] = useState('');
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const mathLiveRef = useRef<WebView>(null);
+  const slideY = useRef(new Animated.Value(SCREEN_H)).current;
 
   React.useEffect(() => {
     if (visible) {
-      setSelected(null);
-      Animated.spring(slide, { toValue: 0, useNativeDriver: true, tension: 65, friction: 11 }).start();
+      setLatexInput(initialLatex);
+      Animated.spring(slideY, {
+        toValue: 0, useNativeDriver: true, tension: 68, friction: 12,
+      }).start();
+      const safeInject = `
+        if (typeof window.setLatex === 'function') {
+          window.setLatex(${JSON.stringify(initialLatex)});
+        } else {
+          window.__pendingLatex = ${JSON.stringify(initialLatex)};
+        }
+        true;
+      `;
+      mathLiveRef.current?.injectJavaScript(safeInject);
     } else {
-      Animated.timing(slide, { toValue: SCREEN_H, duration: 240, useNativeDriver: true }).start();
+      Animated.timing(slideY, {
+        toValue: SCREEN_H, duration: 220, useNativeDriver: true,
+      }).start();
     }
-  }, [visible]);
+  }, [visible, initialLatex]);
+
+  const handleSelectTemplate = useCallback((item: FormulaItem) => {
+    mathLiveRef.current?.injectJavaScript(`window.insertLatex(${JSON.stringify(item.latex)}); true;`);
+  }, []);
+
+  const handleInsert = useCallback(() => {
+    const latex = latexInput.trim();
+    if (!latex) return;
+    onSelect({ label: 'custom', latex, display: latex });
+    onClose();
+  }, [latexInput, onSelect, onClose]);
+
+  const handleClose = useCallback(() => {
+    setLatexInput('');
+    onClose();
+  }, [onClose]);
 
   return (
-    <Modal transparent visible={visible} animationType="none" onRequestClose={onClose}>
-      <TouchableOpacity style={s.backdrop} activeOpacity={1} onPress={onClose} />
+    <Modal
+      transparent
+      visible={visible}
+      animationType="none"
+      onRequestClose={handleClose}
+      statusBarTranslucent
+    >
+      {/* Backdrop */}
+      <TouchableOpacity
+        style={s.backdrop}
+        activeOpacity={1}
+        onPress={handleClose}
+      />
 
-      <Animated.View style={[s.sheet, { transform: [{ translateY: slide }] }]}>
-        <View style={s.handle} />
-        <Text style={s.sheetTitle}>수식 선택</Text>
+      {/* Animated sheet */}
+      <Animated.View style={[s.sheet, { transform: [{ translateY: slideY }] }]}>
+        <View style={s.headerRow}>
+          <TouchableOpacity onPress={handleClose} style={s.headerBtn}>
+            <Text style={s.headerBtnCancelTxt}>{t('cancel')}</Text>
+          </TouchableOpacity>
+          <Text style={s.sheetTitle}>{t('math_editor.input')}</Text>
+          <TouchableOpacity
+            onPress={handleInsert}
+            disabled={!latexInput.trim()}
+            style={s.headerBtn}
+          >
+            <Text style={[s.headerBtnConfirmTxt, !latexInput.trim() && s.btnDisabled]}>{t('math_editor.insert')}</Text>
+          </TouchableOpacity>
+        </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}
-          style={{ flexGrow: 0, marginBottom: 10 }}
-          contentContainerStyle={{ paddingHorizontal: 14, gap: 8 }}>
+        {/* Category tabs */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ flexGrow: 0, marginTop: 8, marginBottom: 8 }}
+          contentContainerStyle={{ paddingHorizontal: 14, gap: 8 }}
+          keyboardShouldPersistTaps="handled"
+        >
           {FORMULA_CATEGORIES.map((cat, i) => (
-            <TouchableOpacity key={i}
-              onPress={() => { setActiveCat(i); setSelected(null); }}
-              style={[s.catTab, activeCat === i && s.catTabActive]}>
+            <TouchableOpacity
+              key={i}
+              onPress={() => setActiveCat(i)}
+              style={[s.catTab, activeCat === i && s.catTabActive]}
+            >
               <Text style={[s.catTabText, activeCat === i && s.catTabTextActive]}>
-                {cat.category}
+                {cat.category.startsWith('math_') ? t(cat.category) : cat.category}
               </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
 
+        {/* Formula grid */}
         <FlatList
           data={FORMULA_CATEGORIES[activeCat].items}
           keyExtractor={(_, i) => String(i)}
           numColumns={2}
-          style={{ maxHeight: 200 }}
+          style={{ maxHeight: 150, flexGrow: 0 }}
           contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 4 }}
-          renderItem={({ item }) => {
-            const isSel = selected?.latex === item.latex;
-            return (
-              <TouchableOpacity
-                style={[s.card, isSel && s.cardSelected]}
-                onPress={() => setSelected(item)}
-                activeOpacity={0.7}>
-                <Text style={s.cardDisplay}>{item.display}</Text>
-                <Text style={s.cardLabel}>{item.label}</Text>
-              </TouchableOpacity>
-            );
-          }}
+          keyboardShouldPersistTaps="handled"
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={s.card}
+              onPress={() => handleSelectTemplate(item)}
+              activeOpacity={0.7}
+            >
+              <Text style={s.cardDisplay}>{item.display}</Text>
+              <Text style={s.cardLabel}>{item.label.startsWith('math_') ? t(item.label) : item.label}</Text>
+            </TouchableOpacity>
+          )}
         />
 
-        {selected && (
-          <View style={s.previewBox}>
-            <Text style={s.previewLabel}>미리보기</Text>
-            <WebView
-              source={{ html: makePreviewHTML(selected.latex) }}
-              style={{ height: 80, backgroundColor: 'transparent' }}
-              scrollEnabled={false}
-              originWhitelist={['*']}
-            />
-            <Text style={s.previewLatex}>{selected.latex}</Text>
-          </View>
-        )}
-
-        <View style={s.actions}>
-          <TouchableOpacity style={s.btnCancel} onPress={onClose}>
-            <Text style={s.btnCancelTxt}>취소</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[s.btnConfirm, !selected && s.btnDisabled]}
-            onPress={() => { if (selected) { onSelect(selected); onClose(); } }}
-            disabled={!selected}>
-            <Text style={s.btnConfirmTxt}>삽입</Text>
-          </TouchableOpacity>
+        {/* WYSIWYG MathLive Editor */}
+        <View style={[s.mathLiveBox, { flex: 1, borderTopWidth: 1, borderTopColor: '#eee', borderRadius: 0, marginHorizontal: 0, marginBottom: 0 }]}>
+          <WebView
+            ref={mathLiveRef}
+            source={{ html: MATHLIVE_HTML }}
+            style={{ flex: 1, backgroundColor: 'transparent' }}
+            scrollEnabled={false}
+            originWhitelist={['*']}
+            javaScriptEnabled
+            onMessage={(e) => {
+              try {
+                const data = JSON.parse(e.nativeEvent.data);
+                if (data.type === 'change') {
+                  setLatexInput(data.value);
+                }
+              } catch (err) { }
+            }}
+            onLoadEnd={() => {
+              const safeInject = `
+                if (typeof window.setLatex === 'function') {
+                  window.setLatex(${JSON.stringify(initialLatex)});
+                } else {
+                  window.__pendingLatex = ${JSON.stringify(initialLatex)};
+                }
+                true;
+              `;
+              mathLiveRef.current?.injectJavaScript(safeInject);
+            }}
+          />
         </View>
       </Animated.View>
     </Modal>
   );
 }
+// Force Metro bundler reload
 
+// ─── MathRichInput ─────────────────────────────────────────────────────────────
 export interface MathRichInputRef {
   clear: () => void;
 }
 
 const MathRichInput = forwardRef<MathRichInputRef, {
+  initialValue?: string;
   onChange?: (v: string) => void;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
-}>(({ onChange, disabled, style }, ref) => {
-
+}>(({ initialValue, onChange, disabled, style }, ref) => {
   const webviewRef = useRef<WebView>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [editingLatex, setEditingLatex] = useState('');
+  const editingChipIdRef = useRef<string | null>(null);
 
   const handleMessage = (e: any) => {
     try {
       const data = JSON.parse(e.nativeEvent.data);
-      if (data.type === 'openPicker') setPickerOpen(true);
-      else if (data.type === 'change') onChange?.(data.value);
+      if (data.type === 'openPicker') {
+        setEditingLatex('');
+        editingChipIdRef.current = null;
+        setPickerOpen(true);
+      }
+      else if (data.type === 'editChip') {
+        setEditingLatex(data.latex);
+        editingChipIdRef.current = data.id;
+        setPickerOpen(true);
+      }
+      else if (data.type === 'change') {
+        onChange?.(data.value);
+      }
     } catch { }
   };
 
   const handleSelect = (item: FormulaItem) => {
     webviewRef.current?.injectJavaScript(
-      `window.receiveLatex(${JSON.stringify(item.latex)}); true;`
+      `window.receiveLatex(${JSON.stringify(item.latex)}, ${JSON.stringify(editingChipIdRef.current)}); true;`
     );
+    editingChipIdRef.current = null;
   };
 
-   useImperativeHandle(ref, () => ({
+  useImperativeHandle(ref, () => ({
     clear: () => {
-      webviewRef.current?.injectJavaScript(`
-        document.getElementById('editor').innerHTML = '';
-        notifyChange();
-        true;
-      `);
+      webviewRef.current?.injectJavaScript(
+        `document.getElementById('editor').innerHTML=''; notifyChange(); true;`
+      );
     },
   }));
 
@@ -385,6 +567,13 @@ const MathRichInput = forwardRef<MathRichInputRef, {
           style={{ flex: 1, backgroundColor: 'transparent' }}
           originWhitelist={['*']}
           javaScriptEnabled
+          onLoadEnd={() => {
+            if (initialValue) {
+              webviewRef.current?.injectJavaScript(
+                `if(window.setEditorValue) window.setEditorValue(${JSON.stringify(initialValue)}); true;`
+              );
+            }
+          }}
         />
       </View>
 
@@ -392,6 +581,7 @@ const MathRichInput = forwardRef<MathRichInputRef, {
         visible={pickerOpen}
         onClose={() => setPickerOpen(false)}
         onSelect={handleSelect}
+        initialLatex={editingLatex}
       />
     </>
   );
@@ -399,54 +589,75 @@ const MathRichInput = forwardRef<MathRichInputRef, {
 
 export default MathRichInput;
 
+// ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
   container: {
-  flex: 1,
-  borderRadius: 8,
-  backgroundColor: '#fff',
-},
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.45)' },
-  sheet: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20,
-    paddingBottom: Platform.OS === 'ios' ? 34 : 16,
-    maxHeight: SCREEN_H * 0.88,
+    flex: 1,
+    borderRadius: 8,
+    backgroundColor: '#fff',
+    overflow: 'hidden',
   },
-  handle: {
-    width: 40, height: 4, borderRadius: 2,
-    backgroundColor: '#dee2e6', alignSelf: 'center', marginTop: 12, marginBottom: 4,
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  sheet: {
+    position: 'absolute',
+    top: 40, bottom: 0, left: 0, right: 0,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 12,
+    elevation: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+  },
+  headerRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16, paddingVertical: 12,
+  },
+  headerBtn: {
+    padding: 8,
+  },
+  headerBtnCancelTxt: {
+    fontSize: 16, color: '#495057', fontWeight: '500',
+  },
+  headerBtnConfirmTxt: {
+    fontSize: 16, color: '#6c63ff', fontWeight: '600',
   },
   sheetTitle: {
-    fontSize: 16, fontWeight: '700', color: '#212529',
-    paddingHorizontal: 16, paddingVertical: 10,
+    fontSize: 17, fontWeight: '700', color: '#212529',
   },
-  catTab: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, backgroundColor: '#f1f3f5' },
+  mathLiveBox: {
+    backgroundColor: '#fff',
+  },
+  mathLiveLabel: {
+    fontSize: 10, fontWeight: '600', color: '#868e96',
+    paddingHorizontal: 10, paddingTop: 6,
+  }, templateTitle: {
+    fontSize: 11, fontWeight: '600', color: '#868e96',
+    paddingHorizontal: 16, marginBottom: 6,
+  },
+  catTab: {
+    paddingHorizontal: 14, paddingVertical: 6,
+    borderRadius: 20, backgroundColor: '#f1f3f5',
+  },
   catTabActive: { backgroundColor: '#212529' },
   catTabText: { fontSize: 12, color: '#495057' },
   catTabTextActive: { color: '#fff', fontWeight: '600' },
   card: {
-    flex: 1, margin: 4, paddingVertical: 12, paddingHorizontal: 8,
+    flex: 1, margin: 4, paddingVertical: 10, paddingHorizontal: 8,
     borderRadius: 10, backgroundColor: '#f8f9fa',
     borderWidth: 1.5, borderColor: '#e9ecef', alignItems: 'center',
   },
-  cardSelected: { borderColor: '#212529', backgroundColor: '#f1f3f5' },
-  cardDisplay: { fontSize: 18, color: '#212529', marginBottom: 4 },
+  cardDisplay: { fontSize: 16, color: '#212529', marginBottom: 2 },
   cardLabel: { fontSize: 11, color: '#868e96' },
-  previewBox: {
-    marginHorizontal: 16, marginTop: 10,
-    borderRadius: 10, overflow: 'hidden',
-    borderWidth: 1, borderColor: '#dee2e6', backgroundColor: '#f8f9fa',
+  actions: {
+    flexDirection: 'row', gap: 10,
+    paddingHorizontal: 16, paddingTop: 8,
   },
-  previewLabel: {
-    fontSize: 11, fontWeight: '600', color: '#868e96',
-    paddingHorizontal: 12, paddingTop: 8,
-  },
-  previewLatex: {
-    fontSize: 11, color: '#adb5bd',
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    paddingHorizontal: 12, paddingBottom: 8,
-  },
-  actions: { flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingTop: 14 },
   btnCancel: {
     flex: 1, paddingVertical: 13, borderRadius: 10,
     backgroundColor: '#f1f3f5', alignItems: 'center',
