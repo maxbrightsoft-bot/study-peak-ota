@@ -18,9 +18,11 @@ import { pick } from '@react-native-documents/picker'
 import { FlatList } from 'react-native'
 
 const useMyData = () => {
-  const { user, setLoading, setLoadingWithoutOverlay } = useAuthStore()
+  const user = useAuthStore(state => state.user)
+  const setLoading = useAuthStore(state => state.setLoading)
+  const setLoadingWithoutOverlay = useAuthStore(state => state.setLoadingWithoutOverlay)
   const academyDomain = user?.academyDomain
-  const isSuperAdmin = (user?.roles || []).includes(Role.Admin) && !academyDomain
+  const isSuperAdmin = useMemo(() => (user?.roles || []).includes(Role.Admin) && !academyDomain, [user?.roles, academyDomain])
   const isLearningSpace = user?.isLearningSpace
   const isAcademy = isLearningSpace || !!academyDomain
   const isAdminOrNonAcademy = !isAcademy || isSuperAdmin

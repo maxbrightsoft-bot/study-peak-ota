@@ -9,20 +9,20 @@ export const getLocalDayOfWeek = (utcDateTime: string, dayOfWeek: number) => {
     return moment.utc(utcDateTime).add(diff, "days").local().weekday()
 }
 
+export const parseUTC = (t: string) => {
+  if (!t) return NaN;
+
+  if (/[zZ]|[+-]\d{2}:\d{2}$/.test(t)) {
+    return new Date(t).getTime();
+  }
+  return new Date(t + 'Z').getTime();
+};
+
 export const diffFromNow = (
   time: string,
   nowMs: number,
   targetTime?: string
 ) => {
-  const parseUTC = (t: string) => {
-    if (!t) return NaN;
-
-    if (/[zZ]|[+-]\d{2}:\d{2}$/.test(t)) {
-      return new Date(t).getTime();
-    }
-    return new Date(t + 'Z').getTime();
-  };
-
   const baseNow = targetTime
     ? parseUTC(targetTime)
     : nowMs;
@@ -94,8 +94,8 @@ export const getCountTime = (
   duration: number,
   nowTime: number
 ) => {
-  const start = new Date(startTime).getTime()
-  if (!start) return null
+  const start = parseUTC(startTime)
+  if (isNaN(start)) return null
 
   return duration + (nowTime - start)
-}
+}

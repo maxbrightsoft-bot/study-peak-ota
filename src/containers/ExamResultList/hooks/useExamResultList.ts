@@ -12,7 +12,9 @@ import { FlatList } from "react-native";
 import { getErrorMessage, toast } from "@/utils/helpers";
 
 const useExamResultList = () => {
-  const { user, setLoading, selectedAcademy } = useAuthStore()
+  const user = useAuthStore(state => state.user)
+  const setLoading = useAuthStore(state => state.setLoading)
+  const selectedAcademy = useAuthStore(state => state.selectedAcademy)
   const { t } = useTranslation();
   const [listExam, setListExam] = useState<ExamSessionResponse[]>([]);
   const [search, setSearch] = useState<string>("");
@@ -35,9 +37,9 @@ const useExamResultList = () => {
     }, [])
   );
 
-  const toggleExpand = (id: number) => {
+  const toggleExpand = useCallback((id: number) => {
     setExpandedId((prev) => (prev === id ? null : id))
-  }
+  }, [])
 
   const getListExam = async () => {
     setLoading(true)
@@ -74,7 +76,7 @@ const useExamResultList = () => {
     }
   };
 
-  const onChangeSearch = (value: string) => {
+  const onChangeSearch = useCallback((value: string) => {
     setSearch(value);
 
     if (!!inputSearch.current) {
@@ -83,7 +85,7 @@ const useExamResultList = () => {
     inputSearch.current = setTimeout(() => {
       getResultExamSearch(value);
     }, 500);
-  };
+  }, [user?.id]);
 
   const groupExams: GroupExamSession | undefined = useMemo(
     () => groupMonthV2(listExam),
@@ -94,22 +96,20 @@ const useExamResultList = () => {
     getListExam();
   }, [selectedAcademy?.id]);
 
-  const handleViewResult = (exam: ExamSessionResponse) => {
+  const handleViewResult = useCallback((exam: ExamSessionResponse) => {
     setSelectedExam(exam)
-  }
+  }, [])
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     setSelectedExam(undefined)
-  }
+  }, [])
 
   // const { recoverExamCode, recoverKey } = useExamSolving({ examCode: listExam.length && examCodeActive ? examCodeActive : "", isProgressing: false });
 
-  return {
+  return useMemo(() => ({
     t,
-    // isRecoverAnswers: recoverExamCode == recoverKey,
     listExam,
     groupExams,
-    // examCodeActive,
     handleViewResult,
     search,
     scrollViewRef,
@@ -118,7 +118,18 @@ const useExamResultList = () => {
     toggleExpand,
     selectedExam,
     onChangeSearch,
-  };
+  }), [
+    t,
+    listExam,
+    groupExams,
+    handleViewResult,
+    search,
+    expandedId,
+    handleBack,
+    toggleExpand,
+    selectedExam,
+    onChangeSearch
+  ]);
 };
 
 export default useExamResultList;

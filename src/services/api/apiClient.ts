@@ -41,6 +41,9 @@ export const apiUpload: AxiosInstance = axios.create({
         if (token && !config.headers.noAuth) {
           config.headers.Authorization = `Bearer ${token}`
         }
+
+        console.log({ config: config.data });
+        
         const academyDomainStorage = await getDataStorage(ACADEMY_DOMAIN)
         const academyDomain = academyDomainStorage
         const isLearningSpace = !!(await getDataStorage(LEARNING_SPACE)) === true
@@ -48,6 +51,9 @@ export const apiUpload: AxiosInstance = axios.create({
         if ((academyDomain && !isLearningSpace) && config.headers[AcademyHeaders] == undefined) config.headers[AcademyHeaders] = `${academyDomain}`
         if (isLearningSpace && config.headers[NoAcademyHeaders] == undefined) config.headers[NoAcademyHeaders] = `${isLearningSpace}`
         if (language) config.headers[LanguageHeaders] = `${language}`
+
+        console.log({ header: config.header});
+        
 
         return config
       },

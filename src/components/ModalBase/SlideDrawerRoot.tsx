@@ -27,7 +27,8 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
   position = 'right',
   onClose
 }) => {
-  const { isLoading, isLoadingWithoutOverlay } = useAuthStore()
+  const isLoading = useAuthStore(state => state.isLoading)
+  const isLoadingWithoutOverlay = useAuthStore(state => state.isLoadingWithoutOverlay)
 
   const slideAnim = useRef(
     new Animated.Value(position === 'right' ? SCREEN_WIDTH : -SCREEN_WIDTH)

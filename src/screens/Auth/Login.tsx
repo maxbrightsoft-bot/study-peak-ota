@@ -10,7 +10,7 @@ const LoginScreen = () => {
   const domain = route.params?.domain;
   const redirectUrl = route.params?.redirectUrl;
   const redirectParams = route.params?.params;
-  const { setRedirectUrl } = useAuthStore();
+  const setRedirectUrl = useAuthStore(state => state.setRedirectUrl);
 
   useEffect(() => {
     if (domain) {

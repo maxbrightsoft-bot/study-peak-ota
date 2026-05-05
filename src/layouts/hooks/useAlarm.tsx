@@ -38,7 +38,9 @@ const TOTAL_MILLISECONDS_IN_TEN_MINUTES = 1000 * TOTAL_SECONDS_IN_TEN_MINUTES
 
 const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: boolean) => {
   const { t } = useTranslation()
-  const { user, alarm, setAlarm } = useAuthStore()
+  const user = useAuthStore(state => state.user)
+  const alarm = useAuthStore(state => state.alarm)
+  const setAlarm = useAuthStore(state => state.setAlarm)
   const [alarmDuration, setAlarmDuration] = useState(DEFAULT_ALARM_DURATION)
   const [loadingItem, setLoadingItem] = useState(false)
   const [isFetching, setFetching] = useState(false)

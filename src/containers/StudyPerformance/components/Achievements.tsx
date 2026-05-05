@@ -33,7 +33,7 @@ const iconMedal = (ranking: number) => {
 }
 
 const MyRankingItem = ({ data, isTimerTab }: { data?: Ranking; isTimerTab: boolean }) => {
-  const { language } = useAuthStore()
+  const language = useAuthStore(state => state.language)
   const { t } = useTranslation()
 
   if (!data) return null
@@ -84,7 +84,7 @@ const TopRankingItem = ({ data, isTimerTab }: { data: Ranking; isTimerTab: boole
             {`${
               !!data.grade &&
               t(
-                ((label) => (label ? t(label) : formatGrade(data.grade, t, language.code)))(
+                ((label) => (label ? t(label) : formatGrade(data.grade, t, language?.code)))(
                   BRIEF_GRADE_OPTIONS.find((o) => o.value === Number(data.grade))?.label
                 )
               )

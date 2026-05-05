@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import moment from "moment"
 import _ from "lodash"
 import {
@@ -27,7 +27,13 @@ import { removeDataStorage, setDataStorage } from "@/utils/storage"
 import useServerTime from "@/hooks/useServerTime"
 
 const useTimers = (open: boolean, handleToggle: () => void) => {
-    const { user, timers, setTimers, activeTimerId, activeTimerSeconds, setActiveTimerId, setActiveTimerSeconds } = useAuthStore()
+    const user = useAuthStore(state => state.user)
+    const timers = useAuthStore(state => state.timers)
+    const setTimers = useAuthStore(state => state.setTimers)
+    const activeTimerId = useAuthStore(state => state.activeTimerId)
+    const activeTimerSeconds = useAuthStore(state => state.activeTimerSeconds)
+    const setActiveTimerId = useAuthStore(state => state.setActiveTimerId)
+    const setActiveTimerSeconds = useAuthStore(state => state.setActiveTimerSeconds)
     const saveIntervalRef = useRef<NodeJS.Timeout | null>(null)
     const timerIntervalRef = useRef<NodeJS.Timeout | null>(null)
     const fetchedRef = useRef<string | null | undefined>(undefined)
@@ -187,7 +193,6 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
                 }
             } else {
                 let timerSelected = data
-                console.log({ data });
                 
                 if(isTimerRunning ||  data.status == null || data.status === TimerStatus.Stopped || data.status === TimerStatus.NotStarted) {
                     const start = onAcademy ? startStudentSubjectTimerApi : startSuperStudentSubjectTimerApi

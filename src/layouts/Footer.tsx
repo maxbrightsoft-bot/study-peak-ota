@@ -15,7 +15,7 @@ import useAuthStore from '@/store/useAuthStore'
 import { useTranslation } from 'react-i18next'
 
 const Footer = ({ navigation }: BottomTabBarProps) => {
-  const { user } = useAuthStore()
+  const user = useAuthStore(state => state.user)
   const { t } = useTranslation()
 
   const studySpaceTabItems = [

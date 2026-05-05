@@ -43,7 +43,8 @@ const fetchWithFallback = async (primaryFilter: TextbookQuery) => {
 };
 
 const useRecentTextbook = () => {
-  const { selectedAcademy, setLoading } = useAuthStore();
+  const selectedAcademy = useAuthStore(state => state.selectedAcademy)
+  const setLoading = useAuthStore(state => state.setLoading)
   const { t } = useTranslation();
   const textSearchRef = useRef<HTMLInputElement>(null);
   const [textbookList, setTextbookList] = useState<Textbook[]>([]);

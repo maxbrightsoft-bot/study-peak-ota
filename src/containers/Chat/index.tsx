@@ -1,5 +1,5 @@
 import SearchInput from '@/components/Input/SearchInput'
-import React, { useMemo } from 'react'
+import React, { useMemo, useCallback } from 'react'
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Image, SafeAreaView } from 'react-native'
 import FilterIcon from '@/assets/iconJSX/filter'
 import useConversationList from './hooks/useConversationList'
@@ -17,6 +17,123 @@ import moment from 'moment'
 import { ScaledSheet } from 'react-native-size-matters'
 import MathRender from '@/components/MathRender'
 import { Ionicons } from '@expo/vector-icons'
+
+const getConversationTitle = (
+  conversation: ConversationsResponse,
+  t: (key: string, options?: any) => string
+): string => {
+  if (!conversation) return ''
+
+  const isOnlyConversationStudentWithTeacher =
+    !conversation.studentExamSessionId &&
+    !conversation.studentTextbookSessionId &&
+    !conversation.courseId &&
+    !conversation.examSessionId &&
+    !!conversation.studentId &&
+    !!conversation.teacherId
+
+  if (isOnlyConversationStudentWithTeacher) {
+    return conversation.teacherName || t('teacher')
+  }
+
+  if (conversation.textbookId) {
+    return conversation.textbookName || t('textbook_inquiry')
+  }
+
+  if (conversation.examId) {
+    return conversation.examTitle || t('exam_inquiry')
+  }
+  if (conversation.courseId) {
+    return conversation.courseName || t('class_inquiry')
+  }
+
+  if (conversation.category) {
+    return t(conversation.category)
+  }
+
+  return ''
+}
+
+const isImagePath = (value?: string) => {
+  if (!value) return false
+
+  const imageRegex = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp))|(file:\/\/.*\.(?:png|jpg|jpeg|gif|webp))/i
+
+  return imageRegex.test(value)
+}
+
+const Card = React.memo(({
+  conversation,
+  t,
+  onPress
+}: {
+  conversation: ConversationsResponse,
+  t: any,
+  onPress: (conversation: ConversationsResponse) => void
+}) => (
+  <TouchableOpacity style={styles.card} onPress={() => onPress(conversation)}>
+    <Text style={styles.cardCategory}>{conversation.examTitle}</Text>
+
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+        <Text style={styles.cardTitle}>{getConversationTitle(conversation, t)}</Text>
+        {(conversation.studentTotalAttemptTime || 0) > 1 && (
+          <View
+            style={[
+              styles.attemptBadge,
+              {
+                backgroundColor: conversation.isSelected ? palette.main[100] : palette.red[100]
+              }
+            ]}
+          >
+            <Text
+              style={[
+                styles.attemptText,
+                {
+                  color: conversation.isSelected ? palette.main[700] : palette.red[900]
+                }
+              ]}
+            >
+              {`#${conversation.studentAttemptNumber + 1}/${conversation.studentTotalAttemptTime}`}
+            </Text>
+          </View>
+        )}
+      </View>
+      <Text style={styles.timeText}>{moment(conversation.createdAt).fromNow()}</Text>
+    </View>
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+
+      {isImagePath(conversation.lastMessage || '') ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Ionicons name="image-outline" size={16} color={palette.grey[500]} />
+          <Text style={{ color: palette.grey[500], fontSize: 14 }}>{t('image')}</Text>
+        </View>
+      ) : (
+        <MathRender content={conversation.lastMessage || ''} isChat maxLines={2} />
+      )}
+      {conversation?.question && <Text>
+        {
+          conversation?.question
+            ? t("problem_number_question", {
+              number: (conversation.question.questionOrder || 0) + 1
+            })
+            : ''
+        }
+      </Text>}
+    </View>
+    <View style={styles.divider} />
+    <View style={styles.profileRow}>
+      <Image
+        source={{
+          uri: conversation?.mainTeacherCourseAvatar || conversation?.teacherAvatar
+        }}
+        style={styles.avatar}
+      />
+      <Text style={styles.teacherName}>{conversation?.mainTeacherCourseName || conversation.teacherName}</Text>
+    </View>
+  </TouchableOpacity>
+))
+
 export default function Question() {
   const {
     t,
@@ -54,113 +171,10 @@ export default function Question() {
 
   const { selected, handleChangeTab } = useTab(TabList)
 
-  const getConversationTitle = (
-    conversation: ConversationsResponse,
-    t: (key: string, options?: any) => string
-  ): string => {
-    if (!conversation) return ''
-
-    const isOnlyConversationStudentWithTeacher =
-      !conversation.studentExamSessionId &&
-      !conversation.studentTextbookSessionId &&
-      !conversation.courseId &&
-      !conversation.examSessionId &&
-      !!conversation.studentId &&
-      !!conversation.teacherId
-
-    if (isOnlyConversationStudentWithTeacher) {
-      return conversation.teacherName || t('teacher')
-    }
-
-    if (conversation.textbookId) {
-      return conversation.textbookName || t('textbook_inquiry')
-    }
-
-    if (conversation.examId) {
-      return conversation.examTitle || t('exam_inquiry')
-    }
-    if (conversation.courseId) {
-      return conversation.courseName || t('class_inquiry')
-    }
-
-    if (conversation.category) {
-      return t(conversation.category)
-    }
-
-    return ''
-  }
-
-  const isImagePath = (value?: string) => {
-    if (!value) return false
-
-    const imageRegex = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp))|(file:\/\/.*\.(?:png|jpg|jpeg|gif|webp))/i
-
-    return imageRegex.test(value)
-  }
-
-  const Card = ({ conversation }: { conversation: ConversationsResponse }) => (
-    <TouchableOpacity style={styles.card} onPress={() => handleChangeSelectedConversation(conversation)}>
-      <Text style={styles.cardCategory}>{conversation.examTitle}</Text>
-
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Text style={styles.cardTitle}>{getConversationTitle(conversation, t)}</Text>
-          {(conversation.studentTotalAttemptTime || 0) > 1 && (
-            <View
-              style={[
-                styles.attemptBadge,
-                {
-                  backgroundColor: conversation.isSelected ? palette.main[100] : palette.red[100]
-                }
-              ]}
-            >
-              <Text
-                style={[
-                  styles.attemptText,
-                  {
-                    color: conversation.isSelected ? palette.main[700] : palette.red[900]
-                  }
-                ]}
-              >
-                {`#${conversation.studentAttemptNumber + 1}/${conversation.studentTotalAttemptTime}`}
-              </Text>
-            </View>
-          )}
-        </View>
-        <Text style={styles.timeText}>{moment(conversation.createdAt).fromNow()}</Text>
-      </View>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-
-        {isImagePath(conversation.lastMessage || '') ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Ionicons name="image-outline" size={16} color={palette.grey[500]} />
-            <Text style={{ color: palette.grey[500], fontSize: 14 }}>{t('image')}</Text>
-          </View>
-        ) : (
-          <MathRender content={conversation.lastMessage || ''} isChat maxLines={2} />
-        )}
-        {conversation?.question && <Text>
-          {
-            conversation?.question
-              ? t("problem_number_question", {
-                number: (conversation.question.questionOrder || 0) + 1
-              })
-              : ''
-          }
-        </Text>}
-      </View>
-      <View style={styles.divider} />
-      <View style={styles.profileRow}>
-        <Image
-          source={{
-            uri: conversation?.mainTeacherCourseAvatar || conversation?.teacherAvatar
-          }}
-          style={styles.avatar}
-        />
-        <Text style={styles.teacherName}>{conversation?.mainTeacherCourseName || conversation.teacherName}</Text>
-      </View>
-    </TouchableOpacity>
-  )
+  const handleCloseChatContainer = useCallback(() => {
+    setSelectedConversation(undefined)
+    getConversationList()
+  }, [getConversationList, setSelectedConversation])
 
   const conversationFilters = useMemo(() => {
     switch (selected) {
@@ -220,7 +234,12 @@ export default function Question() {
 
         <ScrollView showsVerticalScrollIndicator={false} >
           {conversationFilters.map((conversation) => (
-            <Card conversation={conversation} key={conversation.id} />
+            <Card
+              conversation={conversation}
+              key={conversation.id}
+              t={t}
+              onPress={handleChangeSelectedConversation}
+            />
           ))}
         </ScrollView>
       </View>
@@ -244,7 +263,7 @@ export default function Question() {
         <ChatContainer
           t={t}
           open={!!selectedConversation}
-          onClose={() => { setSelectedConversation(undefined); getConversationList() }}
+          onClose={handleCloseChatContainer}
           isLoadingMessages={isLoadingMessages}
           handleLoadMoreMessages={handleLoadMoreMessages}
           chatListProps={chatListProps}
@@ -352,13 +371,15 @@ const styles = ScaledSheet.create({
   cardCategory: {
     fontSize: 12,
     color: '#888',
-    marginBottom: 4
+    marginBottom: 4,
+    flex: 1
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: "#222222"
+    color: "#222222",
+    flex: 1
   },
   cardDescription: {
     fontSize: 14,

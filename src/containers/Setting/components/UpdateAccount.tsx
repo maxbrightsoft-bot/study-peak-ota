@@ -13,6 +13,7 @@ import * as Yup from 'yup'
 import { UserInfo } from '../configs/types'
 import useAuthStore from '@/store/useAuthStore'
 import CustomSelect from '@/components/Select/CustomSelect'
+import SchoolSearchSelect from '@/components/Select/SchoolSearchSelect'
 
 type Props = {
   open: boolean
@@ -52,7 +53,14 @@ const FormItem = ({ label, name, options, value, onChange, editingField, setEdit
 
       <View style={styles.right}>
         {isEditing ? (
-          !!options?.length ? (
+          name === 'schoolName' ? (
+            <SchoolSearchSelect
+              style={{ width: 150 }}
+              value={value}
+              onValueChange={onChange}
+              placeholder={label}
+            />
+          ) : !!options?.length ? (
             <CustomSelect style={{ width: 100 }} onValueChange={onChange} value={value || ''} options={options} />
           ) : (
             <TextField

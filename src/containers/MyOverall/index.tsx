@@ -24,7 +24,7 @@ interface OverallTabProps {
   onRendered?: () => void
 }
 
-const MyOverall: FC<OverallTabProps> = ({
+const MyOverall: FC<OverallTabProps> = React.memo(({
   examCode,
   resultData,
   categoriesOverallChartContainerProps,
@@ -63,7 +63,7 @@ const MyOverall: FC<OverallTabProps> = ({
 
   const SLIDE_WIDTH = width - 20
 
-  const slides = [
+  const slides = useMemo(() => [
     {
       key: 'overall',
       isTimeChart: false,
@@ -94,7 +94,15 @@ const MyOverall: FC<OverallTabProps> = ({
       isTimeChart: true,
       payload: { ...item, isPrint }
     }))
-  ]
+  ], [
+    t,
+    overallChartContainerProps,
+    categoriesOverallChartContainerProps,
+    subcategoriesOverallChartContainerProps,
+    questionTypesOverallChartContainerProps,
+    overallTimeChartContainerProps,
+    isPrint
+  ])
   const examTime = useMemo(() => {
     return `${utcToLocalTime(resultData?.startTime, 'HH:mm')} ~ ${utcToLocalTime(resultData?.finishTime, 'HH:mm')}`
   }, [resultData?.startTime, resultData?.finishTime])
@@ -295,7 +303,7 @@ const MyOverall: FC<OverallTabProps> = ({
       </View>
     </ScrollView>
   )
-}
+})
 
 const styles = ScaledSheet.create({
   container: {

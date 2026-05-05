@@ -19,7 +19,7 @@ const useOverallChartContainer = (
     const { t } = useTranslation()
     const [isLoading, setLoading] = useState<boolean>(false)
     const [overallData, setOverallData] = useState<OverallExamResultResponse>()
-    const { language } = useAuthStore()
+    const language = useAuthStore(state => state.language)
     const isKorean = language?.code === Language.ko;
 
     useEffect(() => {
@@ -76,16 +76,16 @@ const useOverallChartContainer = (
         ]
     }, [JSON.stringify(overallData)])
 
-    const categories = [
+    const categories = useMemo(() => [
         t("correct_rate"),
         t("high_level"),
         t("longest_time"),
         t("solving_time"),
         t("asterisks"),
         t("low_level")
-    ]
+    ], [t])
 
-    const shortCategories = categories.map(i => i.slice(0, 4) + "...")
+    const shortCategories = useMemo(() => categories.map(i => i.slice(0, 4) + "..."), [categories])
 
     const xAxisLabels = useMemo(() => {
         return categories.map((label, index) => {
@@ -133,14 +133,14 @@ const useOverallChartContainer = (
     }, [t, categories, JSON.stringify(overallData)])
 
 
-    return {
+    return useMemo(() => ({
         isLoading,
         myData,
         avgData,
         categories: isKorean ? categories : shortCategories,
         xAxisLabels,
         tooltipData
-    }
+    }), [isLoading, myData, avgData, categories, shortCategories, xAxisLabels, tooltipData, isKorean])
 }
 
 export default useOverallChartContainer

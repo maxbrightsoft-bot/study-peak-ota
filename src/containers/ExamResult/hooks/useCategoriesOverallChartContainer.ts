@@ -17,7 +17,7 @@ const useCategoriesOverallChartContainer = (
     const [isLoading, setLoading] = useState<boolean>(false)
     const [overallData, setOverallData] = useState<OverallCategoryData[]>([])
     const { t } = useTranslation()
-    const { language } = useAuthStore()
+    const language = useAuthStore(state => state.language)
     const isKorean = language?.code === Language.ko;
 
     useEffect(() => {
@@ -78,14 +78,14 @@ const useCategoriesOverallChartContainer = (
         })
     }, [JSON.stringify(overallData), JSON.stringify(categories)])
 
-    return {
+    return useMemo(() => ({
         isLoading,
         myData,
         avgData,
         categories: isKorean ? categories : shortCategories,
         xAxisLabels,
         tooltipData,
-    }
+    }), [isLoading, myData, avgData, categories, shortCategories, xAxisLabels, tooltipData, isKorean])
 }
 
 export default useCategoriesOverallChartContainer

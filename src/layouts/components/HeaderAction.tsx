@@ -13,7 +13,8 @@ import { currentScreen } from '@/navigators/NavigationHelpers'
 import { Routes } from '@/navigators/RouteName'
 
 const HeaderAction = () => {
-  const { user, isOpenTimerDialog, setIsOpenTimerDialog } = useAuthStore()
+  const isOpenTimerDialog = useAuthStore(state => state.isOpenTimerDialog)
+  const setIsOpenTimerDialog = useAuthStore(state => state.setIsOpenTimerDialog)
   const [openSettingDialog, setOpenSettingDialog] = useState<boolean>(false)
 
   const handleTimerDialogToggle = () => {

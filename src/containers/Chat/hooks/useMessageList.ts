@@ -10,7 +10,7 @@ const useMessageList = () => {
   const [messages, setMessages] = useState<MessageResponse[]>([])
   const [messageFilter, setMessageFilter] = useState<MessageFilter>(MESSAGE_DEFAULT_FILTER)
   const [isLoading, setLoading] = useState<boolean>(false)
-  const { setLoadingWithoutOverlay } = useAuthStore()
+  const setLoadingWithoutOverlay = useAuthStore(state => state.setLoadingWithoutOverlay)
   const { t } = useTranslation()
 
   const getMessageList = async (conversationId: number) => {

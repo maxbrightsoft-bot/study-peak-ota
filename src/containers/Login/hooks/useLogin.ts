@@ -57,8 +57,6 @@ const useLogin = () => {
       ? await setDataStorage(LEARNING_SPACE, 'true')
       : await removeDataStorage(LEARNING_SPACE);
 
-    console.log('redirectUrl', redirectUrl);
-
     setRedirectUrl(redirectUrl);
     setUser(data);
   };
@@ -74,24 +72,14 @@ const useLogin = () => {
       const { isFirstLogin, token, user, loginMethod } = await apiLogin();
       const isAcademy = !!user?.academyDomain || !!user?.isLearningSpace;
 
-      console.log('isFirstLogin', isFirstLogin);
-      console.log('token', token);
-      console.log('user', user);
-      console.log('loginMethod', loginMethod);
-      console.log('isAcademy', isAcademy);
-
-
       let redirectUrl: string;
       if (isFirstLogin && isAcademy) {
         redirectUrl = Platform.OS === 'ios' ? Routes.Auth.Home : Routes.Auth.Onboarding;
       } else if (redirectUrlProp) {
         redirectUrl = redirectUrlProp;
       } else if (isAcademy) {
-        console.log('isAcademy', isAcademy);
-
         redirectUrl = Routes.Auth.Home;
       } else {
-        console.log('else', isAcademy);
         setHasEnteredSelectAcademy(false);
         redirectUrl = Routes.Auth.SelectAcademy;
       }

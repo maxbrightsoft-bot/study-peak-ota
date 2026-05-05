@@ -41,7 +41,6 @@ const StudyTimerTab: FC<StudyTimerTabProps> = ({
   loadMoreTimers
 }) => {
   const { t } = useTranslation()
-  const { user } = useAuthStore()
 
   const [isAdding, setIsAdding] = useState(false)
   const [addingOptions, setAddingOptions] = useState<{label: string, value: number}[]>([])

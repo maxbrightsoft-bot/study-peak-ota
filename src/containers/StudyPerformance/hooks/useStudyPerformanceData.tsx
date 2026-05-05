@@ -52,7 +52,7 @@ type Props = {
 
 const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
   const { t } = useTranslation()
-  const { user } = useAuthStore()
+  const user = useAuthStore(state => state.user)
   const academyDomain = user?.academyDomain
   const [visible, setVisible] = useState(false)
   const isStudent = user?.roles?.includes(Role.Student)

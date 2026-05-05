@@ -18,7 +18,7 @@ const useQuestionTypesOverallChartContainer = (
     const [isLoading, setLoading] = useState<boolean>(false)
     const [overallData, setOverallData] = useState<OverallQuestionTypeData[]>([])
     const { t } = useTranslation()
-    const { language } = useAuthStore()
+    const language = useAuthStore(state => state.language)
     const isKorean = language?.code === Language.ko;
 
     useEffect(() => {
@@ -40,7 +40,7 @@ const useQuestionTypesOverallChartContainer = (
             setLoading(false)
         }
         fetchData()
-    }, [examCode, isGetDataResult, examResultData?.type, examResultData?.examSessionId, JSON.stringify(overallData), studentExamSessionId])
+    }, [examCode, isGetDataResult, examResultData?.type, examResultData?.examSessionId, studentExamSessionId])
 
     const myData = useMemo(() => {
         if (!overallData?.length) return [0, 0, 0, 0, 0, 0]
@@ -78,14 +78,14 @@ const useQuestionTypesOverallChartContainer = (
         })
     }, [JSON.stringify(overallData), JSON.stringify(categories)])
 
-    return {
+    return useMemo(() => ({
         isLoading,
         myData,
         avgData,
         categories: isKorean ? categories : shortCategories,
         xAxisLabels,
         tooltipData,
-    }
+    }), [isLoading, myData, avgData, categories, shortCategories, xAxisLabels, tooltipData, isKorean])
 }
 
 export default useQuestionTypesOverallChartContainer

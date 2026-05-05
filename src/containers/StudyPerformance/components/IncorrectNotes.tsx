@@ -20,7 +20,6 @@ const NoteCard = ({
   item: NoteResponse
   onOpenDialog: (item?: NoteResponse | undefined) => void
 }) => {
-  console.log(item)
   return (
     <Pressable style={({ pressed }) => [styles.container, pressed && styles.pressed]} onPress={() => onOpenDialog(item)}>
       <View style={styles.metaRow}>

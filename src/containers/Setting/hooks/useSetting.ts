@@ -14,7 +14,10 @@ import { POLICY_VERSION } from "../configs/policyContent"
 const useSetting = () => {
   const [openNoticeDialog, setOpenNoticeDialog] = useState<boolean>(false)
   const [openUpdateUserDialog, setOpenUpdateUserDialog] = useState<boolean>(false)
-  const { setLoading, setUser, user, logout } = useAuthStore()
+  const setLoading = useAuthStore(state => state.setLoading)
+  const setUser = useAuthStore(state => state.setUser)
+  const user = useAuthStore(state => state.user)
+  const logout = useAuthStore(state => state.logout)
   const { t } = useTranslation()
   const [openSchedule, setOpenSchedule] = useState(false)
   const [openConfirmRemoveAccount, setOpenConfirmRemoveAccount] = useState(false)

@@ -29,7 +29,8 @@ type Props = {
 const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExamSessionId }: Props) => {
   const { t } = useTranslation()
   const contentRef = useRef<View>(null)
-  const { user, setLoading } = useAuthStore()
+  const user = useAuthStore(state => state.user)
+  const setLoading = useAuthStore(state => state.setLoading)
   const [resultData, setResultData] = useState<ExamResult>();
   const [effectSize, setEffectSize] = useState<EffectSize[]>();
   const [longTimeSpend, setLongTimeSpend] = useState<LongTimeSpendQuestion[]>(
@@ -51,7 +52,6 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
   const [isOpenConfirmRestartExamDialog, setIsOpenConfirmRestartExamDialog] = useState(false)
   const [openActionMenu, setOpenActionMenu] = useState(false)
 
-  console.log("examStatusView", examStatusView)
   const handleOpenActionMenu = () => {
     setOpenActionMenu(true)
   }
@@ -147,9 +147,9 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
     else
       getStudentData(examCode || '')
   }
-useEffect(() => {
-  getData()
-}, [examCode, user?.email])
+  useEffect(() => {
+    getData()
+  }, [examCode, user?.email])
 
   const totalTime = useMemo(() => {
     let totalTime = 0

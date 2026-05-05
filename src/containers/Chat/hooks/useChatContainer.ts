@@ -20,7 +20,8 @@ interface Props {
 const useChatContainer = (props: Props) => {
   const { conversation, student } = props;
   const { t } = useTranslation()
-  const { user, setLoadingWithoutOverlay } = useAuthStore()
+  const user = useAuthStore(state => state.user)
+  const setLoadingWithoutOverlay = useAuthStore(state => state.setLoadingWithoutOverlay)
   const inputRef = useRef<MathRichInputRef>(null);
   const isReceivedMessage = useRef(false)
   const roles = user?.roles || []

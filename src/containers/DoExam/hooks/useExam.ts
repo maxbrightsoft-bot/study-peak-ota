@@ -34,8 +34,6 @@ import { logError } from '@/utils/helpers/crashlyticsLogger';
 import crashlytics from '@react-native-firebase/crashlytics'
 import { useActivityTracking } from '@/hooks/useActivityTracking';
 import { useKeepAwake } from 'expo-keep-awake';
-import useTimers from '@/layouts/hooks/useTimer';
-import useAlarm from '@/layouts/hooks/useAlarm';
 
 type Props = {
   examCode: string;
@@ -54,7 +52,12 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
   const [isNotFoundExam, setNotFoundExam] = useState<boolean>();
   const [liveResultDialog, setLiveResultDialog] = useState(false);
   const [openResultDialog, setOpenResultDialog] = useState(false);
-  const { user, setLoading, pusher, subscribeChannel, setLoadingWithoutOverlay, unsubscribeChannelSafe } = useAuthStore()
+  const user = useAuthStore(state => state.user)
+  const setLoading = useAuthStore(state => state.setLoading)
+  const pusher = useAuthStore(state => state.pusher)
+  const subscribeChannel = useAuthStore(state => state.subscribeChannel)
+  const setLoadingWithoutOverlay = useAuthStore(state => state.setLoadingWithoutOverlay)
+  const unsubscribeChannelSafe = useAuthStore(state => state.unsubscribeChannelSafe)
   const academyDomain: string | undefined = user?.academyDomain;
   const userId: number | undefined = user?.id;
   const [isOpenConfirmDialog, setOpenConfirmDialog] = useState(false);
