@@ -14,7 +14,7 @@ import { useFocusEffect } from "@react-navigation/native"
 import { DEFAULT_NOTE_FILTER } from "../configs/constants"
 import { deleteNoteApi, updateNoteApi } from "../apiClients"
 import { apiUploadImageFile } from "@/containers/ExamResultList/apiClients"
-import { pick } from "@react-native-documents/picker"
+import * as ImagePicker from 'expo-image-picker';
 import useAuthStore from "@/store/useAuthStore"
 import { NoteSortColumn, OrderBy } from "@/utils/enums"
 
@@ -118,20 +118,28 @@ const useNotes = (
 
     const handleUploadImage = async () => {
         try {
-            const [result] = await pick({
-                mode: 'open',
-                allowVirtualFiles: true
-            })
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ['images'],
+                quality: 0.8,
+            });
 
-            setLoadingWithoutOverlay(true)
+            if (result.canceled || !result.assets.length) return;
+
+            setLoadingWithoutOverlay(true);
+            const asset = result.assets[0];
             const formData = new FormData();
-            formData.append("upload", result as any);
+            formData.append("upload", {
+                uri: asset.uri,
+                type: asset.mimeType || 'image/jpeg',
+                name: asset.fileName || `image_${Date.now()}.jpg`,
+            } as any);
             const res = await apiUploadImageFile(formData);
-            setImageUrl(res?.data?.url)
+            setImageUrl(res?.data?.url);
         } catch (error) {
-            toast.error(getErrorMessage(t, error))
+            toast.error(getErrorMessage(t, error));
+        } finally {
+            setLoadingWithoutOverlay(false);
         }
-        setLoadingWithoutOverlay(false);
     }
 
     const reset = () => {

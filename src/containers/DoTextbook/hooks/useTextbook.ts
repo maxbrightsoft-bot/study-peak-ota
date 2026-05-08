@@ -73,46 +73,64 @@ const useTextbook = ({
   const [openExpiredQuestionDialog, setOpenExpiredQuestionDialog] = useState<boolean>(false)
   const [openTextbookResultDialog, setOpenTextbookResultDialog] = useState(false)
   const { getServerNow } = useServerTime();
+  const handleTimerDialogToggle = useCallback(() => {
+    setOpenTimerDialog(state => !state)
+  }, [])
+
+  const {
+    timers,
+    studyTimerProps,
+    timeUpdateDialogProps,
+    isTimerRunning,
+  } = useTimers(openTimerDialog, handleTimerDialogToggle)
+
+  const {
+    audioGuideModalProps,
+    isAlarmRunning,
+    speaker,
+    disabledSpeaker,
+    audioPopupProps,
+    handleToggleSpeaker,
+    alarmClockProps,
+    handleStopAlarm,
+    handleStartSelectedSubjectAlarm
+  } = useAlarm(openTimerDialog, timers)
   const { track, trackError } = useActivityTracking({ screen: AppScreen.DoTextbook })
   useKeepAwake();
 
-  const handleCloseTextbookResultDialog = () => {
+  const handleCloseTextbookResultDialog = useCallback(() => {
     setOpenTextbookResultDialog(false)
-  }
+  }, [])
 
-  const handleOpenTextbookResultDialog = () => {
+  const handleOpenTextbookResultDialog = useCallback(() => {
     handleCloseExpiredQuestionDialog()
     setOpenTextbookResultDialog(true)
-  }
+  }, [])
 
-  const handleCloseExpiredQuestionDialog = () => {
+  const handleCloseExpiredQuestionDialog = useCallback(() => {
     setOpenExpiredQuestionDialog(false)
-  }
+  }, [])
 
-  const handleOpenExpiredQuestionDialog = () => {
+  const handleOpenExpiredQuestionDialog = useCallback(() => {
     setOpenExpiredQuestionDialog(true)
-  }
+  }, [])
 
-  const handleOpenLeaveDialog = () => {
+  const handleOpenLeaveDialog = useCallback(() => {
     setOpenLeaveDialog(true)
-  }
+  }, [])
 
-  const handleCloseLeaveDialog = () => {
+  const handleCloseLeaveDialog = useCallback(() => {
     setOpenLeaveDialog(false)
-  }
+  }, [])
 
-  const handleTimerDialogToggle = () => {
-    setOpenTimerDialog(state => !state)
-  }
-
-  const handleOpenAnswerSheet = (id?: number) => {
+  const handleOpenAnswerSheet = useCallback((id?: number) => {
     id && setCurrentQuestionId(id);
     setOpenAnswerSheet(true);
-  }
+  }, [])
 
-  const handleCloseAnswerSheet = () => {
+  const handleCloseAnswerSheet = useCallback(() => {
     setOpenAnswerSheet(false);
-  }
+  }, [])
 
 
   const nav1 = useRef<any>(null);
@@ -285,7 +303,7 @@ const useTextbook = ({
       setNotFoundTextbook(true);
       trackError(err, {
         resourceType: ActivityResource.Textbook,
-        triggeredAt: nowTime,
+        triggeredAt: new Date(nowTime).toISOString(),
         resourceId: textbook?.id,
         metaData: {
           textbookId: textbook?.id || '',
@@ -310,6 +328,7 @@ const useTextbook = ({
     if (textbook?.isMock && handleOpenDrawer) {
       handleOpenDrawer();
     }
+    handleStopAlarm()
     setTextbook(state => !state ? state : ({
       ...state,
       status: ExamStatus.Completed
@@ -347,7 +366,7 @@ const useTextbook = ({
     status: textbook?.status
   });
 
-  const { updateQuestionAnswer, updateQuestionStar, recoverAnswers } =
+  const { updateQuestionAnswer, updateQuestionStar, recoverAnswers, handleResetTextbookSolving } =
     useTextbookSolving({
       startTime,
       textbook: textbook,
@@ -393,13 +412,15 @@ const useTextbook = ({
       }
     });
 
-    return arrOptions.filter((option) => {
-      if (!obj[option.label]) {
-        obj[option.label] = 1;
-        return true;
-      }
-      return false;
-    });
+    return arrOptions
+      .filter((option) => {
+        if (!obj[option.label]) {
+          obj[option.label] = 1;
+          return true;
+        }
+        return false;
+      })
+      .sort((a, b) => a.value - b.value);
   }, [questionGroupList, t]);
 
   const onFinishedTextbook = async () => {
@@ -413,13 +434,14 @@ const useTextbook = ({
       };
       await recoverAnswers();
       await pauseOrFinished(Number(textbookId), req);
+      await handleStopAlarm()
       handleCloseLeaveDialog()
       navigate(Routes.Auth.Textbook);
     } catch (error) {
       toast.error(getErrorMessage(t, error));
       trackError(error, {
         resourceType: ActivityResource.Textbook,
-        triggeredAt: nowTime,
+        triggeredAt: new Date(nowTime).toISOString(),
         resourceId: textbook?.id,
         metaData: {
           textbookId: textbook?.id || '',
@@ -430,22 +452,6 @@ const useTextbook = ({
     setLoading(false);
   };
 
-  const {
-    timers,
-    studyTimerProps,
-    timeUpdateDialogProps,
-    isTimerRunning,
-  } = useTimers(openTimerDialog, handleTimerDialogToggle)
-
-  const {
-    audioGuideModalProps,
-    isAlarmRunning,
-    speaker,
-    disabledSpeaker,
-    audioPopupProps,
-    handleToggleSpeaker,
-    alarmClockProps,
-  } = useAlarm(openTimerDialog, timers)
 
   useEffect(() => {
     if (questionList.length > 0) {
@@ -495,11 +501,12 @@ const useTextbook = ({
           studentTextbookId: textbook?.studentTextbookId
         }
       })
+      toast.info(t(status === ExamStatus.Paused ? "textbook_has_been_paused" : "textbook_has_been_resumed"));
     } catch (error) {
       toast.error(getErrorMessage(t, error));
       trackError(error, {
         resourceType: ActivityResource.Textbook,
-        triggeredAt: nowTime,
+        triggeredAt: new Date(nowTime).toISOString(),
         resourceId: textbook?.id,
         metaData: {
           studentTextbookId: String(textbook?.studentTextbookId || ''),
@@ -520,8 +527,10 @@ const useTextbook = ({
         startPage: restartTextbookData?.startPage,
         endPage: restartTextbookData?.endPage
       };
-      await restartTextbookApi(Number(textbook.id), req);
-      getQuestionsTextbook();
+
+      console.log({ req });
+      
+
       track({
         action: ActivityAction.Restart,
         resourceType: ActivityResource.Textbook,
@@ -532,11 +541,16 @@ const useTextbook = ({
           studentTextbookId: textbook?.studentTextbookId
         }
       })
+
+      handleResetTextbookSolving();
+      await restartTextbookApi(Number(textbook.id), req);
+      getQuestionsTextbook();
+      toast.info(t("textbook_has_been_restarted"));
     } catch (error) {
       toast.error(getErrorMessage(t, error));
       trackError(error, {
         resourceType: ActivityResource.Textbook,
-        triggeredAt: nowTime,
+        triggeredAt: new Date(nowTime).toISOString(),
         resourceId: textbook?.id,
         metaData: {
           studentTextbookId: String(textbook?.studentTextbookId || ''),
@@ -548,6 +562,7 @@ const useTextbook = ({
   };
 
   const clearData = () => {
+    handleResetTextbookSolving();
     setTextbook(undefined);
     setQuestionList([]);
     handleCloseExpiredQuestionDialog()
@@ -565,6 +580,7 @@ const useTextbook = ({
       offset: 0,
       animated: true
     })
+    toast.dismiss()
   }
 
   useFocusEffect(
@@ -722,6 +738,7 @@ const useTextbook = ({
     studyTimerProps,
     timeUpdateDialogProps,
     handleToggleSpeaker,
+    handleStartSelectedSubjectAlarm,
     openAnswerSheet,
     handleOpenAnswerSheet,
     handleCloseAnswerSheet,

@@ -18,6 +18,10 @@ const InfoExamCode = ({ onClose, open, examSession }: Props) => {
     <CommonDialog isVisible={open} onClose={onClose} title={t('confirm_exam_info')}>
       <View style={styles.container}>
         <View style={styles.row}>
+          <Text style={styles.label}>{t('exam_name')}</Text>
+          <Text style={styles.value}>{examSession?.title}</Text>
+        </View>
+        <View style={styles.row}>
           <Text style={styles.label}>{t('exam_code')}</Text>
           <Text style={styles.value}>{examSession?.code}</Text>
         </View>
@@ -39,9 +43,6 @@ const InfoExamCode = ({ onClose, open, examSession }: Props) => {
           <Text style={styles.value}>{examSession?.teacherName}</Text>
         </View>
 
-        <TouchableOpacity>
-          <Text style={styles.startText}>{t('confirm_exam_start')}</Text>
-        </TouchableOpacity>
       </View>
     </CommonDialog>
   )

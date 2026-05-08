@@ -131,12 +131,12 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
     setLoading(false)
   };
 
-  const handleStartAudio = async (textbook: Textbook, minutes?: number, startTime?: number) => {
+  const handleStartAudio = async (textbook: Textbook, minutes?: number, startTime?: number, skipPreAlarm?: boolean) => {
     const subject = textbook.subject || { id: textbook.subjectId, name: textbook.subjectName }
-    await handleStartSelectedSubjectAlarm(true, minutes || textbook.limitedTimeInMinutes, subject as any, startTime)
+    await handleStartSelectedSubjectAlarm(true, minutes || textbook.limitedTimeInMinutes, subject as any, startTime, skipPreAlarm)
   }
 
-  const handleStartTextbook = async (enable: boolean, textbook: Textbook, minutes?: number) => {
+  const handleStartTextbook = async (enable: boolean, textbook: Textbook, minutes?: number, skipPreAlarm?: boolean) => {
     try {
       setLoading(true)
       const serverNow = await getServerNow()
@@ -151,7 +151,7 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
         startTime = moment.utc(res.data).valueOf()
       }
       if (enable) {
-        await handleStartAudio(textbook, minutes, startTime)
+        await handleStartAudio(textbook, minutes, startTime, skipPreAlarm)
       }
 
     } catch (error) {

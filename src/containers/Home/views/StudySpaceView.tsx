@@ -55,13 +55,12 @@ const StudySpaceView = () => {
   return (
     <View>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} ref={scrollRef} style={{ backgroundColor: palette.main[600] }}>
-
         <View style={styles.container}>
           <View style={{ marginBottom: 28 }}>
             <StudyTimerCard />
           </View>
           <View>
-            <Text style={{ ...TYPO.heading1, color: palette.grey[900], }}>{t('schedule_detail')}</Text>
+            <Text style={{ fontSize: 11, color: palette.main[600], fontWeight: 500, }}>{t('schedule_detail')}</Text>
           </View>
           <TouchableOpacity
             style={styles.fabButton}

@@ -1,4 +1,4 @@
-import { pick } from "@react-native-documents/picker"
+import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect } from "@react-navigation/native"
 import { useCallback, useRef, useState } from "react"
 import { Platform } from "react-native"
@@ -41,35 +41,19 @@ const useSketchCanvas = () => {
 
   const handleUploadImage = async () => {
     try {
-      const [result] = await pick({
-        mode: 'open',
-        copyTo: 'cachesDirectory',
-        allowVirtualFiles: true
-      })
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        base64: true,
+        quality: 0.8,
+      });
 
-      let path = result.uri
-      let base64 = ''
+      if (result.canceled || !result.assets.length) return;
 
-      if (Platform.OS === 'android' && path.startsWith('content://')) {
-        base64 = await ReactNativeBlobUtil.fs.readFile(path, 'base64')
-      } else {
-        if (Platform.OS === 'android' && path.startsWith('file://')) {
-          path = path.replace('file://', '')
-        }
-        if (!path) return
-        base64 = await RNFS.readFile(path, 'base64')
-      }
-
-      const mime = result.type || 'image/png'
-      if (base64) {
-        base64 = base64.replace(/\s/g, '')
-      }
-      if (!base64) {
-        console.log('Failed to read file! base64 is empty.')
-      }
-      setImage(`data:${mime};base64,${base64}`)
+      const asset = result.assets[0];
+      const mime = asset.mimeType || 'image/png';
+      setImage(`data:${mime};base64,${asset.base64}`);
     } catch (error) {
-      console.log('handleUploadImage error', error)
+      console.log('handleUploadImage error', error);
     }
   }
 

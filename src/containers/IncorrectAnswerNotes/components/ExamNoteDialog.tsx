@@ -75,7 +75,7 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
           onSubmit={(values) => onSaveNote(values.content, values.questionId)}
         >
           {({ handleChange, handleSubmit, values, setFieldValue }) => {
-            const question = examResultData?.questions.find(i => i.id === values.questionId)
+            const question = examResultData?.questions?.find(i => i.id === values.questionId) || textbookResult?.studentQuestionResults?.find(i => i.id === values.questionId)
 
             return (
               <>

@@ -263,16 +263,16 @@ const useProblemSolving = () => {
     }
   }
 
-  const handleStartAudio = async (textbook: Textbook) => {
-    onStart(AlarmType.Subject, textbook.limitedTimeInMinutes, textbook.subject as any, true)
+  const handleStartAudio = async (textbook: Textbook, skipPreAlarm?: boolean) => {
+    onStart(AlarmType.Subject, textbook.limitedTimeInMinutes, textbook.subject as any, skipPreAlarm)
   }
 
-  const handleStartTextbook = async (enable: boolean, textbook: Textbook) => {
+  const handleStartTextbook = async (enable: boolean, textbook: Textbook, skipPreAlarm?: boolean) => {
     try {
       setLoadingWithoutOverlay(true)
       await startTextbook(textbook.id)
       if (enable && !textbook.isMock)
-        await handleStartAudio(textbook)
+        await handleStartAudio(textbook, skipPreAlarm)
       handleCloseAudioGuide()
     } catch (error) {
       toast.error(getErrorMessage(t, error));
@@ -283,9 +283,9 @@ const useProblemSolving = () => {
     }
   }
 
-  const handleStartTextbookFromGuideModal = (enable: boolean) => {
+  const handleStartTextbookFromGuideModal = (enable: boolean, skipPreAlarm?: boolean) => {
     if (!selectedTextbook) return
-    handleStartTextbook(enable, selectedTextbook)
+    handleStartTextbook(enable, selectedTextbook, skipPreAlarm)
   }
 
   useFocusEffect(

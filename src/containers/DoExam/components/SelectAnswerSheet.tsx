@@ -19,6 +19,7 @@ type Props = {
   scrollToQuestion: (type: ScrollType) => void
   onFishedExam: () => void
   currentQuestion: Question
+  disabled?: boolean
 }
 const SelectAnswerSheet = ({
   visible,
@@ -28,7 +29,8 @@ const SelectAnswerSheet = ({
   updateQuestionAnswer,
   updateQuestionStar,
   scrollToQuestion,
-  onFishedExam
+  onFishedExam,
+  disabled
 }: Props) => {
   const { t } = useTranslation()
   const [isReady, setIsReady] = useState(false)
@@ -85,7 +87,7 @@ const SelectAnswerSheet = ({
           <View style={styles.sheetContent}>
             <Text style={styles.title}>{t('answer_sheet_note')}</Text>
 
-            <ExamAnswer t={t} question={currentQuestion} isLastQuestion={currentQuestion?.id === questionList[questionList.length - 1]?.id} updateQuestionAnswer={updateQuestionAnswer} onClose={onClose} />
+            <ExamAnswer t={t} question={currentQuestion} isLastQuestion={currentQuestion?.id === questionList[questionList.length - 1]?.id} updateQuestionAnswer={updateQuestionAnswer} onClose={onClose} disabled={disabled} />
           </View>
 
           <View style={styles.navRow}>

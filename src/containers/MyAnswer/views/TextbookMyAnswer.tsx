@@ -1,12 +1,12 @@
-import React, { FC, useMemo, useCallback, memo } from 'react'
-import { View, Text, FlatList, StyleSheet } from 'react-native'
+import React, { FC, useMemo, useCallback } from 'react'
+import { View, Text, ScrollView, StyleSheet } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { EffectSize, Question, StudentQuestionResult, TextbookResult } from '@/utils/types'
 import { SubjectType } from '@/utils/enums'
 import { formatTextbookDataMyAnswer } from '../configs/helpers'
 import { formatTimeSecond, formatTimeDiffV2 } from '@/utils/helpers'
 import AnswerItem from '../components/TextbookAnswerItem'
-import { red, primary } from '@/theme/colors'
+import { red, primary, palette } from '@/theme/colors'
 
 interface Props {
   data: TextbookResult
@@ -14,19 +14,6 @@ interface Props {
   onCreateNote?: (question: Question) => void
   onCreateQuestion?: (question: Question) => void
 }
-
-const TableHeader = memo(({ t }: { t: any }) => (
-  <View style={styles.headerRow}>
-    <View style={styles.column1}><Text style={styles.headerText}>{t('problem_number')}</Text></View>
-    <View style={styles.column2}><Text style={styles.headerText}>{t('answer')}</Text></View>
-    <View style={styles.column3}><Text style={styles.headerText}>{t('solve_time')}</Text></View>
-    <View style={styles.column4}><Text style={styles.headerText}>{t('comparison_of_top_rankings')}</Text></View>
-    <View style={styles.column5}>
-      <Text style={styles.headerText}>{t('total_correct_rate')}</Text>
-      <Text style={styles.skipRateText}>{`(${t('not_selected')})`}</Text>
-    </View>
-  </View>
-))
 
 const TextbookMyAnswer: FC<Props> = ({ data, effectSize, onCreateNote, onCreateQuestion }) => {
   const { t } = useTranslation()
@@ -69,9 +56,9 @@ const TextbookMyAnswer: FC<Props> = ({ data, effectSize, onCreateNote, onCreateQ
 
       return { ...group, overall }
     })
-  }, [formattedData])
+  }, [formattedData, t])
 
-  const renderAnswer = useCallback((
+  const renderAnswer = (
     item: StudentQuestionResult,
     index: number,
     questions: StudentQuestionResult[],
@@ -104,25 +91,31 @@ const TextbookMyAnswer: FC<Props> = ({ data, effectSize, onCreateNote, onCreateQ
       <View key={`${item.id}-${index}`}>
         {subOverall?.length > 0 && isVisible && (
           <View style={styles.groupHeader}>
-            <View style={styles.groupColumn1}>
+            <View style={styles.groupHeaderColumn1}>
               {subcategory && <Text style={styles.subcategoryText}>{subcategory.name}</Text>}
             </View>
-            <View style={styles.groupColumn2} />
-            <View style={styles.groupColumn3}>
+            <View style={styles.groupHeaderColumn2} />
+            <View style={styles.groupHeaderColumn3}>
               <Text style={styles.groupHeaderTime}>{subOverall[indexQuestionGroup]?.solvedTime}</Text>
             </View>
-            <View style={styles.groupColumn4}>
+            <View style={styles.groupHeaderColumn4}>
               <Text style={styles.groupHeaderTime}>{subOverall[indexQuestionGroup]?.diffTime}</Text>
             </View>
-            <View style={styles.groupColumn5} />
+            <View style={styles.groupHeaderColumn5} />
           </View>
         )}
 
         {isMath && item?.questionTypeCategories && (
-          <View style={styles.mathTypeContainer}>
-            <Text style={styles.mathTypeText}>
-              {item.questionTypeCategories.map((i) => i?.questionType?.name).join(', ')}
-            </Text>
+          <View style={styles.questionTypeContainer}>
+            <View style={styles.questionTypeColumn}>
+              <Text style={styles.questionTypeText}>
+                {item.questionTypeCategories.map((i) => i?.questionType?.name).join(', ')}
+              </Text>
+            </View>
+            <View style={styles.questionTypeEmptyColumn} />
+            <View style={styles.questionTypeEmptyColumn} />
+            <View style={styles.questionTypeEmptyColumn} />
+            <View style={styles.questionTypeEmptyColumn} />
           </View>
         )}
 
@@ -138,107 +131,219 @@ const TextbookMyAnswer: FC<Props> = ({ data, effectSize, onCreateNote, onCreateQ
         />
       </View>
     )
-  }, [data.questionGroups, effectSize, isMath])
+  }
 
-  const flatItems = useMemo(() => {
-    const result: any[] = []
-    newFormattedData.forEach((group) => {
-      result.push({ type: 'header', key: `header-${group.questionGroupId}` })
-      result.push({ type: 'category', key: `cat-${group.questionGroupId}`, group })
-      group.questions.forEach((q, index) => {
-        result.push({
-          type: 'question',
-          key: `q-${q.id}-${index}`,
-          item: q,
-          index,
-          questions: group.questions,
-          questionGroupId: group.questionGroupId,
-          overall: group.overall,
-        })
-      })
-    })
-    return result
-  }, [newFormattedData])
-
-  const renderItem = useCallback(({ item: flatItem }: any) => {
-    if (flatItem.type === 'header') {
-      return <TableHeader t={t} />
-    }
-    if (flatItem.type === 'category') {
-      return (
-        <View style={styles.categoryNameRow}>
-          <Text style={styles.categoryLabel}>{t('_category')}</Text>
-          <Text style={styles.categoryValue}>
-            {flatItem.group.categories?.map((i: any) => i.name).join(' / ')}
-          </Text>
-        </View>
-      )
-    }
-    return renderAnswer(flatItem.item, flatItem.index, flatItem.questions, flatItem.questionGroupId, flatItem.overall)
-  }, [t, renderAnswer])
+  const renderHeader = () => (
+    <View style={styles.headerRow}>
+      <View style={styles.column1}><Text style={styles.headerText}>{t('problem_number')}</Text></View>
+      <View style={styles.column2}><Text style={styles.headerText}>{t('answer')}</Text></View>
+      <View style={styles.column3}><Text style={styles.headerText}>{t('solve_time')}</Text></View>
+      <View style={styles.column4}><Text style={styles.headerText}>{t('comparison_of_top_rankings')}</Text></View>
+      <View style={styles.column5}>
+        <Text style={styles.headerText}>{t('total_correct_rate')}</Text>
+        <Text style={styles.skipRateText}>{`(${t('not_selected')})`}</Text>
+      </View>
+    </View>
+  )
 
   return (
-    <FlatList
-      data={flatItems}
-      keyExtractor={(item) => item.key}
-      renderItem={renderItem}
-      contentContainerStyle={{ paddingBottom: 350 }}
-      removeClippedSubviews={true}
-      maxToRenderPerBatch={10}
-      windowSize={5}
-      initialNumToRender={15}
-    />
+    <View style={styles.container}>
+      <View style={styles.titleContainer}>
+        <Text style={styles.titleText}>{t('my_answers')}</Text>
+      </View>
+      <ScrollView
+        horizontal={false}
+        showsVerticalScrollIndicator={true}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 350 }}
+      >
+        {newFormattedData &&
+          newFormattedData.length > 0 &&
+          newFormattedData.map((item, index) => (
+            <View key={item.questionGroupId} style={styles.categorySection}>
+              {index === 0 && renderHeader()}
+              <View style={styles.categoryHeader}>
+                <View style={styles.categoryColumn}>
+                  <Text style={styles.categoryLabel}>{t('_category')}</Text>
+                  <Text style={styles.categoryName}>
+                    {item.categories?.map((i: any) => i.name).join(' / ')}
+                  </Text>
+                </View>
+              </View>
+              <View style={[styles.questionsContainer, index === newFormattedData.length - 1 && { borderBottomLeftRadius: 14, borderBottomRightRadius: 14 }]}>
+                {item.questions.map((question, qIndex) => renderAnswer(question, qIndex, item.questions, item.questionGroupId, item.overall))}
+              </View>
+            </View>
+          ))}
+      </ScrollView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
-  categorySection: { marginBottom: 20 },
+  container: {},
+  titleContainer: {
+    borderRadius: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    paddingVertical: 8,
+    marginBottom: 10
+  },
+  titleText: {
+    color: palette.main[600],
+    fontSize: 16,
+    fontWeight: '600'
+  },
+  categorySection: {},
   headerRow: {
     flexDirection: 'row',
+    borderTopRightRadius: 14,
+    borderTopLeftRadius: 14,
     backgroundColor: '#F9FAFB',
     paddingVertical: 12,
     paddingHorizontal: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
+    minHeight: 60
   },
-  column1: { flex: 1.2, alignItems: 'center' },
-  column2: { flex: 1, alignItems: 'center' },
-  column3: { flex: 1, alignItems: 'center' },
-  column4: { flex: 1, alignItems: 'center' },
-  column5: { flex: 1.5, alignItems: 'center' },
-  headerText: { fontSize: 11, fontWeight: '600', color: '#97A1AF', textAlign: 'center' },
-  skipRateText: { fontSize: 9, color: red[900] },
-
-  categoryNameRow: {
-    flexDirection: 'row',
-    padding: 12,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center'
+  column1: {
+    flex: 1.2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4
   },
-  categoryLabel: { fontSize: 12, color: '#97A1AF', marginRight: 8 },
-  categoryValue: { fontSize: 12, fontWeight: '700', color: '#414E62' },
-
-  groupHeader: {
+  column2: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4
+  },
+  column3: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4
+  },
+  column4: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4
+  },
+  column5: {
+    flex: 1.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4
+  },
+  headerText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#97A1AF',
+    textAlign: 'center'
+  },
+  skipRateText: {
+    fontSize: 9,
+    color: red[900],
+    textAlign: 'center'
+  },
+  categoryHeader: {
     flexDirection: 'row',
-    paddingVertical: 6,
+    paddingVertical: 8,
     paddingHorizontal: 12,
     backgroundColor: '#F9FAFB',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB'
   },
-  groupColumn1: { flex: 1.2, justifyContent: 'center' },
-  groupColumn2: { flex: 1 },
-  groupColumn3: { flex: 1, alignItems: 'center' },
-  groupColumn4: { flex: 1, alignItems: 'center' },
-  groupColumn5: { flex: 1.5 },
-
-  subcategoryText: { fontSize: 12, fontWeight: '700', color: primary.main },
-  groupHeaderTime: { fontSize: 12, fontWeight: '700', color: primary.main },
-
-  mathTypeContainer: {
-    paddingHorizontal: 20,
+  categoryColumn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap'
+  },
+  categoryLabel: {
+    fontSize: 12,
+    color: '#97A1AF',
+    marginRight: 4
+  },
+  categoryName: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#414E62',
+    flex: 1
+  },
+  questionsContainer: {
+    backgroundColor: '#FFFFFF',
+    overflow: 'hidden'
+  },
+  groupHeader: {
+    flexDirection: 'row',
     paddingVertical: 4,
+    paddingHorizontal: 12,
+    minHeight: 32
   },
-  mathTypeText: { fontSize: 12, fontWeight: '700', color: '#414E62' },
-  questionsContainer: { backgroundColor: '#FFFFFF' }
+  groupHeaderColumn1: {
+    flex: 1.2,
+    justifyContent: 'center',
+    paddingHorizontal: 4
+  },
+  groupHeaderColumn2: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4
+  },
+  groupHeaderColumn3: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4
+  },
+  groupHeaderColumn4: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4
+  },
+  groupHeaderColumn5: {
+    flex: 1.5,
+    paddingHorizontal: 4
+  },
+  subcategoryText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: primary.main
+  },
+  groupHeaderTime: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: primary.main,
+    textAlign: 'center'
+  },
+  questionTypeContainer: {
+    flexDirection: 'row',
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    backgroundColor: '#FEF3C7',
+    minHeight: 28
+  },
+  questionTypeColumn: {
+    flex: 1.2,
+    justifyContent: 'center',
+    paddingHorizontal: 4
+  },
+  questionTypeEmptyColumn: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4
+  },
+  questionTypeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#92400E'
+  }
 })
 
-export default TextbookMyAnswer
+export default TextbookMyAnswer

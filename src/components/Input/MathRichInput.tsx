@@ -19,7 +19,6 @@ import { useTranslation } from 'react-i18next';
 
 const { height: SCREEN_H } = Dimensions.get('window');
 
-// ─── Formula data ─────────────────────────────────────────────────────────────
 interface FormulaItem {
   label: string;
   latex: string;
@@ -87,7 +86,6 @@ const FORMULA_CATEGORIES = [
   },
 ];
 
-// ─── Editor HTML ──────────────────────────────────────────────────────────────
 const EDITOR_HTML = `<!DOCTYPE html><html>
 <head>
 <meta charset="utf-8">
@@ -109,9 +107,6 @@ body{font-family:sans-serif;font-size:15px;color:#212529;background:#fff}
 </head>
 <body>
 <div id="toolbar">
-  <button class="fmt-bold"      id="btnB" onclick="fmt('bold')"><b>B</b></button>
-  <button class="fmt-italic"    id="btnI" onclick="fmt('italic')"><i>I</i></button>
-  <button class="fmt-underline" id="btnU" onclick="fmt('underline')"><u>U</u></button>
   <button id="sigmaBtn" onclick="openPicker()">∑</button>
 </div>
 <div id="editor" contenteditable="true" spellcheck="false"></div>
@@ -211,7 +206,6 @@ editor.addEventListener('mouseup',updateToolbar);
 <\/script>
 </body></html>`;
 
-// ─── makePreviewHTML: embed latex directly in HTML (old approach, reliable) ──
 const makePreviewHTML = (latex: string) => `<!DOCTYPE html><html>
 <head>
 <meta charset="utf-8">
@@ -236,7 +230,6 @@ if (${JSON.stringify(!!latex.trim())}) {
 <\/script>
 </body></html>`;
 
-// ─── MathLive WYSIWYG HTML ──────────────────────────────────────────────────
 const MATHLIVE_HTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -406,14 +399,12 @@ function FormulaBottomSheet({
       onRequestClose={handleClose}
       statusBarTranslucent
     >
-      {/* Backdrop */}
       <TouchableOpacity
         style={s.backdrop}
         activeOpacity={1}
         onPress={handleClose}
       />
 
-      {/* Animated sheet */}
       <Animated.View style={[s.sheet, { transform: [{ translateY: slideY }] }]}>
         <View style={s.headerRow}>
           <TouchableOpacity onPress={handleClose} style={s.headerBtn}>
@@ -429,7 +420,6 @@ function FormulaBottomSheet({
           </TouchableOpacity>
         </View>
 
-        {/* Category tabs */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -450,7 +440,6 @@ function FormulaBottomSheet({
           ))}
         </ScrollView>
 
-        {/* Formula grid */}
         <FlatList
           data={FORMULA_CATEGORIES[activeCat].items}
           keyExtractor={(_, i) => String(i)}
@@ -470,7 +459,6 @@ function FormulaBottomSheet({
           )}
         />
 
-        {/* WYSIWYG MathLive Editor */}
         <View style={[s.mathLiveBox, { flex: 1, borderTopWidth: 1, borderTopColor: '#eee', borderRadius: 0, marginHorizontal: 0, marginBottom: 0 }]}>
           <WebView
             ref={mathLiveRef}
@@ -504,9 +492,7 @@ function FormulaBottomSheet({
     </Modal>
   );
 }
-// Force Metro bundler reload
 
-// ─── MathRichInput ─────────────────────────────────────────────────────────────
 export interface MathRichInputRef {
   clear: () => void;
 }
@@ -589,7 +575,6 @@ const MathRichInput = forwardRef<MathRichInputRef, {
 
 export default MathRichInput;
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
   container: {
     flex: 1,

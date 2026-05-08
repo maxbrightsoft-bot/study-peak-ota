@@ -12,8 +12,6 @@ const UnAuthorized = () => {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name={Routes.UnAuth.Login} component={Login} />
       <Stack.Screen name={Routes.UnAuth.LoginParentPhone} component={LoginParentPhoneScreen} />
-      <Stack.Screen name={Routes.UnAuth.AcademyInvitation} component={AcademyInvitationScreen} />
-      <Stack.Screen name={Routes.AcademyRequest} component={AcademyRequestScreen} />
     </Stack.Navigator>
   )
 }

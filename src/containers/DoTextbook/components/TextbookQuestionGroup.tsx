@@ -3,7 +3,7 @@ import { palette } from '@/theme'
 import { ExamStatus, QuestionAnswerType, SubjectType } from '@/utils/enums'
 import { PreparedQuestionGroupResponse, PreparedQuestionResponse } from '../config/types'
 import StarRating from '@/assets/iconJSX/starRating'
-import React, { useMemo } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import MathRender from '@/components/MathRender'
 import { useTranslation } from 'react-i18next'
 
@@ -20,6 +20,65 @@ type Props = {
   currentQuestionId?: number
   subjectType?: SubjectType
 }
+
+const QuestionRow = React.memo(({ 
+  item, 
+  lastIndex, 
+  questionRefs, 
+  disabled, 
+  isEnd, 
+  handleOpenExpiredQuestionDialog, 
+  onOpenAnswerSheet, 
+  currentQuestionId, 
+  t,
+  renderAnswer 
+}: { 
+  item: PreparedQuestionResponse, 
+  lastIndex: number, 
+  questionRefs: any, 
+  disabled: boolean, 
+  isEnd: boolean, 
+  handleOpenExpiredQuestionDialog: () => void, 
+  onOpenAnswerSheet: (id?: number) => void, 
+  currentQuestionId?: number,
+  t: any,
+  renderAnswer: (q: PreparedQuestionResponse) => React.ReactNode
+}) => {
+  return (
+    <TouchableOpacity
+      ref={(ref) => (questionRefs.current[item.questionIndex || 0] = ref)}
+      onPress={() => (disabled ? isEnd ? handleOpenExpiredQuestionDialog() : undefined : onOpenAnswerSheet(item.id))}
+      style={[
+        styles.row,
+        currentQuestionId === item.id && styles.activeRow,
+        { borderBottomWidth: item.questionOrder === lastIndex - 1 ? 0 : 1 }
+      ]}
+    >
+      {item.isStar && (
+        <View style={{ position: 'absolute', top: 0, right: 0, zIndex: 1 }}>
+          <StarRating />
+        </View>
+      )}
+      <View
+        style={[
+          styles.questionCol,
+          {
+            borderRightWidth: currentQuestionId === item.id ? 0 : 1,
+            borderColor: palette.grey[200]
+          }
+        ]}
+      >
+        <Text style={[styles.questionText, currentQuestionId === item.id && styles.activeQuestionText]}>
+          {t('number_question', { number: item.questionOrder + 1 })}
+        </Text>
+      </View>
+
+      <View style={{ flex: 3 }}>
+        <View style={styles.answerCol}>{renderAnswer(item)}</View>
+      </View>
+    </TouchableOpacity>
+  )
+})
 
 const TextbookQuestionGroup = ({
   data,
@@ -58,7 +117,7 @@ const TextbookQuestionGroup = ({
     number: data.pageFrom ?? data.pageTo ?? "_"
   });
 
-  const renderAnswer = (question: PreparedQuestionResponse) => {
+  const renderAnswer = useCallback((question: PreparedQuestionResponse) => {
     switch (question.questionAnswerType) {
       case QuestionAnswerType.ShortAnswer:
       case QuestionAnswerType.OrderMatters:
@@ -75,44 +134,7 @@ const TextbookQuestionGroup = ({
           )
         })
     }
-  }
-
-  const renderRow = (item: PreparedQuestionResponse, lastIndex: number) => {
-    return (
-      <TouchableOpacity
-        ref={(ref) => (questionRefs.current[item.questionIndex || 0] = ref)}
-        onPress={() => (disabled ? isEnd ? handleOpenExpiredQuestionDialog() : undefined : onOpenAnswerSheet(item.id))}
-        style={[
-          styles.row,
-          currentQuestionId === item.id && styles.activeRow,
-          { borderBottomWidth: item.questionOrder === lastIndex - 1 ? 0 : 1 }
-        ]}
-      >
-        {item.isStar && (
-          <View style={{ position: 'absolute', top: 0, right: 0, zIndex: 1 }}>
-            <StarRating />
-          </View>
-        )}
-        <View
-          style={[
-            styles.questionCol,
-            {
-              borderRightWidth: currentQuestionId === item.id ? 0 : 1,
-              borderColor: palette.grey[200]
-            }
-          ]}
-        >
-          <Text style={[styles.questionText, currentQuestionId === item.id && styles.activeQuestionText]}>
-            {t('number_question', { number: item.questionOrder + 1 })}
-          </Text>
-        </View>
-
-        <View style={{ flex: 3 }}>
-          <View style={styles.answerCol}>{renderAnswer(item)}</View>
-        </View>
-      </TouchableOpacity>
-    )
-  }
+  }, []);
 
   return (
     <View>
@@ -133,11 +155,21 @@ const TextbookQuestionGroup = ({
           </View>
         </View>
 
-        <FlatList
-          data={questions}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => renderRow(item, questions.length)}
-        />
+        {questions.map((item) => (
+          <QuestionRow
+            key={item.id}
+            item={item}
+            lastIndex={questions.length}
+            questionRefs={questionRefs}
+            disabled={disabled}
+            isEnd={isEnd}
+            handleOpenExpiredQuestionDialog={handleOpenExpiredQuestionDialog}
+            onOpenAnswerSheet={onOpenAnswerSheet}
+            currentQuestionId={currentQuestionId}
+            t={t}
+            renderAnswer={renderAnswer}
+          />
+        ))}
       </View>
     </View>
   )

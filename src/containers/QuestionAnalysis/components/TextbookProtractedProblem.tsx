@@ -11,20 +11,18 @@ import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   data: LongTimeSpendQuestion[]
-  keyOpen: ProblemKey
   examResult: TextbookResult
-  openProblem?: ProblemKey
-  changeOpen?: (key?: ProblemKey) => void
   isPrint: boolean
 }
 
-const ProtractedProblem: FC<Props> = ({ keyOpen, data, openProblem, changeOpen, examResult, isPrint }) => {
+const ProtractedProblem: FC<Props> = ({ data, examResult, isPrint }) => {
   const { t } = useTranslation()
-  const isOpen = openProblem === keyOpen || isPrint
 
   const renderRow = ({ item }: { item: LongTimeSpendQuestion }) => {
     const timeDiff = item.topDuration - item.duration
     const isBetter = timeDiff > 0
+    const studentQuestion = examResult?.studentQuestionResults?.find((i) => i.id === item.id)
+    const category = studentQuestion?.categories?.[0]
 
     return (
       <View style={styles.itemContainer}>
@@ -32,6 +30,7 @@ const ProtractedProblem: FC<Props> = ({ keyOpen, data, openProblem, changeOpen, 
           <Text style={styles.label}>
             {t('problem')} {item.questionOrder + 1}
           </Text>
+          {category?.name && <Text style={styles.category}>{category.name}</Text>}
         </View>
         <View style={styles.column2}>
           <Text style={styles.subLabel}>{t('my_time')}</Text>
@@ -61,39 +60,34 @@ const ProtractedProblem: FC<Props> = ({ keyOpen, data, openProblem, changeOpen, 
 
   return (
     <View style={styles.wrapper}>
-      <TouchableOpacity
-        style={[
-          styles.header,
-          !isOpen ? styles.closedHeader : { borderBottomWidth: 1, borderColor: palette.grey[100] }
-        ]}
-        onPress={() => changeOpen?.(isOpen ? undefined : keyOpen)}
+      <View
+        style={{
+          justifyContent: 'center',
+          backgroundColor: palette.bg[100],
+          paddingVertical: 8,
+          borderBottomWidth: 1,
+          borderColor: palette.grey[100]
+        }}
       >
-        <Text style={[styles.headerText, !isOpen && { color: palette.grey[500] }]}>
+        <Text style={[styles.headerText]}>
           {t('problems_that_took_a_long_time')}
         </Text>
-        {isOpen ? (
-          <Ionicons name="chevron-up" size={24} color="#E0E0E0" />
-        ) : (
-          <Ionicons name="chevron-down" size={24} color="#E0E0E0" />
-        )}
-      </TouchableOpacity>
+      </View>
 
-      {isOpen && (
-        <>
-          {data.length > 0 ? (
-            <FlatList
-              data={data}
-              renderItem={renderRow}
-              keyExtractor={(item) => `${item.id}`}
-              contentContainerStyle={{ paddingBottom: 120 }}
-            />
-          ) : (
-            <View style={styles.noDataContainer}>
-              <Text style={styles.noDataText}>{t('no_data')}</Text>
-            </View>
-          )}
-        </>
-      )}
+      <View>
+        {data.length > 0 ? (
+          <FlatList
+            data={data}
+            renderItem={renderRow}
+            keyExtractor={(item) => `${item.id}`}
+            contentContainerStyle={{ paddingBottom: 40 }}
+          />
+        ) : (
+          <View style={styles.noDataContainer}>
+            <Text style={styles.noDataText}>{t('no_data')}</Text>
+          </View>
+        )}
+      </View>
     </View>
   )
 }
@@ -102,9 +96,9 @@ export default ProtractedProblem
 
 const styles = ScaledSheet.create({
   wrapper: {
-    borderWidth: 1,
-    borderColor: palette.grey[100],
-    backgroundColor: palette.grey[50]
+    borderRadius: 14,
+    overflow: 'hidden',
+    backgroundColor: '#FFF'
   },
   header: {
     flexDirection: 'row',
@@ -119,18 +113,19 @@ const styles = ScaledSheet.create({
   headerText: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: palette.grey[700]
+    color: '#171719',
+    textAlign: 'center'
   },
   itemContainer: {
     flexDirection: 'row',
     paddingVertical: 12,
-    paddingHorizontal: '24@ms',
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E4E7EC'
   },
   column1: {
-    width: 120,
-    paddingRight: 12
+    width: 90,
+    paddingRight: 8
   },
   label: {
     fontSize: 14,
@@ -138,11 +133,10 @@ const styles = ScaledSheet.create({
     color: '#414E62'
   },
   category: {
-    fontSize: 13,
-    textAlign: 'center',
+    fontSize: 12,
     color: '#18442A',
     fontWeight: '500',
-    marginTop: 4
+    marginTop: 2
   },
   column2: {
     flex: 1
@@ -172,3 +166,4 @@ const styles = ScaledSheet.create({
     textAlign: 'center'
   }
 })
+

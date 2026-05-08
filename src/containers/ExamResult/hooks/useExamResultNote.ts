@@ -2,7 +2,7 @@ import { MouseEvent, useRef } from "react"
 import { useState, useEffect } from "react"
 import { DEFAULT_NOTE_FILTER } from "../../ExamResultList/configs/constants"
 import { NoteRequest, NoteResponse, NoteSearchQuery } from "../../../utils/types/note"
-import { ExamResult, Question, QuestionData } from "../../../utils/types"
+import { ExamResult, Question, QuestionData, TextbookResult } from "../../../utils/types"
 import { useTranslation } from "react-i18next"
 import useAuthStore from "@/store/useAuthStore"
 import { getErrorMessage, toast } from "@/utils/helpers"
@@ -10,15 +10,17 @@ import { apiUploadImageFile } from "@/containers/Chat/apiClient/conversationServ
 import useNotes from "./useNotes"
 import { createNoteApi, deleteNoteApi, updateNoteApi } from "../../ExamResultList/apiClients/noteService"
 import { ExamNoteDialogProps } from "@/containers/IncorrectAnswerNotes/configs/interfaces"
-import { pick } from "@react-native-documents/picker"
+import * as ImagePicker from 'expo-image-picker';
 
 interface UseExamResultNoteParams {
     questionOptions: any[]
     handleSelectQuestion: (question?: QuestionData) => void
     examCode?: string
     examSessionId?: any
-    studentExamSessionId: string
+    studentExamSessionId?: string
+    studentTextbookSessionId?: number
     examResult?: ExamResult
+    textbookResult?: TextbookResult
 }
 
 const useExamResultNote = ({
@@ -27,8 +29,11 @@ const useExamResultNote = ({
     examCode,
     examSessionId,
     studentExamSessionId,
-    examResult
+    studentTextbookSessionId,
+    examResult,
+    textbookResult
 }: UseExamResultNoteParams) => {
+
     const { t } = useTranslation()
     const { user, setLoadingWithoutOverlay } = useAuthStore()
     const [notesFilter, setNotesFilter] = useState<NoteSearchQuery>()
@@ -40,20 +45,28 @@ const useExamResultNote = ({
 
     const handleUploadImage = async () => {
         try {
-            const [result] = await pick({
-                mode: 'open',
-                allowVirtualFiles: true
-            })
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ['images'],
+                quality: 0.8,
+            });
 
-            setLoadingWithoutOverlay(true)
+            if (result.canceled || !result.assets.length) return;
+
+            setLoadingWithoutOverlay(true);
+            const asset = result.assets[0];
             const formData = new FormData();
-            formData.append("upload", result as any);
+            formData.append("upload", {
+                uri: asset.uri,
+                type: asset.mimeType || 'image/jpeg',
+                name: asset.fileName || `image_${Date.now()}.jpg`,
+            } as any);
             const res = await apiUploadImageFile(formData);
-            setImageUrl(res?.data?.url)
+            setImageUrl(res?.data?.url);
         } catch (error) {
-            toast.error(getErrorMessage(t, error))
+            toast.error(getErrorMessage(t, error));
+        } finally {
+            setLoadingWithoutOverlay(false);
         }
-        setLoadingWithoutOverlay(false);
     }
 
     const {
@@ -114,9 +127,13 @@ const useExamResultNote = ({
                 const res = await updateNoteApi(selectedNote.id, data)
                 handleNoteUpdated(res.data)
             } else {
-                data.examSessionId = examSessionId ? examSessionId : examResult?.examSessionId
+                if (studentTextbookSessionId) {
+                    data.studentTextbookSessionId = studentTextbookSessionId
+                } else {
+                    data.examSessionId = examSessionId ? examSessionId : examResult?.examSessionId
+                    data.studentExamSessionId = studentExamSessionId
+                }
                 data.questionId = questionId
-                data.studentExamSessionId = studentExamSessionId
                 const res = await createNoteApi(data)
                 handleNoteAdded(res.data)
             }
@@ -172,14 +189,20 @@ const useExamResultNote = ({
     }
 
     useEffect(() => {
-        if (!user?.id || (!examCode)) {
+        if (!user?.id || (!examCode && !studentTextbookSessionId)) {
             setNotesFilter(undefined)
         } else {
-            setNotesFilter(
-                { ...DEFAULT_NOTE_FILTER, examCode, studentExamSessionId }
-            )
+            if (studentTextbookSessionId) {
+                setNotesFilter(
+                    { ...DEFAULT_NOTE_FILTER, studentTextbookSessionId }
+                )
+            } else {
+                setNotesFilter(
+                    { ...DEFAULT_NOTE_FILTER, examCode, studentExamSessionId }
+                )
+            }
         }
-    }, [user?.id, examCode])
+    }, [user?.id, examCode, studentTextbookSessionId])
 
     const noteDialogProps: ExamNoteDialogProps = {
         open: openNoteDialog,

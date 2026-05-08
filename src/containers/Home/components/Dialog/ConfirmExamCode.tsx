@@ -27,13 +27,13 @@ const ConfirmExamCode = ({ codeExam, onClose, open, examSession, handleCodeExam 
     >
       <View style={styles.container}>
         <View style={styles.row}>
-          <Text style={styles.label}>{t('exam_code')}</Text>
-          <Text style={styles.value}>{examSession?.code}</Text>
+          <Text style={styles.label}>{t('exam_name')}</Text>
+          <Text style={styles.value}>{examSession?.title}</Text>
         </View>
 
         <View style={styles.row}>
-          <Text style={styles.label}>{t('exam_category')}</Text>
-          <Text style={styles.value}>{examSession?.category}</Text>
+          <Text style={styles.label}>{t('exam_code')}</Text>
+          <Text style={styles.value}>{examSession?.code}</Text>
         </View>
 
         <View style={styles.row}>

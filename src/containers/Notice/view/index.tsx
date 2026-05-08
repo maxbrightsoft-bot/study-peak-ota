@@ -29,25 +29,41 @@ const Notice = ({ open, onClose }: Props) => {
 
   const renderItem = ({ item }: any) => {
     return (
-      <TouchableOpacity style={styles.item} onPress={() => handleOpenDetailDialog(item)}>
+      <TouchableOpacity style={styles.item} onPress={() => handleOpenDetailDialog(item)} activeOpacity={0.8}>
+        <View style={styles.itemIconContainer}>
+          <Ionicons name="notifications-outline" size={24} color={palette.main[500]} />
+        </View>
         <View style={styles.itemContent}>
           <Text numberOfLines={1} style={styles.title}>
             {item?.name}
           </Text>
-
-          {item.teacherName && <Text style={styles.teacher}>{item.teacherName}</Text>}
-
-          <Text style={styles.date}>{moment(item.createdAt).format('YY.MM.DD')}</Text>
+          {item.teacherName && (
+            <View style={styles.teacherRow}>
+              <Ionicons name="person-outline" size={14} color={palette.grey[500]} />
+              <Text style={styles.teacher}>{item.teacherName}</Text>
+            </View>
+          )}
+          <View style={styles.dateRow}>
+            <Ionicons name="calendar-outline" size={14} color={palette.grey[500]} />
+            <Text style={styles.date}>{moment(item.createdAt).format('YYYY.MM.DD')}</Text>
+          </View>
         </View>
       </TouchableOpacity>
     )
   }
 
+  const renderEmptyComponent = () => (
+    <View style={styles.emptyContainer}>
+      <Ionicons name="documents-outline" size={60} color={palette.grey[300]} />
+      <Text style={styles.emptyText}>{t('no_data')}</Text>
+    </View>
+  )
+
   return (
     <SlideDrawerRoot visible={open} onClose={onClose}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={onClose}>
-          <Ionicons name="chevron-back-outline" size={24} color={palette.grey[200]} />
+          <Ionicons name="chevron-back-outline" size={24} color={palette.grey[800]} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>{t('institute_notice')}</Text>
@@ -68,6 +84,7 @@ const Notice = ({ open, onClose }: Props) => {
                 >
                   {isNew[value] && <View style={styles.badge} />}
                   <Text style={[styles.tabText, active && styles.tabTextActive]}>{t(label)}</Text>
+                  {active && <View style={styles.activeIndicator} />}
                 </TouchableOpacity>
               )
             })}
@@ -77,7 +94,8 @@ const Notice = ({ open, onClose }: Props) => {
           data={notifications}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderItem}
-          ItemSeparatorComponent={() => <View style={styles.divider} />}
+          contentContainerStyle={styles.listContainer}
+          ListEmptyComponent={renderEmptyComponent}
         />
       </View>
       <NoticeDetailDialog
@@ -99,17 +117,19 @@ const styles = ScaledSheet.create({
     paddingHorizontal: '20@ms',
     paddingVertical: '16@ms',
     borderBottomWidth: 1,
-    borderBottomColor: '#eee'
+    borderBottomColor: palette.grey[200],
+    backgroundColor: '#fff'
   },
   container: {
-    paddingTop: 20,
-    backgroundColor: palette.bg[100]
+    paddingTop: 16,
+    backgroundColor: palette.bg[100],
+    flex: 1
   },
 
   headerTitle: {
     fontSize: '16@ms',
     fontWeight: '600',
-    color: '#222'
+    color: palette.grey[900]
   },
 
   badge: {
@@ -125,70 +145,115 @@ const styles = ScaledSheet.create({
   backButton: {
     width: 24
   },
-  tabsWrapper: {},
+  tabsWrapper: {
+    backgroundColor: '#fff',
+    paddingBottom: 8,
+  },
   tabsContainer: {
-    flexDirection: 'row'
+    flexDirection: 'row',
+    paddingHorizontal: 16,
   },
   tab: {
-    minWidth: 70,
-    paddingHorizontal: '18@ms',
-    paddingVertical: '6@ms'
+    paddingHorizontal: '12@ms',
+    paddingVertical: '10@ms',
+    marginRight: 8,
+    position: 'relative'
+  },
+  activeIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    left: '12@ms',
+    right: '12@ms',
+    height: 3,
+    backgroundColor: palette.main[600],
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3
   },
   tabActive: {
     color: palette.main[600]
   },
   tabText: {
     textAlign: 'center',
-    fontSize: '14@ms',
-    fontWeight: '500',
-    color: '#858588'
+    fontSize: '15@ms',
+    fontWeight: '600',
+    color: palette.grey[500]
   },
   tabTextActive: {
     color: palette.main[600],
     fontWeight: '700'
   },
 
+  listContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 32,
+    gap: 12
+  },
+
   item: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: '20@ms',
-    paddingVertical: '16@ms'
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: '16@ms',
+  },
+
+  itemIconContainer: {
+    width: '40@ms',
+    height: '40@ms',
+    borderRadius: 20,
+    backgroundColor: palette.main[50],
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12
   },
 
   itemContent: {
     flex: 1,
-    gap: 8,
-    marginRight: 12
+    gap: 6,
+    justifyContent: 'center'
   },
 
   title: {
     fontSize: '16@ms',
-    fontWeight: '600',
-    color: palette.grey[900]
+    fontWeight: '700',
+    color: palette.grey[900],
+    marginBottom: 2
+  },
+
+  teacherRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6
+  },
+  
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6
   },
 
   teacher: {
-    fontSize: '12@ms',
+    fontSize: '13@ms',
     fontWeight: '500',
-    color: palette.grey[700]
+    color: palette.grey[600]
   },
 
   date: {
     fontSize: '12@ms',
-    fontWeight: '400',
+    fontWeight: '500',
     color: palette.grey[500]
   },
 
-  thumbnail: {
-    width: '56@ms',
-    height: '56@ms',
-    borderRadius: 8,
-    backgroundColor: '#ddd'
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 60,
+    gap: 12
   },
 
-  divider: {
-    height: 1,
-    backgroundColor: palette.grey[100],
-    marginVertical: 6
+  emptyText: {
+    fontSize: '15@ms',
+    fontWeight: '500',
+    color: palette.grey[500]
   }
 })

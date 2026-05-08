@@ -3,20 +3,24 @@ import useServerTime from '@/hooks/useServerTime'
 import { navigate } from '@/navigators/NavigationHelpers'
 import { Routes } from '@/navigators/RouteName'
 import useAuthStore from '@/store/useAuthStore'
-import { AlarmType } from '@/utils/enums'
 import { getErrorMessage, toast } from '@/utils/helpers'
 import { SubjectTimerResponse, Textbook } from '@/utils/types'
 import { useFocusEffect } from 'expo-router'
-import moment from 'moment'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 type Props = {
   handleCloseDialog: () => void
-  onStart: (type: AlarmType, duration: number, subject?: SubjectTimerResponse, enable?: boolean) => void
+  onStartAudio: (
+    enable: boolean,
+    duration?: number,
+    subject?: SubjectTimerResponse,
+    startTime?: number,
+    skipPreAlarm?: boolean
+  ) => Promise<void>
 }
 
-const useAlarmTextbook = ({ handleCloseDialog, onStart }: Props) => {
+const useAlarmTextbook = ({ handleCloseDialog, onStartAudio }: Props) => {
   const { t } = useTranslation()
   const { getServerNow } = useServerTime()
   const { setLoading } = useAuthStore()
@@ -30,8 +34,8 @@ const useAlarmTextbook = ({ handleCloseDialog, onStart }: Props) => {
     setOpenAudioGuide(false)
   }
 
-  const handleStartAudio = async (textbook: Textbook) => {
-    onStart(AlarmType.Subject, textbook.duration, textbook.subject as any, true)
+  const handleStartAudio = async (textbook: Textbook, enable: boolean) => {
+    await onStartAudio(enable, textbook.duration, textbook.subject as any)
   }
 
   const handleStartTextbook = async (enable: boolean, textbook: any) => {
@@ -39,7 +43,7 @@ const useAlarmTextbook = ({ handleCloseDialog, onStart }: Props) => {
       setLoading(true)
       await startTextbook(textbook.id)
       setLoading(false)
-      if (enable && !textbook.isMock) await handleStartAudio(textbook)
+      if (!textbook.isMock) await handleStartAudio(textbook, enable)
       handleCloseAudioGuide()
     } catch (error) {
       toast.error(getErrorMessage(t, error))

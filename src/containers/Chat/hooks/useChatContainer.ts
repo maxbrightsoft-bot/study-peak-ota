@@ -6,7 +6,7 @@ import useAuthStore from "@/store/useAuthStore";
 import { getErrorMessage, toast } from "@/utils/helpers";
 import { IChatItemProps } from "../configs/types";
 import { apiAddMessage, apiUploadImageFile, updateLastTimeReadConversation } from "../apiClient/conversationService";
-import { pick } from '@react-native-documents/picker'
+import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect } from "@react-navigation/native";
 import { Keyboard } from "react-native";
 import RNFS from 'react-native-fs';
@@ -114,23 +114,31 @@ const useChatContainer = (props: Props) => {
 
   const handleUploadImage = async () => {
     try {
-      const [result] = await pick({
-        mode: 'open',
-        allowVirtualFiles: true
-      })
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsMultipleSelection: true,
+        quality: 0.8,
+      });
 
-      setLoadingWithoutOverlay(true)
-      const formData = new FormData();
-      formData.append("upload", result as any);
-      const res = await apiUploadImageFile(formData);
-      await handleAddMessage(res?.data?.url)
+      if (result.canceled || !result.assets.length) return;
+
+      setLoadingWithoutOverlay(true);
+      for (const asset of result.assets) {
+        const formData = new FormData();
+        formData.append("upload", {
+          uri: asset.uri,
+          type: asset.mimeType || 'image/jpeg',
+          name: asset.fileName || `image_${Date.now()}.jpg`,
+        } as any);
+        const res = await apiUploadImageFile(formData);
+        await handleAddMessage(res?.data?.url);
+      }
     } catch (error) {
       setMessages((state: MessageResponse[]) => {
         return [...state.filter(i => i?.id !== 0)]
       })
       toast.error(getErrorMessage(t, error))
-    }
-    finally {
+    } finally {
       setLoadingWithoutOverlay(false);
     }
   }

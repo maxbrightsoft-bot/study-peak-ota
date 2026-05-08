@@ -1,6 +1,6 @@
 import React, { FC, useMemo } from 'react'
 import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native'
-import { Text } from 'react-native-paper'
+import { Text, Checkbox } from 'react-native-paper'
 import { useTranslation } from 'react-i18next'
 
 import CircularTimer from '../CircularTimer'
@@ -16,7 +16,7 @@ export interface AlarmClockPanelProps {
   isLoading: boolean
   value: number
   max?: number
-  onStart: (type: AlarmType, duration: number, subject?: SubjectTimerResponse, enable?: boolean) => void
+  onStart: (type: AlarmType, duration: number, subject?: SubjectTimerResponse, skipPreAlarm?: boolean) => void
   onPauseOrResume: () => void
   onChange: (val: number) => void
   onIncrease: (val: number) => void
@@ -75,7 +75,6 @@ const AlarmClockPanel: FC<AlarmClockPanelProps> = ({
             </View>
           </View>
         </View>
-
         <FlatList
           data={subjectOptions}
           numColumns={4}
@@ -160,7 +159,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center"
   },
-
   counterRow: {
     flexDirection: 'row',
     justifyContent: 'center',
