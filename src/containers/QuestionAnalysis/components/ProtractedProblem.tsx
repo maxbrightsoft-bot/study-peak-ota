@@ -77,7 +77,7 @@ const ProtractedProblem: FC<Props> = ({ data, examResult, isPrint }) => {
             data={data}
             renderItem={renderRow}
             keyExtractor={(item) => `${item.id}`}
-            contentContainerStyle={{ paddingBottom: 120 }}
+            contentContainerStyle={{ paddingBottom: 40 }}
           />
         ) : (
           <View style={styles.noDataContainer}>
@@ -94,7 +94,8 @@ export default ProtractedProblem
 const styles = ScaledSheet.create({
   wrapper: {
     borderRadius: 14,
-    overflow: 'hidden'
+    overflow: 'hidden',
+    backgroundColor: '#FFF'
   },
   header: {
     flexDirection: 'row',
@@ -115,12 +116,13 @@ const styles = ScaledSheet.create({
   itemContainer: {
     flexDirection: 'row',
     paddingVertical: 12,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E4E7EC'
   },
   column1: {
-    width: 120,
-    paddingRight: 12
+    width: 90,
+    paddingRight: 8
   },
   label: {
     fontSize: 14,
@@ -128,11 +130,10 @@ const styles = ScaledSheet.create({
     color: '#414E62'
   },
   category: {
-    fontSize: 13,
-    textAlign: 'center',
+    fontSize: 12,
     color: '#18442A',
     fontWeight: '500',
-    marginTop: 4
+    marginTop: 2
   },
   column2: {
     flex: 1

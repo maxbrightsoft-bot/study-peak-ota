@@ -8,6 +8,13 @@ export const getNotesApi = (query: NoteSearchQuery) =>
     api.get(`${NOTES_URL}`, {
         params: query
     })
+
+export const getGroupedNotesApi = (query: NoteSearchQuery) =>
+    api.get(`${NOTES_URL}/grouped`, {
+        params: query
+    })
+
+export const getNoteFilterOptionsApi = () => api.get(`${NOTES_URL}/filter-options`)
 export const createNoteApi = (note: NoteRequest) =>
     api.post(`${NOTES_URL}`, note)
 

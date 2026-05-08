@@ -29,7 +29,8 @@ type Props = {
 }
 
 const schema = Yup.object().shape({
-  content: Yup.string().required()
+  content: Yup.string().required(),
+  questionId: Yup.mixed().nullable()
 })
 
 const CreateQuestionConversationDialog = ({
@@ -49,10 +50,17 @@ const CreateQuestionConversationDialog = ({
   const formikRef = React.useRef<any>(null)
 
   useEffect(() => {
-    if (examSessionValue && questions?.length && formikRef.current) {
-      formikRef.current.setFieldValue('questionId', questions[0].id)
+    if (formikRef.current) {
+      formikRef.current.setFieldValue('questionId', null)
     }
-  }, [examSessionValue, questions])
+  }, [examSessionValue])
+
+  useEffect(() => {
+    if (!open && formikRef.current) {
+      formikRef.current.resetForm()
+    }
+  }, [open])
+
 
   return (
     <SlideDrawerRoot visible={open}>
@@ -73,10 +81,9 @@ const CreateQuestionConversationDialog = ({
         >
           <Formik
             innerRef={formikRef}
-            enableReinitialize
             initialValues={{
               content: '',
-              questionId: examSessionValue && questions?.length ? questions[0]?.id : null
+              questionId: null
             }}
             validationSchema={schema}
             onSubmit={(values) => {
@@ -96,6 +103,10 @@ const CreateQuestionConversationDialog = ({
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
                   >
+                    <View style={styles.hintBox}>
+                      <Ionicons name="information-circle-outline" size={15} color={palette.main[500]} />
+                      <Text style={styles.hintText}>{t('select_class_or_exam_hint')}</Text>
+                    </View>
                     <View>
                       <View style={styles.labelRow}>
                         <Text style={styles.labelText}>{t('half_selection')}</Text>
@@ -104,7 +115,6 @@ const CreateQuestionConversationDialog = ({
                         onValueChange={(v) => {
                           handleChangeCourse(v as any)
                           if (!v) {
-                            handleChangeExam(undefined as any)
                             setFieldValue('questionId', null)
                           }
                         }}
@@ -127,17 +137,19 @@ const CreateQuestionConversationDialog = ({
                         placeholder={t('select_placeholder')}
                       />
                     </View>
-                    <View>
-                      <View style={styles.labelRow}>
-                        <Text style={styles.labelText}>{t('question_selection')}</Text>
+                    {!!examSessionValue && (
+                      <View>
+                        <View style={styles.labelRow}>
+                          <Text style={styles.labelText}>{t('question_selection')}</Text>
+                        </View>
+                        <CustomSelect
+                          onValueChange={(value) => {setFieldValue('questionId', value)}}
+                          value={values.questionId}
+                          options={questionOptions}
+                          placeholder={t('select_placeholder')}
+                        />
                       </View>
-                      <CustomSelect
-                        onValueChange={(value) => setFieldValue('questionId', value)}
-                        value={values.questionId}
-                        options={questionOptions}
-                        placeholder={t('select_placeholder')}
-                      />
-                    </View>
+                    )}
                     <View>
                       <Text style={styles.labelText}>{t('question_content')}</Text>
                       <TextField
@@ -152,8 +164,11 @@ const CreateQuestionConversationDialog = ({
                   <View style={styles.footer}>
                     <TouchableOpacity
                       onPress={() => handleSubmit()}
-                      style={[styles.submitBtn, !values.content.trim() && styles.disabledBtn]}
-                      disabled={!values.content.trim()}
+                      style={[
+                        styles.submitBtn,
+                        (!values.content.trim() || (!courseValue && !examSessionValue) || (!!examSessionValue && !values.questionId)) && styles.disabledBtn
+                      ]}
+                      disabled={!values.content.trim() || (!courseValue && !examSessionValue) || (!!examSessionValue && !values.questionId)}
                     >
                       <Text style={styles.submitText}>{t('registration')}</Text>
                     </TouchableOpacity>
@@ -208,6 +223,21 @@ const styles = ScaledSheet.create({
     alignItems: 'center',
     gap: 6,
     marginBottom: 8
+  },
+  hintBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: palette.main[50] || '#EFF6FF',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  hintText: {
+    fontSize: '11@ms',
+    color: palette.main[600],
+    flex: 1,
+    lineHeight: 18,
   },
   labelText: {
     fontSize: '12@ms',

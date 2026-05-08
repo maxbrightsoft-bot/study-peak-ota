@@ -1,5 +1,5 @@
 import { palette, TYPO } from '@/theme'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { View, ScrollView, TouchableOpacity, Text } from 'react-native'
 import useRecentTextbook from '../hooks/useRecentTextbook'
 import { utcToLocalTime } from '@/utils/helpers'
@@ -16,8 +16,7 @@ const styles = ScaledSheet.create({
     marginBottom: 16,
   },
   headerTitle: {
-    ...TYPO.heading1,
-    color: palette.grey[900],
+    fontSize: 11, color: palette.main[600], fontWeight: 500,
   },
   contentContainer: {
     gap: 12,
@@ -135,6 +134,7 @@ const styles = ScaledSheet.create({
 })
 
 const RecentTextbook = () => {
+  const [enableAudio, setEnableAudio] = useState(true)
   const {
     t,
     isRecentEmpty,
@@ -149,6 +149,15 @@ const RecentTextbook = () => {
     handleCloseTimeSelectModal,
     handleStartTextbook
   } = useRecentTextbook()
+
+  useEffect(() => {
+    if (isOpenAudioGuide) setEnableAudio(true)
+  }, [isOpenAudioGuide, selectedTextbook?.id])
+
+  const handleStartAudioGuide = (enable: boolean) => {
+    setEnableAudio(enable)
+    handleStartTextbookFromGuideModal(enable)
+  }
 
   return (
     <View style={styles.container}>
@@ -210,7 +219,7 @@ const RecentTextbook = () => {
           open={isOpenAudioGuide}
           audioUrls={selectedTextbook?.subject?.audioUrls ?? []}
           onClose={handleCloseAudioGuide}
-          onStart={handleStartTextbookFromGuideModal}
+          onStart={handleStartAudioGuide}
         />
       )}
       {isOpenTimeSelectModal && (
@@ -219,8 +228,8 @@ const RecentTextbook = () => {
           t={t}
           title={t('select_timer_limit')}
           onClose={handleCloseTimeSelectModal}
-          onSubmit={(minutes) => {
-            if (selectedTextbook) handleStartTextbook(true, selectedTextbook, minutes)
+          onSubmit={(minutes, skipPreAlarm) => {
+            if (selectedTextbook) handleStartTextbook(enableAudio, selectedTextbook, minutes, skipPreAlarm)
           }}
           initialValue={selectedTextbook?.subject?.limitedTimeInMinutes || selectedTextbook?.limitedTimeInMinutes}
         />

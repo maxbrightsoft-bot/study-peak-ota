@@ -14,7 +14,7 @@ import {
   getListQuestionByExamApi
 } from '@/containers/Chat/apiClient/examService'
 import { Course } from '@/containers/Chat/configs/types'
-import { pick } from '@react-native-documents/picker'
+import * as ImagePicker from 'expo-image-picker';
 import { FlatList } from 'react-native'
 
 const useMyData = () => {
@@ -45,20 +45,28 @@ const useMyData = () => {
 
   const handleUploadImage = async () => {
     try {
-      const [result] = await pick({
-        mode: 'open',
-        allowVirtualFiles: true
-      })
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 0.8,
+      });
 
-      setLoadingWithoutOverlay(true)
-      const formData = new FormData()
-      formData.append('upload', result as any)
+      if (result.canceled || !result.assets.length) return;
+
+      setLoadingWithoutOverlay(true);
+      const asset = result.assets[0];
+      const formData = new FormData();
+      formData.append("upload", {
+        uri: asset.uri,
+        type: asset.mimeType || 'image/jpeg',
+        name: asset.fileName || `image_${Date.now()}.jpg`,
+      } as any);
       const res = await apiUploadImageFile(formData)
       setImageUrl(res?.data?.url)
     } catch (error) {
       toast.error(getErrorMessage(t, error))
+    } finally {
+      setLoadingWithoutOverlay(false)
     }
-    setLoadingWithoutOverlay(false)
   }
 
   const handleChangeExam = (value: string) => {

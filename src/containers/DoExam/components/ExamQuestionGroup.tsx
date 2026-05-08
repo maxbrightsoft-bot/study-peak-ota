@@ -2,7 +2,7 @@ import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 import { palette } from '@/theme'
 import { ExamStatus, QuestionAnswerType, SubjectType } from '@/utils/enums'
 import { QuestionGroupResponse, QuestionResponse } from '../config/types'
-import React, { useMemo } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import StarRating from '@/assets/iconJSX/starRating'
 import MathRender from '@/components/MathRender'
 import { useTranslation } from 'react-i18next'
@@ -16,7 +16,63 @@ type Props = {
   status?: ExamStatus
   currentQuestionId?: number
   onOpenAnswerSheet: (id?: number) => void
+  disabled?: boolean
 }
+const QuestionRow = React.memo(({ 
+  item, 
+  lastQuestionIndex, 
+  questionRefs, 
+  disabled, 
+  onOpenAnswerSheet, 
+  currentQuestionId, 
+  t,
+  renderAnswer 
+}: { 
+  item: QuestionResponse, 
+  lastQuestionIndex: number, 
+  questionRefs: any, 
+  disabled: boolean, 
+  onOpenAnswerSheet: (id?: number) => void, 
+  currentQuestionId?: number,
+  t: any,
+  renderAnswer: (q: QuestionResponse) => React.ReactNode
+}) => {
+  return (
+    <TouchableOpacity
+      ref={(ref) => (questionRefs.current[item.questionIndex || 0] = ref)}
+      onPress={() => onOpenAnswerSheet(item.id)}
+      style={[
+        styles.row,
+        currentQuestionId === item.id && styles.activeRow,
+        { borderBottomWidth: item.questionOrder === lastQuestionIndex - 1 ? 0 : 1 }
+      ]}
+    >
+      {item.isStar && (
+        <View style={{ position: 'absolute', top: 0, right: 0, zIndex: 1 }}>
+          <StarRating />
+        </View>
+      )}
+      <View
+        style={[
+          styles.questionCol,
+          {
+            borderRightWidth: currentQuestionId === item.id ? 0 : 1,
+            borderColor: palette.grey[200]
+          }
+        ]}
+      >
+        <Text style={[styles.questionText, currentQuestionId === item.id && styles.activeQuestionText]}>
+          {t('number_question', { number: item.questionOrder + 1 })}
+        </Text>
+      </View>
+
+      <View style={{ flex: 3 }}>
+        <View style={styles.answerCol}>{renderAnswer(item)}</View>
+      </View>
+    </TouchableOpacity>
+  )
+})
+
 const ExamQuestionGroup = ({
   data,
   isEnd,
@@ -25,10 +81,11 @@ const ExamQuestionGroup = ({
   questionRefs,
   currentQuestionId,
   onOpenAnswerSheet,
+  disabled: disabledProp
 }: Props) => {
   const { t } = useTranslation()
   const questions = data.questions
-  const disabled = isEnd || status === ExamStatus.Paused
+  const disabled = disabledProp || isEnd || status === ExamStatus.Paused
   const questionContent = useMemo(() => {
     const title = data.articles?.[0].title;
     const author = data.articles?.[0].author;
@@ -48,7 +105,7 @@ const ExamQuestionGroup = ({
     data.articles?.[0]?.subcategory?.name
   ]);
 
-  const renderAnswer = (question: QuestionResponse) => {
+  const renderAnswer = useCallback((question: QuestionResponse) => {
     switch (question.questionAnswerType) {
       case QuestionAnswerType.ShortAnswer:
       case QuestionAnswerType.OrderMatters:
@@ -65,46 +122,7 @@ const ExamQuestionGroup = ({
           )
         })
     }
-  }
-
-  const renderRow = (item: QuestionResponse, lastQuestionIndex: number) => {
-    const answerCount = item.answerCount
-
-    return (
-      <TouchableOpacity
-        ref={(ref) => (questionRefs.current[item.questionIndex || 0] = ref)}
-        onPress={() => (disabled ? undefined : onOpenAnswerSheet(item.id))}
-        style={[
-          styles.row,
-          currentQuestionId === item.id && styles.activeRow,
-          { borderBottomWidth: item.questionOrder === lastQuestionIndex - 1 ? 0 : 1 }
-        ]}
-      >
-        {item.isStar && (
-          <View style={{ position: 'absolute', top: 0, right: 0, zIndex: 1 }}>
-            <StarRating />
-          </View>
-        )}
-        <View
-          style={[
-            styles.questionCol,
-            {
-              borderRightWidth: currentQuestionId === item.id ? 0 : 1,
-              borderColor: palette.grey[200]
-            }
-          ]}
-        >
-          <Text style={[styles.questionText, currentQuestionId === item.id && styles.activeQuestionText]}>
-            {t('number_question', { number: item.questionOrder + 1 })}
-          </Text>
-        </View>
-
-        <View style={{ flex: 3 }}>
-          <View style={styles.answerCol}>{renderAnswer(item)}</View>
-        </View>
-      </TouchableOpacity>
-    )
-  }
+  }, [])
 
   const totalScore = useMemo(() => {
     return questions.reduce((sum, question) => {
@@ -132,11 +150,19 @@ const ExamQuestionGroup = ({
           </View>
         </View>
 
-        <FlatList
-          data={questions}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => renderRow(item, questions.length)}
-        />
+        {questions.map((item) => (
+          <QuestionRow
+            key={item.id}
+            item={item}
+            lastQuestionIndex={questions.length}
+            questionRefs={questionRefs}
+            disabled={disabled}
+            onOpenAnswerSheet={onOpenAnswerSheet}
+            currentQuestionId={currentQuestionId}
+            t={t}
+            renderAnswer={renderAnswer}
+          />
+        ))}
       </View>
     </View>
   )

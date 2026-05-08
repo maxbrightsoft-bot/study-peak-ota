@@ -112,7 +112,7 @@ android {
     }
     buildscript {
         ext {
-            ndkVersion = "26.1.10909125"
+            ndkVersion = "27.1.12297006"
         }
     }
     buildTypes {

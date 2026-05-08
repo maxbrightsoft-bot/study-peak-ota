@@ -31,6 +31,15 @@ export type NoteResponse = {
   mentionUsers: MentionUser[]
 }
 
+export type GroupedNoteResponse = {
+  subjectName: string
+  categoryName: string
+  latestScore?: number
+  latestCreatedAt: string
+  totalNotes: number
+  notes: NoteResponse[]
+}
+
 export type MentionUser = {
   fullName: string
   email: string
@@ -59,6 +68,7 @@ export type NoteRequest = {
   mentionIds?: number[]
   isMentionAll?: boolean
   studentExamSessionId?: any
+  studentTextbookSessionId?: number
   imageUrl?: string
 }
 
@@ -68,5 +78,14 @@ export interface NoteSearchQuery extends BaseSearchQuery<NoteSortColumn> {
   examSessionId?: number
   IsOwned?: boolean
   studentExamSessionId?: string
+  studentTextbookSessionId?: number
   types?: NoteType[]
+  
+  // New Filter Parameters for Incorrect Notes
+  subjectNames?: string[]
+  categoryNames?: string[]
+  examTypes?: number[]
+  startDate?: string
+  endDate?: string
+  hasMemoOrImage?: boolean
 }

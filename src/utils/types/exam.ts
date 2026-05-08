@@ -78,6 +78,7 @@ export type Question = {
     answerTime: string
     questionGroupIndex: number
     category: Category
+    questionIndex: number
     classAverageTime: any
     duration: any
     id: number
@@ -88,8 +89,8 @@ export type Question = {
     parentQuestionOrder: number
     overallCorrectRate: number
     skipRate: number
-    selectedAnswers?: string[]
-    correctAnswers?: string[]
+    selectedAnswers?: any[]
+    correctAnswers?: any[]
     correctTextualAnswers?: string[]
     textualAnswers?: string[]
     topDuration?: number | null
@@ -304,8 +305,10 @@ export type QuestionTime = {
 export interface InfoExamSessionByCode {
   id: number
   code: string
+  title: string
   subject: string
   grade: number
+  category: string
   gradeYear: number
   classes: string[]
   teacherName: string

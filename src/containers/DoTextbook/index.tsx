@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useCallback } from 'react'
 import { View, Text, Platform, KeyboardAvoidingView, TouchableOpacity, FlatList } from 'react-native'
 import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -35,10 +35,10 @@ type Props = {
 const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
   const { isOpenDialog, handleCloseDialog, handleOpenDialog } = useDrawer()
 
-  const handleOpenDrawer = () => {
+  const handleOpenDrawer = useCallback(() => {
     handleOpenDialog()
     handleCloseAudioGuide()
-  }
+  }, [handleOpenDialog])
 
   const {
     t,
@@ -72,6 +72,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
     handleOpenTextbookResultDialog,
     timeUpdateDialogProps,
     handleToggleSpeaker,
+    handleStartSelectedSubjectAlarm,
     currentQuestionId,
     startPageOptions,
     scrollToQuestion,
@@ -102,7 +103,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
   })
 
   const { isOpenAudioGuide, handleOpenAudioGuide, handleCloseAudioGuide, handleStartTextbook } = useAlarmTextbook({
-    onStart: alarmClockProps.panelProps.onStart,
+    onStartAudio: handleStartSelectedSubjectAlarm,
     handleCloseDialog,
   })
   const disabled = textbook?.status === ExamStatus.Completed || textbook?.status === ExamStatus.Paused
@@ -118,6 +119,31 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
       questions: questionList.filter((q) => q.questionGroupId === group.id)
     }))
   }, [questionGroupList, questionList])
+
+  const renderQuestionGroup = useCallback(({ item }: { item: any }) => (
+    <TextbookQuestionGroup
+      t={t}
+      data={item}
+      questionRefs={questionRefs}
+      type={textbook?.type}
+      handleOpenExpiredQuestionDialog={handleOpenExpiredQuestionDialog}
+      currentQuestionId={currentQuestionId}
+      onOpenAnswerSheet={handleOpenAnswerSheet}
+      isEnd={textbook?.status === ExamStatus.Completed}
+      isMock={textbook?.isMock}
+      status={textbook?.status}
+      subjectType={textbook?.type}
+    />
+  ), [
+    t,
+    questionRefs,
+    textbook?.type,
+    textbook?.status,
+    textbook?.isMock,
+    handleOpenExpiredQuestionDialog,
+    currentQuestionId,
+    handleOpenAnswerSheet
+  ]);
 
   if (isNotFoundTextbook) {
     return <NotFoundExam title={t('textbook_not_found')} />
@@ -146,15 +172,15 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
         keyboardVerticalOffset={100}
       >
         <View style={styles.header}>
-          <TouchableOpacity>
-            <TouchableOpacity onPress={handleOpenLeaveDialog}>
-              <View style={{ transform: 'rotate(180deg)' }}>
-                <ArrowRight width={24} height={24} color={palette.grey[300]} />
-              </View>
-            </TouchableOpacity>
+          <TouchableOpacity onPress={handleOpenLeaveDialog}>
+            <View style={{ transform: 'rotate(180deg)' }}>
+              <ArrowRight width={24} height={24} color={palette.grey[300]} />
+            </View>
           </TouchableOpacity>
           <View style={styles.titleContainer}>
-            <Text style={[styles.subtitle, { color: (remainTime || 0) < 10 && textbook?.isMock ? palette.red[900] : palette.grey[400] }]}>{!textbook?.isMock ? formattedTime : remainTimeString}</Text>
+            <Text style={[styles.subtitle, { color: (remainTime || 0) < 10 && textbook?.isMock ? palette.red[900] : palette.grey[400] }]}>
+              {!textbook?.isMock ? formattedTime : remainTimeString}
+            </Text>
             {!textbook?.isMock && (
               <View style={styles.timeContainer}>
                 <Text style={styles.timeLeft}>
@@ -205,10 +231,6 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
         {questionStarList.length > 0 && (
           <View
             style={{
-              position: 'sticky',
-              top: 0,
-              left: 0,
-              right: 0,
               paddingHorizontal: 20,
               paddingVertical: 14,
               zIndex: 1,
@@ -230,6 +252,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
             </View>
           </View>
         )}
+
         <FlatList
           data={groupedQuestions}
           keyExtractor={(item) => `group-${item.id}`}
@@ -237,36 +260,14 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
           initialNumToRender={5}
           maxToRenderPerBatch={5}
           windowSize={5}
-          removeClippedSubviews={true}
-          renderItem={({ item }) => (
-            <TextbookQuestionGroup
-              t={t}
-              data={item}
-              questionRefs={questionRefs}
-              type={textbook?.type}
-              handleOpenExpiredQuestionDialog={handleOpenExpiredQuestionDialog}
-              currentQuestionId={currentQuestionId}
-              onOpenAnswerSheet={handleOpenAnswerSheet}
-              isEnd={textbook?.status === ExamStatus.Completed}
-              isMock={textbook?.isMock}
-              status={textbook?.status}
-              subjectType={textbook?.type}
-            />
-          )}
+          removeClippedSubviews={Platform.OS === 'android'}
+          renderItem={renderQuestionGroup}
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
         />
 
         <View style={styles.footer}>
-          <View
-            style={{
-              paddingVertical: 14,
-              paddingHorizontal: 20,
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}
-          >
+          <View style={styles.footerTop}>
             <TouchableOpacity
               onPress={
                 disabled
@@ -293,7 +294,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
                 alignItems: 'center'
               }}
             >
-              <Text style={{ color: 'red', fontWeight: 500, fontSize: 14 }}>{t('end_exam')}</Text>
+              <Text style={{ color: 'red', fontWeight: '500', fontSize: 14 }}>{t('end_exam')}</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.navRow}>
@@ -393,6 +394,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
             </View>
           </View>
         </View>
+
         <RestartPageDialog
           title={t('restart')}
           options={startPageOptions}
@@ -496,7 +498,7 @@ const styles = ScaledSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    fontWeight: 500,
+    fontWeight: '500',
     color: palette.grey[400]
   },
   currentQuestion: {
@@ -535,7 +537,7 @@ const styles = ScaledSheet.create({
   },
   finishText: {
     color: '#222222',
-    fontWeight: 500,
+    fontWeight: '500',
     fontSize: 14
   },
   timeContainer: {
@@ -545,13 +547,13 @@ const styles = ScaledSheet.create({
   },
   timeLeft: {
     color: '#222222',
-    fontWeight: 600,
+    fontWeight: '600',
     fontSize: 16
   },
   totalTime: {
     color: '#222222',
     fontSize: 16,
-    fontWeight: 600
+    fontWeight: '600'
   },
   navRow: {
     paddingVertical: 12,
@@ -565,7 +567,7 @@ const styles = ScaledSheet.create({
     fontSize: 14,
     lineHeight: 22,
     color: '#222222',
-    fontWeight: 500
+    fontWeight: '500'
   },
   navButton: {
     flexDirection: 'row',

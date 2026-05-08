@@ -233,8 +233,8 @@ const ChatContainer = ({
               </View>
 
               <View style={styles.inputWrapper}>
-                <TextField inputRef={inputRef} multiline numberOfLines={3} disabled={disabled} style={styles.input} onChangeText={onChangeInput} />
-                {/* <MathRichInput ref={inputRef} disabled={disabled} style={styles.input} onChange={(value) => onChangeInput(value)} /> */}
+                {/* <TextField inputRef={inputRef} multiline numberOfLines={3} disabled={disabled} style={styles.input} onChangeText={onChangeInput} /> */}
+                <MathRichInput ref={inputRef} disabled={disabled} style={styles.input} onChange={(value) => onChangeInput(value)} />
               </View>
 
               <TouchableOpacity
@@ -328,7 +328,6 @@ const styles = ScaledSheet.create({
   examTitle: {
     ...TYPO.button3,
     color: palette.grey[900],
-    flex: 1
   },
   dateTitle: {
     ...TYPO.button4,
@@ -417,7 +416,8 @@ const styles = ScaledSheet.create({
   },
 
   input: {
-    borderWidth: 0,
+    borderWidth: 1,
+    borderColor: palette.grey[100],
     backgroundColor: 'transparent'
   },
 

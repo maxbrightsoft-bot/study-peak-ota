@@ -7,14 +7,14 @@ import {
 } from "react"
 import { useTranslation } from "react-i18next"
 import _ from "lodash"
-import { NoteRequest, NoteResponse, NoteSearchQuery } from "@/utils/types"
+import { GroupedNoteResponse, NoteRequest, NoteResponse, NoteSearchQuery } from "@/utils/types"
 import { getErrorMessage, toast } from "@/utils/helpers"
-import { getNotesApi } from "../../ExamResultList/apiClients/noteService"
+import { getGroupedNotesApi, getNotesApi, getNoteFilterOptionsApi } from "../../ExamResultList/apiClients/noteService"
 import { useFocusEffect } from "@react-navigation/native"
 import { DEFAULT_NOTE_FILTER } from "../configs/constants"
 import { deleteNoteApi, updateNoteApi } from "../apiClients"
 import { apiUploadImageFile } from "@/containers/ExamResultList/apiClients"
-import { pick } from "@react-native-documents/picker"
+import * as ImagePicker from 'expo-image-picker';
 import useAuthStore from "@/store/useAuthStore"
 import { NoteSortColumn, OrderBy } from "@/utils/enums"
 
@@ -24,7 +24,7 @@ const useNotes = (
     const { t } = useTranslation()
     const [filter, setFilter] = useState<NoteSearchQuery>(DEFAULT_NOTE_FILTER)
     const [totalPages, setTotalPages] = useState<number>(0)
-    const [notes, setNotes] = useState<NoteResponse[]>([])
+    const [notes, setNotes] = useState<GroupedNoteResponse[]>([])
     const [isLoadingNotes, setLoadingNotes] = useState<boolean>(false)
     const [selectedNote, setSelectedNote] = useState<NoteResponse>()
     const [open, setOpen] = useState<boolean>(false)
@@ -34,13 +34,59 @@ const useNotes = (
     const [openConfirm, setOpenConfirm] = useState<boolean>(false)
     const [subjectValue, setSubjectValue] = useState<string | null>(null)
     const [categoryValue, setCategoryValue] = useState<string | null>(null)
+    const [isFilterVisible, setIsFilterVisible] = useState<boolean>(false)
+    const [subjectNoteOptions, setSubjectNoteOptions] = useState<{label: string, value: string | number, id?: number}[]>([])
+    const [categoryNoteOptions, setCategoryNoteOptions] = useState<{label: string, value: string | number, id?: number, children?: {label: string, value: string | number, id?: number}[]}[]>([])
 
-    const handleChangeSubject = (value: string) => {
-        setSubjectValue(value)
+    const openFilter = () => setIsFilterVisible(true)
+    const closeFilter = () => setIsFilterVisible(false)
+
+    const fetchFilterOptions = async () => {
+        try {
+            const res = await getNoteFilterOptionsApi()
+            const data = res.data
+            setSubjectNoteOptions(data.subjects?.map((s: any) => ({ label: s.name, value: s.name, id: s.id })) || [])
+            setCategoryNoteOptions(data.categories?.map((c: any) => ({ 
+                label: c.name, 
+                value: c.name, 
+                id: c.id,
+                children: c.children?.map((child: any) => ({ label: child.name, value: child.name, id: child.id })) || []
+            })) || [])
+        } catch (error) {
+            console.error("Failed to fetch filter options", error)
+        }
     }
 
-    const handleChangeCategory = (value: string) => {
+    useEffect(() => {
+        fetchFilterOptions()
+    }, [])
+
+    const handleApplyFilter = (newFilters: Partial<NoteSearchQuery>) => {
+        setFilter(prev => ({ ...prev, ...newFilters, currentPage: 1 }))
+        // Update local state if needed
+        if (newFilters.subjectNames && newFilters.subjectNames.length > 0) {
+            setSubjectValue(newFilters.subjectNames[0])
+        } else {
+            setSubjectValue(null)
+        }
+    }
+
+    const handleChangeSubject = (value: string | null) => {
+        setSubjectValue(value)
+        setFilter(prev => ({
+            ...prev,
+            subjectNames: value ? [value] : undefined,
+            currentPage: 1
+        }))
+    }
+
+    const handleChangeCategory = (value: string | null) => {
         setCategoryValue(value)
+        setFilter(prev => ({
+            ...prev,
+            categoryNames: value ? [value] : undefined,
+            currentPage: 1
+        }))
     }
 
     const toggleConfirmDialog = () => {
@@ -57,7 +103,10 @@ const useNotes = (
         }
 
         inputSearch.current = setTimeout(() => {
-            getNotes(search);
+            setFilter(prev => {
+                if ((prev.textSearch || "") === search) return prev;
+                return { ...prev, textSearch: search, currentPage: 1 };
+            });
         }, 500);
 
         return () => {
@@ -69,20 +118,28 @@ const useNotes = (
 
     const handleUploadImage = async () => {
         try {
-            const [result] = await pick({
-                mode: 'open',
-                allowVirtualFiles: true
-            })
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ['images'],
+                quality: 0.8,
+            });
 
-            setLoadingWithoutOverlay(true)
+            if (result.canceled || !result.assets.length) return;
+
+            setLoadingWithoutOverlay(true);
+            const asset = result.assets[0];
             const formData = new FormData();
-            formData.append("upload", result as any);
+            formData.append("upload", {
+                uri: asset.uri,
+                type: asset.mimeType || 'image/jpeg',
+                name: asset.fileName || `image_${Date.now()}.jpg`,
+            } as any);
             const res = await apiUploadImageFile(formData);
-            setImageUrl(res?.data?.url)
+            setImageUrl(res?.data?.url);
         } catch (error) {
-            toast.error(getErrorMessage(t, error))
+            toast.error(getErrorMessage(t, error));
+        } finally {
+            setLoadingWithoutOverlay(false);
         }
-        setLoadingWithoutOverlay(false);
     }
 
     const reset = () => {
@@ -103,7 +160,7 @@ const useNotes = (
         setLoadingNotes(bool)
     }
 
-    const getNotes = async (textSearch?: string) => {
+    const getNotes = async () => {
         if (!filter || !filter.currentPage) {
             setNotes([])
             return
@@ -111,14 +168,24 @@ const useNotes = (
         if (isLoadingNotes) return
         setLoadingWithoutOverlay(true)
         try {
-            const res = await getNotesApi({ ...filter, textSearch })
+            const res = await getGroupedNotesApi({ ...filter })
             const data = res.data
             setTotalPages(data?.totalPages || 0)
-            const items: NoteResponse[] = data?.items || []
-            let newNotes: NoteResponse[] = items
+            const items: GroupedNoteResponse[] = data?.items || []
+            let newNotes: GroupedNoteResponse[] = items
 
             if (filter?.currentPage && filter?.currentPage > 1) {
-                newNotes = [..._.uniqBy([...notes, ...items], "id")] as NoteResponse[]
+                const map = new Map<string, GroupedNoteResponse>();
+                [...notes, ...items].forEach(item => {
+                    const key = `${item.subjectName}-${item.categoryName}`;
+                    if(map.has(key)) {
+                       const existing = map.get(key)!;
+                       existing.notes = [...existing.notes, ...item.notes];
+                    } else {
+                       map.set(key, item);
+                    }
+                });
+                newNotes = Array.from(map.values());
             }
             setNotes(newNotes)
         } catch (error) {
@@ -206,18 +273,16 @@ const useNotes = (
         }
     }
 
-    const subjectNoteOptions = useMemo(() => {
-        const unique = [...new Set(notes.map(i => i.subjectName))]
-        return unique.map(i => ({ label: i, value: i }))
-    }, [notes])
 
-    const categoryNoteOptions = useMemo(() => {
-        const unique = [...new Set(notes.map(i => i.categoryName))]
-        return unique.map(i => ({ label: i, value: i }))
-    }, [notes])
+
+    const isFirstFocus = useRef(true);
 
     useFocusEffect(
         useCallback(() => {
+            if (isFirstFocus.current) {
+                isFirstFocus.current = false;
+                return;
+            }
             getNotes()
         }, [])
     );
@@ -248,6 +313,10 @@ const useNotes = (
         handleLoadChange,
         isLoadingNotes,
         handleLoadMore,
+        isFilterVisible,
+        openFilter,
+        closeFilter,
+        handleApplyFilter
     }
 }
 

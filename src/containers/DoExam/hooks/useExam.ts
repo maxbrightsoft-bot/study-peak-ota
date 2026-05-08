@@ -34,6 +34,7 @@ import { logError } from '@/utils/helpers/crashlyticsLogger';
 import crashlytics from '@react-native-firebase/crashlytics'
 import { useActivityTracking } from '@/hooks/useActivityTracking';
 import { useKeepAwake } from 'expo-keep-awake';
+import useAlarm from '@/layouts/hooks/useAlarm';
 
 type Props = {
   examCode: string;
@@ -58,6 +59,8 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
   const subscribeChannel = useAuthStore(state => state.subscribeChannel)
   const setLoadingWithoutOverlay = useAuthStore(state => state.setLoadingWithoutOverlay)
   const unsubscribeChannelSafe = useAuthStore(state => state.unsubscribeChannelSafe)
+  const isLoading = useAuthStore(state => state.isLoading)
+  const isLoadingWithoutOverlay = useAuthStore(state => state.isLoadingWithoutOverlay)
   const academyDomain: string | undefined = user?.academyDomain;
   const userId: number | undefined = user?.id;
   const [isOpenConfirmDialog, setOpenConfirmDialog] = useState(false);
@@ -73,23 +76,24 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
   const [openLeaveDialog, setOpenLeaveDialog] = useState<boolean>(false)
   const { getServerNow } = useServerTime();
   const { track, trackError, trackInfo } = useActivityTracking({ screen: AppScreen.DoExam })
+  const { handleStopAlarm } = useAlarm(false, [])
   useKeepAwake();
 
-  const handleOpenLeaveDialog = () => {
+  const handleOpenLeaveDialog = useCallback(() => {
     setOpenLeaveDialog(true)
-  }
+  }, [])
 
-  const handleCloseLeaveDialog = () => {
+  const handleCloseLeaveDialog = useCallback(() => {
     setOpenLeaveDialog(false)
-  }
+  }, [])
 
-  const handleOpenInfoExamDialog = () => {
+  const handleOpenInfoExamDialog = useCallback(() => {
     setOpenInfoExamDialog(true);
-  }
+  }, [])
 
-  const handleCloseInfoExamDialog = () => {
+  const handleCloseInfoExamDialog = useCallback(() => {
     setOpenInfoExamDialog(false);
-  }
+  }, [])
 
   const handleGetInfoExam = async () => {
     try {
@@ -102,22 +106,22 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     }
   };
 
-  const handleOpenFinishConfirmDialog = () => {
+  const handleOpenFinishConfirmDialog = useCallback(() => {
     setOpenConfirmFinishDialog(true);
-  }
+  }, [])
 
-  const handleCloseFinishConfirmDialog = () => {
+  const handleCloseFinishConfirmDialog = useCallback(() => {
     setOpenConfirmFinishDialog(false);
-  }
+  }, [])
 
-  const handleOpenAnswerSheet = (id?: number) => {
+  const handleOpenAnswerSheet = useCallback((id?: number) => {
     id && setCurrentQuestionId(id);
     setOpenAnswerSheet(true);
-  }
+  }, [])
 
-  const handleCloseAnswerSheet = () => {
+  const handleCloseAnswerSheet = useCallback(() => {
     setOpenAnswerSheet(false);
-  }
+  }, [])
 
   const handleNextQuestion = (isError?: boolean) => {
     if (!questionList?.length) return
@@ -227,34 +231,35 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
   }, [currentQuestionId])
 
 
-  const handleCloseResultDialog = () => {
+  const handleCloseResultDialog = useCallback(() => {
     setOpenResultDialog(false);
-  };
+  }, []);
 
-  const handleOpenResultDialog = () => {
+  const handleOpenResultDialog = useCallback(() => {
     setOpenResultDialog(true);
-  };
+  }, []);
 
-  const handleCloseLiveResultDialog = () => {
+  const handleCloseLiveResultDialog = useCallback(() => {
     setLiveResultDialog(false);
-  };
+  }, []);
 
-  const handleOpenLiveResultDialog = () => {
+  const handleOpenLiveResultDialog = useCallback(() => {
     setLiveResultDialog(true);
-  };
+  }, []);
 
-  const handleCloseConfirmDialog = () => {
+  const handleCloseConfirmDialog = useCallback(() => {
     setOpenConfirmDialog(false);
-  };
+  }, []);
 
-  const handleOpenConfirmDialog = () => {
+  const handleOpenConfirmDialog = useCallback(() => {
     setOpenConfirmDialog(true);
-  };
+  }, []);
 
   const handleExamEnd = () => {
     setQuestionList([]);
     handleCloseLiveResultDialog();
     handleCloseResultDialog();
+    handleCloseInfoExamDialog();
 
     navigate(Routes.Auth.Home);
   };
@@ -310,7 +315,13 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
       setExam(examData);
 
       if (isCompleted) {
-        handleTeacherFinishExam();
+        handleStopAlarm()
+        getCheckStatus()
+        handleCloseAnswerSheet()
+        handleCloseConfirmDialog()
+        handleCloseFinishConfirmDialog()
+        handleCloseLeaveDialog()
+        handleCloseInfoExamDialog()
         setLoading(false);
         return;
       }
@@ -336,7 +347,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
       setEndExam(!!data?.finishTime && data?.finishTime !== DATE_TIME_MIN_VALUE);
     } catch (err) {
       (firstLoadRef.current || showErrorMessage) &&
-        showToast("error", getErrorMessage(t, err));
+        toast.error(getErrorMessage(t, err));
       setNotFoundExam(true);
       trackError(err, {
         resourceType: ActivityResource.Exam,
@@ -370,12 +381,14 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     currentScreen() === Routes.Auth.DoExam && isEnding && setLiveResultDialog(true);
   }, [examCode, isEnding, onExamEnded]);
 
+
   const handleFinishExam = useCallback(async () => {
     const nowTime = getServerNow();
     setLoadingWithoutOverlay(true);
     try {
       await finishExam(examCode);
-      showToast("success", t("finish_exam_successful"));
+      handleStopAlarm()
+      toast.success(t("finish_exam_successful"));
       setEndExam(true);
       exam && exam.isLate && getCheckStatus();
       track({
@@ -405,7 +418,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
         examCode,
         studentExamSessionId: exam?.studentExamSessionId
       })
-      showToast("error", getErrorMessage(t, error));
+      toast.error(getErrorMessage(t, error));
       setEndExam(false);
     }
     handleCloseFinishConfirmDialog()
@@ -465,7 +478,13 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
       // }
 
       if (isCompleted) {
-        handleTeacherFinishExam();
+        handleStopAlarm()
+        getCheckStatus()
+        handleCloseAnswerSheet()
+        handleCloseConfirmDialog()
+        handleCloseFinishConfirmDialog()
+        handleCloseLeaveDialog()
+        handleCloseInfoExamDialog()
         setLoading(false);
         return;
       }
@@ -479,7 +498,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
           studentExamSessionId: String(exam.studentExamSessionId || ''),
         }
       })
-      showToast("info", t(status === ExamStatus.Paused ? "exam_has_been_paused" : "exam_has_been_resumed"));
+      toast.info(t(status === ExamStatus.Paused ? "exam_has_been_paused" : "exam_has_been_resumed"));
     } catch (error) {
       trackError(error, {
         resourceType: ActivityResource.Exam,
@@ -497,7 +516,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
         examCode,
         studentExamSessionId: exam?.studentExamSessionId
       })
-      showToast("error", getErrorMessage(t, error));
+      toast.error(getErrorMessage(t, error));
     }
     setLoading(false);
   };
@@ -574,9 +593,6 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     const nowTime = getServerNow();
 
     try {
-      await restartExamApi(exam?.code || '');
-      handleClear()
-      getQuestionExams();
       track({
         action: ActivityAction.Restart,
         resourceType: ActivityResource.Exam,
@@ -587,9 +603,13 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
           studentExamSessionId: String(exam.studentExamSessionId || ''),
         }
       })
-      showToast("info", t("exam_has_been_restarted"));
+
+      await restartExamApi(exam?.code || '');
+      handleClear()
+      getQuestionExams();
+      toast.info(t("exam_has_been_restarted"));
     } catch (error) {
-      showToast("error", getErrorMessage(t, error));
+      toast.error(getErrorMessage(t, error));
     }
     setLoading(false);
   };
@@ -608,33 +628,67 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     await apiJoinExam(item?.code, true);
     handleClear()
     await getQuestionExams();
-    showToast("info", t("exam_has_been_restarted"));
+    toast.info(t("exam_has_been_restarted"));
   };
 
   const handleTeacherPauseResumeExam = (data: any) => {
     if (!data) return;
 
     const item = JSON.parse(data);
-    showToast("info", t(item.status === ExamStatus.Paused ? "exam_has_been_paused" : "exam_has_been_resumed"));
+    toast.info(t(item.status === ExamStatus.Paused ? "exam_has_been_paused" : "exam_has_been_resumed"));
 
     setExam((state?: ExamSessionResponse) =>
       state ? { ...state, ...item } : undefined
     );
   };
 
-  const handleTeacherFinishExam = (data?: any) => {
+  const handleTeacherFinishExam = async (data?: any) => {
     if (data?.isDelete) {
       handleCloseLiveResultDialog();
       setEnding(true)
-      showToast("info", t("exam_has_been_cancelled"));
+      toast.info(t("exam_has_been_cancelled"));
 
       navigate(Routes.Auth.Home);
     } else {
-      getCheckStatus();
-      handleCloseAnswerSheet()
-      handleCloseConfirmDialog()
-      handleCloseFinishConfirmDialog()
-      handleCloseLeaveDialog()
+      if (isEnding) return;
+      handleStopAlarm()
+      
+      try {
+        setLoading(true);
+        const res = await getQuestionExam(examCode);
+        const examData = res.data?.data;
+        if (examData) {
+          setExam(examData);
+          const questionGroupsResponse: QuestionGroupResponse[] = examData?.questionGroups || [];
+          const responseQuestions: QuestionResponse[] = questionGroupsResponse.reduce(
+            (acc: QuestionResponse[], item: QuestionGroupResponse) => {
+              return acc.concat(item.questions);
+            }, []
+          );
+
+          const questions = responseQuestions.map((i, index) => ({
+            ...i,
+            questionIndex: index,
+            answerTime:
+              i.answerTime !== DATE_MIN_VALUE && i.answerTime
+                ? moment.utc(i.answerTime).valueOf()
+                : 0,
+          }));
+
+          setQuestionList(questions);
+          setQuestionListMapped(questionGroupsResponse);
+        }
+      } catch (error) {
+        console.error("Sync exam failed", error);
+      } finally {
+        setLoading(false);
+        getCheckStatus();
+        handleCloseAnswerSheet()
+        handleCloseConfirmDialog()
+        handleCloseFinishConfirmDialog()
+        handleCloseLeaveDialog()
+        handleCloseInfoExamDialog()
+      }
     }
   };
 
@@ -649,7 +703,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     });
   };
 
-  const { updateQuestionAnswer, updateQuestionStar } = useExamSolving({
+  const { updateQuestionAnswer, updateQuestionStar, handleResetExamSolving } = useExamSolving({
     examId: exam?.id,
     exam,
     examCode: examCode,
@@ -691,8 +745,15 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     handleCloseLeaveDialog()
     handleCloseFinishConfirmDialog()
     handleCloseConfirmDialog()
+    handleCloseAnswerSheet()
+    handleResetExamSolving()
     setQuestionList([])
+    setQuestionListMapped([])
+    handleCloseInfoExamDialog()
     setEnding(false)
+    setEndExam(undefined)
+    setNotFoundExam(undefined)
+    setCurrentQuestionId(undefined)
     setExam(undefined)
     firstLoadRef.current = true
     scrollViewRef.current?.scrollToOffset({
@@ -773,9 +834,6 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     }, [examCode, academyDomain, userId])
   );
 
-  const showToast = (type: 'success' | 'error' | 'info', message: string) => {
-    toast[type](message);
-  };
 
   const convertHHMMSStoSeconds = (timeString?: string): number | undefined => {
     if (!timeString) return undefined;
@@ -887,7 +945,8 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     handleExamEnd,
     handleDetailExamResult,
     handleCloseLiveResultDialog,
-    handleOpenLiveResultDialog
+    handleOpenLiveResultDialog,
+    isLoading: isLoading || isLoadingWithoutOverlay
   };
 };
 
