@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { PreparedFilterType, PreparedType } from '../configs/type'
 import useTextbook from '../hooks/useTextbook'
@@ -15,6 +16,7 @@ type Props = {
   preparedFilterType?: PreparedFilterType
 }
 const TextbookList = ({ preparedType, preparedFilterType }: Props) => {
+  const [enableAudio, setEnableAudio] = useState(true)
   const {
     t,
     search,
@@ -44,6 +46,15 @@ const TextbookList = ({ preparedType, preparedFilterType }: Props) => {
     (textbookFilter.subjectIds?.length ? 1 : 0) +
     (textbookFilter.fromMonths?.length || textbookFilter.toMonths?.length ? 1 : 0) +
     (textbookFilter.fromDate || textbookFilter.toDate ? 1 : 0)
+
+  useEffect(() => {
+    if (isOpenAudioGuide) setEnableAudio(true)
+  }, [isOpenAudioGuide, selectedTextbook?.id])
+
+  const handleStartAudioGuide = (enable: boolean) => {
+    setEnableAudio(enable)
+    handleStartTextbookFromGuideModal(enable)
+  }
 
   return (
     <View>
@@ -85,7 +96,7 @@ const TextbookList = ({ preparedType, preparedFilterType }: Props) => {
           open={isOpenAudioGuide}
           audioUrls={selectedTextbook?.subject?.audioUrls ?? []}
           onClose={handleCloseAudioGuide}
-          onStart={handleStartTextbookFromGuideModal}
+          onStart={handleStartAudioGuide}
         />
       )}
       {isOpenTimeSelectModal && (
@@ -94,8 +105,8 @@ const TextbookList = ({ preparedType, preparedFilterType }: Props) => {
           t={t}
           title={t('select_timer_limit')}
           onClose={handleCloseTimeSelectModal}
-          onSubmit={(minutes) => {
-            if (selectedTextbook) handleStartTextbook(true, selectedTextbook, minutes)
+          onSubmit={(minutes, skipPreAlarm) => {
+            if (selectedTextbook) handleStartTextbook(enableAudio, selectedTextbook, minutes, skipPreAlarm)
           }}
           initialValue={selectedTextbook?.subject?.limitedTimeInMinutes || selectedTextbook?.limitedTimeInMinutes}
         />

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigation, useRoute } from "@react-navigation/native"
-import { Socket } from "socket.io-client"
 import useAuthStore from "@/store/useAuthStore"
 import useLogin from "@/containers/Login/hooks/useLogin"
 import { 

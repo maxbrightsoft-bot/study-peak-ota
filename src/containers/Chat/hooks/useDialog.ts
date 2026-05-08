@@ -3,7 +3,7 @@ import { apiUploadImageFile, completeConversation } from "../apiClient/conversat
 import { useTranslation } from "react-i18next";
 import { MessageRequest } from "@/utils/types";
 import { getErrorMessage, toast } from "@/utils/helpers";
-import { pick } from "@react-native-documents/picker";
+import * as ImagePicker from 'expo-image-picker';
 import useAuthStore from "@/store/useAuthStore";
 
 const useDialog = () => {
@@ -38,21 +38,27 @@ const useDialog = () => {
 
   const handleUploadImage = async () => {
     try {
-      setLoading(true)
-      const [result] = await pick({
-        mode: 'open',
-        allowVirtualFiles: true
-      })
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 0.8,
+      });
 
+      if (result.canceled || !result.assets.length) return;
+
+      setLoading(true);
+      const asset = result.assets[0];
       const formData = new FormData();
-      formData.append("upload", result as any);
+      formData.append("upload", {
+        uri: asset.uri,
+        type: asset.mimeType || 'image/jpeg',
+        name: asset.fileName || `image_${Date.now()}.jpg`,
+      } as any);
       const res = await apiUploadImageFile(formData);
       setSelectedFile({ content: res?.data?.url })
       toast.success(t('upload_image_successfully'))
     } catch (error) {
       toast.error(getErrorMessage(t, error))
-    }
-    finally {
+    } finally {
       setLoading(false)
     }
   }

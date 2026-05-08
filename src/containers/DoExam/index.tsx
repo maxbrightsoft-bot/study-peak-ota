@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useCallback } from 'react'
 import { View, Text, Platform, KeyboardAvoidingView, TouchableOpacity, FlatList } from 'react-native'
 import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -21,10 +21,6 @@ import ArrowDown from '@/assets/iconJSX/arrowDown'
 import ArrowRight from '@/assets/iconJSX/arrowRight'
 import SelectAnswerSheet from './components/SelectAnswerSheet'
 import InfoExamCode from './components/InfoExamCode'
-import TimerDropDown from '@/layouts/components/TimerDropDown'
-import MuteIcon from '@/assets/iconJSX/mute'
-import { Ionicons } from '@expo/vector-icons'
-import AudioGuideModal from '@/layouts/components/AudioGuideModal'
 
 type Props = {
   examCode: string
@@ -75,21 +71,7 @@ const DoExam = ({ examCode }: Props) => {
     handleDetailExamResult,
     handleCloseLiveResultDialog,
     handleFinishExam,
-    // openTimerDialog,
-    // handleTimerDialogToggle,
-    // alarmClockProps,
-    // audioGuideModalProps,
-    // isAlarmRunning,
-    // isTimerRunning,
-    // studyTimerProps,
-    // timeUpdateDialogProps,
-    // handleToggleSpeaker,
-    // speaker,
-    // disabledSpeaker,
-    // handleCloseResultDialog,
-    // isOpenAudioGuide,
-    // handleCloseAudioGuide,
-    // handleRestartExamWithAlarm
+    isLoading
   } = useExam({ examCode })
 
   const currentQuestion = useMemo(
@@ -104,11 +86,35 @@ const DoExam = ({ examCode }: Props) => {
     }))
   }, [questionListMapped, questionList])
 
-  const disabled = exam?.isLate
+  const disabled = (exam?.isLate
     ? exam?.lateStatus === ExamStatus.Paused || exam.lateStatus === ExamStatus.Completed
-    : exam?.status === ExamStatus.Paused || exam?.status === ExamStatus.Completed
+    : exam?.status === ExamStatus.Paused || exam?.status === ExamStatus.Completed)
+
+  const renderQuestionGroup = useCallback(({ item }: { item: any }) => (
+    <ExamQuestionGroup
+      t={t}
+      type={exam?.type}
+      onOpenAnswerSheet={handleOpenAnswerSheet}
+      data={item}
+      questionRefs={questionRefs}
+      isEnd={exam?.isLate ? exam?.lateStatus === ExamStatus.Completed : exam?.status === ExamStatus.Completed}
+      status={exam?.isLate ? exam.lateStatus : exam?.status}
+      currentQuestionId={currentQuestionId}
+      disabled={disabled}
+    />
+  ), [
+    t,
+    exam?.type,
+    exam?.isLate,
+    exam?.lateStatus,
+    exam?.status,
+    handleOpenAnswerSheet,
+    questionRefs,
+    currentQuestionId
+  ])
 
   if (isNotFoundExam) return <NotFoundExam title={t('the_exam_code_you_are_looking_for_was_not_found')} />
+
   return (
     <View style={styles.container}>
       <KeyboardAvoidingView
@@ -117,36 +123,18 @@ const DoExam = ({ examCode }: Props) => {
         keyboardVerticalOffset={80}
       >
         <View style={styles.header}>
-          <TouchableOpacity>
-            <TouchableOpacity onPress={handleOpenLeaveDialog}>
-              <View style={{ transform: 'rotate(180deg)' }}>
-                <ArrowRight width={24} height={24} color={palette.grey[300]} />
-              </View>
-            </TouchableOpacity>
+          <TouchableOpacity onPress={handleOpenLeaveDialog}>
+            <View style={{ transform: 'rotate(180deg)' }}>
+              <ArrowRight width={24} height={24} color={palette.grey[300]} />
+            </View>
           </TouchableOpacity>
           <View style={styles.titleContainer}>
             <Text style={styles.title}>{t('live_exam_in_progress')}</Text>
-            <Text style={[styles.subtitle, { color: (remainTime || 0) < 10 ? palette.red[900] : palette.grey[400] }]}>{remainTimeString || 0}</Text>
+            <Text style={[styles.subtitle, { color: (remainTime || 0) < 10 ? palette.red[900] : palette.grey[400] }]}>
+              {remainTimeString || 0}
+            </Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            {/* {(isTimerRunning || isAlarmRunning) && (
-              <TouchableOpacity onPress={() => handleToggleSpeaker()}>
-                {speaker ? <Ionicons name="volume-high" size={24} color={palette.grey[500]} /> : <MuteIcon />}
-              </TouchableOpacity>
-            )}
-            <TimerDropDown
-              speaker={speaker}
-              disabledSpeaker={disabledSpeaker}
-              openTimerDialog={openTimerDialog}
-              alarmClockProps={alarmClockProps}
-              audioGuideModalProps={audioGuideModalProps}
-              isAlarmRunning={isAlarmRunning}
-              isTimerRunning={isTimerRunning}
-              studyTimerProps={studyTimerProps}
-              timeUpdateDialogProps={timeUpdateDialogProps}
-              onToggleSpeaker={handleToggleSpeaker}
-              onToggleTimerDialog={handleTimerDialogToggle}
-            /> */}
             {(exam?.isLate || (!exam?.isLate && exam?.lateStatus === ExamStatus.Completed)) && (
               <FloatingActionButton
                 t={t}
@@ -163,13 +151,10 @@ const DoExam = ({ examCode }: Props) => {
             )}
           </View>
         </View>
+
         {questionStarList.length > 0 && (
           <View
             style={{
-              position: 'sticky',
-              top: 0,
-              left: 0,
-              right: 0,
               paddingHorizontal: 20,
               paddingVertical: 14,
               zIndex: 1,
@@ -191,6 +176,7 @@ const DoExam = ({ examCode }: Props) => {
             </View>
           </View>
         )}
+
         <FlatList
           ref={scrollViewRef}
           data={groupedQuestions}
@@ -210,9 +196,9 @@ const DoExam = ({ examCode }: Props) => {
               }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Text style={{ fontSize: 14, fontWeight: 600, color: '#171719' }}>{examSession?.subject}</Text>
+                <Text style={{ fontSize: 14, fontWeight: '600', color: '#171719' }}>{examSession?.subject}</Text>
                 <View style={{ backgroundColor: palette.grey[300], paddingVertical: 7, width: 2 }} />
-                <Text style={{ fontSize: 12, fontWeight: 500, color: '#222222' }}>{exam?.title}</Text>
+                <Text style={{ fontSize: 12, fontWeight: '500', color: '#222222' }}>{exam?.title}</Text>
                 {(exam?.totalStudentAttemptNumber || 0) >= 1 && (
                   <View
                     style={[
@@ -241,22 +227,11 @@ const DoExam = ({ examCode }: Props) => {
             </View>
           }
           contentContainerStyle={styles.scrollContainer}
-          renderItem={({ item }) => (
-            <ExamQuestionGroup
-              t={t}
-              type={exam?.type}
-              onOpenAnswerSheet={handleOpenAnswerSheet}
-              data={item}
-              questionRefs={questionRefs}
-              isEnd={exam?.isLate ? exam?.lateStatus === ExamStatus.Completed : exam?.status === ExamStatus.Completed}
-              status={exam?.isLate ? exam.lateStatus : exam?.status}
-              currentQuestionId={currentQuestionId}
-            />
-          )}
+          renderItem={renderQuestionGroup}
           initialNumToRender={3}
           maxToRenderPerBatch={3}
           windowSize={5}
-          removeClippedSubviews
+          removeClippedSubviews={Platform.OS === 'android'}
         />
 
         <View style={styles.footer}>
@@ -289,7 +264,7 @@ const DoExam = ({ examCode }: Props) => {
                 alignItems: 'center'
               }}
             >
-              <Text style={{ color: 'red', fontWeight: 500, fontSize: 14 }}>{t('end_exam')}</Text>
+              <Text style={{ color: 'red', fontWeight: '500', fontSize: 14 }}>{t('end_exam')}</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.navRow}>
@@ -374,6 +349,7 @@ const DoExam = ({ examCode }: Props) => {
             </View>
           </View>
         </View>
+
         {!isEnding && (
           <HangOnDialog
             title={t('notification')}
@@ -420,6 +396,7 @@ const DoExam = ({ examCode }: Props) => {
             updateQuestionAnswer={updateQuestionAnswer}
             questionList={questionList}
             currentQuestion={currentQuestion}
+            disabled={disabled}
           />
         )}
         {liveResultDialog && (
@@ -442,22 +419,6 @@ const DoExam = ({ examCode }: Props) => {
             studentExamSessionId={exam?.studentExamSessionId}
           />
         )}
-        {/* {audioGuideModalProps.open && (
-          <AudioGuideModal
-            open={audioGuideModalProps.open}
-            audioUrls={audioGuideModalProps.audioUrls}
-            onClose={audioGuideModalProps.onClose}
-            onStart={audioGuideModalProps.onStart}
-          />
-        )}
-        {isOpenAudioGuide && (
-          <AudioGuideModal
-            open={isOpenAudioGuide}
-            audioUrls={[]}
-            onClose={handleCloseAudioGuide}
-            onStart={handleRestartExamWithAlarm}
-          />
-        )} */}
       </KeyboardAvoidingView>
     </View>
   )
@@ -496,65 +457,16 @@ const styles = ScaledSheet.create({
     color: '#222222',
     fontWeight: '600'
   },
-  attempt: {
-    fontSize: 12,
-    fontWeight: 500,
-    color: palette.red[900]
-  },
   subtitle: {
     fontSize: 14,
-    fontWeight: 500,
+    fontWeight: '500',
     textAlign: 'center',
     color: palette.grey[400]
-  },
-  currentQuestion: {
-    fontWeight: 'bold',
-    color: palette.grey[900],
-    fontSize: 14
-  },
-  styleCard: {
-    backgroundColor: palette.grey[50],
-    marginVertical: 10,
-    paddingHorizontal: '16@ms',
-    paddingVertical: '12@ms'
-  },
-  styleExpand: {
-    marginTop: 10
   },
   scrollContainer: {
     paddingHorizontal: 24,
     paddingBottom: 200,
     gap: 24
-  },
-  accordionBox: {
-    marginBottom: '16@ms'
-  },
-  accordionTitle: {
-    fontWeight: 'bold',
-    fontSize: 14,
-    paddingVertical: '12@ms',
-    paddingHorizontal: '16@ms'
-  },
-  answerBox: {
-    padding: 12,
-    borderRadius: 6,
-    marginVertical: 6,
-    alignItems: 'center'
-  },
-  answerText: {
-    color: '#fff',
-    fontWeight: 'bold'
-  },
-  bookmarkBox: {
-    backgroundColor: '#eee',
-    padding: 6,
-    borderRadius: 12,
-    width: 40,
-    alignItems: 'center',
-    marginTop: 4
-  },
-  bookmarkText: {
-    color: '#aaa'
   },
   footer: {
     borderTopRightRadius: 12,
@@ -600,7 +512,7 @@ const styles = ScaledSheet.create({
     fontSize: 14,
     lineHeight: 22,
     color: '#222222',
-    fontWeight: 500
+    fontWeight: '500'
   },
   navButton: {
     flexDirection: 'row',
@@ -611,9 +523,7 @@ const styles = ScaledSheet.create({
     borderRadius: 26,
     borderWidth: 1,
     borderColor: '#222222'
-  },
-  optionWrap: {},
-  optionText: {}
+  }
 })
 
 export default DoExam

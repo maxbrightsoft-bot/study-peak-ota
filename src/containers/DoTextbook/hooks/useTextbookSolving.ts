@@ -110,7 +110,7 @@ const useTextbookSolving = (props: Props) => {
         if (!totalAnsweredTimeRef.current || (res.totalAnswerTime && res.totalAnswerTime > totalAnsweredTimeRef.current))
           totalAnsweredTimeRef.current = res.totalAnswerTime;
         updateTextbook?.((prev: any) => {
-          return ({ ...prev, questions: res.questions, lastAnswerTime: res.lastAnswerTime, totalAnswerTime: res.totalAnswerTime, totalPausedTime: res.totalPausedTime })
+          return ({ ...prev, rowVersion: res?.rowVersion, questions: res.questions, lastAnswerTime: res.lastAnswerTime, totalAnswerTime: res.totalAnswerTime, totalPausedTime: res.totalPausedTime })
         })
       }
     } catch (err: any) {
@@ -435,16 +435,24 @@ const useTextbookSolving = (props: Props) => {
     };
   }, [recoverKey]);
 
+  const handleResetTextbookSolving = useCallback(() => {
+    Object.values(apiTimeouts.current).forEach((timeout: any) => clearTimeout(timeout));
+    apiTimeouts.current = {};
+    ltAnswerTime.current = undefined;
+    totalAnsweredTimeRef.current = undefined;
+  }, []);
+
   useEffect(() => {
     ltAnswerTime.current = undefined
     totalAnsweredTimeRef.current = undefined
-  }, [textbook?.timestamp])
+  }, [textbook?.id])
 
   return {
     recoverKey,
     updateQuestionAnswer,
     updateQuestionStar,
-    recoverAnswers
+    recoverAnswers,
+    handleResetTextbookSolving
   };
 };
 

@@ -15,8 +15,8 @@ export async function doSync(attempt = 0): Promise<void> {
       const t1 = Date.now();
       const res = await getTimeServerApi();
       const { serverTime } = res.data;
-      const latency = (Date.now() - t1) / 2;
-      globalOffset = serverTime - (Date.now() - latency);
+      const latency = Math.floor((Date.now() - t1) / 2);
+      globalOffset = Math.floor(serverTime - (Date.now() - latency));
       globalSynced = true;
     } catch {
       if (attempt < 4) {
@@ -65,7 +65,7 @@ const useServerTime = () => {
   }, []);
 
   const getServerNow = useCallback(() => {
-    return Date.now() + globalOffset;
+    return Math.floor(Date.now() + globalOffset);
   }, []);
 
   return { getServerNow, synced, offset };

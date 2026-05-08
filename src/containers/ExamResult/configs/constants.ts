@@ -19,6 +19,10 @@ export const examStatusViewOptions = (t: any, chapterId?: number) => chapterId ?
         label: t('question_analysis'),
         value: ExamStatusView.QuestionAnalysis
     },
+    {
+        label: t('incorrect_answer_notes'),
+        value: ExamStatusView.IncorrectAnswerNotes
+    }
 ] : [
     {
         label: t('my_overall'),

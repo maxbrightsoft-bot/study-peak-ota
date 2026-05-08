@@ -28,7 +28,7 @@ mkdir -p ota
 ENTRY_FILE="node_modules/expo-router/entry.js"
 
 echo "=== Building Android bundle ==="
-npx react-native bundle \
+npx expo export:embed \
   --platform android --dev false \
   --entry-file $ENTRY_FILE \
   --bundle-output ota/index.android.bundle \
@@ -38,7 +38,7 @@ npx react-native bundle \
 }
 
 echo "=== Building iOS bundle ==="
-npx react-native bundle \
+npx expo export:embed \
   --platform ios --dev false \
   --entry-file $ENTRY_FILE \
   --bundle-output ota/main.jsbundle \

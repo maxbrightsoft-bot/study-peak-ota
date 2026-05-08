@@ -44,7 +44,7 @@ const useLiveResult = ({ examCode }: Props) => {
         try {
           const result = await getResults(examCode)
           setResultData({
-            ...result.data,
+            ...result?.data?.data,
             code: examCode
           });
         } catch (error) {

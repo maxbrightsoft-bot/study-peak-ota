@@ -255,8 +255,6 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
           ? textbookResult && (
             <TextbookQuestionAnalysis
               longTimeSpend={longTimeSpend}
-              openProblem={openProblem}
-              setOpenProblem={setOpenProblem}
               categoryResponses={categoryResponses}
               resultData={textbookResult}
             />
@@ -467,7 +465,7 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
           handleRestartExam?.()
         }}
       />
-      <ExamNoteDialog examResultData={resultData} {...noteDialogProps} selectedQuestion={selectedQuestion} />
+      <ExamNoteDialog examResultData={resultData} textbookResult={textbookResult} {...noteDialogProps} selectedQuestion={selectedQuestion} />
     </SlideDrawerRoot>
   )
 }

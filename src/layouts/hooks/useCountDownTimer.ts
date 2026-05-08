@@ -68,6 +68,7 @@ const useCountDownTimer = (props: Props) => {
             if (seconds <= 0) {
                 finishedRef.current = true;
                 setRemainTime(0);
+                playAudio(0);
                 onFinish();
                 return;
             }

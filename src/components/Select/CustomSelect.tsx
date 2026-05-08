@@ -78,7 +78,7 @@ const CustomSelect = forwardRef<IDropdownRef, Props>(
         containerStyle={styles.dropdownContainer}
         inputSearchStyle={styles.inputSearchStyle}
         renderRightIcon={renderRightIcon}
-        dropdownPosition="top"
+        dropdownPosition="auto"
         flatListProps={{
           keyboardShouldPersistTaps: 'handled'
         }}

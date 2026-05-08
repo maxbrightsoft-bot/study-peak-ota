@@ -16,6 +16,7 @@ interface Props {
   question: Question
   isLastQuestion: boolean
   updateQuestionAnswer: ({ questionId, textualAnswers, answer }: ExamQuestion) => void
+  disabled?: boolean
 }
 
 const schema = (t: any) => {
@@ -27,7 +28,7 @@ const schema = (t: any) => {
   })
 }
 
-const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer }: Props) => {
+const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer, disabled }: Props) => {
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>(question?.selectedAnswers ?? [])
   const answers = question.textualAnswers?.length ? question.textualAnswers : ['']
 
@@ -36,6 +37,7 @@ const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer
   }, [question.id])
 
   const handleSelectAnswer = (num: number, type: QuestionAnswerType) => {
+    if (disabled) return
     let nextSelected: number[]
 
     if (type === QuestionAnswerType.MultipleChoice) {
@@ -91,7 +93,7 @@ const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer
                     (values.textualAnswers.some((i: string) => !i.trim().length) && { opacity: 0.5 })
                   ]}
                   disabled={
-                    !values.textualAnswers.length || values.textualAnswers.some((i: string) => !i.trim().length)
+                    disabled || !values.textualAnswers.length || values.textualAnswers.some((i: string) => !i.trim().length)
                   }
                   onPress={() => handleSubmit(values)}
                 >
@@ -113,6 +115,7 @@ const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer
                   key={num}
                   style={[styles.answerButton, isSelected && styles.selectedAnswerButton]}
                   onPress={() => {
+                    if (disabled) return
                     handleSelectAnswer(num + 1, question.questionAnswerType)
                     isLastQuestion && onClose()
                   }}
