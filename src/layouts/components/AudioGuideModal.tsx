@@ -6,6 +6,7 @@ import { DEFAULT_AUDIO_URL } from '../../layouts/configs/constants'
 import useAudioTimer from '../hooks/useAudioTimer'
 import { palette } from '@/theme'
 import { getErrorMessage, toast } from '@/utils/helpers'
+import { Checkbox } from 'react-native-paper'
 import Loading from '@/components/Loading'
 
 export type AudioGuideModalProps = {
@@ -23,6 +24,7 @@ const AudioGuideModal: React.FC<AudioGuideModalProps> = ({ open, audioUrls, onCl
   const [isPlayAudio, setPlayAudio] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isSoundLoaded, setIsSoundLoaded] = useState<boolean>(false)
+
   useEffect(() => {
     let isMounted = true
 

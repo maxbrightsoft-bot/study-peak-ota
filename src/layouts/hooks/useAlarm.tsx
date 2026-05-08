@@ -28,8 +28,9 @@ import { getErrorMessage, toast } from '@/utils/helpers'
 import { DEFAULT_AUDIO_URL } from '../configs/constants'
 import { getDataStorage, setDataStorage, removeDataStorage } from '@/utils/storage'
 import { ToastExamStatus } from '../configs/enums'
-import { TOAST_EXAM_STATUS } from '@/utils/constants'
+import { TOAST_EXAM_STATUS, BASE_URL } from '@/utils/constants'
 import useServerTime from '@/hooks/useServerTime'
+import { stopAudioToastSound } from '../partials/Alarm/audioToastController'
 
 const DEFAULT_ALARM_DURATION = 45
 const TOTAL_MILLISECONDS_IN_MINUTE = 60 * 1000
@@ -90,6 +91,25 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
     endAudio.current = false
   }
 
+  const stopCurrentAudio = async () => {
+    try {
+      await stopAudioToastSound()
+      await soundRef.current?.stopAsync()
+      await soundRef.current?.unloadAsync()
+    } catch (e) {
+      console.log('Error stopping sound:', e)
+    } finally {
+      soundRef.current = null
+    }
+  }
+
+  const dismissAudioToast = async () => {
+    toast.dismiss()
+    await stopCurrentAudio()
+    await removeDataStorage(TOAST_EXAM_STATUS)
+    setAudioPopupProps(null)
+  }
+
   const handleUpdateAlarm = (data: AlarmResponse, isGet?: boolean) => {
     setAlarm(data)
 
@@ -104,6 +124,15 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
     if (data.status === TimerStatus.Started && !isGet) {
       resetAudioFlags()
     }
+
+    if (data.status === TimerStatus.Stopped) {
+      void resetEverything()
+    }
+  }
+
+  const resetEverything = async () => {
+    resetAudioFlags()
+    await dismissAudioToast()
   }
 
   const showAudioPopup = async (remainSeconds: number, stage: ToastExamStatus, currentAlarm: AlarmResponse) => {
@@ -115,21 +144,39 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
 
     toastIdRef.current = `audio-${nowTime}`
 
-    setAudioPopupProps({
-      soundRef,
-      toastId: toastIdRef.current,
-      audioSrc: currentAlarm.speakerMode ? currentAlarm?.subject?.audioUrls?.[1] || DEFAULT_AUDIO_URL : '',
-      remainTime: remainSeconds,
-      alarm: currentAlarm
-    })
+    const audioUrls = currentAlarm.subject?.audioUrls ?? []
+    let audioSrc = ''
 
-    toast.show({
+    if (currentAlarm.speakerMode) {
+      switch (stage) {
+        case ToastExamStatus.Start:
+          audioSrc = audioUrls[0] || audioUrls[1] || DEFAULT_AUDIO_URL
+          break
+        case ToastExamStatus.PreEnd:
+          audioSrc = audioUrls[2] || DEFAULT_AUDIO_URL
+          break
+        case ToastExamStatus.End:
+          audioSrc = audioUrls[3] || DEFAULT_AUDIO_URL
+          break
+      }
+    }
+
+    if (audioSrc && !audioSrc.startsWith('http')) {
+      audioSrc = `${BASE_URL}${audioSrc.startsWith('/') ? '' : '/'}${audioSrc}`
+    }
+
+    const encodedAudioSrc = audioSrc ? encodeURI(audioSrc) : ''
+
+    const config = {
       soundRef,
       toastId: toastIdRef.current,
-      audioSrc: currentAlarm.speakerMode ? currentAlarm?.subject?.audioUrls?.[1] || DEFAULT_AUDIO_URL : '',
+      audioSrc: encodedAudioSrc,
       remainTime: remainSeconds,
       alarm: currentAlarm
-    })
+    }
+
+    setAudioPopupProps(config)
+    toast.show(config)
   }
 
   const handleShowAudioToast = async (remainSeconds: number, start = false, alarmParam?: AlarmResponse) => {
@@ -168,7 +215,7 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
     setSelectedTimer({ duration, timer: subject })
   }
 
-  const handleStartSelectedSubjectAlarm = async (enable: boolean, duration?: number, subject?: SubjectTimerResponse, startTime?: number) => {
+  const handleStartSelectedSubjectAlarm = async (enable: boolean, duration?: number, subject?: SubjectTimerResponse, startTime?: number, skipPreAlarm?: boolean) => {
     const currentTimer = duration && subject && startTime ? { duration, timer: subject } : selectedTimer
     if (!currentTimer) return
     setLoadingItem(true)
@@ -184,8 +231,10 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
         startTime: duration && subject && startTime ? startTime : moment().utc().valueOf()
       })
       handleUpdateAlarm(res.data)
-      resetAudio()
-      handleShowAudioToast(currentTimer.duration * 60, true, res.data)
+      await resetEverything()
+      if (!skipPreAlarm) {
+        await handleShowAudioToast(currentTimer.duration * 60, true, res.data)
+      }
     } catch (error) {
       toast.error(
         t("failed_to_start_the_alarm", {
@@ -200,6 +249,7 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
     type: AlarmType,
     duration: number,
     subject?: SubjectTimerResponse,
+    skipPreAlarm?: boolean
   ) => {
     if (type === AlarmType.Subject && !subject) return
     if (type === AlarmType.Subject && !!subject) {
@@ -220,8 +270,10 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
       })
 
       handleUpdateAlarm(res.data)
-      resetAudio()
-      handleShowAudioToast(duration * 60, true, res.data)
+      await resetEverything()
+      if (!skipPreAlarm) {
+        await handleShowAudioToast(duration * 60, true, res.data)
+      }
     } catch (error) {
       t("failed_to_start_the_alarm", {
         message: getErrorMessage(t, error)
@@ -231,10 +283,14 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
     }
   }
 
-  const handleStopAlarm = async (alarmParam?: AlarmResponse | null) => {
+  const handleStopAlarm = async (alarmParam?: AlarmResponse | null, isAutoFinish?: boolean) => {
     const currentAlarm = alarmParam ?? alarm
 
-    if (!currentAlarm || currentAlarm.status === TimerStatus.Stopped || noAction) return
+    if (!isAutoFinish) {
+      await dismissAudioToast()
+    }
+
+    if (!currentAlarm || currentAlarm.status === TimerStatus.Stopped || noAction || stoppingRef.current) return
 
     stoppingRef.current = true
     setLoadingItem(true)
@@ -251,8 +307,12 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
       await removeDataStorage(TOAST_EXAM_STATUS)
       handleUpdateAlarm(res.data)
       setAudioPopupProps(null)
-    } catch (error) {
-      toast.error(getErrorMessage(t, error))
+    } catch (error: any) {
+      if (error?.response?.status === 409) {
+        getAlarm()
+      } else {
+        toast.error(getErrorMessage(t, error))
+      }
     } finally {
       setLoadingItem(false)
       stoppingRef.current = false
@@ -336,7 +396,7 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
     startTime: alarm?.startTime,
     lastResumeTime: alarm?.lastResumeTime,
     status: alarm?.status,
-    onFinish: handleStopAlarm,
+    onFinish: () => handleStopAlarm(null, true),
     playAudio: handleShowAudioToast
   })
 
@@ -370,7 +430,7 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
     open: !!selectedTimer,
     audioUrls: selectedTimer?.timer.audioUrls ?? [],
     onClose: handleCloseAudioGuide,
-    onStart: handleStartSelectedSubjectAlarm
+    onStart: (enable: boolean, skipPreAlarm?: boolean) => handleStartSelectedSubjectAlarm(enable, undefined, undefined, undefined, skipPreAlarm)
   }
 
   return {
@@ -382,7 +442,9 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
     handleStartSelectedSubjectAlarm,
     disabledSpeaker: loadingItem,
     handleToggleSpeaker,
-    getAlarm
+    getAlarm,
+    handleStopAlarm,
+    handleResumeOrPauseAlarm
   }
 }
 

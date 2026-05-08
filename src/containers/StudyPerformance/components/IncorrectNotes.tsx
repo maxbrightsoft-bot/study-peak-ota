@@ -1,5 +1,4 @@
 import SearchInput from '@/components/Input/SearchInput'
-import { palette } from '@/theme'
 import React, { useMemo } from 'react'
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, SafeAreaView, StatusBar, ScrollView } from 'react-native'
 import useNotes from '../hooks/useNotes'
@@ -153,7 +152,7 @@ const styles = StyleSheet.create({
   },
   searchFlex: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'F4F4F6',
     marginRight: 10,
   },
   filterBtn: {

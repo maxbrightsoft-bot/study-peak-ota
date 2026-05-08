@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native'
+import { Checkbox } from 'react-native-paper'
 import { palette, TYPO } from '@/theme'
 import CommonDialog from '@/components/ModalBase/CommonDialog'
 
@@ -8,17 +9,18 @@ interface Props {
   onClose: () => void
   t: any
   title: string
-  onSubmit: (minutes: number) => void
+  onSubmit: (minutes: number, skipPreAlarm: boolean) => void
   initialValue?: number
 }
 
 const SelectTimeDialog = ({ t, onClose, title, open, onSubmit, initialValue = 30 }: Props) => {
   const [minutes, setMinutes] = useState<string>(initialValue.toString())
+  const [skipPreAlarm, setSkipPreAlarm] = useState<boolean>(false)
 
   const handleConfirm = () => {
     const val = parseInt(minutes)
     if (!isNaN(val) && val > 0) {
-      onSubmit(val)
+      onSubmit(val, skipPreAlarm)
       onClose()
     }
   }
@@ -39,6 +41,19 @@ const SelectTimeDialog = ({ t, onClose, title, open, onSubmit, initialValue = 30
           />
           <Text style={styles.unitText}>{t('minutes')}</Text>
         </View>
+
+        <TouchableOpacity 
+          style={styles.checkboxContainer} 
+          onPress={() => setSkipPreAlarm(!skipPreAlarm)}
+          activeOpacity={0.7}
+        >
+          <Checkbox
+            status={skipPreAlarm ? 'checked' : 'unchecked'}
+            onPress={() => setSkipPreAlarm(!skipPreAlarm)}
+            color={palette.main[600]}
+          />
+          <Text style={styles.checkboxLabel}>{t('skip_pre_alarm')}</Text>
+        </TouchableOpacity>
 
         <View style={styles.footer}>
           <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>
@@ -93,6 +108,18 @@ const styles = StyleSheet.create({
   unitText: {
     ...TYPO.h5,
     color: palette.grey[900]
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+    gap: 4
+  },
+  checkboxLabel: {
+    ...TYPO.body2,
+    color: palette.grey[700],
+    fontWeight: '500'
   },
   footer: {
     flexDirection: 'row',

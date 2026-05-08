@@ -17,6 +17,7 @@ import moment from 'moment'
 import { ScaledSheet } from 'react-native-size-matters'
 import MathRender from '@/components/MathRender'
 import { Ionicons } from '@expo/vector-icons'
+import { useFocusEffect } from '@react-navigation/native'
 
 const getConversationTitle = (
   conversation: ConversationsResponse,
@@ -71,27 +72,59 @@ const Card = React.memo(({
   t: any,
   onPress: (conversation: ConversationsResponse) => void
 }) => (
-  <TouchableOpacity style={styles.card} onPress={() => onPress(conversation)}>
-    <Text style={styles.cardCategory}>{conversation.examTitle}</Text>
+  <TouchableOpacity style={styles.card} onPress={() => onPress(conversation)} activeOpacity={0.8}>
+    <View style={styles.cardHeader}>
+      <Image
+        source={{
+          uri: conversation?.mainTeacherCourseAvatar || conversation?.teacherAvatar
+        }}
+        style={styles.avatar}
+      />
+      <View style={styles.cardHeaderContent}>
+        <View style={styles.titleRow}>
+          <Text style={styles.teacherName} numberOfLines={1}>
+            {conversation?.mainTeacherCourseName || conversation.teacherName || t('teacher')}
+          </Text>
+          <Text style={styles.timeText}>{moment(conversation.createdAt).fromNow()}</Text>
+        </View>
+        <Text style={styles.cardCategory} numberOfLines={1}>
+          {conversation.examTitle || getConversationTitle(conversation, t)}
+        </Text>
+      </View>
+    </View>
 
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
-        <Text style={styles.cardTitle}>{getConversationTitle(conversation, t)}</Text>
+    <View style={styles.cardBody}>
+      <View style={styles.messagePreview}>
+        {isImagePath(conversation.lastMessage || '') ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Ionicons name="image-outline" size={16} color={palette.grey[500]} />
+            <Text style={{ color: palette.grey[500], fontSize: 13 }}>{t('image')}</Text>
+          </View>
+        ) : (
+          <MathRender content={conversation.lastMessage || t('no_message')} isChat maxLines={2} />
+        )}
+      </View>
+      <View style={styles.cardInfoRow}>
+        {conversation?.question && (
+          <View style={styles.infoBadge}>
+            <Text style={styles.infoBadgeText}>
+              {t("problem_number_question", {
+                number: (conversation.question.questionOrder || 0) + 1
+              })}
+            </Text>
+          </View>
+        )}
         {(conversation.studentTotalAttemptTime || 0) > 1 && (
           <View
             style={[
               styles.attemptBadge,
-              {
-                backgroundColor: conversation.isSelected ? palette.main[100] : palette.red[100]
-              }
+              { backgroundColor: conversation.isSelected ? palette.main[50] : palette.red[100] }
             ]}
           >
             <Text
               style={[
                 styles.attemptText,
-                {
-                  color: conversation.isSelected ? palette.main[700] : palette.red[900]
-                }
+                { color: conversation.isSelected ? palette.main[700] : palette.red[900] }
               ]}
             >
               {`#${conversation.studentAttemptNumber + 1}/${conversation.studentTotalAttemptTime}`}
@@ -99,37 +132,6 @@ const Card = React.memo(({
           </View>
         )}
       </View>
-      <Text style={styles.timeText}>{moment(conversation.createdAt).fromNow()}</Text>
-    </View>
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-
-      {isImagePath(conversation.lastMessage || '') ? (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <Ionicons name="image-outline" size={16} color={palette.grey[500]} />
-          <Text style={{ color: palette.grey[500], fontSize: 14 }}>{t('image')}</Text>
-        </View>
-      ) : (
-        <MathRender content={conversation.lastMessage || ''} isChat maxLines={2} />
-      )}
-      {conversation?.question && <Text>
-        {
-          conversation?.question
-            ? t("problem_number_question", {
-              number: (conversation.question.questionOrder || 0) + 1
-            })
-            : ''
-        }
-      </Text>}
-    </View>
-    <View style={styles.divider} />
-    <View style={styles.profileRow}>
-      <Image
-        source={{
-          uri: conversation?.mainTeacherCourseAvatar || conversation?.teacherAvatar
-        }}
-        style={styles.avatar}
-      />
-      <Text style={styles.teacherName}>{conversation?.mainTeacherCourseName || conversation.teacherName}</Text>
     </View>
   </TouchableOpacity>
 ))
@@ -171,6 +173,12 @@ export default function Question() {
 
   const { selected, handleChangeTab } = useTab(TabList)
 
+  useFocusEffect(
+    useCallback(() => {
+      handleChangeTab(TabList[0].value)
+    }, [handleChangeTab])
+  )
+
   const handleCloseChatContainer = useCallback(() => {
     setSelectedConversation(undefined)
     getConversationList()
@@ -211,8 +219,9 @@ export default function Question() {
             contentContainerStyle={{ gap: 8 }}
           >
             {TabList.map(({ label, value }, index) => (
-              <TouchableOpacity key={index} style={[styles.tabs]} onPress={() => handleChangeTab(value)}>
+              <TouchableOpacity key={index} style={[styles.tabs, value === selected && styles.activeTabWrapper]} onPress={() => handleChangeTab(value)} activeOpacity={0.7}>
                 <Text style={[styles.tab, value === selected && styles.activeTab]}>{t(label)}</Text>
+                {value === selected && <View style={styles.activeIndicator} />}
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -232,15 +241,22 @@ export default function Question() {
           </TouchableOpacity> */}
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} >
-          {conversationFilters.map((conversation) => (
-            <Card
-              conversation={conversation}
-              key={conversation.id}
-              t={t}
-              onPress={handleChangeSelectedConversation}
-            />
-          ))}
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
+          {conversationFilters.length > 0 ? (
+            conversationFilters.map((conversation) => (
+              <Card
+                conversation={conversation}
+                key={conversation.id}
+                t={t}
+                onPress={handleChangeSelectedConversation}
+              />
+            ))
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="chatbubbles-outline" size={60} color={palette.grey[300]} />
+              <Text style={styles.emptyText}>{t('no_data')}</Text>
+            </View>
+          )}
         </ScrollView>
       </View>
       <CreateQuestionConversationDialog
@@ -301,11 +317,26 @@ const styles = ScaledSheet.create({
   },
   tabsContainer: {
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    marginBottom: 4
   },
   tabs: {
-    flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    marginRight: 20,
+    paddingBottom: 8,
+    position: 'relative'
+  },
+  activeTabWrapper: {
+  },
+  activeIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 3,
+    backgroundColor: palette.main[600],
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3
   },
   attemptBadge: {
     paddingHorizontal: '8@ms',
@@ -317,17 +348,14 @@ const styles = ScaledSheet.create({
     fontWeight: '600'
   },
   tab: {
-    marginRight: 16,
-    fontSize: 20,
-    color: palette.grey[400],
-    fontWeight: 'bold',
-    lineHeight: 28,
-    alignItems: 'center',
+    fontSize: 16,
+    color: palette.grey[500],
+    fontWeight: '600',
     textAlign: 'center'
   },
   activeTab: {
     color: palette.main[600],
-    fontWeight: 'bold'
+    fontWeight: '700'
   },
   searchRow: {
     flexDirection: 'row',
@@ -366,49 +394,84 @@ const styles = ScaledSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
-    marginBottom: 16
+    marginBottom: 16,
   },
-  cardCategory: {
-    fontSize: 12,
-    color: '#888',
-    marginBottom: 4,
-    flex: 1
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: "#222222",
-    flex: 1
-  },
-  cardDescription: {
-    fontSize: 14,
-    color: '#666'
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#EEE',
-    marginVertical: 12
-  },
-  profileRow: {
+  cardHeader: {
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    marginBottom: 12
   },
   avatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    marginRight: 8
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    marginRight: 12,
+    backgroundColor: palette.grey[200]
+  },
+  cardHeaderContent: {
+    flex: 1,
+    justifyContent: 'center'
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4
   },
   teacherName: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 16,
+    fontWeight: '700',
+    color: palette.grey[900],
     flex: 1,
-    color: "#222222"
+    marginRight: 8
   },
   timeText: {
     fontSize: 12,
-    color: '#999'
+    color: palette.grey[500]
+  },
+  cardCategory: {
+    fontSize: 13,
+    color: palette.main[600],
+    fontWeight: '600'
+  },
+  cardBody: {
+    backgroundColor: palette.grey[50],
+    padding: 12,
+    borderRadius: 12,
+    gap: 8
+  },
+  messagePreview: {
+    justifyContent: 'center'
+  },
+  cardInfoRow: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+    flexWrap: 'wrap'
+  },
+  infoBadge: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: palette.grey[200]
+  },
+  infoBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: palette.grey[700]
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 60,
+    gap: 12
+  },
+  emptyText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: palette.grey[500]
   },
   floatingButton: {
     margin: 0,

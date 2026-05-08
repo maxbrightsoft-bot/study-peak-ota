@@ -1,62 +1,50 @@
-import { ProblemKey } from '@/utils/enums'
 import TrickyProblem from '../components/TextbookTrickyProblem'
 import Vulnerable from '../components/TextbookVulnerable'
 import ProtractedProblem from '../components/TextbookProtractedProblem'
 import GradesByTerritory from '../components/TextbookGradesByTerritory'
 import { CategoryResponse, LongTimeSpendQuestion, TextbookResult } from '@/utils/types'
-import { ScrollView } from 'react-native'
+import { ScrollView, Text, View } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
+import { palette } from '@/theme'
+import { useTranslation } from 'react-i18next'
 
 type Props = {
   resultData: TextbookResult
-  openProblem?: ProblemKey
-  setOpenProblem: (key?: ProblemKey) => void
   categoryResponses: CategoryResponse[]
   isPrint?: boolean
   longTimeSpend: LongTimeSpendQuestion[]
 }
-const QuestionAnalysis = ({ resultData, openProblem, setOpenProblem, categoryResponses, longTimeSpend, isPrint = false }: Props) => {
+const QuestionAnalysis = ({ resultData, categoryResponses, longTimeSpend, isPrint = false }: Props) => {
+  const { t } = useTranslation()
   return (
-    <ScrollView style={styles.container}>
-      <TrickyProblem
-        keyOpen={ProblemKey.TrickyProblem}
-        data={resultData}
-        isPrint={isPrint}
-        openProblem={openProblem}
-        changeOpen={setOpenProblem}
-        categories={categoryResponses}
-      />
-      <Vulnerable
-        keyOpen={ProblemKey.Vulnerable}
-        data={resultData}
-        isPrint={isPrint}
-        openProblem={openProblem}
-        changeOpen={setOpenProblem}
-      />
-      <ProtractedProblem
-        keyOpen={ProblemKey.ProtractedProblem}
-        data={longTimeSpend}
-        isPrint={isPrint}
-        examResult={resultData}
-        openProblem={openProblem}
-        changeOpen={setOpenProblem}
-      />
-      <GradesByTerritory
-        keyOpen={ProblemKey.GradesByTerritory}
-        data={categoryResponses}
-        isPrint={isPrint}
-        resultData={resultData}
-        openProblem={openProblem}
-        changeOpen={setOpenProblem}
-      />
+    <ScrollView
+      contentContainerStyle={{
+        paddingBottom: 200
+      }}
+    >
+      <View
+        style={{
+          borderRadius: 6,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: '#FFF',
+          paddingVertical: 8,
+          marginBottom: 10
+        }}
+      >
+        <Text style={{ color: palette.main[600], fontSize: 16, fontWeight: 600 }}>{t('problem_analysis')}</Text>
+      </View>
+      <View style={{ gap: 28 }}>
+        <TrickyProblem data={resultData} isPrint={isPrint} categories={categoryResponses} />
+        <Vulnerable isPrint={isPrint} data={resultData} />
+        <ProtractedProblem data={longTimeSpend} isPrint={isPrint} examResult={resultData} />
+        <GradesByTerritory data={categoryResponses} isPrint={isPrint} resultData={resultData} />
+      </View>
     </ScrollView>
   )
 }
 
-const styles = ScaledSheet.create({
-  container: {
-    paddingBottom: "40@ms"
-  }
-})
+const styles = ScaledSheet.create({})
 
 export default QuestionAnalysis
+

@@ -102,8 +102,6 @@ const Authorized = ({ route }: { route: any }) => {
         <Tab.Screen name={Routes.Auth.Profile} component={ProfileScreen} />
         <Tab.Screen name={Routes.Auth.Question} component={QuestionScreen} />
         <Tab.Screen name={Routes.Auth.StudentExamHistory} component={StudentExamHistoryScreen} />
-        <Tab.Screen name={Routes.Auth.AcademyInvitation} component={AcademyInvitationScreen} />
-        <Tab.Screen name={Routes.AcademyRequest} component={AcademyRequestScreen} />
       </Tab.Navigator>
     </LayoutApp>
   )

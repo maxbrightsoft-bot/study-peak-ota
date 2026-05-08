@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons'
 const getResponseColor = (signal: number) => {
   switch (signal) {
     case 0: return '#6B0861'
-    case 1: return '#DB4D4B'
+    case 1: return '#DB4D4D'
     case 2: return '#FEAF06'
     case 3: return '#3ACB46'
     case 4: return '#5D5D5B'
@@ -18,10 +18,10 @@ const getResponseColor = (signal: number) => {
 }
 
 const getOverallColor = (rate: number) => {
-  if (rate >= 90) return '#1EE288'
+  if (rate >= 90) return '#10B981'
   if (rate >= 70) return '#3ACB46'
   if (rate >= 50) return '#FEAF06'
-  if (rate >= 30) return '#F34B4B'
+  if (rate >= 30) return '#EF4444'
   return '#FF0000'
 }
 
@@ -71,7 +71,6 @@ const AnswerStatusIcon = memo(({ isCorrect, isSelected, t }: { isCorrect: boolea
 const TextbookAnswerItem: FC<TextbookAnswerItemProps> = ({
   data,
   nextData,
-  isFirst,
   isLast,
   effectSize,
   onCreateNote,
@@ -88,16 +87,11 @@ const TextbookAnswerItem: FC<TextbookAnswerItemProps> = ({
     [data.parentQuestionId, data.parentQuestionOrder, data.questionOrder]
   )
 
-  const unitText = useMemo(() =>
-    data.unit ? ` [${data.unit}]` : '',
-    [data.unit]
-  )
-
   const borderBottomColor = useMemo(() =>
-    data?.questionGroupIndex !== nextData?.questionGroupIndex && !isFirst && !isLast
+    data?.questionGroupIndex !== nextData?.questionGroupIndex && !isLast
       ? '#E4E7EC'
       : 'transparent',
-    [data?.questionGroupIndex, nextData?.questionGroupIndex, isFirst, isLast]
+    [data?.questionGroupIndex, nextData?.questionGroupIndex, isLast]
   )
 
   const getProblemCategoryLabel = useCallback((problem: number) => {
@@ -173,8 +167,11 @@ const TextbookAnswerItem: FC<TextbookAnswerItemProps> = ({
           <View style={styles.questionInfo}>
             <StarIcon isStar={!!data.isStar} />
             <Text style={styles.questionOrder}>
-              {t('number_question', { number: questionNumber })}{unitText}
+              {t('number_question', { number: questionNumber })}
             </Text>
+            {data.questionIndex !== undefined && (
+              <Text style={styles.indexText}>({data.questionIndex + 1})</Text>
+            )}
           </View>
         </View>
 
@@ -198,14 +195,16 @@ const TextbookAnswerItem: FC<TextbookAnswerItemProps> = ({
         </View>
       </View>
 
-      {isSelected && (
-        <View style={styles.footer}>
-          <TouchableOpacity style={styles.footerButton} onPress={() => onCreateQuestion?.(data)}>
-            <Ionicons name="chatbubbles-outline" size={16} color="#4B5563" />
-            <Text style={styles.footerText}>{t('qna')}</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.footerButton} onPress={() => onCreateQuestion?.(data)}>
+          <Ionicons name="chatbubbles-outline" size={16} color="#4B5563" />
+          <Text style={styles.footerText}>{t('qna')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.footerButton} onPress={() => onCreateNote?.(data)}>
+          <Ionicons name="document-text-outline" size={16} color="#4B5563" />
+          <Text style={styles.footerText}>{t('note')}</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   )
 }
@@ -238,12 +237,6 @@ const styles = StyleSheet.create({
   },
   column5: {
     flex: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4
-  },
-  column6: {
-    flex: 1.5,
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
@@ -257,9 +250,13 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap'
   },
   questionOrder: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
     color: '#414E62'
+  },
+  indexText: {
+    fontSize: 11,
+    color: '#6B7280'
   },
   statusContainer: {
     flexDirection: 'row',
@@ -269,15 +266,15 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap'
   },
   statusText: {
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '500',
     textAlign: 'center'
   },
   correctText: {
-    color: '#1EE288'
+    color: '#10B981'
   },
   incorrectText: {
-    color: '#F34B4B'
+    color: '#EF4444'
   },
   noSolutionText: {
     color: '#6B7280'
@@ -287,19 +284,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   durationText: {
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '500',
     textAlign: 'center'
   },
   noTimeText: {
-    fontSize: 13,
-    color: '#6B7280',
-    fontWeight: '500',
+    fontSize: 11,
+    color: '#9CA3AF',
     textAlign: 'center'
   },
   rateContainer: {
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    marginBottom: 4
   },
   overallContainer: {
     flexDirection: 'row',
@@ -309,8 +306,8 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap'
   },
   overallRate: {
-    fontSize: 13,
-    fontWeight: '500'
+    fontSize: 11,
+    fontWeight: '600'
   },
   skipRate: {
     fontSize: 10,
@@ -360,3 +357,4 @@ const styles = StyleSheet.create({
 })
 
 export default TextbookAnswerItem
+

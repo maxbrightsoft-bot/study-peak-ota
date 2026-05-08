@@ -146,7 +146,7 @@ const useExamSolving = (props: Props) => {
         }
 
         const errorMessage = error?.response?.data?.title || res?.message;
-        if (errorMessage && typeof errorMessage === "string" && !callback)
+        if (errorMessage && typeof errorMessage === "string" && !callback && error?.response?.status !== 409)
           toast.error(error?.response?.status === 500 ? `${getErrorMessage(t, error)}: ${errorMessage}` : getErrorMessage(t, error));
       }
       if (res?.status === 0)
@@ -489,18 +489,29 @@ const useExamSolving = (props: Props) => {
     };
   }, [isProgressing, recoverKey]);
 
+  const handleResetExamSolving = useCallback(() => {
+    Object.values(apiTimeouts.current).forEach((timeout: any) => clearTimeout(timeout));
+    apiTimeouts.current = {};
+    ltAnswerTime.current = undefined;
+    runningTimeRef.current = undefined;
+    totalAnsweredTimeRef.current = undefined;
+    setRecoveredExamCode(undefined);
+  }, []);
+
   useEffect(() => {
     ltAnswerTime.current = undefined
     runningTimeRef.current = undefined
     totalAnsweredTimeRef.current = undefined
-  }, [exam?.timestamp])
+  }, [exam?.id])
+  
   return {
     recoverExamCode,
     recoverKey,
     updateQuestionAnswer,
     updateQuestionStar,
     handleClearStorage,
-    handleRecoverExamAnswer
+    handleRecoverExamAnswer,
+    handleResetExamSolving
   };
 };
 

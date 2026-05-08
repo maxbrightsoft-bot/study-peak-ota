@@ -152,22 +152,26 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
   }, [examCode, user?.email])
 
   const totalTime = useMemo(() => {
-    let totalTime = 0
+    let time = 0
 
-    if (!resultData?.questions?.length) return `0${t("seconds")}`
-    totalTime = resultData?.questions.reduce(
-      (val: number, current: any) =>
-        val + Math.round(current?.duration || 0),
-      0
-    )
+    if (chapterId) {
+      time = textbookResult?.totalTime || 0
+    } else {
+      if (!resultData?.questions?.length) return `0${t("seconds")}`
+      time = resultData?.questions.reduce(
+        (val: number, current: any) =>
+          val + Math.round(current?.duration || 0),
+        0
+      )
+    }
 
-    return totalTime < 60
-      ? `${totalTime}${t("seconds")}`
+    return time < 60
+      ? `${time}${t("seconds")}`
       : t("mins_mins_seconds_seconds", {
-        mins: Math.floor(totalTime / 60),
-        seconds: totalTime % 60
+        mins: Math.floor(time / 60),
+        seconds: time % 60
       })
-  }, [JSON.stringify(resultData?.questions)])
+  }, [JSON.stringify(resultData?.questions), textbookResult?.totalTime, chapterId])
 
   const questionOptions = useMemo(() => {
     const questions = resultData?.questions
@@ -191,12 +195,14 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
   }
 
   const examResultNotes = useExamResultNote({
-    questionOptions,
+    questionOptions: chapterId ? studentTextbookQuestions : questionOptions,
     handleSelectQuestion,
     examSessionId,
     studentExamSessionId,
+    studentTextbookSessionId: textbookResult?.studentTextbookSessionId,
     examCode,
-    examResult: resultData
+    examResult: resultData,
+    textbookResult
   }
   )
 
@@ -253,9 +259,10 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
   const fileName = chapterId ? fileTextbookName : fileExamName
 
   const examTime = useMemo(() => {
-    return `${utcToLocalTime(resultData?.startTime, "HH:mm")} ~ ${utcToLocalTime(resultData?.finishTime, "HH:mm")}`
-  }
-    , [resultData?.startTime, resultData?.finishTime])
+    const start = chapterId ? textbookResult?.startTime : resultData?.startTime
+    const finish = chapterId ? textbookResult?.startTime : resultData?.finishTime // TextbookResult doesn't have finishTime in type, using startTime as placeholder or check if it exists
+    return `${utcToLocalTime(start, "HH:mm")} ~ ${utcToLocalTime(finish, "HH:mm")}`
+  }, [resultData?.startTime, resultData?.finishTime, textbookResult?.startTime, chapterId])
 
   const handlePrint = async () => {
     if (!contentRef.current) return;

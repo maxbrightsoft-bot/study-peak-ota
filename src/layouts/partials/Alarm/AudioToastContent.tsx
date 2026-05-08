@@ -12,6 +12,12 @@ import { removeDataStorage } from '@/utils/storage'
 import { TOAST_EXAM_STATUS } from '@/utils/constants'
 import { BaseToast, ErrorToast, InfoToast, SuccessToast } from 'react-native-toast-message'
 import useServerTime from '@/hooks/useServerTime'
+import {
+  clearAudioToastSound,
+  createAudioToastSession,
+  setAudioToastSound,
+  stopAudioToastSound
+} from './audioToastController'
 
 interface Props {
   audioSrc: string
@@ -22,9 +28,9 @@ interface Props {
   onClose: () => void
 }
 
-const AUTO_CLOSE_TIME = 3_000
+const AUTO_CLOSE_TIME = 1_000
 
-const AudioToastContent: FC<Props> = ({ soundRef, audioSrc, alarm, remainTime, onClose }) => {
+const AudioToastContent: FC<Props> = ({ soundRef, audioSrc, toastId, alarm, remainTime, onClose }) => {
   const { t } = useTranslation()
   const localSoundRef = useRef<any>(null)
   const sound = soundRef ?? localSoundRef
@@ -38,31 +44,68 @@ const AudioToastContent: FC<Props> = ({ soundRef, audioSrc, alarm, remainTime, o
   const { getServerNow } = useServerTime();
 
   useEffect(() => {
-    if (!sound.current) return
+    let isMounted = true
+    const audioSession = createAudioToastSession()
+
     const play = async () => {
+      if (!audioSrc) {
+        if (isMounted) setIsClosing(true)
+        return
+      }
+
       try {
+        if (sound.current) {
+          await sound.current.stopAsync()
+          await sound.current.unloadAsync()
+        }
+
+        if (!isMounted) return
+
         const { sound: audio } = await Audio.Sound.createAsync({ uri: audioSrc }, { shouldPlay: true })
+
+        if (!isMounted || !audioSession.isActive()) {
+          await audio.stopAsync().catch(() => undefined)
+          await audio.unloadAsync()
+          return
+        }
+
+        const isRegistered = await setAudioToastSound(audio, audioSession.session)
+        if (!isRegistered) return
+
         sound.current = audio
 
         audio.setOnPlaybackStatusUpdate((status) => {
-          if (!status.isLoaded || status.didJustFinish) {
+          if (!isMounted) return
+          if (status.isLoaded) {
+            if (status.didJustFinish) {
+              setIsClosing(true)
+            }
+          } else if (!status.isLoaded && status.error) {
             setIsClosing(true)
           }
         })
-      } catch {
-        setIsClosing(true)
+      } catch (e) {
+        if (isMounted) setIsClosing(true)
       }
     }
 
     play()
 
     return () => {
-      sound.current?.unloadAsync()
+      isMounted = false
+      if (sound.current) {
+        const currentSound = sound.current
+        currentSound.stopAsync().catch(() => undefined)
+        currentSound.unloadAsync().catch(() => undefined)
+        clearAudioToastSound(currentSound)
+        sound.current = null
+      }
+      removeDataStorage(TOAST_EXAM_STATUS)
     }
-  }, [audioSrc])
+  }, [audioSrc, toastId])
 
   useEffect(() => {
-    if (!isClosing || alarm?.status !== TimerStatus.Started) return
+    if (!isClosing) return
 
     const start = Date.now()
 
@@ -92,7 +135,7 @@ const AudioToastContent: FC<Props> = ({ soundRef, audioSrc, alarm, remainTime, o
         closeTimer.current = null
       }
     }
-  }, [isClosing, alarm?.status])
+  }, [isClosing])
 
   useEffect(() => {
     if (!alarm) return
@@ -135,7 +178,14 @@ const AudioToastContent: FC<Props> = ({ soundRef, audioSrc, alarm, remainTime, o
   }, [alarm])
 
   const handleClose = async () => {
-    await sound.current?.stopAsync()
+    await stopAudioToastSound()
+    if (sound.current) {
+      await sound.current.stopAsync().catch(() => undefined)
+      await sound.current.unloadAsync().catch(() => undefined)
+      clearAudioToastSound(sound.current)
+      sound.current = null
+    }
+    await removeDataStorage(TOAST_EXAM_STATUS)
     onClose()
   }
 
@@ -202,12 +252,15 @@ export const audioToastConfig = {
   audio: ({ props }: any) => {
     return (
       <AudioToastContent
+        key={props.toastId}
         audioSrc={props.audioSrc}
         alarm={props.alarm}
         remainTime={props.remainTime}
         toastId={props.toastId}
         soundRef={props?.soundRef}
-        onClose={() => {
+        onClose={async () => {
+          await stopAudioToastSound()
+          await removeDataStorage(TOAST_EXAM_STATUS)
           toast.dismiss()
         }}
       />

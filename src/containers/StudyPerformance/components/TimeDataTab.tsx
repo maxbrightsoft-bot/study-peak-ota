@@ -144,7 +144,7 @@ const TimeData = ({ studentId, contentRef, studentInfo, handleReadyPrint }: Prop
         keyExtractor={(item) => item.key.toString()}
         renderItem={renderItem}
         contentContainerStyle={{
-          paddingBottom: 600,
+          paddingBottom: 700,
           gap: 10,
           backgroundColor: palette.bg[100],
           paddingHorizontal: 24,

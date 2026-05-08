@@ -31,11 +31,13 @@ class TrackingManager {
     this.queue = [];
 
     try {
-
       await createActivyityBulkApi(eventsToSend);
-    } catch (err) {
-      console.error("Bulk track failed:", err);
-      this.queue = [...eventsToSend, ...this.queue];
+    } catch (err: any) {
+      const status = err?.response?.status;
+      if (status !== 409 && status !== 400) {
+        console.error("Bulk track failed:", err);
+        this.queue = [...eventsToSend, ...this.queue];
+      }
     } finally {
       this.isProcessing = false;
     }

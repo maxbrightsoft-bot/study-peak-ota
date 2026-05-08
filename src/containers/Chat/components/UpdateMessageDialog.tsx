@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons'
 import TextField from '@/components/Input/TextField'
 import { getSafeUrl } from '@/utils/helpers'
 import { Shadow } from 'react-native-shadow-2'
+import MathRichInput from '@/components/Input/MathRichInput'
 
 type Props = {
   open: boolean
@@ -67,7 +68,10 @@ const UpdateMessageDialog: React.FC<Props> = ({
                 validate={validate}
                 placeholder={t('the_problem_is_difficult')}
                 render={({ field }: any) => (
-                  <TextField value={field.value} onChangeText={(text: string) => setFieldValue('content', text)} />
+                  <View style={styles.inputWrapper}>
+                    <MathRichInput style={styles.input} initialValue={field.value} onChange={(text: string) => setFieldValue('content', text)} />
+                  </View>
+                  // <TextField value={field.value} onChangeText={(text: string) => setFieldValue('content', text)} />
                 )}
               />
               <View style={styles.footer}>
@@ -153,6 +157,16 @@ const styles = ScaledSheet.create({
     justifyContent: 'center',
     borderRadius: '6@ms',
     paddingVertical: '6@ms'
+  },
+  inputWrapper: {
+    backgroundColor: palette.grey[100],
+    borderRadius: 20,
+    height: '80@ms'
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: palette.grey[100],
+    backgroundColor: 'transparent'
   },
   button: {
     paddingVertical: '12@ms',

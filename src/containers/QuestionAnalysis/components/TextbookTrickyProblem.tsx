@@ -4,7 +4,6 @@ import { Menu } from 'react-native-paper'
 import i18next from 'i18next'
 import { useTranslation } from 'react-i18next'
 import { Ionicons } from '@expo/vector-icons'
-import { ProblemKey } from '@/utils/enums'
 import { ScaledSheet } from 'react-native-size-matters'
 import { palette } from '@/theme'
 import TargetIcon from '@/assets/icons/target.svg'
@@ -27,9 +26,6 @@ interface Question {
 
 interface Props {
   data?: TextbookResult
-  keyOpen: ProblemKey
-  openProblem?: ProblemKey
-  changeOpen?: (key?: ProblemKey) => void
   isPrint: boolean
   categories?: CategoryResponse[]
 }
@@ -104,9 +100,8 @@ const QuestionItem = ({ question, color, categories, data }: { question: Questio
   )
 }
 
-const TrickyProblem: FC<Props> = ({ keyOpen, data, openProblem, changeOpen, isPrint, categories }) => {
+const TrickyProblem: FC<Props> = ({ data, isPrint, categories }) => {
   const { t } = useTranslation()
-  const isOpen = openProblem === keyOpen || isPrint
   const inCorrectQuestions = data?.studentQuestionResults.filter((i) => i.isStar && !i.isCorrect)
   const correctQuestions = data?.studentQuestionResults.filter((i) => i.isStar && i.isCorrect)
 
@@ -152,28 +147,18 @@ const TrickyProblem: FC<Props> = ({ keyOpen, data, openProblem, changeOpen, isPr
 
   return (
     <View style={styles.wrapper}>
-      <TouchableOpacity
-        style={[styles.header, !isOpen && styles.closedHeader]}
-        onPress={() => changeOpen?.(isOpen ? undefined : keyOpen)}
-      >
-        <Text style={[styles.headerText, !isOpen && { color: palette.grey[500] }]}>{t('tricky_problems')}</Text>
-        {isOpen ? (
-          <Ionicons name="chevron-up" size={24} color="#E0E0E0" />
-        ) : (
-          <Ionicons name="chevron-down" size={24} color="#E0E0E0" />
-        )}
-      </TouchableOpacity>
-
-      {isOpen && <ScrollView style={styles.content}>{renderProblems()}</ScrollView>}
+      <View style={{ justifyContent: 'center', backgroundColor: palette.bg[100], paddingVertical: 8 }}>
+        <Text style={[styles.headerText]}>{t('tricky_problems')}</Text>
+      </View>
+      <ScrollView style={styles.content}>{renderProblems()}</ScrollView>
     </View>
   )
 }
 
 const styles = ScaledSheet.create({
   wrapper: {
-    borderWidth: 1,
-    borderColor: palette.grey[100],
-    backgroundColor: palette.grey[50]
+    borderRadius: 14,
+    overflow: 'hidden'
   },
   header: {
     flexDirection: 'row',
@@ -188,7 +173,8 @@ const styles = ScaledSheet.create({
   headerText: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: palette.grey[700]
+    color: '#171719',
+    textAlign: 'center'
   },
   content: {
     maxHeight: 300
@@ -200,11 +186,12 @@ const styles = ScaledSheet.create({
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: palette.bg[100],
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: palette.grey[100],
-    paddingVertical: '12@ms',
-    paddingHorizontal: '24@ms'
+    paddingVertical: '8@ms',
+    paddingHorizontal: '12@ms'
   },
   sectionTitle: {
     fontSize: 12,

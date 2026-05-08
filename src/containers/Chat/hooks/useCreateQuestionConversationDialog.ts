@@ -29,16 +29,23 @@ const useCreateQuestionConversationDialog = ({
   const { t } = useTranslation();
 
   const toggleDialog = () => {
-    setCourseIdSelected(courses?.length ? String(courses[0].id) : "");
+    if (openDialog) {
+      setCourseIdSelected(undefined);
+      setExamSessionIdSelected(undefined);
+      setQuestion(undefined);
+      setExam(undefined);
+    } else {
+      getListExams({});
+    }
     setOpenDialog(!openDialog);
   };
 
-  const getListExamByCourse = async ({ courseId }: { courseId: string }) => {
+  const getListExams = async ({ courseId }: { courseId?: string }) => {
     setLoadingWithoutOverlay(true)
     try {
       const res = await getListExamByCourseApi({ courseId });
       setExam(res.data.items || []);
-      !!res.data.items.length && setExamSessionIdSelected(`${res.data.items[0]?.id}.${res.data.items[0]?.studentExamSessionId}`);
+      setExamSessionIdSelected(undefined);
     } catch (error) {
       toast.error(getErrorMessage(t, error));
     }
@@ -62,6 +69,7 @@ const useCreateQuestionConversationDialog = ({
 
   const handleChangeCourse = (value: string) => {
     setCourseIdSelected(value);
+    getListExams({ courseId: value || undefined });
   };
 
   const handleCreateQuestionConversation = async ({
@@ -86,13 +94,15 @@ const useCreateQuestionConversationDialog = ({
         questionId: !!questionId ? Number(questionId) : undefined,
         content
       });
-      toggleDialog();
       getConversationList();
+      toast.success(t('create_conversation_success'));
     } catch (error: any) {
-      toggleDialog();
       toast.error(getErrorMessage(t, error));
     }
-    setLoadingWithoutOverlay(false)
+    finally {
+      toggleDialog();
+      setLoadingWithoutOverlay(false)
+    }
   };
 
   useEffect(() => {
@@ -100,15 +110,7 @@ const useCreateQuestionConversationDialog = ({
     getListQuestionByExam({ examId: examSessionIdSelected.split('.')?.[0] });
   }, [examSessionIdSelected, openDialog]);
 
-  useEffect(() => {
-    if (!courseIdSelected || !openDialog) return;
-    getListExamByCourse({ courseId: courseIdSelected });
-  }, [courseIdSelected, openDialog]);
 
-  useEffect(() => {
-    if (courseIdSelected || !courses?.length) return;
-    setCourseIdSelected(String(courses[0].id));
-  }, [JSON.stringify(courses)]);
 
   const courseOptions = useMemo(() => {
     if (!courses) return [];
@@ -120,9 +122,9 @@ const useCreateQuestionConversationDialog = ({
 
   const questionOptions = useMemo(() => {
     if (!questions || !exams) return [];
-    return questions.map(({ superId, questionOrder, parentQuestionId, parentQuestionOrder = 0 }) => ({
+    return questions.map(({ superId, id, questionOrder, parentQuestionId, parentQuestionOrder = 0 }) => ({
       label: t('question_order', { number: !!parentQuestionId ? `${parentQuestionOrder + 1}.${questionOrder + 1}` : questionOrder + 1 }),
-      value: superId
+      value: superId || id
     }));
   }, [questions]);
 

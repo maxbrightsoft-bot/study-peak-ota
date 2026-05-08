@@ -11,7 +11,6 @@ import { Role } from "@/utils/enums";
 const AcademyRequest = () => {
   const {
     t,
-    isFetched,
     otherRole,
     isNotFound,
     isLoading,

@@ -112,12 +112,12 @@ const useRecentTextbook = () => {
     setTextbookFilter((prev) => ({ ...prev, currentPage: page }));
   };
 
-  const handleStartAudio = async (textbook: Textbook, minutes?: number, startTime?: number) => {
+  const handleStartAudio = async (enable: boolean, textbook: Textbook, minutes?: number, startTime?: number, skipPreAlarm?: boolean) => {
     const subject = textbook.subject || { id: textbook.subjectId, name: textbook.subjectName }
-    await handleStartSelectedSubjectAlarm(true, minutes || textbook.limitedTimeInMinutes, subject as any, startTime)
+    await handleStartSelectedSubjectAlarm(enable, minutes || textbook.limitedTimeInMinutes, subject as any, startTime, skipPreAlarm)
   }
 
-  const handleStartTextbook = async (enable: boolean, textbook: Textbook, minutes?: number) => {
+  const handleStartTextbook = async (enable: boolean, textbook: Textbook, minutes?: number, skipPreAlarm?: boolean) => {
     try {
       setLoading(true)
       const serverNow = await getServerNow()
@@ -131,8 +131,8 @@ const useRecentTextbook = () => {
         const res = await startTextbook(textbook.id)
         startTime = moment.utc(res.data).valueOf()
       }
-      if (enable && !textbook.isMock) {
-        await handleStartAudio(textbook, minutes, startTime)
+      if (!textbook.isMock) {
+        await handleStartAudio(enable, textbook, minutes, startTime, skipPreAlarm)
       }
 
     } catch (error) {

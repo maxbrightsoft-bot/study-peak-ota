@@ -7,12 +7,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
 import { palette } from '@/theme'
 import TargetIcon from '@/assets/icons/target.svg'
-import { CategoryResponse, QuestionGroupResponse } from '@/utils/types'
-
-interface ExamResult {
-  questions: Question[]
-  questionGroups: QuestionGroupResponse[]
-}
+import { CategoryResponse, ExamResult, QuestionGroupResponse } from '@/utils/types'
 
 interface Question {
   id: number
