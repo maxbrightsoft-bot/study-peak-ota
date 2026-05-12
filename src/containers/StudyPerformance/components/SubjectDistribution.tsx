@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState, useEffect } from 'react'
+import React, { useMemo, useRef, useState, useEffect, memo } from 'react'
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { WebView } from 'react-native-webview'
@@ -48,19 +48,7 @@ const DistributionItem = ({
   </View>
 )
 
-function buildHtml(
-  seriesData: {
-    value: number
-    name: string
-    mainVal: string
-    subVal: string
-    color: string
-    isEmpty: boolean
-  }[],
-  emptyColor: string
-): string {
-  const json = JSON.stringify(seriesData)
-
+function getChartHtml(emptyColor: string) {
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -70,28 +58,27 @@ function buildHtml(
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{width:100%;height:100%;background:transparent;overflow:hidden}
   #c{width:100%;height:100%}
-  #loading{
-    position:fixed;top:0;left:0;width:100%;height:100%;
-    display:flex;align-items:center;justify-content:center;
-    background:transparent;
-  }
-  .spinner{
-    width:32px;height:32px;border:3px solid #E5E7EB;
-    border-top-color:#9B8FDE;border-radius:50%;
-    animation:spin 0.8s linear infinite;
-  }
-  @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
-<div id="loading"><div class="spinner"></div></div>
 <div id="c"></div>
 <script>
-var __chartData = ${json};
+var chartInstance = null;
 var __emptyColor = '${emptyColor}';
 
-function __initChart() {
-  var mapped = __chartData.filter(function(d) { return !d.isEmpty; }).map(function(d) {
+function postRN(msg) {
+  if (window.ReactNativeWebView) {
+    window.ReactNativeWebView.postMessage(JSON.stringify(msg));
+  }
+}
+
+function renderChart(payload) {
+  if (chartInstance) {
+    chartInstance.dispose();
+    chartInstance = null;
+  }
+
+  var mapped = payload.filter(function(d) { return !d.isEmpty; }).map(function(d) {
     return {
       value: d.value,
       name: d.name,
@@ -102,7 +89,7 @@ function __initChart() {
     };
   });
 
-  var chart = echarts.init(document.getElementById('c'), null, {
+  chartInstance = echarts.init(document.getElementById('c'), null, {
     renderer: 'svg',
     backgroundColor: 'transparent'
   });
@@ -140,16 +127,11 @@ function __initChart() {
     }]
   };
 
-  chart.setOption(option);
-
-  document.getElementById('loading').style.display = 'none';
-  if (window.ReactNativeWebView) {
-    window.ReactNativeWebView.postMessage('chart_ready');
-  }
-
+  chartInstance.setOption(option);
+  
   setTimeout(function() {
     try {
-      var nonEmpty = __chartData.filter(function(d) { return !d.isEmpty; });
+      var nonEmpty = payload.filter(function(d) { return !d.isEmpty; });
       var tspans = document.querySelectorAll('#c svg tspan');
       var idx = 0;
       tspans.forEach(function(el) {
@@ -161,29 +143,123 @@ function __initChart() {
         }
       });
     } catch(e) {}
+    postRN({ type: 'RENDERED' });
   }, 100);
 }
+
+function handleMessage(e) {
+  try {
+    var payload = JSON.parse(e.data);
+    renderChart(payload);
+  } catch(err) {
+    console.error('CHART PARSE ERROR', err);
+  }
+}
+
+document.addEventListener('message', handleMessage);
+window.addEventListener('message', handleMessage);
 
 var script = document.createElement('script');
 script.src = 'https://cdn.jsdelivr.net/npm/echarts@6.0.0/dist/echarts.min.js';
 script.onload = function() {
-  __initChart();
+  postRN({ type: 'READY' });
 };
 script.onerror = function() {
   setTimeout(function() {
     var s2 = document.createElement('script');
     s2.src = 'https://cdnjs.cloudflare.com/ajax/libs/echarts/6.0.0/echarts.min.js';
-    s2.onload = __initChart;
+    s2.onload = function() {
+      postRN({ type: 'READY' });
+    };
     document.head.appendChild(s2);
   }, 1000);
 };
 document.head.appendChild(script);
 </script>
 </body>
-</html>`
+</html>`;
 }
 
 const CHART_HEIGHT = 300
+
+const ChartItem = memo(({ payload, emptySliceColor }: { payload: any, emptySliceColor: string }) => {
+  const [loading, setLoading] = useState(true)
+  const webRef = useRef<WebView>(null)
+  const isReady = useRef(false)
+  const hasRendered = useRef(false)
+  const pendingPayload = useRef<any>(null)
+  const loadingTimeout = useRef<NodeJS.Timeout | null>(null)
+
+  const html = useMemo(() => getChartHtml(emptySliceColor), [emptySliceColor])
+
+  useEffect(() => {
+    pendingPayload.current = payload
+    if (isReady.current && webRef.current) {
+      setLoading(true)
+      hasRendered.current = false
+      webRef.current.postMessage(JSON.stringify(payload))
+    }
+  }, [payload])
+
+  useEffect(() => {
+    if (loading && !hasRendered.current) {
+      loadingTimeout.current = setTimeout(() => {
+        setLoading(false)
+        hasRendered.current = true
+      }, 5000)
+    } else {
+      if (loadingTimeout.current) clearTimeout(loadingTimeout.current)
+    }
+    return () => {
+      if (loadingTimeout.current) clearTimeout(loadingTimeout.current)
+    }
+  }, [loading])
+
+  return (
+    <View style={styles.chartContainer}>
+      {loading && !hasRendered.current && (
+        <ActivityIndicator style={StyleSheet.absoluteFillObject} />
+      )}
+      <WebView
+        ref={webRef}
+        style={styles.webview}
+        source={{ html }}
+        scrollEnabled={false}
+        originWhitelist={['*']}
+        javaScriptEnabled
+        domStorageEnabled
+        cacheEnabled
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        onLoadEnd={() => {
+          if (loading) {
+            setTimeout(() => {
+              hasRendered.current = true
+              setLoading(false)
+            }, 1000)
+          }
+        }}
+        onMessage={(event) => {
+          try {
+            const msg = JSON.parse(event.nativeEvent.data)
+            if (msg.type === 'READY') {
+              if (!isReady.current) {
+                isReady.current = true
+                const data = pendingPayload.current ?? payload
+                webRef.current?.postMessage(JSON.stringify(data))
+              }
+            }
+            if (msg.type === 'RENDERED') {
+              hasRendered.current = true
+              setLoading(false)
+              if (loadingTimeout.current) clearTimeout(loadingTimeout.current)
+            }
+          } catch (e) { }
+        }}
+      />
+    </View>
+  )
+})
 
 const SubjectDistribution = ({
   data,
@@ -193,10 +269,8 @@ const SubjectDistribution = ({
   emptySliceColor = '#6BCCFE'
 }: Props) => {
   const { t } = useTranslation()
-  const [chartReady, setChartReady] = useState(false)
-  const prevHtml = useRef<string | null>(null)
 
-  const chartSeriesData = useMemo(() => {
+  const payload = useMemo(() => {
     if (!data?.length) return []
     return data.map((item, i) => {
       const color = colorSubjects[i]
@@ -213,15 +287,6 @@ const SubjectDistribution = ({
     })
   }, [data, colorSubjects, isTimerTab, t])
 
-  const html = useMemo(() => buildHtml(chartSeriesData, emptySliceColor), [chartSeriesData, emptySliceColor])
-
-  useEffect(() => {
-    if (prevHtml.current !== null && prevHtml.current !== html) {
-      setChartReady(false)
-    }
-    prevHtml.current = html
-  }, [html])
-
   if (loading) {
     return (
       <View style={styles.card}>
@@ -237,28 +302,7 @@ const SubjectDistribution = ({
 
   return (
     <View style={styles.card}>
-      <View style={styles.chartContainer}>
-        {!chartReady && <ActivityIndicator style={StyleSheet.absoluteFillObject} />}
-        <WebView
-          style={[styles.webview, !chartReady && styles.webviewHidden]}
-          source={{ html }}
-          scrollEnabled={false}
-          originWhitelist={['*']}
-          javaScriptEnabled
-          domStorageEnabled
-          cacheEnabled
-          showsVerticalScrollIndicator={false}
-          showsHorizontalScrollIndicator={false}
-          androidHardwareAccelerationDisabled={false}
-          androidLayerType="hardware"
-          backgroundColor="transparent"
-          onMessage={(e) => {
-            if (e.nativeEvent.data === 'chart_ready') {
-              setChartReady(true)
-            }
-          }}
-        />
-      </View>
+      <ChartItem payload={payload} emptySliceColor={emptySliceColor} />
 
       <View style={styles.statsRow}>
         {isTimerTab ? (
@@ -333,7 +377,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent'
   },
   webviewHidden: {
-    opacity: 0
+    display: 'none'
   },
   divider: {
     height: 1,

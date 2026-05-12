@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useState } from 'react'
 import BottomSheet from '@/components/ModalBase/BottomSheet'
 import { BASE_URL } from '@/utils/constants'
+import ImageViewerModal from '@/components/ModalBase/ImageViewerModal'
 
 type Props = {
   t: any
@@ -19,6 +20,7 @@ type Props = {
 
 const ChatItem = ({ t, item, toggleUpdateDialog, toggleConfirmDialog }: Props) => {
   const [openActionSheet, setOpenActionSheet] = useState(false)
+  const [showViewer, setShowViewer] = useState(false)
 
   const { content, contentType } = item
 
@@ -36,19 +38,26 @@ const ChatItem = ({ t, item, toggleUpdateDialog, toggleConfirmDialog }: Props) =
 
           <View style={[styles.messageContainer, styles.myMessage, contentType ? styles.imageMessage : null]}>
             {contentType ? (
-              <Image source={{ uri: getSafeUrl(content || '') }} style={{ width: 200, height: 200 }} />
-            ) :
-              <MathRender
-                content={content || ''}
-                textColor={palette.common.white}
-                isChat
-              />}
+              <TouchableOpacity onPress={() => setShowViewer(true)}>
+                <Image
+                  source={{ uri: getSafeUrl(content || '') }}
+                  style={{ width: 200, height: 200, borderRadius: 12 }}
+                />
+              </TouchableOpacity>
+            ) : (
+              <MathRender content={content || ''} textColor={palette.common.white} isChat />
+            )}
           </View>
         </View>
       ) : (
         <View style={[styles.messageContainer, styles.otherMessage, contentType ? styles.imageMessage : null]}>
           {contentType ? (
-            <Image source={{ uri: getSafeUrl(content || '') }} style={{ width: 200, height: 200 }} />
+            <TouchableOpacity onPress={() => setShowViewer(true)}>
+              <Image
+                source={{ uri: getSafeUrl(content || '') }}
+                style={{ width: 200, height: 200, borderRadius: 12 }}
+              />
+            </TouchableOpacity>
           ) : (
             <MathRender content={content || ''} style={{ backgroundColor: '#FFF' }} textColor={palette.grey[700]} isChat />
           )}
@@ -80,6 +89,12 @@ const ChatItem = ({ t, item, toggleUpdateDialog, toggleConfirmDialog }: Props) =
           </TouchableOpacity>
         </View>
       </BottomSheet>
+
+      <ImageViewerModal
+        visible={showViewer}
+        imageUrl={getSafeUrl(content || '')}
+        onClose={() => setShowViewer(false)}
+      />
     </View>
   )
 }

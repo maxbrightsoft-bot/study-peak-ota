@@ -35,6 +35,7 @@ const MyData = () => {
     openCreateNote,
     handleReadyPrint,
     handleChangeTab,
+    handleRemoveImage,
     isAdminOrNonAcademy
   } = useMyData()
 
@@ -94,6 +95,7 @@ const MyData = () => {
         courseValue={courseIdSelected}
         onSaveNote={handleSaveNote}
         examOptions={examOptions}
+        handleRemoveImage={handleRemoveImage}
       />
     </View>
   )

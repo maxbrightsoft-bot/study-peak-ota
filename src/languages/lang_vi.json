@@ -1894,7 +1894,8 @@
   "filter_last_7_days": "7 ngày gần đây",
   "filter_last_30_days": "30 ngày gần đây",
   "filter_this_semester": "Học kỳ này",
-  "filter_memo_or_image_only": "Chỉ câu có ghi chú hoặc hình ảnh",
+  "filter_memo_or_image_only": "Chỉ câu sai và có hình ảnh",
+  "filter_custom": "Chọn trực tiếp",
   "filter_cancel": "Hủy",
   "filter_apply": "Áp dụng",
   "filter_n_selected": "{{n}} đã chọn",
@@ -1909,6 +1910,7 @@
   "grouped_note_recent": "Gần đây {{date}}",
   "grouped_note_count": "{{count}} câu",
   "grouped_note_no_content": "Không có nội dung",
+  "grouped_note_other": "Khác",
   "search_incorrect_notes": "Tìm kiếm ghi chú sai",
   "math_editor": {
     "wysiwyg": "Soạn thảo Toán (WYSIWYG)",
@@ -1967,5 +1969,9 @@
   "total_time_must_be_positive": "Tổng thời gian phải là số dương",
   "total_time_out_of_range": "Tổng thời gian nằm ngoài phạm vi",
   "select_subject": "Chọn môn học",
-  "add_subject": "Thêm môn học"
+  "add_subject": "Thêm môn học",
+  "incorrect_answer_note_details": "Chi tiết ghi chú sai",
+  "example_notes": "(Ví dụ) Tôi nên tiết kiệm thời gian cho các câu hỏi khác và dành nhiều thời gian hơn cho văn học hiện đại, phần tôi yếu.",
+  "add_image": "Thêm ảnh",
+  "load_more": "Tải thêm"
 }

@@ -82,11 +82,13 @@ const NoteItem: FC<NoteItemProps> = ({
     //   </View>
     // </TouchableOpacity>
     <Pressable style={({ pressed }) => [styles.container, pressed && styles.pressed]} onPress={handleItemClick}>
-      <View style={styles.headerRow}>
-        <Text style={styles.headerText}>{examResultData?.title || data?.title}</Text>
-        <View style={styles.separator} />
-        <Text style={styles.headerText}>{examResultData?.subjectName || data?.subjectName}</Text>
-      </View>
+      {(examResultData?.title || data?.title) && (
+        <View style={styles.headerRow}>
+          <Text style={styles.headerText}>{examResultData?.title || data?.title}</Text>
+          {(examResultData?.subjectName || data?.subjectName) && <View style={styles.separator} />}
+          <Text style={styles.headerText}>{examResultData?.subjectName || data?.subjectName}</Text>
+        </View>
+      )}
       <View style={styles.metaRow}>
         <View style={styles.metaLeft}>
           <Text style={styles.number}>
@@ -95,8 +97,12 @@ const NoteItem: FC<NoteItemProps> = ({
             })}
           </Text>
           <Text style={styles.metaText}>{data.categoryName}</Text>
-          <View style={styles.separator} />
-          <Text style={styles.metaText}>p.{question?.score ?? data?.score}</Text>
+          {!!data?.page && (
+            <>
+              <View style={styles.separator} />
+              <Text style={styles.metaText}>p.{data?.page}</Text>
+            </>
+          )}
         </View>
         <FontAwesome6 name="angle-right" size={20} color={palette.grey[300]} />
       </View>

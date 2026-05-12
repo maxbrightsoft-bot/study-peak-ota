@@ -450,6 +450,21 @@ const ChartSlide = memo(({ title, isTimeChart, payload }: Props) => {
   const hasRendered = useRef(false)
   const isReady = useRef(false)
   const pendingPayload = useRef<any>(null)
+  const loadingTimeout = useRef<NodeJS.Timeout | null>(null)
+
+  useEffect(() => {
+    if (loading && !hasRendered.current) {
+      loadingTimeout.current = setTimeout(() => {
+        setLoading(false)
+        hasRendered.current = true
+      }, 5000)
+    } else {
+      if (loadingTimeout.current) clearTimeout(loadingTimeout.current)
+    }
+    return () => {
+      if (loadingTimeout.current) clearTimeout(loadingTimeout.current)
+    }
+  }, [loading])
 
   useEffect(() => {
     pendingPayload.current = payload
@@ -487,6 +502,15 @@ const ChartSlide = memo(({ title, isTimeChart, payload }: Props) => {
           thirdPartyCookiesEnabled
           sharedCookiesEnabled
           javaScriptEnabled
+          cacheEnabled={true}
+          onLoadEnd={() => {
+            if (loading) {
+              setTimeout(() => {
+                hasRendered.current = true
+                setLoading(false)
+              }, 1000)
+            }
+          }}
           onMessage={(event) => {
             const msg = JSON.parse(event.nativeEvent.data)
 
@@ -503,6 +527,7 @@ const ChartSlide = memo(({ title, isTimeChart, payload }: Props) => {
             if (msg.type === 'RENDERED') {
               hasRendered.current = true
               setLoading(false)
+              if (loadingTimeout.current) clearTimeout(loadingTimeout.current)
             }
           }}
         />

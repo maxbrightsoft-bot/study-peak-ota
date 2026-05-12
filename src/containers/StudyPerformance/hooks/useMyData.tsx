@@ -79,6 +79,11 @@ const useMyData = () => {
 
   const handleCloseCreateNote = () => {
     setOpenCreateNote(false)
+    setImageUrl('')
+  }
+
+  const handleRemoveImage = () => {
+    setImageUrl('')
   }
 
   const handlePrint = () => {
@@ -260,6 +265,7 @@ const useMyData = () => {
     openCreateNote,
     courseIdSelected,
     handleUploadImage,
+    handleRemoveImage,
     handleOpenCreateNote,
     handleCloseCreateNote,
     isAdminOrNonAcademy

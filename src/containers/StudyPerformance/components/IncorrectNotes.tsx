@@ -1,6 +1,7 @@
 import SearchInput from '@/components/Input/SearchInput'
+import { palette } from '@/theme'
 import React, { useMemo } from 'react'
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, SafeAreaView, StatusBar, ScrollView } from 'react-native'
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, ScrollView, ActivityIndicator } from 'react-native'
 import useNotes from '../hooks/useNotes'
 import { GroupedNoteResponse } from '@/utils/types'
 import { FontAwesome6 } from '@expo/vector-icons'
@@ -34,68 +35,97 @@ export default function IncorrectNotes({ contentRef }: { contentRef?: React.RefO
     openFilter,
     closeFilter,
     handleApplyFilter,
-    filter
+    filter,
+    refreshGroup,
+    removeGroup
   } = useNotes()
 
   const allSubjects = useMemo(() => {
     return [{ label: t('filter_all'), value: 'all' }, ...subjectNoteOptions]
   }, [subjectNoteOptions])
 
+  const hasActiveFilter = useMemo(() => {
+    return !!(
+      (filter.subjectNames && filter.subjectNames.length > 0) ||
+      (filter.categoryNames && filter.categoryNames.length > 0) ||
+      (filter.examTypes && filter.examTypes.length > 0) ||
+      filter.startDate ||
+      filter.endDate ||
+      filter.hasIncorrectOrImage
+    )
+  }, [filter])
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F4F4F6" />
+    <View style={styles.safe}>
+
+      <View style={styles.fixedHeader}>
+        <View style={styles.topHeaderRow}>
+          <View style={styles.searchFlex}>
+            <SearchInput
+              value={search}
+              onChangeText={onChangeSearch}
+              placeholder={t('search_incorrect_notes')}
+            />
+          </View>
+          <TouchableOpacity style={styles.filterBtn} onPress={openFilter}>
+            <FontAwesome6 name="sliders" size={16} color={hasActiveFilter ? "#7C3AED" : "#4B5563"} />
+            {hasActiveFilter && <View style={styles.activeFilterDot} />}
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.chipScroll}
+          contentContainerStyle={styles.chipScrollContent}
+        >
+          {allSubjects.map((sub, idx) => {
+            const isAll = sub.value === 'all'
+            const isActive = isAll
+              ? subjectValue.length === 0
+              : subjectValue.includes(String(sub.value))
+            return (
+              <TouchableOpacity
+                key={idx}
+                style={[styles.subjectChip, isActive && styles.subjectChipActive]}
+                onPress={() => handleChangeSubject(isAll ? null : String(sub.value))}
+              >
+                {!isAll && isActive && (
+                  <View style={[styles.chipDot, { backgroundColor: '#FFF' }]} />
+                )}
+                {!isAll && !isActive && (
+                  <View style={[styles.chipDot, { backgroundColor: '#D1D5DB' }]} />
+                )}
+                <Text style={[styles.subjectChipText, isActive && styles.subjectChipTextActive]}>
+                  {sub.label}
+                </Text>
+              </TouchableOpacity>
+            )
+          })}
+        </ScrollView>
+      </View>
 
       <FlatList
         ref={contentRef}
         data={notes as unknown as GroupedNoteResponse[]}
         keyExtractor={(item, index) => `${item.subjectName}-${item.categoryName}-${index}`}
         onEndReached={handleLoadMore}
-        contentContainerStyle={styles.list}
-        ListHeaderComponent={
-          <>
-            <View style={styles.topHeaderRow}>
-              <View style={styles.searchFlex}>
-                <SearchInput
-                  value={search}
-                  onChangeText={onChangeSearch}
-                  placeholder={t('search_incorrect_notes')}
-                />
-              </View>
-              <TouchableOpacity style={styles.filterBtn} onPress={openFilter}>
-                <FontAwesome6 name="sliders" size={16} color="#4B5563" />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.chipScroll}
-              contentContainerStyle={styles.chipScrollContent}
-            >
-              {allSubjects.map((sub, idx) => {
-                const isActive = (subjectValue || 'all') === sub.value
-                return (
-                  <TouchableOpacity
-                    key={idx}
-                    style={[styles.subjectChip, isActive && styles.subjectChipActive]}
-                    onPress={() => handleChangeSubject(sub.value === 'all' ? null : String(sub.value))}
-                  >
-                    {sub.label !== '전체' && isActive && (
-                      <View style={[styles.chipDot, { backgroundColor: '#FFF' }]} />
-                    )}
-                    {sub.label !== '전체' && !isActive && (
-                      <View style={[styles.chipDot, { backgroundColor: '#D1D5DB' }]} />
-                    )}
-                    <Text style={[styles.subjectChipText, isActive && styles.subjectChipTextActive]}>
-                      {sub.label}
-                    </Text>
-                  </TouchableOpacity>
-                )
-              })}
-            </ScrollView>
-          </>
+        contentContainerStyle={[styles.list, notes.length === 0 && styles.listEmpty]}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <FontAwesome6 name="note-sticky" size={48} color="#D1D5DB" />
+            <Text style={styles.emptyText}>{t('no_data')}</Text>
+          </View>
         }
-        renderItem={({ item }) => <GroupedNoteCard item={item} t={t} onOpenDialog={handleOpenDialog} />}
+        ListFooterComponent={
+          isLoadingNotes ? (
+            <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+              <ActivityIndicator size="small" color="#7C3AED" />
+              <Text style={{ marginTop: 8, color: '#6B7280', fontSize: 13 }}>{t('loading', 'Đang tải...')}</Text>
+            </View>
+          ) : null
+        }
+        renderItem={({ item }) => <GroupedNoteCard item={item} t={t} onOpenDialog={handleOpenDialog} filter={filter} refreshGroup={refreshGroup} onRemoveGroup={removeGroup} />}
         ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
       />
 
@@ -133,17 +163,39 @@ export default function IncorrectNotes({ contentRef }: { contentRef?: React.RefO
         subjectOptions={subjectNoteOptions}
         categoryOptions={categoryNoteOptions}
       />
-    </SafeAreaView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
   safe: {
+    height: '100%',
     backgroundColor: '#F9FAFB'
   },
+  fixedHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    backgroundColor: '#F9FAFB',
+  },
   list: {
-    padding: 20,
+    paddingHorizontal: 20,
     paddingBottom: 200
+  },
+  listEmpty: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyText: {
+    marginTop: 16,
+    fontSize: 15,
+    color: '#9CA3AF',
+    fontWeight: '500',
   },
   topHeaderRow: {
     flexDirection: 'row',
@@ -152,7 +204,7 @@ const styles = StyleSheet.create({
   },
   searchFlex: {
     flex: 1,
-    backgroundColor: 'F4F4F6',
+    backgroundColor: '#F9FAFB',
     marginRight: 10,
   },
   filterBtn: {
@@ -164,6 +216,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#F3F4F6',
+    position: 'relative',
+  },
+  activeFilterDot: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#EF4444',
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
   },
   chipScroll: {
     marginBottom: 20,

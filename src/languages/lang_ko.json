@@ -1876,7 +1876,8 @@
   "filter_last_7_days": "최근 7일",
   "filter_last_30_days": "최근 30일",
   "filter_this_semester": "이번 학기",
-  "filter_memo_or_image_only": "메모 or 이미지가 첨부된 오답만",
+  "filter_memo_or_image_only": "이미지가 첨부된 오답만",
+  "filter_custom": "직접 선택",
   "filter_cancel": "취소",
   "filter_apply": "적용하기",
   "filter_n_selected": "{{n}}개 선택",
@@ -1891,6 +1892,7 @@
   "grouped_note_recent": "최근 {{date}}",
   "grouped_note_count": "{{count}}문제",
   "grouped_note_no_content": "내용 없음",
+  "grouped_note_other": "기타",
   "search_incorrect_notes": "오답노트 검색",
   "math_editor": {
     "wysiwyg": "수식 편집 (WYSIWYG)",
@@ -1949,5 +1951,9 @@
   "total_time_must_be_positive": "총 시간은 양수여야 합니다",
   "total_time_out_of_range": "총 시간이 범위를 벗어났습니다",
   "select_subject": "과목 선택",
-  "add_subject": "과목 추가"
+  "add_subject": "과목 추가",
+  "incorrect_answer_note_details": "오답노트 상세",
+  "example_notes": "(예시) 다른 문제에서 시간을 절약해서 부족한 현대문학에 시간을 좀 더 써야겠다.",
+  "add_image": "이미지 추가",
+  "load_more": "더 보기"
 }

@@ -105,31 +105,24 @@ const ChatContainer = ({
         <View></View>
       </View>
       <KeyboardAvoidingView
-        keyboardVerticalOffset={80}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
         style={{ flex: 1, position: 'relative' }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.container}>
-          <View style={styles.header}>
-            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', flex: 1 }}>
-              <Text style={styles.examTitle}>{examTitle}</Text>
+          <View style={styles.subHeader}>
+            <View style={styles.examInfoContainer}>
+              <Text style={styles.examTitle} numberOfLines={1}>{examTitle}</Text>
               {studentTotalAttemptTime > 1 && (
                 <Text style={[TYPO.button4, { color: isSelected ? palette.main[600] : palette.red[900] }]}>
                   #{studentAttemptNumber + 1}/{studentTotalAttemptTime}
                 </Text>
               )}
             </View>
-            <View style={{ justifyContent: 'flex-end', alignItems: 'flex-end' }}>
+            <View style={styles.headerRight}>
               <View>
                 {courseId ? (
-                  <Text
-                    style={{
-                      fontWeight: '700',
-                      fontSize: 12,
-                      lineHeight: 14.32,
-                      color: '#1F2937'
-                    }}
-                  >
+                  <Text style={styles.courseTitle}>
                     {questionOrder != undefined
                       ? t('problem_number_question', {
                         number: parentQuestionId
@@ -142,33 +135,9 @@ const ChatContainer = ({
                   </Text>
                 ) : (
                   !isOnlyConversationStudentWithTeacher && (
-                    <View
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        gap: 4
-                      }}
-                    >
-                      <Text
-                        style={{
-                          fontWeight: '700',
-                          fontSize: 12,
-                          lineHeight: 14.32,
-                          color: '#4B5563'
-                        }}
-                      >
-                        {score || 0}
-                      </Text>
-                      <Text
-                        style={{
-                          fontWeight: '700',
-                          fontSize: 12,
-                          lineHeight: 14.32,
-                          color: '#D1D5DB'
-                        }}
-                      >
-                        /{totalScore || 0}
-                      </Text>
+                    <View style={styles.scoreContainer}>
+                      <Text style={styles.scoreText}>{score || 0}</Text>
+                      <Text style={styles.totalScoreText}>/{totalScore || 0}</Text>
                     </View>
                   )
                 )}
@@ -183,17 +152,14 @@ const ChatContainer = ({
               </View>
             )}
             {!filterMessage?.length ? (
-              <View style={{ height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+              <View style={styles.emptyContainer}>
                 <Text style={styles.dateTitle}>{t('no_message')}</Text>
               </View>
             ) : (
               <FlatList
                 ref={flatListRef}
                 data={filterMessage}
-                style={{
-                  backgroundColor: palette.main[50],
-                  paddingHorizontal: 24
-                }}
+                style={styles.chatList}
                 renderItem={({ item }) => (
                   <ChatItem
                     t={t}
@@ -219,10 +185,6 @@ const ChatContainer = ({
           <View style={styles.footerWrapper}>
             <View style={styles.footer}>
               <View style={styles.actionGroup}>
-                <TouchableOpacity disabled={disabled} onPress={handleUploadImage} style={styles.iconButton}>
-                  <Ionicons name="image-outline" size={22} color={palette.grey[600]} />
-                </TouchableOpacity>
-
                 <TouchableOpacity
                   disabled={disabled}
                   onPress={handleOpenSketchCanvasDialog}
@@ -230,10 +192,12 @@ const ChatContainer = ({
                 >
                   <MaterialIcons name="draw" size={20} color="#FFF" />
                 </TouchableOpacity>
+                <TouchableOpacity disabled={disabled} onPress={handleUploadImage} style={styles.iconButton}>
+                  <Ionicons name="image-outline" size={20} color={palette.grey[600]} />
+                </TouchableOpacity>
               </View>
 
               <View style={styles.inputWrapper}>
-                {/* <TextField inputRef={inputRef} multiline numberOfLines={3} disabled={disabled} style={styles.input} onChangeText={onChangeInput} /> */}
                 <MathRichInput ref={inputRef} disabled={disabled} style={styles.input} onChange={(value) => onChangeInput(value)} />
               </View>
 
@@ -298,7 +262,55 @@ const styles = ScaledSheet.create({
     paddingVertical: '16@ms',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: '24@ms'
+    paddingHorizontal: '20@ms',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    backgroundColor: '#FFF'
+  },
+  subHeader: {
+    flexDirection: 'row',
+    paddingVertical: '12@ms',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: '20@ms',
+    backgroundColor: '#FFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6'
+  },
+  examInfoContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 12
+  },
+  headerRight: {
+    justifyContent: 'flex-end',
+    alignItems: 'flex-end'
+  },
+  courseTitle: {
+    fontWeight: '700',
+    fontSize: 11,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    color: palette.grey[500],
+    marginBottom: 2
+  },
+  scoreContainer: {
+    flexDirection: 'row',
+    gap: 2,
+    alignItems: 'baseline',
+    marginBottom: 2
+  },
+  scoreText: {
+    fontWeight: '700',
+    fontSize: 16,
+    color: palette.grey[900]
+  },
+  totalScoreText: {
+    fontWeight: '600',
+    fontSize: 12,
+    color: palette.grey[400]
   },
   overlay: {
     justifyContent: 'center',
@@ -328,10 +340,20 @@ const styles = ScaledSheet.create({
   examTitle: {
     ...TYPO.button3,
     color: palette.grey[900],
+    flexShrink: 1
   },
   dateTitle: {
     ...TYPO.button4,
     color: palette.grey[500]
+  },
+  emptyContainer: {
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  chatList: {
+    backgroundColor: palette.main[50],
+    paddingHorizontal: 24
   },
   myMessage: {
     alignSelf: 'flex-end',
@@ -373,61 +395,74 @@ const styles = ScaledSheet.create({
     marginBottom: 4
   },
   footerWrapper: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFF',
     borderTopWidth: 1,
-    borderColor: palette.grey[100],
-    paddingHorizontal: '20@ms',
-    paddingTop: '10@ms',
-    paddingBottom: 20
+    borderTopColor: '#F3F4F6',
+    paddingHorizontal: '10@ms',
+    paddingTop: '12@ms',
+    paddingBottom: Platform.OS === 'ios' ? '32@ms' : '16@ms'
   },
 
   footer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    gap: 8
+    gap: 4
   },
 
   actionGroup: {
-    justifyContent: 'flex-end',
-    gap: 6
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 8,
+    paddingBottom: '4@ms'
   },
 
   iconButton: {
-    width: 36,
-    height: 36,
+    width: 32,
+    height: 32,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    borderRadius: 8,
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB'
   },
 
   sketchButton: {
     backgroundColor: palette.main[600],
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center'
   },
 
   inputWrapper: {
     flex: 1,
-    backgroundColor: palette.grey[100],
-    borderRadius: 20,
-    height: '80@ms'
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    minHeight: '100@ms',
+    paddingHorizontal: '12@ms',
+    paddingVertical: '8@ms',
+    borderWidth: 1,
+    borderColor: '#E5E7EB'
   },
 
   input: {
-    borderWidth: 1,
-    borderColor: palette.grey[100],
-    backgroundColor: 'transparent'
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    fontSize: '15@ms',
+    color: palette.grey[900]
   },
 
   sendButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     backgroundColor: palette.main[600],
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    paddingLeft: 2,
+    marginBottom: '6@ms'
   }
 })
 

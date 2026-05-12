@@ -25,6 +25,7 @@ interface ExamNoteDialogProps {
   imageUrl: string
   examList: any
   handleUploadImage: () => Promise<void>
+  handleRemoveImage: () => void
   isLoadingNotes?: boolean
   onClose: () => void
   examOptions: { label: any; value: any }[]
@@ -66,6 +67,7 @@ const CreateExamNoteDialog: FC<ExamNoteDialogProps> = ({
   handleChangeExam,
   questionOptions,
   handleUploadImage,
+  handleRemoveImage,
   isLoadingNotes,
   onClose,
   onSaveNote
@@ -157,14 +159,25 @@ const CreateExamNoteDialog: FC<ExamNoteDialogProps> = ({
 
                   <View style={{ marginTop: 20, marginBottom: 20 }}>
                     {imageUrl ? (
-                      <Image
-                        source={{ uri: imageUrl }}
-                        style={styles.image}
-                        resizeMode="cover"
-                      />
+                      <View style={styles.imageContainer}>
+                        <TouchableOpacity onPress={handleUploadImage}>
+                          <Image
+                            source={{ uri: imageUrl }}
+                            style={styles.image}
+                            resizeMode="cover"
+                          />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.removeImageButton}
+                          onPress={handleRemoveImage}
+                        >
+                          <Ionicons name="close-circle" size={24} color={palette.red[500]} />
+                        </TouchableOpacity>
+                      </View>
                     ) : (
-                      <TouchableOpacity onPress={handleUploadImage}>
+                      <TouchableOpacity style={styles.uploadPlaceholder} onPress={handleUploadImage}>
                         <Ionicons name="image" size={32} color={palette.grey[500]} />
+                        <Text style={styles.uploadText}>{t('add_image')}</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -260,5 +273,34 @@ const styles = ScaledSheet.create({
   confirmButtonText: {
     ...TYPO.button2,
     color: 'white'
+  },
+  imageContainer: {
+    width: 120,
+    height: 120,
+    position: 'relative'
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: -10,
+    right: -10,
+    backgroundColor: '#FFF',
+    borderRadius: 12
+  },
+  uploadPlaceholder: {
+    width: 120,
+    height: 120,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: palette.grey[300],
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB'
+  },
+  uploadText: {
+    fontSize: 12,
+    color: palette.grey[500],
+    marginTop: 4,
+    fontWeight: '500'
   }
 })

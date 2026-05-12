@@ -272,6 +272,25 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
     handleGetOverallData()
   }, [load])
 
+  useEffect(() => {
+    const isAnyLoading = loadingData || loadingSubjectData || loadingSubjectCumulativeData || loadingRankingData || loadingSubjects
+    let timeout: NodeJS.Timeout
+    
+    if (isAnyLoading) {
+      timeout = setTimeout(() => {
+        setLoadingData(false)
+        setLoadingSubjectData(false)
+        setLoadingSubjectCumulativeData(false)
+        setLoadingRankingData(false)
+        setLoadingSubjects(false)
+      }, 10000)
+    }
+
+    return () => {
+      if (timeout) clearTimeout(timeout)
+    }
+  }, [loadingData, loadingSubjectData, loadingSubjectCumulativeData, loadingRankingData, loadingSubjects])
+
   useFocusEffect(
     useCallback(() => {
       setLoad((prev) => !prev)
