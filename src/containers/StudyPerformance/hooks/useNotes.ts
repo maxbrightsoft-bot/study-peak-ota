@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next"
 import _ from "lodash"
 import { GroupedNoteResponse, NoteRequest, NoteResponse, NoteSearchQuery } from "@/utils/types"
 import { getErrorMessage, toast } from "@/utils/helpers"
-import { getGroupedNotesApi, getNotesApi, getNoteFilterOptionsApi } from "../../ExamResultList/apiClients/noteService"
+import { getGroupedNotesApi, getNoteFilterOptionsApi } from "../../ExamResultList/apiClients/noteService"
 import { useFocusEffect } from "@react-navigation/native"
 import { DEFAULT_NOTE_FILTER } from "../configs/constants"
 import { deleteNoteApi, updateNoteApi } from "../apiClients"
@@ -32,7 +32,15 @@ const useNotes = (
     const [search, setSearch] = useState<string>("");
     const inputSearch = useRef<any>(null);
     const [openConfirm, setOpenConfirm] = useState<boolean>(false)
-    const [subjectValue, setSubjectValue] = useState<string | null>(null)
+    const [refreshGroup, setRefreshGroup] = useState<{subjectName?: string, categoryName?: string, key: number}>({key: 0})
+
+    const removeGroup = (subjectName?: string, categoryName?: string) => {
+        setNotes(prev => prev.filter(n =>
+            !((n.subjectName || '') === (subjectName || '') &&
+              (n.categoryName || '') === (categoryName || ''))
+        ))
+    }
+    const [subjectValue, setSubjectValue] = useState<string[]>([])
     const [categoryValue, setCategoryValue] = useState<string | null>(null)
     const [isFilterVisible, setIsFilterVisible] = useState<boolean>(false)
     const [subjectNoteOptions, setSubjectNoteOptions] = useState<{label: string, value: string | number, id?: number}[]>([])
@@ -63,21 +71,30 @@ const useNotes = (
 
     const handleApplyFilter = (newFilters: Partial<NoteSearchQuery>) => {
         setFilter(prev => ({ ...prev, ...newFilters, currentPage: 1 }))
-        // Update local state if needed
         if (newFilters.subjectNames && newFilters.subjectNames.length > 0) {
-            setSubjectValue(newFilters.subjectNames[0])
+            setSubjectValue(newFilters.subjectNames)
         } else {
-            setSubjectValue(null)
+            setSubjectValue([])
         }
     }
 
     const handleChangeSubject = (value: string | null) => {
-        setSubjectValue(value)
-        setFilter(prev => ({
-            ...prev,
-            subjectNames: value ? [value] : undefined,
-            currentPage: 1
-        }))
+        setSubjectValue(prev => {
+            let newValues: string[]
+            if (value === null) {
+                newValues = []
+            } else if (prev.includes(value)) {
+                newValues = prev.filter(v => v !== value)
+            } else {
+                newValues = [...prev, value]
+            }
+            setFilter(f => ({
+                ...f,
+                subjectNames: newValues.length > 0 ? newValues : undefined,
+                currentPage: 1
+            }))
+            return newValues
+        })
     }
 
     const handleChangeCategory = (value: string | null) => {
@@ -166,7 +183,14 @@ const useNotes = (
             return
         }
         if (isLoadingNotes) return
-        setLoadingWithoutOverlay(true)
+        
+        const isLoadMore = filter.currentPage > 1
+        if (isLoadMore) {
+            setLoadingNotes(true)
+        } else {
+            setLoadingWithoutOverlay(true)
+        }
+
         try {
             const res = await getGroupedNotesApi({ ...filter })
             const data = res.data
@@ -192,7 +216,11 @@ const useNotes = (
             toast.error(getErrorMessage(t, error))
         }
         finally {
-            setLoadingWithoutOverlay(false)
+            if (isLoadMore) {
+                setLoadingNotes(false)
+            } else {
+                setLoadingWithoutOverlay(false)
+            }
         }
     }
     const handleLoadMore = useCallback(() => {
@@ -231,6 +259,7 @@ const useNotes = (
 
     const handleDeleteNote = async () => {
         if (!selectedNote?.id) return
+        const groupInfo = { subjectName: selectedNote.subjectName, categoryName: selectedNote.categoryName }
         handleLoadChange(true)
         try {
             await deleteNoteApi(selectedNote.id)
@@ -241,16 +270,16 @@ const useNotes = (
         finally {
             handleLoadChange(false)
             toggleConfirmDialog()
-            getNotes()
+            setRefreshGroup({ ...groupInfo, key: Date.now() })
             handleCloseDialog()
         }
     }
 
     const handleSaveNote = async (content: string) => {
+        if (!selectedNote?.id) return
+        if (content.trim().length === 0) return
+        const groupInfo = { subjectName: selectedNote.subjectName, categoryName: selectedNote.categoryName }
         try {
-            if (!selectedNote?.id) return
-            if (content.trim().length === 0) return
-
             handleLoadChange(true)
 
             const data: NoteRequest = {
@@ -268,7 +297,7 @@ const useNotes = (
         }
         finally {
             handleLoadChange(false)
-            getNotes()
+            setRefreshGroup({ ...groupInfo, key: Date.now() })
             handleCloseDialog()
         }
     }
@@ -316,7 +345,9 @@ const useNotes = (
         isFilterVisible,
         openFilter,
         closeFilter,
-        handleApplyFilter
+        handleApplyFilter,
+        refreshGroup,
+        removeGroup
     }
 }
 

@@ -37,22 +37,7 @@ const ORDER_NUMBERS: Record<string, string> = {
 
 const CHART_HEIGHT = 300
 
-function buildHtml(payload: {
-  series: { name: string; data: (number | null)[] }[]
-  categories: string[]
-  yLabelMap: Record<number, string>
-  labels: {
-    myOrder: string
-    topOrder: string
-    problemNumberQuestion: string
-    noData: string
-    orderNumbers: Record<string, string>
-  }
-}): string {
-  const safeJson = JSON.stringify(payload).replace(/<\/script>/gi, '<\\/script>')
-  const myLabel = payload.labels.myOrder
-  const topLabel = payload.labels.topOrder
-
+function getChartHtml(myLabel: string, topLabel: string, noDataLabel: string) {
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -96,24 +81,9 @@ function buildHtml(payload: {
     flex-shrink: 0;
   }
   #chart { width: 100%; flex: 1; min-height: 0; }
-  #loading {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    display: flex; align-items: center; justify-content: center;
-    background: #fff;
-    z-index: 99;
-  }
-  .spinner {
-    width: 32px; height: 32px;
-    border: 3px solid #E5E7EB;
-    border-top-color: #7C3AED;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
-<div id="loading"><div class="spinner"></div></div>
 <div id="wrap">
   <div id="legend">
     <div class="legend-item">
@@ -129,19 +99,33 @@ function buildHtml(payload: {
 </div>
 
 <script>
-var __payload = ${safeJson};
+var chartInstance = null;
+var myLabel = '${myLabel}';
+var topLabel = '${topLabel}';
+var noDataLabel = '${noDataLabel}';
 
-function t_problemNumber(number) {
-  return __payload.labels.problemNumberQuestion.replace('{number}', number);
+function postRN(msg) {
+  if (window.ReactNativeWebView) {
+    window.ReactNativeWebView.postMessage(JSON.stringify(msg));
+  }
 }
 
-function t_orderNumber(val) {
+function t_problemNumber(payload, number) {
+  return payload.labels.problemNumberQuestion.replace('{number}', number);
+}
+
+function t_orderNumber(payload, val) {
   var v = String(val);
   if (v === '' || v === 's' || v === 'e') return '';
-  return __payload.labels.orderNumbers[v] || v;
+  return payload.labels.orderNumbers[v] || v;
 }
 
-function initChart() {
+function renderChart(payload) {
+  if (chartInstance) {
+    chartInstance.destroy();
+    chartInstance = null;
+  }
+
   var chartEl = document.getElementById('chart');
   var options = {
     chart: {
@@ -154,14 +138,13 @@ function initChart() {
       fontFamily: "-apple-system, 'Apple SD Gothic Neo', sans-serif",
       events: {
         mounted: function() {
-          document.getElementById('loading').style.display = 'none';
-          if (window.ReactNativeWebView) {
-            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'RENDERED' }));
-          }
+          setTimeout(function() {
+            postRN({ type: 'RENDERED' });
+          }, 100);
         }
       }
     },
-    series: __payload.series,
+    series: payload.series,
     colors: ['#B09FFF', '#FF9364'],
     stroke: {
       curve: 'smooth',
@@ -187,16 +170,16 @@ function initChart() {
       y: {
         formatter: function(val, opts) {
           if (!opts || opts.dataPointIndex <= 0 || val == null) return null;
-          var label = __payload.yLabelMap[val];
-          return label ? t_problemNumber(label) : __payload.labels.noData;
+          var label = payload.yLabelMap[val];
+          return label ? t_problemNumber(payload, label) : noDataLabel;
         }
       }
     },
     xaxis: {
-      categories: __payload.categories,
+      categories: payload.categories,
       labels: {
         style: { fontSize: '12px', colors: '#9CA3AF' },
-        formatter: function(val) { return t_orderNumber(val); }
+        formatter: function(val) { return t_orderNumber(payload, val); }
       },
       axisBorder: { show: false },
       axisTicks: { show: false },
@@ -208,8 +191,8 @@ function initChart() {
         style: { fontSize: '12px', colors: '#9CA3AF' },
         formatter: function(val) {
           if (val == null) return '';
-          var label = __payload.yLabelMap[val];
-          return label ? t_problemNumber(label) : '';
+          var label = payload.yLabelMap[val];
+          return label ? t_problemNumber(payload, label) : '';
         }
       }
     },
@@ -223,23 +206,39 @@ function initChart() {
     theme: { mode: 'light' }
   };
 
-  var chart = new ApexCharts(chartEl, options);
-  chart.render();
+  chartInstance = new ApexCharts(chartEl, options);
+  chartInstance.render();
 }
+
+function handleMessage(e) {
+  try {
+    var payload = JSON.parse(e.data);
+    renderChart(payload);
+  } catch(err) {
+    console.error('CHART PARSE ERROR', err);
+  }
+}
+
+document.addEventListener('message', handleMessage);
+window.addEventListener('message', handleMessage);
 
 var script = document.createElement('script');
 script.src = 'https://cdn.jsdelivr.net/npm/apexcharts@3.54.0/dist/apexcharts.min.js';
-script.onload = initChart;
+script.onload = function() {
+  postRN({ type: 'READY' });
+};
 script.onerror = function() {
   var s2 = document.createElement('script');
   s2.src = 'https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.54.0/apexcharts.min.js';
-  s2.onload = initChart;
+  s2.onload = function() {
+    postRN({ type: 'READY' });
+  };
   document.head.appendChild(s2);
 };
 document.head.appendChild(script);
 </script>
 </body>
-</html>`
+</html>`;
 }
 
 function buildPayload(
@@ -314,11 +313,91 @@ function buildPayload(
   }
 }
 
+const ChartItem = React.memo(({ payload, labels }: { payload: any, labels: any }) => {
+  const [loading, setLoading] = useState(true)
+  const webRef = useRef<WebView>(null)
+  const isReady = useRef(false)
+  const hasRendered = useRef(false)
+  const pendingPayload = useRef<any>(null)
+  const loadingTimeout = useRef<NodeJS.Timeout | null>(null)
+
+  const html = useMemo(() => getChartHtml(labels.myOrder, labels.topOrder, labels.noData), [labels])
+
+  useEffect(() => {
+    pendingPayload.current = payload
+    if (isReady.current && webRef.current) {
+      setLoading(true)
+      hasRendered.current = false
+      webRef.current.postMessage(JSON.stringify(payload))
+    }
+  }, [payload])
+
+  useEffect(() => {
+    if (loading && !hasRendered.current) {
+      loadingTimeout.current = setTimeout(() => {
+        setLoading(false)
+        hasRendered.current = true
+      }, 5000)
+    } else {
+      if (loadingTimeout.current) clearTimeout(loadingTimeout.current)
+    }
+    return () => {
+      if (loadingTimeout.current) clearTimeout(loadingTimeout.current)
+    }
+  }, [loading])
+
+  return (
+    <View style={styles.chartContainer}>
+      {loading && !hasRendered.current && (
+        <ActivityIndicator
+          color="#7C3AED"
+          style={StyleSheet.absoluteFillObject}
+        />
+      )}
+      <WebView
+        ref={webRef}
+        style={styles.webview}
+        source={{ html }}
+        scrollEnabled={false}
+        originWhitelist={['*']}
+        javaScriptEnabled
+        domStorageEnabled
+        cacheEnabled={true}
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        onLoadEnd={() => {
+          if (loading) {
+            setTimeout(() => {
+              hasRendered.current = true
+              setLoading(false)
+            }, 1000)
+          }
+        }}
+        onMessage={(event) => {
+          try {
+            const msg = JSON.parse(event.nativeEvent.data)
+            if (msg.type === 'READY') {
+              if (!isReady.current) {
+                isReady.current = true
+                const data = pendingPayload.current ?? payload
+                webRef.current?.postMessage(JSON.stringify(data))
+              }
+            }
+            if (msg.type === 'RENDERED') {
+              hasRendered.current = true
+              setLoading(false)
+              if (loadingTimeout.current) clearTimeout(loadingTimeout.current)
+            }
+          } catch (e) { }
+        }}
+      />
+    </View>
+  )
+})
+
 const SolutionOrderChart: React.FC<Props> = ({ data, loading = false }) => {
   const { t } = useTranslation()
-  const [chartReady, setChartReady] = useState(false)
   const [dataChartIndex, setDataChartIndex] = useState(0)
-  const prevHtml = useRef<string | null>(null)
 
   useEffect(() => {
     if (!data) return
@@ -337,26 +416,14 @@ const SolutionOrderChart: React.FC<Props> = ({ data, loading = false }) => {
     ),
   }), [t])
 
-  const html = useMemo(() => {
-    const payload = buildPayload(questions, labels)
-    return buildHtml(payload)
-  }, [questions, labels])
-
-  useEffect(() => {
-    if (prevHtml.current !== null && prevHtml.current !== html) {
-      setChartReady(false)
-    }
-    prevHtml.current = html
-  }, [html])
+  const payload = useMemo(() => buildPayload(questions, labels), [questions, labels])
 
   const handlePrev = useCallback(() => {
-    setChartReady(false)
     setDataChartIndex((prev) => Math.max(prev - 1, 0))
   }, [])
 
   const handleNext = useCallback(() => {
     if (!data) return
-    setChartReady(false)
     setDataChartIndex((prev) => Math.min(prev + 1, data.length - 1))
   }, [data])
 
@@ -370,7 +437,7 @@ const SolutionOrderChart: React.FC<Props> = ({ data, loading = false }) => {
     )
   }
 
-  if (!data) return null
+  if (!data || data.length === 0) return null
 
   const isFirst = dataChartIndex === 0
   const isLast = dataChartIndex === (data.length - 1)
@@ -387,37 +454,11 @@ const SolutionOrderChart: React.FC<Props> = ({ data, loading = false }) => {
           marginBottom: 10
         }}
       >
-        <Text style={{ color: palette.main[600], fontSize: 16, fontWeight: '600' }}>{"풀이순서"}</Text>
+        <Text style={{ color: palette.main[600], fontSize: 16, fontWeight: '600' }}>{t('solution_order')}</Text>
       </View>
 
       <View style={styles.card}>
-        <View style={styles.chartContainer}>
-          {!chartReady && (
-            <ActivityIndicator
-              color="#7C3AED"
-              style={StyleSheet.absoluteFillObject}
-            />
-          )}
-          <WebView
-            style={[styles.webview, !chartReady && styles.hidden]}
-            source={{ html }}
-            scrollEnabled={false}
-            originWhitelist={['*']}
-            javaScriptEnabled
-            domStorageEnabled
-            cacheEnabled={false}
-            showsVerticalScrollIndicator={false}
-            showsHorizontalScrollIndicator={false}
-            androidHardwareAccelerationDisabled={false}
-            androidLayerType="hardware"
-            onMessage={(e) => {
-              try {
-                const msg = JSON.parse(e.nativeEvent.data)
-                if (msg.type === 'RENDERED') setChartReady(true)
-              } catch { }
-            }}
-          />
-        </View>
+        <ChartItem payload={payload} labels={labels} />
 
         <View style={styles.navRow}>
           <TouchableOpacity
@@ -445,8 +486,8 @@ const SolutionOrderChart: React.FC<Props> = ({ data, loading = false }) => {
   )
 }
 
-export default SolutionOrderChart
 
+export default SolutionOrderChart
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
@@ -462,7 +503,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   hidden: {
-    opacity: 0,
+    display: 'none',
   },
   navRow: {
     flexDirection: 'row',

@@ -56,7 +56,7 @@ const NoteDialog: FC<ExamNoteDialogProps> = ({
           <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />
         </TouchableOpacity>
         <View>
-          <Text style={{ fontSize: 16, fontWeight: 600, color: '#222222' }}>오답노트 상세</Text>
+          <Text style={{ fontSize: 16, fontWeight: 600, color: '#222222' }}>{t('incorrect_answer_note_details')}</Text>
         </View>
         <View></View>
       </View>
@@ -65,7 +65,7 @@ const NoteDialog: FC<ExamNoteDialogProps> = ({
         <Formik
           initialValues={{
             content: selectedNote?.content || '',
-            questionId: selectedNote?.questionId
+            questionId: selectedNote?.questionId || 0
           }}
           validationSchema={schema}
           onSubmit={(values) => onSaveNote(values.content, values.questionId)}
@@ -103,8 +103,12 @@ const NoteDialog: FC<ExamNoteDialogProps> = ({
                         </View>
                         <View style={{ flexDirection: 'row', alignSelf: 'flex-end', alignItems: 'center' }}>
                           <Text style={styles.headerText}>{selectedNote?.categoryName}</Text>
-                          <View style={styles.separator} />
-                          <Text style={styles.headerText}>p.{selectedNote?.score}</Text>
+                          {!!selectedNote?.page && selectedNote?.page > 0 && (
+                            <>
+                              <View style={styles.separator} />
+                              <Text style={styles.headerText}>p.{selectedNote?.page}</Text>
+                            </>
+                          )}
                         </View>
                       </View>
                     </View>
@@ -118,7 +122,7 @@ const NoteDialog: FC<ExamNoteDialogProps> = ({
                       <TextField
                         multiline
                         numberOfLines={10}
-                        placeholder="(예시) 다른 문제에서 시간을 절약해서 부족한 현대문학에 시간을 좀 더 써야겠다."
+                        placeholder={t('example_notes')}
                         value={values.content}
                         onChangeText={handleChange('content')}
                       />
@@ -147,13 +151,13 @@ const NoteDialog: FC<ExamNoteDialogProps> = ({
                 <View style={styles.footer}>
                   <TouchableOpacity style={[styles.button, styles.deleteButton]} onPress={onDeleteNote as any}>
                     <TrashIcon />
-                    <Text style={styles.confirmButtonText}>등록</Text>
+                    <Text style={styles.confirmButtonText}>{t('delete')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.button, styles.confirmButton, !dirty && styles.disabledButton]}
                     onPress={handleSubmit as any}
                   >
-                    <Text style={[styles.confirmButtonText, !dirty && styles.disabledButtonText]}>등록</Text>
+                    <Text style={[styles.confirmButtonText, !dirty && styles.disabledButtonText]}>{t('register')}</Text>
                   </TouchableOpacity>
                 </View>
               </>

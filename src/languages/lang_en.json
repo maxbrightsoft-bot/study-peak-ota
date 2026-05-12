@@ -1876,7 +1876,8 @@
   "filter_last_7_days": "Last 7 days",
   "filter_last_30_days": "Last 30 days",
   "filter_this_semester": "This semester",
-  "filter_memo_or_image_only": "Only answers with memo or image",
+  "filter_memo_or_image_only": "Only incorrect questions with images",
+  "filter_custom": "Custom select",
   "filter_cancel": "Cancel",
   "filter_apply": "Apply",
   "filter_n_selected": "{{n}} selected",
@@ -1891,6 +1892,7 @@
   "grouped_note_recent": "Recent {{date}}",
   "grouped_note_count": "{{count}} questions",
   "grouped_note_no_content": "No content",
+  "grouped_note_other": "Other",
   "search_incorrect_notes": "Search incorrect notes",
   "math_editor": {
     "wysiwyg": "Math Editor (WYSIWYG)",
@@ -1949,5 +1951,9 @@
   "total_time_must_be_positive": "Total time must be positive",
   "total_time_out_of_range": "Total time out of range",
   "select_subject": "Select subject",
-  "add_subject": "Add subject"
+  "add_subject": "Add subject",
+  "incorrect_answer_note_details": "Incorrect answer note details",
+  "example_notes": "(Example) I should save time on other questions and spend more time on modern literature, which I'm weak in.",
+  "add_image": "Add image",
+  "load_more": "Load More"
 }

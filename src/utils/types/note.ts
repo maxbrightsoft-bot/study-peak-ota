@@ -80,12 +80,10 @@ export interface NoteSearchQuery extends BaseSearchQuery<NoteSortColumn> {
   studentExamSessionId?: string
   studentTextbookSessionId?: number
   types?: NoteType[]
-  
-  // New Filter Parameters for Incorrect Notes
   subjectNames?: string[]
   categoryNames?: string[]
   examTypes?: number[]
   startDate?: string
   endDate?: string
-  hasMemoOrImage?: boolean
+  hasIncorrectOrImage?: boolean
 }
