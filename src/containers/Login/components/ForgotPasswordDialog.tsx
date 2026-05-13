@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import CustomTouchable from '@/components/Button/CustomTouchable'
 import CommonDialog from '@/components/ModalBase/CommonDialog'
 import useForgotPassword from '../hooks/useForgotPassword'
+import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   visible: boolean
@@ -171,33 +172,33 @@ const ForgotPasswordDialog = ({ visible, onOpenLoginAccountDialog, onClose }: Pr
 
 export default ForgotPasswordDialog
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   form: {
-    gap: 12,
+    gap: '12@ms',
   },
   description: {
     ...TYPO.body3,
     color: palette.grey[600],
-    marginBottom: 4,
+    marginBottom: '4@ms',
   },
   label: {
-    fontSize: 13,
+    fontSize: '13@ms',
     fontWeight: '500',
     color: palette.grey[700],
-    marginBottom: 8,
+    marginBottom: '8@ms',
   },
   submitButton: {
-    marginTop: 16,
+    marginTop: '16@ms',
     backgroundColor: palette.main[600],
-    height: 54,
-    borderRadius: 12,
+    height: '54@ms',
+    borderRadius: '12@ms',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: palette.main[600],
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: '4@ms' },
     shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowRadius: '8@ms',
+    elevation: '4@ms',
   },
   disabledButton: {
     opacity: 0.6,
@@ -205,12 +206,12 @@ const styles = StyleSheet.create({
   submitButtonText: {
     ...TYPO.button,
     color: '#fff',
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: 'bold',
   },
   resendButton: {
     alignSelf: 'center',
-    marginTop: 8,
+    marginTop: '8@ms',
   },
   resendButtonText: {
     ...TYPO.body3,

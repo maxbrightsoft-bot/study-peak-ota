@@ -1,5 +1,5 @@
 import React, { FC, useMemo } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import moment from 'moment';
@@ -8,6 +8,7 @@ import { getNextTimes, isNextTimeValid } from '../../configs/fn';
 import { RecordItem, TimeLine, Timer } from '../../configs/types';
 import { palette } from '@/theme/colors';
 import { TimerStatus } from '@/utils/enums';
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   selectedDate?: moment.Moment;
@@ -94,21 +95,21 @@ const TimerLastDivider: FC<Props> = ({
 
 export default TimerLastDivider;
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   wrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 8,
+    marginVertical: '8@ms',
   },
   line: {
     flex: 1,
-    height: 1,
+    height: '1@ms',
     backgroundColor: palette.main[500],
   },
   iconBtn: {
     backgroundColor: palette.grey[50],
-    width: 24,
-    height: 24,
-    marginHorizontal: 8,
+    width: '24@ms',
+    height: '24@ms',
+    marginHorizontal: '8@ms',
   },
 });

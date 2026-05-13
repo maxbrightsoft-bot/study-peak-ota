@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { palette, TYPO } from '@/theme'
-import { ms } from 'react-native-size-matters'
+import { ScaledSheet, ms} from 'react-native-size-matters'
 import { searchSchools, NeisSchool } from '@/services/neisService'
 import { debounce } from 'lodash'
 import SearchSelectModal from './SearchSelectModal'
@@ -78,7 +78,7 @@ const SchoolSearchSelect = ({ value, onValueChange, style, placeholder }: Props)
 
 export default SchoolSearchSelect
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   trigger: {
     flexDirection: 'row',
     alignItems: 'center',

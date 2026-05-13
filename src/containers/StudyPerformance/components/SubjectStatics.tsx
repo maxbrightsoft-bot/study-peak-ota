@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native'
 import { useTranslation } from 'react-i18next'
+import { ScaledSheet } from 'react-native-size-matters'
 
 export type StudyTimeDistribution = {
   name: string
@@ -85,66 +86,66 @@ const SubjectStatics = ({ data, loading }: Props) => {
 
 export default SubjectStatics
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
-    gap: 10
+    gap: '10@ms'
   },
 
   gridItem: {},
 
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 16,
-    gap: 12
+    borderRadius: '20@ms',
+    padding: '16@ms',
+    gap: '12@ms'
   },
 
   subjectName: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '600',
     textAlign: 'center',
-    paddingVertical: 4,
-    borderRadius: 999,
+    paddingVertical: '4@ms',
+    borderRadius: '999@ms',
     color: '#111827'
   },
 
   divider: {
-    height: 1,
+    height: '1@ms',
     backgroundColor: '#E5E7EB',
-    marginVertical: 12
+    marginVertical: '12@ms'
   },
 
   rowBetween: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginVertical: 4
+    marginVertical: '4@ms'
   },
 
   valueRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6
+    gap: '6@ms'
   },
 
   itemTitle: {
-    fontSize: 14,
+    fontSize: '14@ms',
     color: '#374151'
   },
 
   itemValue: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '600',
     color: '#111827'
   },
 
   itemUnit: {
-    fontSize: 14,
+    fontSize: '14@ms',
     color: '#6B7280'
   },
 
   loading: {
-    height: 300,
+    height: '300@ms',
     justifyContent: 'center',
     alignItems: 'center'
   }

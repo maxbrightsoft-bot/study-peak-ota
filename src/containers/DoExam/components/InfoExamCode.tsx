@@ -62,7 +62,7 @@ const styles = ScaledSheet.create({
     fontSize: '14@ms',
     color: palette.grey[500],
     fontWeight: '500',
-    lineHeight: 23
+    lineHeight: '23@ms'
   },
 
   value: {

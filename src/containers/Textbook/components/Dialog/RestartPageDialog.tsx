@@ -1,10 +1,11 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native'
 import { Formik, FormikHelpers } from 'formik'
 import { palette, TYPO } from '@/theme'
 import CommonDialog from '@/components/ModalBase/CommonDialog'
 import CustomSelect from '@/components/Select/CustomSelect'
 import Loading from '@/components/Loading'
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   open: boolean
@@ -90,27 +91,27 @@ const RestartPageDialog = ({ t, loading, onClose, title, open, options, onSubmit
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16
+    padding: '16@ms'
   },
   modalContainer: {
     backgroundColor: 'white',
-    borderRadius: 12,
+    borderRadius: '12@ms',
     width: '100%',
     maxHeight: '80%',
-    overflow: 'hidden'
+    overflow: 'hidden',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: '20@ms',
+    paddingVertical: '16@ms',
   },
   modalTitle: {
     ...TYPO.h4,
@@ -118,34 +119,34 @@ const styles = StyleSheet.create({
     color: palette.main[500]
   },
   closeButton: {
-    padding: 4
+    padding: '4@ms'
   },
   closeIcon: {
-    fontSize: 28,
+    fontSize: '28@ms',
     color: palette.grey[500]
   },
   modalContent: {
-    paddingVertical: 16
+    paddingVertical: '16@ms'
   },
   inputContainer: {
-    marginBottom: 16
+    marginBottom: '16@ms'
   },
   inputLabel: {
     ...TYPO.body2,
     color: palette.grey[900],
-    marginBottom: 8
+    marginBottom: '8@ms'
   },
   dropdown: {
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: palette.grey[300],
-    borderRadius: 8,
+    borderRadius: '8@ms',
     backgroundColor: 'white'
   },
   infoContainer: {
-    marginTop: 8,
-    padding: 12,
+    marginTop: '8@ms',
+    padding: '12@ms',
     backgroundColor: palette.grey[50],
-    borderRadius: 6
+    borderRadius: '6@ms'
   },
   infoText: {
     ...TYPO.caption,
@@ -155,15 +156,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: "space-between",
-    paddingVertical: 16,
+    paddingVertical: '16@ms',
   },
   button: {
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12
+    paddingVertical: '14@ms',
+    paddingHorizontal: '24@ms',
+    borderRadius: '12@ms'
   },
   cancelButton: {
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: palette.main[600],
   },
   cancelButtonText: {

@@ -83,7 +83,7 @@ const styles = ScaledSheet.create({
     right: 0,
     bottom: 0,
     zIndex: 9999,
-    elevation: 9999
+    elevation: '9999@ms'
   },
   backdrop: {
     position: 'absolute',
@@ -113,8 +113,8 @@ const styles = ScaledSheet.create({
   bottomContainer: {
     width: '100%',
     backgroundColor: 'white',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: '20@ms',
+    borderTopRightRadius: '20@ms',
     overflow: 'hidden'
   }
 })

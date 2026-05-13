@@ -9,6 +9,7 @@ import { palette } from '@/theme'
 import { useTranslation } from 'react-i18next'
 import { PreparedQuestionResponse, ScrollType, TextbookQuestion } from '../config/types'
 import TextbookAnswer from './TextbookAnswer'
+import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   visible: boolean
@@ -160,10 +161,10 @@ const SelectAnswerSheet = ({
 
 export default SelectAnswerSheet
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   row: {
-    padding: 16,
-    borderBottomWidth: 1,
+    padding: '16@ms',
+    borderBottomWidth: '1@ms',
     borderColor: '#eee',
     flexDirection: 'row',
     justifyContent: 'space-between'
@@ -172,46 +173,46 @@ const styles = StyleSheet.create({
     backgroundColor: '#f3e8ff'
   },
   questionText: {
-    fontSize: 16
+    fontSize: '16@ms'
   },
   sheetContent: {
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-    gap: 16
+    paddingHorizontal: '20@ms',
+    paddingVertical: '24@ms',
+    gap: '16@ms'
   },
   title: {
-    fontSize: 12,
+    fontSize: '12@ms',
     color: '#858588',
-    lineHeight: 20,
+    lineHeight: '20@ms',
     textAlign: 'center'
   },
   answerRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 16,
-    paddingHorizontal: 15,
+    gap: '16@ms',
+    paddingHorizontal: '15@ms',
     justifyContent: 'space-between'
   },
   answerButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    borderWidth: 1,
+    width: '50@ms',
+    height: '50@ms',
+    borderRadius: '25@ms',
+    borderWidth: '1@ms',
     borderColor: '#EAEAEA',
     justifyContent: 'center',
     alignItems: 'center'
   },
   navRow: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingVertical: '12@ms',
+    paddingHorizontal: '20@ms',
     flexDirection: 'row',
-    paddingBottom: 34,
-    gap: 8,
+    paddingBottom: '34@ms',
+    gap: '8@ms',
     justifyContent: 'space-between'
   },
   actionTitle: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: '14@ms',
+    lineHeight: '22@ms',
     color: '#222222',
     fontWeight: 500
   },
@@ -222,11 +223,11 @@ const styles = StyleSheet.create({
   navButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-    borderRadius: 26,
-    borderWidth: 1,
+    gap: '6@ms',
+    paddingVertical: '7@ms',
+    paddingHorizontal: '12@ms',
+    borderRadius: '26@ms',
+    borderWidth: '1@ms',
     borderColor: '#222222'
   }
 })

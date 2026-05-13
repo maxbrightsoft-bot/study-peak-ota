@@ -73,27 +73,27 @@ const TimeChartGifted: React.FC<Props> = ({ myTimes, avgTimes, categories }) => 
 
 export const styles = ScaledSheet.create({
   container : {
-    paddingBottom: 200
+    paddingBottom: '200@ms'
   },
   legendContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 12
+    marginTop: '12@ms'
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 8,
-    gap: 8
+    marginHorizontal: '8@ms',
+    gap: '8@ms'
   },
   legendColor: {
-    width: 25,
-    height: 2,
-    borderRadius: 4,
-    marginRight: 6
+    width: '25@ms',
+    height: '2@ms',
+    borderRadius: '4@ms',
+    marginRight: '6@ms'
   },
   legendLabel: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: 700
   }
 })

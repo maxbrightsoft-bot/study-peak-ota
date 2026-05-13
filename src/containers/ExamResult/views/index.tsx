@@ -487,9 +487,9 @@ const styles = ScaledSheet.create({
   tabs: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
-    borderBottomWidth: 1,
-    borderTopWidth: 1,
+    gap: '12@ms',
+    borderBottomWidth: '1@ms',
+    borderTopWidth: '1@ms',
     borderColor: palette.grey[100]
   },
   tabButton: {
@@ -502,9 +502,9 @@ const styles = ScaledSheet.create({
     backgroundColor: palette.main[600]
   },
   tabText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '500',
-    lineHeight: 22,
+    lineHeight: '22@ms',
     color: palette.grey[400]
   },
   tabTextActive: {
@@ -519,7 +519,7 @@ const styles = ScaledSheet.create({
     fontWeight: 700,
     color: palette.grey[900]
   },
-  action: { paddingHorizontal: '24@ms', gap: 8, flexDirection: 'row', justifyContent: 'space-between' },
+  action: { paddingHorizontal: '24@ms', gap: '8@ms', flexDirection: 'row', justifyContent: 'space-between' },
   printButton: {
     paddingVertical: '8@ms'
   },
@@ -533,7 +533,7 @@ const styles = ScaledSheet.create({
     alignItems: 'center',
     paddingVertical: '8@ms',
     paddingHorizontal: '12@ms',
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: '#d0d0c8',
     borderRadius: '6@ms'
   },
@@ -547,7 +547,7 @@ const styles = ScaledSheet.create({
   },
   titleContainer: {
     flexDirection: 'row',
-    borderTopWidth: 1,
+    borderTopWidth: '1@ms',
     borderColor: palette.grey[100],
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -567,12 +567,12 @@ const styles = ScaledSheet.create({
     paddingHorizontal: '24@ms',
     paddingVertical: '12@ms',
     backgroundColor: palette.grey[50],
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
+    borderTopWidth: '1@ms',
+    borderBottomWidth: '1@ms',
     borderColor: palette.grey[100]
   },
   sectionTitle: {
-    marginLeft: 4
+    marginLeft: '4@ms'
   },
   dropdownContainer: {
     alignSelf: 'flex-start'
@@ -588,13 +588,13 @@ const styles = ScaledSheet.create({
   doubleColumn: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16
+    marginBottom: '16@ms'
   },
   columnItem: {
     width: '48%'
   },
   contentContainer: {
-    padding: 20,
+    padding: '20@ms',
     backgroundColor: palette.grey[100],
     paddingBottom: '40@ms'
   }

@@ -1,10 +1,11 @@
 import React, { FC, Fragment, memo, useCallback, useMemo } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { TextbookAnswerItemProps } from '../configs/types'
 import { formatTimeDiff, formatTimeSecond } from '@/utils/helpers'
 import { palette, red } from '@/theme/colors'
 import { Ionicons } from '@expo/vector-icons'
+import { ScaledSheet } from 'react-native-size-matters'
 
 const getResponseColor = (signal: number) => {
   switch (signal) {
@@ -209,19 +210,19 @@ const TextbookAnswerItem: FC<TextbookAnswerItemProps> = ({
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     backgroundColor: '#FFFFFF',
-    minHeight: 60,
+    minHeight: '60@ms',
     justifyContent: 'center',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderColor: palette.grey[100]
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8
+    paddingHorizontal: '12@ms',
+    paddingVertical: '8@ms'
   },
   column1: {
     flex: 1.2
@@ -240,33 +241,33 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 4
+    paddingHorizontal: '4@ms'
   },
   questionInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingRight: 8,
+    gap: '4@ms',
+    paddingRight: '8@ms',
     flexWrap: 'wrap'
   },
   questionOrder: {
-    fontSize: 12,
+    fontSize: '12@ms',
     fontWeight: '500',
     color: '#414E62'
   },
   indexText: {
-    fontSize: 11,
+    fontSize: '11@ms',
     color: '#6B7280'
   },
   statusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: '4@ms',
     flexWrap: 'wrap'
   },
   statusText: {
-    fontSize: 11,
+    fontSize: '11@ms',
     fontWeight: '500',
     textAlign: 'center'
   },
@@ -284,33 +285,33 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   durationText: {
-    fontSize: 11,
+    fontSize: '11@ms',
     fontWeight: '500',
     textAlign: 'center'
   },
   noTimeText: {
-    fontSize: 11,
+    fontSize: '11@ms',
     color: '#9CA3AF',
     textAlign: 'center'
   },
   rateContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 4
+    marginBottom: '4@ms'
   },
   overallContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
+    gap: '2@ms',
     flexWrap: 'wrap'
   },
   overallRate: {
-    fontSize: 11,
+    fontSize: '11@ms',
     fontWeight: '600'
   },
   skipRate: {
-    fontSize: 10,
+    fontSize: '10@ms',
     color: red[900]
   },
   categoriesWrapper: {
@@ -319,38 +320,38 @@ const styles = StyleSheet.create({
   categoriesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
+    gap: '6@ms',
     justifyContent: 'center'
   },
   categoryChip: {
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderWidth: 1,
+    borderRadius: '6@ms',
+    paddingHorizontal: '8@ms',
+    paddingVertical: '4@ms',
+    borderWidth: '1@ms',
     backgroundColor: '#FFFFFF'
   },
   categoryText: {
-    fontSize: 11,
+    fontSize: '11@ms',
     color: '#374151'
   },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingBottom: 12,
-    gap: 8
+    paddingHorizontal: '12@ms',
+    paddingBottom: '12@ms',
+    gap: '8@ms'
   },
   footerButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 6,
+    gap: '4@ms',
+    paddingVertical: '6@ms',
+    paddingHorizontal: '10@ms',
+    borderRadius: '6@ms',
     backgroundColor: '#F3F4F6'
   },
   footerText: {
-    fontSize: 12,
+    fontSize: '12@ms',
     color: '#4B5563',
     fontWeight: '500'
   }

@@ -137,9 +137,9 @@ const styles = ScaledSheet.create({
     paddingVertical: '16@ms',
   },
   iconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 24,
+    width: '36@ms',
+    height: '36@ms',
+    borderRadius: '24@ms',
     backgroundColor: '#f0f0f0',
     justifyContent: 'center',
     alignItems: 'center'

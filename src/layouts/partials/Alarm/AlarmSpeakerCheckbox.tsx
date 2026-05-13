@@ -1,8 +1,9 @@
 import React, { FC } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import { Checkbox, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { palette } from '@/theme/colors';
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   value: boolean;
@@ -45,14 +46,14 @@ const AlarmSpeakerCheckbox: FC<Props> = ({
 
 export default AlarmSpeakerCheckbox;
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: '8@ms',
   },
   label: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '600',
     color: palette.grey[600],
   },

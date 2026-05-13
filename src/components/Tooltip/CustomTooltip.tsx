@@ -1,8 +1,9 @@
 import { palette } from '@/theme'
 import { Action } from '@/utils/types'
 import { PropsWithChildren } from 'react'
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Text, TouchableOpacity, View } from 'react-native'
 import { Divider } from 'react-native-paper'
+import { ScaledSheet } from 'react-native-size-matters'
 import Tooltip from 'react-native-walkthrough-tooltip'
 
 interface Props extends PropsWithChildren {
@@ -48,35 +49,35 @@ const CustomTooltip = ({ isVisible, onClose, children, data, actions }: Props) =
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
-    paddingVertical: 8
+    paddingVertical: '8@ms'
   },
   button: {
-    paddingVertical: 12,
-    paddingHorizontal: 35,
+    paddingVertical: '12@ms',
+    paddingHorizontal: '35@ms',
     justifyContent: 'center',
     alignItems: 'center'
   },
   tooltip: {
     backgroundColor: '#fff',
-    borderRadius: 8,
+    borderRadius: '8@ms',
 
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: '4@ms' },
     shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8
+    shadowRadius: '8@ms',
+    elevation: '8@ms'
   },
   containerButton: {
     flexDirection: 'row',
-    gap: 12,
+    gap: '12@ms',
     justifyContent: 'center',
     alignItems: 'center'
   },
   text: {
     fontWeight: '700',
-    fontSize: 14,
+    fontSize: '14@ms',
     color: palette.main[500]
   }
 })

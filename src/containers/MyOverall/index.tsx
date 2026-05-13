@@ -325,12 +325,12 @@ const styles = ScaledSheet.create({
     gap: '20@ms'
   },
   overviewLabel: {
-    fontSize: 12,
+    fontSize: '12@ms',
     fontWeight: 400,
     color: palette.grey[500]
   },
   overviewValue: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: 500,
     color: palette.grey[900]
   },

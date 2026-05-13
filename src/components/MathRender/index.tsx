@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import { View, StyleSheet, ViewStyle, Dimensions } from 'react-native'
+import { View, ViewStyle, Dimensions } from 'react-native'
 import { WebView } from 'react-native-webview'
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   content?: string
@@ -214,7 +215,7 @@ const MathRender = ({
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   wrapper: {
     overflow: 'hidden'
   },

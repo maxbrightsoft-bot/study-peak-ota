@@ -75,11 +75,11 @@ const styles = ScaledSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: '20@ms',
     paddingVertical: '16@ms',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderBottomColor: '#eee'
   },
   container: {
-    paddingTop: 20,
+    paddingTop: '20@ms',
     backgroundColor: palette.bg[100]
   },
 
@@ -90,7 +90,7 @@ const styles = ScaledSheet.create({
   },
 
   backButton: {
-    width: 24
+    width: '24@ms'
   },
 
   item: {
@@ -98,14 +98,14 @@ const styles = ScaledSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: '20@ms',
     paddingVertical: '16@ms',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderColor: palette.grey[100]
   },
 
   itemContent: {
     flex: 1,
-    gap: 8,
-    marginRight: 12
+    gap: '8@ms',
+    marginRight: '12@ms'
   },
 
   title: {

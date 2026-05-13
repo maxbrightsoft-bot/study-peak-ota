@@ -1,7 +1,8 @@
 import React, { FC } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { palette } from '@/theme/colors';
+import { ScaledSheet } from 'react-native-size-matters'
 
 const AlarmClockPanelNote: FC = () => {
   const { t } = useTranslation();
@@ -22,16 +23,16 @@ const AlarmClockPanelNote: FC = () => {
 
 export default AlarmClockPanelNote;
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     alignItems: 'center',
-    gap: 4,
+    gap: '4@ms',
   },
   text: {
-    fontSize: 13,
+    fontSize: '13@ms',
     fontWeight: '400',
     color: palette.grey[500],
-    lineHeight: 18,
+    lineHeight: '18@ms',
     textAlign: 'center',
   },
 });

@@ -6,6 +6,7 @@ import { palette } from '@/theme'
 import { ceilTo, roundTo } from '@/utils/helpers'
 import { formatAccumulatedTimeSplit } from '../configs/helper'
 import { MILLISECONDS_PER_HOUR } from '../configs/constants'
+import { ScaledSheet } from 'react-native-size-matters'
 
 export type StudyTimeDistribution = {
   name: string
@@ -361,12 +362,12 @@ const SubjectDistribution = ({
 
 export default SubjectDistribution
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   card: {
     backgroundColor: '#FFF',
-    borderRadius: 20,
-    padding: 16,
-    gap: 4
+    borderRadius: '20@ms',
+    padding: '16@ms',
+    gap: '4@ms'
   },
   chartContainer: {
     height: CHART_HEIGHT,
@@ -380,9 +381,9 @@ const styles = StyleSheet.create({
     display: 'none'
   },
   divider: {
-    height: 1,
+    height: '1@ms',
     backgroundColor: '#F3F4F6',
-    marginVertical: 12
+    marginVertical: '12@ms'
   },
   statsRow: {
     flexDirection: 'row',
@@ -390,24 +391,24 @@ const styles = StyleSheet.create({
   },
   statItem: {
     flex: 1,
-    gap: 4,
+    gap: '4@ms',
     alignItems: 'center',
-    borderRightWidth: 1,
+    borderRightWidth: '1@ms',
     borderColor: palette.grey[100]
   },
   statTitle: {
-    fontSize: 12,
+    fontSize: '12@ms',
     color: '#222222',
     textAlign: 'center'
   },
   statValue: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '600',
     color: '#222222',
     textAlign: 'center',
   },
   statSub: {
-    fontSize: 12,
+    fontSize: '12@ms',
     color: palette.grey[400],
   }
 })

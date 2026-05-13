@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import { Option } from '../configs/types';
 import CustomSelect from '@/components/Select/CustomSelect';
 import { palette } from '@/theme';
+import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   timeType: number;
@@ -64,9 +65,9 @@ const TimePeriodSelector = ({
 
 export default TimePeriodSelector;
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     backgroundColor: '#FFFFFF',
-    gap: 8,
+    gap: '8@ms',
   },
 });

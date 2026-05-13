@@ -1,8 +1,9 @@
 import { palette } from '@/theme'
 import { Ionicons } from '@expo/vector-icons'
 import React, { FC, useState } from 'react'
-import { View, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native'
+import { View, TouchableOpacity, Image, Dimensions } from 'react-native'
 import MathRender from '@/components/MathRender'
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   content: string
@@ -60,14 +61,14 @@ const NoteContent: FC<Props> = ({ content, imageUrl }) => {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
-    gap: 12
+    gap: '12@ms'
   },
   imageThumbnail: {
-    width: 200,
-    height: 150,
-    borderRadius: 8,
+    width: '200@ms',
+    height: '150@ms',
+    borderRadius: '8@ms',
     overflow: 'hidden',
     alignSelf: 'flex-start'
   },
@@ -88,13 +89,13 @@ const styles = StyleSheet.create({
   },
   closeFullImage: {
     position: 'absolute',
-    top: 40,
-    right: 20,
+    top: '40@ms',
+    right: '20@ms',
     zIndex: 1001,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 20,
-    width: 40,
-    height: 40,
+    borderRadius: '20@ms',
+    width: '40@ms',
+    height: '40@ms',
     justifyContent: 'center',
     alignItems: 'center'
   },

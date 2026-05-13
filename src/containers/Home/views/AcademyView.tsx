@@ -13,6 +13,7 @@ import ModalExamCode from '../components/Dialog/ModalExamCode'
 import { palette } from '@/theme'
 import useProblemSolving from '../hooks/useProblemSolving'
 import StudyTimerCard from '../components/StudyTimerCard'
+import { ScaledSheet } from 'react-native-size-matters'
 
 const AcademyView = () => {
   const {
@@ -187,26 +188,26 @@ const AcademyView = () => {
 
 export default AcademyView
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     flex: 1,
-    paddingVertical: 24,
-    paddingHorizontal: 20,
+    paddingVertical: '24@ms',
+    paddingHorizontal: '20@ms',
     backgroundColor: palette.grey[50],
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: '20@ms',
+    borderTopRightRadius: '20@ms',
   },
   card: {
-    borderRadius: 14
+    borderRadius: '14@ms'
   },
   row: {
     flexDirection: 'row',
-    gap: 12
+    gap: '12@ms'
   },
   rowBetween: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8
+    marginBottom: '8@ms'
   },
   half: {
     flex: 1
@@ -214,47 +215,47 @@ const styles = StyleSheet.create({
   scheduleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 6
+    marginTop: '6@ms'
   },
   dot: {
-    marginRight: 6,
-    width: 4,
-    height: 4,
+    marginRight: '6@ms',
+    width: '4@ms',
+    height: '4@ms',
     borderRadius: '50%',
     backgroundColor: palette.main[300]
   },
   bold: {
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: '14@ms',
     flex: 1,
     color: '#222222',
-    lineHeight: 22
+    lineHeight: '22@ms'
   },
   time: {
     color: palette.grey[400],
-    fontSize: 13,
+    fontSize: '13@ms',
     fontWeight: 400
   },
   attendBtn: {
     alignSelf: 'flex-end',
-    borderRadius: 26,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
+    borderRadius: '26@ms',
+    paddingVertical: '14@ms',
+    paddingHorizontal: '14@ms',
     backgroundColor: palette.grey[200]
   },
   chip: {
     alignSelf: 'flex-start',
-    marginBottom: 8
+    marginBottom: '8@ms'
   },
   progressRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 12
+    gap: '8@ms',
+    marginTop: '12@ms'
   },
   progress: {
     flex: 1,
-    height: 6,
-    borderRadius: 4
+    height: '6@ms',
+    borderRadius: '4@ms'
   }
 })

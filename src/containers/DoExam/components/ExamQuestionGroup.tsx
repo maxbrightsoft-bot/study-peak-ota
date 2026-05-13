@@ -1,4 +1,4 @@
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { FlatList, Text, TouchableOpacity, View } from 'react-native'
 import { palette } from '@/theme'
 import { ExamStatus, QuestionAnswerType, SubjectType } from '@/utils/enums'
 import { QuestionGroupResponse, QuestionResponse } from '../config/types'
@@ -6,6 +6,7 @@ import React, { useCallback, useMemo } from 'react'
 import StarRating from '@/assets/iconJSX/starRating'
 import MathRender from '@/components/MathRender'
 import { useTranslation } from 'react-i18next'
+import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   t: any
@@ -168,19 +169,19 @@ const ExamQuestionGroup = ({
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: palette.grey[300],
-    borderRadius: 8,
+    borderRadius: '8@ms',
     flex: 1,
     overflow: 'hidden'
   },
   header: {
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
+    borderTopLeftRadius: '8@ms',
+    borderTopRightRadius: '8@ms',
     flexDirection: 'row',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderColor: palette.grey[300],
     backgroundColor: palette.grey[100]
   },
@@ -188,15 +189,15 @@ const styles = StyleSheet.create({
     flex: 1,
     fontWeight: '600',
     textAlign: 'center',
-    paddingVertical: 7,
+    paddingVertical: '7@ms',
     color: '#222222'
   },
   row: {
-    minHeight: 50,
+    minHeight: '50@ms',
     position: 'relative',
     flexDirection: 'row',
     alignItems: 'stretch',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderColor: palette.grey[200]
   },
   activeRow: {
@@ -209,7 +210,7 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   questionText: {
-    fontSize: 16,
+    fontSize: '16@ms',
     color: '#333'
   },
   activeQuestionText: {
@@ -217,23 +218,23 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   answerCol: {
-    paddingHorizontal: 8,
-    paddingVertical: 12,
-    gap: 4,
+    paddingHorizontal: '8@ms',
+    paddingVertical: '12@ms',
+    gap: '4@ms',
     flexDirection: 'row',
     flexWrap: 'nowrap',
     justifyContent: 'space-around',
     alignItems: 'center'
   },
   option: {
-    width: 30,
-    height: 30,
-    borderRadius: 999,
+    width: '30@ms',
+    height: '30@ms',
+    borderRadius: '999@ms',
     justifyContent: 'center',
     alignItems: 'center'
   },
   selectedOption: {
-    borderRadius: 255,
+    borderRadius: '255@ms',
     backgroundColor: palette.main[600]
   },
   optionText: {

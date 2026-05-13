@@ -195,7 +195,7 @@ const styles = ScaledSheet.create({
     alignItems: 'center',
     paddingVertical: '16@ms',
     paddingHorizontal: '20@ms',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderColor: palette.grey[100]
   },
   formGroup: {
@@ -205,8 +205,8 @@ const styles = ScaledSheet.create({
   },
   headerRow: {},
   headerText: {
-    fontSize: 12,
-    lineHeight: 20,
+    fontSize: '12@ms',
+    lineHeight: '20@ms',
     color: palette.grey[500],
     fontWeight: 500
   },
@@ -216,38 +216,38 @@ const styles = ScaledSheet.create({
   },
 
   number: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '700',
-    lineHeight: 25,
+    lineHeight: '25@ms',
     color: palette.grey[900],
-    marginRight: 12
+    marginRight: '12@ms'
   },
 
   metaText: {
-    fontSize: 12,
-    lineHeight: 20,
+    fontSize: '12@ms',
+    lineHeight: '20@ms',
     color: palette.grey[400]
   },
   separator: {
-    width: 1,
-    height: 10,
+    width: '1@ms',
+    height: '10@ms',
     backgroundColor: palette.grey[400],
-    marginHorizontal: 10
+    marginHorizontal: '10@ms'
   },
 
   metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 6
+    gap: '6@ms'
   },
 
   labelText: {
     fontSize: '12@ms',
     fontWeight: 400,
     color: '#222222',
-    lineHeight: 20,
-    marginBottom: 10
+    lineHeight: '20@ms',
+    marginBottom: '10@ms'
   },
   titleText: {
     fontSize: '14@ms',
@@ -261,19 +261,19 @@ const styles = ScaledSheet.create({
   footer: {
     paddingHorizontal: '24@ms',
     paddingVertical: '12@ms',
-    borderTopWidth: 1,
-    gap: 12,
+    borderTopWidth: '1@ms',
+    gap: '12@ms',
     borderColor: palette.grey[200]
   },
   button: {
     flexDirection: 'row',
-    gap: 4,
+    gap: '4@ms',
     justifyContent: 'center',
     paddingVertical: '14@ms',
     paddingHorizontal: '16@ms',
     borderRadius: '12@ms',
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: '1@ms',
     color: '#222222'
   },
   deleteButton: {

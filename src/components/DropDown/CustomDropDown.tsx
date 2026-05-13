@@ -2,6 +2,7 @@ import { palette } from '@/theme'
 import { Ionicons } from '@expo/vector-icons'
 import React, { ReactNode, useEffect } from 'react'
 import { View, StyleSheet, TouchableOpacity, Platform, UIManager, LayoutAnimation } from 'react-native'
+import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   expanded: boolean
@@ -40,9 +41,9 @@ const CustomDropDown = ({ expanded, onPress, title, children, subHeader, styleCa
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   card: {
-    borderRadius: 8,
+    borderRadius: '8@ms',
     backgroundColor: '#fff'
   },
   header: {
@@ -52,7 +53,7 @@ const styles = StyleSheet.create({
   },
   expandedContainer: {
     overflow: 'hidden',
-    // marginTop: 10
+    // marginTop: '10@ms'
   }
 })
 

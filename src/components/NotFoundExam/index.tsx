@@ -6,6 +6,7 @@ import { navigate } from '@/navigators/NavigationHelpers'
 import { Ionicons } from '@expo/vector-icons'
 import { palette } from '@/theme'
 import { Routes } from '@/navigators/RouteName'
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface NotFoundProps {
   title: string
@@ -41,10 +42,10 @@ const NotFoundExam: React.FC<NotFoundProps> = ({ title, pathRedirect = Routes.Au
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: '16@ms',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -54,16 +55,16 @@ const styles = StyleSheet.create({
   title: {
     textAlign: 'center',
     color: palette.grey[700],
-    marginBottom: 8,
+    marginBottom: '8@ms',
     fontWeight: 'bold',
   },
   subTitle: {
     color: palette.grey[700],
-    marginBottom: 16,
+    marginBottom: '16@ms',
     textAlign: 'center',
   },
   button: {
-    marginTop: 12,
+    marginTop: '12@ms',
   },
 })
 

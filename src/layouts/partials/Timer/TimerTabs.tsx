@@ -64,15 +64,15 @@ const styles = ScaledSheet.create({
   },
   tabsRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: '12@ms',
     position: "relative"
   },
   indicator: {
     position: 'absolute',
-    bottom: -16,
+    bottom: '-16@ms',
     left: 0,
     right: 0,
-    height: 2,
+    height: '2@ms',
     backgroundColor: palette.main[600]
   },
   tab: {

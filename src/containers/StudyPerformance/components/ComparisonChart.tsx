@@ -3,6 +3,7 @@ import { View, Text, ActivityIndicator, StyleSheet } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { palette } from '@/theme'
 import { StudyTimeDistribution } from '../configs/types'
+import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   label: string
@@ -103,26 +104,26 @@ const ComparisonChart = ({ label, loading, data, renderChart, colorSubjects }: P
 
 export default ComparisonChart
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 16,
-    gap: 12,
+    borderRadius: '20@ms',
+    padding: '16@ms',
+    gap: '12@ms',
   },
 
   title: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '700',
     textAlign: 'center',
     color: '#111827',
-    marginBottom: 4
+    marginBottom: '4@ms'
   },
 
   container: {
-    paddingVertical: 4,
-    padding: 16,
-    borderRadius: 6,
+    paddingVertical: '4@ms',
+    padding: '16@ms',
+    borderRadius: '6@ms',
     backgroundColor: palette.bg[100]
   },
 
@@ -130,18 +131,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8
+    marginBottom: '8@ms'
   },
 
   subjectName: {
-    fontSize: 12,
+    fontSize: '12@ms',
     fontWeight: '400',
     color: "#222222",
-    lineHeight: 20
+    lineHeight: '20@ms'
   },
 
   changeText: {
-    fontSize: 12,
+    fontSize: '12@ms',
     fontWeight: '600'
   },
 
@@ -157,12 +158,12 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    height: 15,
+    height: '15@ms',
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: palette.grey[300],
     paddingHorizontal: DOT_GAP,
-    borderRadius: 100,
+    borderRadius: '100@ms',
     gap: DOT_GAP,
     overflow: 'hidden'
   },
@@ -181,7 +182,7 @@ const styles = StyleSheet.create({
   },
 
   loading: {
-    height: 300,
+    height: '300@ms',
     justifyContent: 'center',
     alignItems: 'center'
   }

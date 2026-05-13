@@ -13,6 +13,7 @@ import InforPrint from './InforPrint'
 import TodayStudyDrawer from './TodayStudyDrawer'
 import { palette } from '@/theme'
 import TodayStudyTimeCard from './TodayStudyTimeCard'
+import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   studentId?: number
@@ -242,7 +243,7 @@ const PerformanceData = ({ studentId, contentRef, studentInfo, handleReadyPrint 
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     backgroundColor: palette.grey[50]
   },
@@ -252,28 +253,28 @@ const styles = StyleSheet.create({
   },
   sidebarContainer: {
     backgroundColor: '#FFF',
-    borderRadius: 6,
-    borderWidth: 1
+    borderRadius: '6@ms',
+    borderWidth: '1@ms'
   },
   paper: {
     backgroundColor: '#FFF',
-    borderRadius: 4,
-    padding: 16,
+    borderRadius: '4@ms',
+    padding: '16@ms',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: '1@ms' },
     shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2
+    shadowRadius: '2@ms',
+    elevation: '2@ms'
   },
   chartPlaceholder: {
-    height: 200,
+    height: '200@ms',
     justifyContent: 'center',
     alignItems: 'center'
   },
   divider: {
-    height: 1,
+    height: '1@ms',
     backgroundColor: '#f3f4f6',
-    marginVertical: 16
+    marginVertical: '16@ms'
   },
   hiddenContent: {
     position: 'absolute',
@@ -292,11 +293,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
   col: {
-    paddingHorizontal: 8
+    paddingHorizontal: '8@ms'
   },
   boldText: {
     fontWeight: '700',
-    fontSize: 14
+    fontSize: '14@ms'
   }
 })
 

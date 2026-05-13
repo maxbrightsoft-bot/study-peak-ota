@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native'
+import { View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native'
 import { palette, TYPO } from '@/theme'
 import { Field } from 'formik'
 import TextField from '@/components/Input/TextField'
@@ -10,6 +10,7 @@ import useStepItem from '../hooks/useStepItem'
 import { Ionicons } from '@expo/vector-icons'
 import Verify from '@/assets/iconJSX/verify'
 import SchoolSearchSelect from '@/components/Select/SchoolSearchSelect'
+import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   values: any
@@ -210,26 +211,26 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
 
 export default StepItem
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     backgroundColor: '#FFF',
     flex: 1,
-    paddingBottom: 24,
-    paddingTop: 156,
-    paddingHorizontal: 24,
+    paddingBottom: '24@ms',
+    paddingTop: '156@ms',
+    paddingHorizontal: '24@ms',
     position: 'relative'
   },
   content: {
     justifyContent: 'center'
   },
-  title: { ...TYPO.heading1, marginBottom: 80, color: palette.main[600] },
+  title: { ...TYPO.heading1, marginBottom: '80@ms', color: palette.main[600] },
   label: { ...TYPO.caption, color: "#222222" },
   input: {},
-  error: { color: 'red', marginBottom: 12 },
+  error: { color: 'red', marginBottom: '12@ms' },
   button: {
     backgroundColor: palette.main[600],
-    padding: 16,
-    borderRadius: 12,
+    padding: '16@ms',
+    borderRadius: '12@ms',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center'
@@ -241,7 +242,7 @@ const styles = StyleSheet.create({
   helperText: {
     ...TYPO.caption,
     color: palette.grey[500],
-    marginTop: 4
+    marginTop: '4@ms'
   },
   checkbox: {
     padding: 0
@@ -250,10 +251,10 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8
+    gap: '8@ms'
   },
   checkExistButton: {
-    marginTop: 12,
+    marginTop: '12@ms',
     display: 'flex',
     flexDirection: "row",
     alignItems: 'center',
@@ -262,7 +263,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8
+    gap: '8@ms'
   },
   buttonAction: {
     backgroundColor: palette.main[600],

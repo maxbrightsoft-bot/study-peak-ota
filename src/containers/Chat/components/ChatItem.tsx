@@ -101,10 +101,10 @@ const ChatItem = ({ t, item, toggleUpdateDialog, toggleConfirmDialog }: Props) =
 
 const styles = ScaledSheet.create({
   messageContainer: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    marginBottom: 8,
+    paddingVertical: '8@ms',
+    paddingHorizontal: '16@ms',
+    borderRadius: '20@ms',
+    marginBottom: '8@ms',
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -115,7 +115,7 @@ const styles = ScaledSheet.create({
   otherMessage: {
     alignSelf: 'flex-start',
     backgroundColor: 'white',
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: palette.grey[100]
   },
   myMessageText: {
@@ -124,19 +124,19 @@ const styles = ScaledSheet.create({
   },
   imageMessage: {
     backgroundColor: 'white',
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: palette.grey[100]
   },
   timestamp: {
     ...TYPO.caption,
     color: '#97A1AF',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: '8@ms',
     paddingVertical: '8@ms'
   },
   sheetButton: {
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: '14@ms',
+    borderRadius: '12@ms',
     backgroundColor: palette.grey[100],
     alignItems: 'center'
   },

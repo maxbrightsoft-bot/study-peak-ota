@@ -75,12 +75,12 @@ const NoteEvent = (noteProps: Props) => {
 
 const styles = ScaledSheet.create({
   container: {
-    minHeight: 120,
+    minHeight: '120@ms',
     alignItems: 'center',
     justifyContent: 'center'
   },
   noScheduleText: {
-    marginVertical: 20,
+    marginVertical: '20@ms',
     textAlign: 'center',
     fontWeight: '600',
     fontSize: '13@ms',
@@ -95,8 +95,8 @@ const styles = ScaledSheet.create({
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 4,
+    borderWidth: '1@ms',
+    borderRadius: '4@ms',
     paddingVertical: '8@vs',
     paddingHorizontal: '12@s'
   },

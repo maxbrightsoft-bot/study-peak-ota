@@ -1,15 +1,12 @@
 import React, { FC, useState } from "react";
-import {
-  Modal,
+import { Modal,
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
   SafeAreaView,
-  Platform,
-} from "react-native";
+  Platform } from "react-native";
 import { useTranslation } from "react-i18next";
 import moment from "moment";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -26,6 +23,7 @@ import { SubjectTimerResponse } from "../../../utils/types";
 import { DATE_TIME_MIN_VALUE, MS_IN_MINUTE } from "@/utils/constants";
 import { palette } from "@/theme";
 import SlideDrawerRoot from "@/components/ModalBase/SlideDrawerRoot";
+import { ScaledSheet } from 'react-native-size-matters'
 
 export interface TimeUpdateDialogProps {
   open: boolean;
@@ -291,123 +289,123 @@ const TimeUpdateDialog: FC<TimeUpdateDialogProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   safeArea: { flex: 1, backgroundColor: "#f8f9fa" },
   container: { flex: 1 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: '20@ms',
+    paddingVertical: '16@ms',
     backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderBottomColor: 'rgba(0,0,0,0.05)',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: { width: 0, height: '2@ms' },
         shadowOpacity: 0.03,
-        shadowRadius: 4,
+        shadowRadius: '4@ms',
       },
       android: {
-        elevation: 2,
+        elevation: '2@ms',
       }
     }),
   },
-  title: { fontSize: 18, fontWeight: "700", color: '#1a1a1a' },
+  title: { fontSize: '18@ms', fontWeight: "700", color: '#1a1a1a' },
   closeBtn: {
-    padding: 4,
-    borderRadius: 20,
+    padding: '4@ms',
+    borderRadius: '20@ms',
     backgroundColor: '#f5f5f5',
   },
   tabsWrapper: {
     backgroundColor: '#ffffff',
-    paddingBottom: 8,
+    paddingBottom: '8@ms',
   },
   content: { flex: 1 },
-  listContainer: { padding: 16, paddingBottom: 40 },
+  listContainer: { padding: '16@ms', paddingBottom: '40@ms' },
   loadingCenter: { flex: 1, justifyContent: "center", alignItems: "center" },
   dateHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    marginBottom: -4,
+    paddingHorizontal: '16@ms',
+    paddingTop: '16@ms',
+    marginBottom: '-4@ms',
   },
   datePickerBtn: {
     flexDirection: "row",
     backgroundColor: '#ffffff',
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: '#e0e0e0',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+    paddingVertical: '10@ms',
+    paddingHorizontal: '16@ms',
+    borderRadius: '12@ms',
     alignItems: "center",
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: '1@ms' },
     shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowRadius: '2@ms',
+    elevation: '1@ms',
   },
   dateText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: "600",
     color: '#333',
   },
   totalBadge: {
     backgroundColor: '#e3f2fd',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
+    paddingHorizontal: '12@ms',
+    paddingVertical: '6@ms',
+    borderRadius: '12@ms',
   },
-  totalText: { fontSize: 13, color: '#1976d2' },
+  totalText: { fontSize: '13@ms', color: '#1976d2' },
   footer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 16,
+    padding: '16@ms',
     backgroundColor: '#ffffff',
-    borderTopWidth: 1,
+    borderTopWidth: '1@ms',
     borderTopColor: 'rgba(0,0,0,0.05)',
     paddingBottom: Platform.OS === 'ios' ? 24 : 16,
   },
   btnSecondary: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 100,
+    paddingVertical: '12@ms',
+    paddingHorizontal: '24@ms',
+    borderRadius: '100@ms',
     backgroundColor: '#f5f5f5',
   },
-  btnSecondaryText: { color: "#666", fontWeight: "600", fontSize: 15 },
+  btnSecondaryText: { color: "#666", fontWeight: "600", fontSize: '15@ms' },
   btnPrimary: {
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 100,
+    paddingVertical: '12@ms',
+    paddingHorizontal: '32@ms',
+    borderRadius: '100@ms',
     backgroundColor: palette.main[600],
     shadowColor: palette.main[600],
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: '4@ms' },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowRadius: '8@ms',
+    elevation: '4@ms',
   },
   btnPrimaryDisabled: {
     backgroundColor: palette.grey[300],
     shadowOpacity: 0,
     elevation: 0,
   },
-  btnPrimaryText: { color: "#fff", fontWeight: "700", fontSize: 15 },
+  btnPrimaryText: { color: "#fff", fontWeight: "700", fontSize: '15@ms' },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 100,
+    paddingHorizontal: '16@ms',
+    paddingVertical: '8@ms',
+    borderRadius: '100@ms',
     backgroundColor: palette.main[50],
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: palette.main[100],
   },
-  chipText: { fontSize: 14, fontWeight: "700", color: palette.main[600] },
+  chipText: { fontSize: '14@ms', fontWeight: "700", color: palette.main[600] },
 });
 
 export default TimeUpdateDialog;

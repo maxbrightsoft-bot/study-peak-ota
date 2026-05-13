@@ -177,66 +177,66 @@ export default StudySpaceView
 const styles = ScaledSheet.create({
   container: {
     flex: 1,
-    paddingVertical: 24,
-    paddingHorizontal: 20,
+    paddingVertical: '24@ms',
+    paddingHorizontal: '20@ms',
     backgroundColor: palette.grey[50],
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: '20@ms',
+    borderTopRightRadius: '20@ms',
   },
   card: {
-    borderRadius: 14
+    borderRadius: '14@ms'
   },
   row: {
     flexDirection: 'row',
-    gap: 12
+    gap: '12@ms'
   },
   half: {
     flex: 1
   },
   bold: {
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: '14@ms',
     flex: 1,
     color: '#222222',
-    lineHeight: 22
+    lineHeight: '22@ms'
   },
   time: {
     color: palette.grey[400],
-    fontSize: 13,
+    fontSize: '13@ms',
     fontWeight: 400
   },
   attendBtn: {
     alignSelf: 'flex-end',
-    borderRadius: 26,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
+    borderRadius: '26@ms',
+    paddingVertical: '14@ms',
+    paddingHorizontal: '14@ms',
     backgroundColor: palette.grey[200]
   },
   fabButton: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-end',
-    gap: 4,
-    marginTop: 10,
-    marginBottom: 10,
+    gap: '4@ms',
+    marginTop: '10@ms',
+    marginBottom: '10@ms',
     backgroundColor: palette.main[600],
-    borderRadius: 20,
+    borderRadius: '20@ms',
     paddingVertical: '7@ms',
     paddingHorizontal: '14@ms',
     shadowColor: palette.main[600],
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: { width: 0, height: '3@ms' },
     shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 4,
+    shadowRadius: '6@ms',
+    elevation: '4@ms',
   },
   fabIcon: {
-    fontSize: 16,
+    fontSize: '16@ms',
     color: '#fff',
-    lineHeight: 20,
+    lineHeight: '20@ms',
   },
   fabText: {
     ...TYPO.button2,
     color: '#fff',
-    fontSize: 13,
+    fontSize: '13@ms',
   },
 })

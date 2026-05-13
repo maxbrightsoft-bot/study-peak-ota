@@ -2,6 +2,7 @@ import React from 'react'
 
 import { TouchableOpacity, Text, StyleSheet } from 'react-native'
 import { palette } from '@/theme'
+import { ScaledSheet } from 'react-native-size-matters'
 
 const LoginAccountButton = ({ title, onPress }: { title: string, onPress: () => void }) => {
 
@@ -14,19 +15,19 @@ const LoginAccountButton = ({ title, onPress }: { title: string, onPress: () => 
 
 export default LoginAccountButton
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   button: {
     flexDirection: 'row',
     alignItems: 'center',
     borderColor: palette.grey[700],
-    borderWidth: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 6,
+    borderWidth: '1@ms',
+    paddingVertical: '12@ms',
+    paddingHorizontal: '16@ms',
+    borderRadius: '6@ms',
     justifyContent: 'center'
   },
   buttonText: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '500',
     color: "#222222"
   }

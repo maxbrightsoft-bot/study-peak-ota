@@ -1,5 +1,5 @@
 import React, { FC, useMemo } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import { Chip, IconButton } from 'react-native-paper';
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,7 @@ import { getDisplayTime } from '../../configs/fn';
 import { Timer } from '../../configs/types';
 import { palette } from '@/theme/colors';
 import { TYPO } from '@/theme';
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   data: Timer;
@@ -77,29 +78,29 @@ const TimerDivider: FC<Props> = ({
 
 export default TimerDivider;
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   wrapper: {
     flex: 1,
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 8,
+    marginVertical: '8@ms',
   },
   line: {
     flex: 1,
-    height: 1,
+    height: '1@ms',
     backgroundColor: palette.main[500],
   },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 8,
+    gap: '8@ms',
+    paddingHorizontal: '8@ms',
   },
   iconBtn: {
     backgroundColor: palette.grey[50],
-    width: 24,
-    height: 24,
+    width: '24@ms',
+    height: '24@ms',
   },
   chip: {
     backgroundColor: '#FFF',

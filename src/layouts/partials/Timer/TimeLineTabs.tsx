@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { SubjectTimerResponse } from '../../../utils/types'
 import { getDisplayTime } from '../../configs/fn'
 import { palette } from '@/theme/colors'
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   value: number
@@ -52,38 +53,38 @@ const TimeLineTabs: FC<Props> = ({ value, data, seconds, activeTimerId, selected
 
 export default TimeLineTabs
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   wrapper: {
-    paddingHorizontal: 12,
+    paddingHorizontal: '12@ms',
     position: 'relative'
   },
   tabsRow: {
     flexDirection: 'row'
   },
   tab: {
-    paddingVertical: 15,
-    paddingHorizontal: 12,
+    paddingVertical: '15@ms',
+    paddingHorizontal: '12@ms',
     position: 'relative'
   },
   tabText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '700',
     color: palette.grey[500],
-    lineHeight: 18
+    lineHeight: '18@ms'
   },
   activeText: {
     color: palette.main[700],
   },
   indicator: {
     position: 'absolute',
-    bottom: 1,
+    bottom: '1@ms',
     left: 0,
     right: 0,
-    height: 1,
+    height: '1@ms',
     backgroundColor: palette.main[500]
   },
   bottomLine: {
-    height: 1,
+    height: '1@ms',
     backgroundColor: palette.grey[100],
     position: 'absolute',
     left: 0,

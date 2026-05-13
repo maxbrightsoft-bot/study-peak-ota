@@ -13,6 +13,7 @@ import ChatIcon from '@/assets/iconJSX/chat'
 import BookIcon from '@/assets/iconJSX/book'
 import useAuthStore from '@/store/useAuthStore'
 import { useTranslation } from 'react-i18next'
+import { ScaledSheet } from 'react-native-size-matters'
 
 const Footer = ({ navigation }: BottomTabBarProps) => {
   const user = useAuthStore(state => state.user)
@@ -90,21 +91,21 @@ const Footer = ({ navigation }: BottomTabBarProps) => {
 
 export default Footer
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   tabBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    borderTopWidth: 1,
+    borderTopWidth: '1@ms',
     borderTopColor: '#eee',
     backgroundColor: 'white',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    paddingVertical: '12@ms',
+    paddingHorizontal: '24@ms',
     height: TAB_BAR_HEIGHT
   },
   tabItem: {
-    paddingHorizontal: 5,
+    paddingHorizontal: '5@ms',
     alignItems: 'center',
-    gap: 6
+    gap: '6@ms'
   },
   tabText: {
     ...TYPO.button4,

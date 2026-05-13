@@ -158,14 +158,16 @@ const useTextbookDrawer = ({
     if (!textbook || !textbookId) return;
 
     try {
-      if (textbook.isMock) {
+      if (textbook.isMock && textbook.isStudying) {
         navigate(Routes.Auth.DoTextbook, { textbookId: textbookId })
       } else {
         onOpenAudioGuide?.();
-        onClose?.();
       }
     } catch (error) {
       toast.error(getErrorMessage(t, error));
+    }
+    finally {
+      onClose?.();
     }
   };
 

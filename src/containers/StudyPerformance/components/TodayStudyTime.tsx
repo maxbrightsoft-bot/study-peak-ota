@@ -211,19 +211,19 @@ const TodayStudyTime = ({ data, loading, isTimerTab = true, isPrint }: Props) =>
 const styles = ScaledSheet.create({
   container: {
     padding: '16@ms',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderBottomColor: palette.grey[100],
     alignItems: 'center'
   },
   loadingContainer: {
-    height: 150,
+    height: '150@ms',
     justifyContent: 'center',
     alignItems: 'center'
   },
   content: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 24
+    gap: '24@ms'
   },
   progressSection: {},
   detailsSection: {
@@ -245,21 +245,21 @@ const styles = ScaledSheet.create({
     alignItems: 'center'
   },
   progressValue: {
-    fontSize: 24,
+    fontSize: '24@ms',
     fontWeight: '700',
     color: palette.grey[900]
   },
   progressUnit: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '500',
     color: palette.grey[500]
   },
   detailsContainer: {
     justifyContent: 'center',
-    gap: 16
+    gap: '16@ms'
   },
   title: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '700',
     textAlign: 'center',
     color: palette.grey[900]
@@ -268,20 +268,20 @@ const styles = ScaledSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8
+    gap: '8@ms'
   },
   detailLabel: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '500',
     color: palette.grey[500]
   },
   detailValue: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '600',
     color: "#222222"
   },
   unitText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     color: palette.grey[500]
   },
   changeRow: {
@@ -289,7 +289,7 @@ const styles = ScaledSheet.create({
     alignItems: 'center'
   },
   changeText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '600'
   }
 })

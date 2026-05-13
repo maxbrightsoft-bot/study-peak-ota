@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, Pressable } from 'react-native'
+import { View, Text, TouchableOpacity, Pressable } from 'react-native'
 import { GroupedNoteResponse, NoteResponse } from '@/utils/types'
 import { palette } from '@/theme'
 import { FontAwesome6 } from '@expo/vector-icons'
 import dayjs from 'dayjs'
 import { getNotesByGroupApi } from '../../ExamResultList/apiClients/noteService'
 import { ActivityIndicator } from 'react-native'
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface GroupedNoteCardProps {
   item: GroupedNoteResponse
@@ -179,13 +180,13 @@ export default function GroupedNoteCard({ item, t, filter, refreshGroup, onOpenD
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     backgroundColor: '#FFF',
-    borderRadius: 16,
-    borderWidth: 1,
+    borderRadius: '16@ms',
+    borderWidth: '1@ms',
     borderColor: '#F3F4F6',
-    borderLeftWidth: 4,
+    borderLeftWidth: '4@ms',
     borderLeftColor: '#FCD34D',
     overflow: 'hidden',
   },
@@ -197,7 +198,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
+    padding: '16@ms',
     backgroundColor: '#FFF',
   },
   headerExpanded: {
@@ -209,28 +210,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   subjectAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: '40@ms',
+    height: '40@ms',
+    borderRadius: '12@ms',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: '12@ms',
   },
   subjectText: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '700',
   },
   headerTitles: {
     flex: 1,
   },
   categoryName: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '700',
     color: '#111827',
-    marginBottom: 4,
+    marginBottom: '4@ms',
   },
   headerSubtitle: {
-    fontSize: 13,
+    fontSize: '13@ms',
     color: '#6B7280',
   },
   headerRight: {
@@ -239,24 +240,24 @@ const styles = StyleSheet.create({
   },
   badge: {
     backgroundColor: '#FFFbeb',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginRight: 8,
+    paddingHorizontal: '8@ms',
+    paddingVertical: '4@ms',
+    borderRadius: '8@ms',
+    marginRight: '8@ms',
   },
   badgeText: {
     color: '#D97706',
-    fontSize: 13,
+    fontSize: '13@ms',
     fontWeight: '600',
   },
   body: {
-    paddingHorizontal: 16,
-    paddingBottom: 8,
+    paddingHorizontal: '16@ms',
+    paddingBottom: '8@ms',
   },
   childContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 16,
+    paddingVertical: '16@ms',
   },
   pressed: {
     opacity: 0.7,
@@ -264,20 +265,20 @@ const styles = StyleSheet.create({
   childLeft: {
     flexDirection: 'row',
     flex: 1,
-    marginRight: 12,
+    marginRight: '12@ms',
   },
   questionNumberBox: {
     backgroundColor: '#F3F4F6',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 8,
+    paddingHorizontal: '12@ms',
+    paddingVertical: '10@ms',
+    borderRadius: '8@ms',
     alignSelf: 'flex-start',
-    marginRight: 12,
-    minWidth: 54,
+    marginRight: '12@ms',
+    minWidth: '54@ms',
     alignItems: 'center',
   },
   questionNumberText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     color: '#4B5563',
     fontWeight: '600',
   },
@@ -287,41 +288,41 @@ const styles = StyleSheet.create({
   childTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: '6@ms',
   },
   childTitleText: {
-    fontSize: 15,
+    fontSize: '15@ms',
     fontWeight: '600',
     color: '#111827',
     flexShrink: 1,
   },
   childTitlePage: {
-    fontSize: 15,
+    fontSize: '15@ms',
     fontWeight: '600',
     color: '#111827',
     flexShrink: 0,
   },
   childSubtitle: {
-    fontSize: 14,
+    fontSize: '14@ms',
     color: '#6B7280',
-    lineHeight: 20,
+    lineHeight: '20@ms',
   },
   childDate: {
-    fontSize: 13,
+    fontSize: '13@ms',
     color: '#9CA3AF',
-    marginTop: 6,
+    marginTop: '6@ms',
   },
   divider: {
-    height: 1,
+    height: '1@ms',
     backgroundColor: '#F3F4F6',
   },
   loadMoreBtn: {
-    paddingVertical: 12,
+    paddingVertical: '12@ms',
     alignItems: 'center',
     justifyContent: 'center',
   },
   loadMoreText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     color: '#7C3AED',
     fontWeight: '600',
   }

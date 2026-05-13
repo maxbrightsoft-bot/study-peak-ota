@@ -1,6 +1,7 @@
 import React from 'react';
-import { Modal, View, Image, TouchableOpacity, StyleSheet, Dimensions, Platform } from 'react-native';
+import { Modal, View, Image, TouchableOpacity, Dimensions, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ScaledSheet } from 'react-native-size-matters'
 
 const { width, height } = Dimensions.get('window');
 
@@ -34,7 +35,7 @@ const ImageViewerModal: React.FC<Props> = ({ visible, imageUrl, onClose }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.95)',
@@ -44,11 +45,11 @@ const styles = StyleSheet.create({
   closeButton: {
     position: 'absolute',
     top: Platform.OS === 'ios' ? 60 : 40,
-    right: 20,
+    right: '20@ms',
     zIndex: 10,
-    padding: 8,
+    padding: '8@ms',
     backgroundColor: 'rgba(0,0,0,0.3)',
-    borderRadius: 25,
+    borderRadius: '25@ms',
   },
   image: {
     width: width,

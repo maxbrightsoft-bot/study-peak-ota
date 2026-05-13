@@ -167,7 +167,7 @@ const styles = ScaledSheet.create({
     marginBottom: '10@ms',
   },
   left: { flex: 1 },
-  infoContainer: { gap: 2 },
+  infoContainer: { gap: '2@ms' },
   subjectInactive: {
     fontSize: '15@ms',
     fontWeight: '500',
@@ -180,7 +180,7 @@ const styles = ScaledSheet.create({
   right: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: '8@ms',
   },
   mainActionIcon: {
     justifyContent: 'center',
@@ -237,7 +237,7 @@ const styles = ScaledSheet.create({
     width: '60@ms',
     height: '60@ms',
     borderRadius: '30@ms',
-    borderWidth: 4,
+    borderWidth: '4@ms',
     borderColor: '#FFF',
     justifyContent: 'center',
     alignItems: 'center',

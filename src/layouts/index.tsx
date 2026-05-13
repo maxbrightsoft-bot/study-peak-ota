@@ -4,6 +4,7 @@ import Header from './Header'
 import { noLayoutScreens } from '@/navigators/RouteName'
 import { currentScreen } from '@/navigators/NavigationHelpers'
 import { palette } from '@/theme'
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   children?: React.ReactNode
@@ -24,7 +25,7 @@ const LayoutApp = ({ children, headerProps }: Props) => {
 
 export default LayoutApp
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     flex: 1,
     position: 'relative',

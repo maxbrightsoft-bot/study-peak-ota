@@ -16,16 +16,16 @@ const TextbookChapterResultDialog = ({ open, onClose, chapterId }: Props) => {
 
 const styles = ScaledSheet.create({
   content: {
-    marginHorizontal: -24,
-    marginTop: -24,
+    marginHorizontal: '-24@ms',
+    marginTop: '-24@ms',
   },
   centered: {
-    height: 120,
+    height: '120@ms',
     justifyContent: 'center',
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     color: palette.grey[400],
   },
   footer: {
@@ -33,18 +33,18 @@ const styles = ScaledSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#FFF',
-    padding: 12,
+    padding: '12@ms',
   },
   button: {
-    marginBottom: -24,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 12,
+    marginBottom: '-24@ms',
+    paddingHorizontal: '16@ms',
+    paddingVertical: '14@ms',
+    borderRadius: '12@ms',
   },
   text: {
     color: palette.main[600],
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: '14@ms',
+    lineHeight: '22@ms',
     fontWeight: '500',
   },
 })

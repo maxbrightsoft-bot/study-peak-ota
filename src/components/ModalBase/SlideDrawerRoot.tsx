@@ -11,6 +11,7 @@ import {
 } from 'react-native'
 import { Portal } from 'react-native-paper'
 import Loading from '../Loading'
+import { ScaledSheet } from 'react-native-size-matters'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
@@ -113,7 +114,7 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
 
 export default SlideDrawerRoot
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: palette.grey[900]
@@ -122,6 +123,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     backgroundColor: 'white',
     zIndex: 1000,
-    elevation: 1000
+    elevation: '1000@ms'
   }
 })

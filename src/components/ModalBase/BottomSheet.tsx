@@ -48,18 +48,18 @@ export default BottomSheet
 
 const styles = ScaledSheet.create({
   container: {
-    paddingBottom: 20,
-    minHeight: 200
+    paddingBottom: '20@ms',
+    minHeight: '200@ms'
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 14
+    paddingHorizontal: '20@ms',
+    paddingVertical: '14@ms'
   },
   title: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '600'
   }
 })

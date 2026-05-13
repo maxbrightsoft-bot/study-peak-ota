@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useTranslation } from 'react-i18next';
+import { ScaledSheet } from 'react-native-size-matters'
 
 const { height: SCREEN_H } = Dimensions.get('window');
 
@@ -575,10 +576,10 @@ const MathRichInput = forwardRef<MathRichInputRef, {
 
 export default MathRichInput;
 
-const s = StyleSheet.create({
+const s = ScaledSheet.create({
   container: {
     flex: 1,
-    borderRadius: 8,
+    borderRadius: '8@ms',
     backgroundColor: '#fff',
     overflow: 'hidden',
   },
@@ -588,70 +589,70 @@ const s = StyleSheet.create({
   },
   sheet: {
     position: 'absolute',
-    top: 40, bottom: 0, left: 0, right: 0,
+    top: '40@ms', bottom: 0, left: 0, right: 0,
     backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: '20@ms',
+    borderTopRightRadius: '20@ms',
     paddingBottom: Platform.OS === 'ios' ? 34 : 12,
-    elevation: 20,
+    elevation: '20@ms',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
+    shadowOffset: { width: 0, height: '-4@ms' },
     shadowOpacity: 0.15,
-    shadowRadius: 10,
+    shadowRadius: '10@ms',
   },
   headerRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 12,
+    paddingHorizontal: '16@ms', paddingVertical: '12@ms',
   },
   headerBtn: {
-    padding: 8,
+    padding: '8@ms',
   },
   headerBtnCancelTxt: {
-    fontSize: 16, color: '#495057', fontWeight: '500',
+    fontSize: '16@ms', color: '#495057', fontWeight: '500',
   },
   headerBtnConfirmTxt: {
-    fontSize: 16, color: '#6c63ff', fontWeight: '600',
+    fontSize: '16@ms', color: '#6c63ff', fontWeight: '600',
   },
   sheetTitle: {
-    fontSize: 17, fontWeight: '700', color: '#212529',
+    fontSize: '17@ms', fontWeight: '700', color: '#212529',
   },
   mathLiveBox: {
     backgroundColor: '#fff',
   },
   mathLiveLabel: {
-    fontSize: 10, fontWeight: '600', color: '#868e96',
-    paddingHorizontal: 10, paddingTop: 6,
+    fontSize: '10@ms', fontWeight: '600', color: '#868e96',
+    paddingHorizontal: '10@ms', paddingTop: '6@ms',
   }, templateTitle: {
-    fontSize: 11, fontWeight: '600', color: '#868e96',
-    paddingHorizontal: 16, marginBottom: 6,
+    fontSize: '11@ms', fontWeight: '600', color: '#868e96',
+    paddingHorizontal: '16@ms', marginBottom: '6@ms',
   },
   catTab: {
-    paddingHorizontal: 14, paddingVertical: 6,
-    borderRadius: 20, backgroundColor: '#f1f3f5',
+    paddingHorizontal: '14@ms', paddingVertical: '6@ms',
+    borderRadius: '20@ms', backgroundColor: '#f1f3f5',
   },
   catTabActive: { backgroundColor: '#212529' },
-  catTabText: { fontSize: 12, color: '#495057' },
+  catTabText: { fontSize: '12@ms', color: '#495057' },
   catTabTextActive: { color: '#fff', fontWeight: '600' },
   card: {
-    flex: 1, margin: 4, paddingVertical: 10, paddingHorizontal: 8,
-    borderRadius: 10, backgroundColor: '#f8f9fa',
-    borderWidth: 1.5, borderColor: '#e9ecef', alignItems: 'center',
+    flex: 1, margin: '4@ms', paddingVertical: '10@ms', paddingHorizontal: '8@ms',
+    borderRadius: '10@ms', backgroundColor: '#f8f9fa',
+    borderWidth: '1.5@ms', borderColor: '#e9ecef', alignItems: 'center',
   },
-  cardDisplay: { fontSize: 16, color: '#212529', marginBottom: 2 },
-  cardLabel: { fontSize: 11, color: '#868e96' },
+  cardDisplay: { fontSize: '16@ms', color: '#212529', marginBottom: '2@ms' },
+  cardLabel: { fontSize: '11@ms', color: '#868e96' },
   actions: {
-    flexDirection: 'row', gap: 10,
-    paddingHorizontal: 16, paddingTop: 8,
+    flexDirection: 'row', gap: '10@ms',
+    paddingHorizontal: '16@ms', paddingTop: '8@ms',
   },
   btnCancel: {
-    flex: 1, paddingVertical: 13, borderRadius: 10,
+    flex: 1, paddingVertical: '13@ms', borderRadius: '10@ms',
     backgroundColor: '#f1f3f5', alignItems: 'center',
   },
-  btnCancelTxt: { fontSize: 15, color: '#495057', fontWeight: '500' },
+  btnCancelTxt: { fontSize: '15@ms', color: '#495057', fontWeight: '500' },
   btnConfirm: {
-    flex: 2, paddingVertical: 13, borderRadius: 10,
+    flex: 2, paddingVertical: '13@ms', borderRadius: '10@ms',
     backgroundColor: '#212529', alignItems: 'center',
   },
   btnDisabled: { backgroundColor: '#ced4da' },
-  btnConfirmTxt: { fontSize: 15, color: '#fff', fontWeight: '600' },
+  btnConfirmTxt: { fontSize: '15@ms', color: '#fff', fontWeight: '600' },
 });

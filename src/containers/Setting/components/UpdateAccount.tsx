@@ -254,7 +254,7 @@ const styles = ScaledSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: '20@ms',
     paddingVertical: '16@ms',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderBottomColor: '#eee'
   },
   headerTitle: {
@@ -264,7 +264,7 @@ const styles = ScaledSheet.create({
   },
 
   backButton: {
-    width: 24
+    width: '24@ms'
   },
 
   container: {
@@ -274,7 +274,7 @@ const styles = ScaledSheet.create({
   },
 
   profile: {
-    gap: 6,
+    gap: '6@ms',
     alignItems: 'center',
     marginBottom: '58@ms',
     marginTop: '47@ms'
@@ -292,7 +292,7 @@ const styles = ScaledSheet.create({
 
   card: {
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: '12@ms',
     marginBottom: '16@ms',
     overflow: 'hidden'
   },
@@ -319,17 +319,17 @@ const styles = ScaledSheet.create({
   input: {
     fontSize: '15@ms',
     color: '#6A3DE8',
-    minWidth: 120,
+    minWidth: '120@ms',
   },
 
   divider: {
-    height: 1,
+    height: '1@ms',
     backgroundColor: '#eee'
   },
 
   deleteCard: {
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: '12@ms',
     paddingHorizontal: '15@ms',
     paddingVertical: '20@ms',
     flexDirection: 'row',
@@ -351,7 +351,7 @@ const styles = ScaledSheet.create({
     backgroundColor: palette.main[600],
     marginBottom: '20@ms',
     paddingVertical: '16@ms',
-    borderRadius: 12,
+    borderRadius: '12@ms',
     alignItems: 'center'
   },
 
@@ -363,21 +363,21 @@ const styles = ScaledSheet.create({
   valueText: {
     fontSize: '14@ms',
     color: palette.main[600],
-    marginRight: 4,
+    marginRight: '4@ms',
     fontWeight: '500',
-    maxWidth: 100
+    maxWidth: '100@ms'
   },
 
   profileRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6
+    gap: '6@ms'
   },
 
   profileInput: {
     fontSize: '18@ms',
     color: palette.main[600],
-    minWidth: 120,
+    minWidth: '120@ms',
     textAlign: 'center'
   }
 })

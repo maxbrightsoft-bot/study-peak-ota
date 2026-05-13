@@ -92,7 +92,7 @@ const NoteItem = ({
             activeOpacity={0.7}
           >
             <View style={styles.iconBox}>
-              <TrashIcon />
+              <TrashIcon color='#EF4444' />
             </View>
 
             <Text style={[styles.menuText, styles.deleteText]}>
@@ -142,7 +142,7 @@ const styles = ScaledSheet.create({
     paddingVertical: '14@ms',
     paddingHorizontal: '15@ms',
     backgroundColor: palette.grey[100],
-    borderRadius: 14
+    borderRadius: '14@ms'
   },
   content: {
     flexDirection: 'row',
@@ -150,7 +150,7 @@ const styles = ScaledSheet.create({
     gap: '8@ms'
   },
   title: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: 600,
     color: "#222222"
   },
@@ -170,7 +170,7 @@ const styles = ScaledSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)'
   },
   textAction: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: 600,
     color: '#222222',
     textAlign: 'center'
@@ -185,11 +185,11 @@ const styles = ScaledSheet.create({
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2
+      height: '2@ms'
     },
     shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5
+    shadowRadius: '3.84@ms',
+    elevation: '5@ms'
   },
   actionButton: {
     flexDirection: 'row',
@@ -208,7 +208,7 @@ const styles = ScaledSheet.create({
   },
   text: {
     fontWeight: '700',
-    fontSize: 14,
+    fontSize: '14@ms',
     color: palette.main[500]
   },
   menuContainer: {
@@ -223,9 +223,9 @@ const styles = ScaledSheet.create({
   },
 
   iconBox: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
+    width: '28@ms',
+    height: '28@ms',
+    borderRadius: '8@ms',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: '12@s',
@@ -243,7 +243,7 @@ const styles = ScaledSheet.create({
   },
 
   divider: {
-    height: 1,
+    height: '1@ms',
     backgroundColor: '#F1F1F1',
   }
 })

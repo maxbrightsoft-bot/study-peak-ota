@@ -82,7 +82,7 @@ const styles = ScaledSheet.create({
     justifyContent: 'center'
   },
   navButton: {
-    borderRadius: 6,
+    borderRadius: '6@ms',
     paddingVertical: '12@ms',
     paddingHorizontal: '16@ms',
     display: 'flex',
@@ -93,16 +93,16 @@ const styles = ScaledSheet.create({
   },
 
   labelText: {
-    width: 80
+    width: '80@ms'
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: '#E0E0E0',
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    marginBottom: 20
+    borderRadius: '10@ms',
+    paddingHorizontal: '10@ms',
+    marginBottom: '20@ms'
   },
   buttonWrapper: {
     flexDirection: 'row',
@@ -112,27 +112,27 @@ const styles = ScaledSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: '16@ms',
     color: '#000'
   },
   icon: {
-    padding: 5
+    padding: '5@ms'
   },
   button: {
     backgroundColor: palette.main[500],
     paddingVertical: '12@ms',
     paddingHorizontal: '16@ms',
-    borderRadius: 10,
+    borderRadius: '10@ms',
     alignItems: 'center'
   },
   buttonText: {
     color: '#FFF',
     fontWeight: 'bold',
-    fontSize: 16
+    fontSize: '16@ms'
   },
   backText: {
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: '16@ms',
     color: '#FFF'
   }
 })

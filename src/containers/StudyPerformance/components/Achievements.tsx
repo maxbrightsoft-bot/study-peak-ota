@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { View, Text } from 'react-native'
 import { useTranslation } from 'react-i18next'
 
 import BronzeMedal from '@/assets/iconJSX/bronzeMedal'
@@ -13,6 +13,7 @@ import { BRIEF_GRADE_OPTIONS } from '@/utils/constants'
 import { formatGrade } from '@/utils/helpers'
 import useAuthStore from '@/store/useAuthStore'
 import { ActivityIndicator } from 'react-native-paper'
+import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   loading: boolean
@@ -146,63 +147,63 @@ const Achievements = ({ data, loading, isTimerTab = true }: Props) => {
 }
 
 export default Achievements
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
-    padding: 16,
-    marginBottom: 150
+    padding: '16@ms',
+    marginBottom: '150@ms'
   },
   rowBetween: {
     flexDirection: 'row',
   },
   column: {
     flex: 1,
-    gap: 16
+    gap: '16@ms'
   },
   title: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '700',
     textAlign: 'center',
     color: palette.grey[900]
   },
   divider: {
-    height: 1,
+    height: '1@ms',
     backgroundColor: '#D1D5DB',
-    marginVertical: 16
+    marginVertical: '16@ms'
   },
   rankItem: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    gap: 16
+    gap: '16@ms'
   },
   rankIcon: {
-    width: 32,
+    width: '32@ms',
     alignItems: 'center'
   },
   rankText: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '700',
     color: palette.grey[500]
   },
   rankInfo: {
-    gap: 4
+    gap: '4@ms'
   },
   row: {
     flexDirection: 'row',
-    gap: 4
+    gap: '4@ms'
   },
   grayText: {
-    fontSize: 11,
+    fontSize: '11@ms',
     fontWeight: '500',
     color: palette.grey[500]
   },
   name: {
-    fontSize: 11,
+    fontSize: '11@ms',
     fontWeight: '700',
     color: palette.main[500]
   },
   value: {
-    fontSize: 12,
+    fontSize: '12@ms',
     fontWeight: '600',
     color: palette.grey[700]
   }

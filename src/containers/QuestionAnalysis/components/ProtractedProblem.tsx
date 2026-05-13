@@ -93,7 +93,7 @@ export default ProtractedProblem
 
 const styles = ScaledSheet.create({
   wrapper: {
-    borderRadius: 14,
+    borderRadius: '14@ms',
     overflow: 'hidden',
     backgroundColor: '#FFF'
   },
@@ -108,48 +108,48 @@ const styles = ScaledSheet.create({
     backgroundColor: '#FAFAFA'
   },
   headerText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: 'bold',
     color: '#171719',
     textAlign: 'center'
   },
   itemContainer: {
     flexDirection: 'row',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
+    paddingVertical: '12@ms',
+    paddingHorizontal: '16@ms',
+    borderBottomWidth: '1@ms',
     borderBottomColor: '#E4E7EC'
   },
   column1: {
-    width: 90,
-    paddingRight: 8
+    width: '90@ms',
+    paddingRight: '8@ms'
   },
   label: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '600',
     color: '#414E62'
   },
   category: {
-    fontSize: 12,
+    fontSize: '12@ms',
     color: '#18442A',
     fontWeight: '500',
-    marginTop: 2
+    marginTop: '2@ms'
   },
   column2: {
     flex: 1
   },
   subLabel: {
-    fontSize: 12,
+    fontSize: '12@ms',
     color: '#97A1AF'
   },
   timeValue: {
-    fontSize: 13,
+    fontSize: '13@ms',
     fontWeight: '600',
     color: '#414E62',
-    marginBottom: 4
+    marginBottom: '4@ms'
   },
   timeDiff: {
-    fontSize: 13,
+    fontSize: '13@ms',
     fontWeight: '600'
   },
   noDataContainer: {

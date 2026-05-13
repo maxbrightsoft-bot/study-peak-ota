@@ -4,7 +4,7 @@ import { ScaledSheet } from 'react-native-size-matters';
 const styles = ScaledSheet.create({
   container: {
     backgroundColor: palette.grey[100],
-    borderRadius: 10,
+    borderRadius: '10@ms',
   },
   labelView: {
     flexDirection: 'row',
@@ -13,7 +13,7 @@ const styles = ScaledSheet.create({
     ...TYPO.caption
   },
   requiredText: {
-    fontSize: 14,
+    fontSize: '14@ms',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -28,7 +28,7 @@ const styles = ScaledSheet.create({
     ...TYPO.body3,
     marginBottom: '10@ms',
     paddingTop: '10@ms',
-    paddingHorizontal: 8,
+    paddingHorizontal: '8@ms',
     color: 'red',
   },
   message: {

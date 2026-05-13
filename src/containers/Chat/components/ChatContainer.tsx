@@ -263,7 +263,7 @@ const styles = ScaledSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: '20@ms',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderBottomColor: '#F3F4F6',
     backgroundColor: '#FFF'
   },
@@ -274,15 +274,15 @@ const styles = ScaledSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: '20@ms',
     backgroundColor: '#FFF',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderBottomColor: '#F3F4F6'
   },
   examInfoContainer: {
     flexDirection: 'row',
-    gap: 8,
+    gap: '8@ms',
     alignItems: 'center',
     flex: 1,
-    marginRight: 12
+    marginRight: '12@ms'
   },
   headerRight: {
     justifyContent: 'flex-end',
@@ -290,26 +290,26 @@ const styles = ScaledSheet.create({
   },
   courseTitle: {
     fontWeight: '700',
-    fontSize: 11,
+    fontSize: '11@ms',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     color: palette.grey[500],
-    marginBottom: 2
+    marginBottom: '2@ms'
   },
   scoreContainer: {
     flexDirection: 'row',
-    gap: 2,
+    gap: '2@ms',
     alignItems: 'baseline',
-    marginBottom: 2
+    marginBottom: '2@ms'
   },
   scoreText: {
     fontWeight: '700',
-    fontSize: 16,
+    fontSize: '16@ms',
     color: palette.grey[900]
   },
   totalScoreText: {
     fontWeight: '600',
-    fontSize: 12,
+    fontSize: '12@ms',
     color: palette.grey[400]
   },
   overlay: {
@@ -353,7 +353,7 @@ const styles = ScaledSheet.create({
   },
   chatList: {
     backgroundColor: palette.main[50],
-    paddingHorizontal: 24
+    paddingHorizontal: '24@ms'
   },
   myMessage: {
     alignSelf: 'flex-end',
@@ -362,7 +362,7 @@ const styles = ScaledSheet.create({
   otherMessage: {
     alignSelf: 'flex-start',
     backgroundColor: 'white',
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: palette.grey[100]
   },
   myMessageText: {
@@ -375,28 +375,28 @@ const styles = ScaledSheet.create({
   },
   imageMessage: {
     backgroundColor: 'white',
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: palette.grey[100]
   },
   inputContainer: {
     position: 'absolute',
-    bottom: 10,
+    bottom: '10@ms',
     flexDirection: 'row',
-    gap: 8,
+    gap: '8@ms',
     alignItems: 'center',
     paddingVertical: '12@ms',
     backgroundColor: 'white',
     paddingHorizontal: '24@ms'
   },
   timestamp: {
-    fontSize: 12,
+    fontSize: '12@ms',
     color: '#97A1AF',
     textAlign: 'center',
-    marginBottom: 4
+    marginBottom: '4@ms'
   },
   footerWrapper: {
     backgroundColor: '#FFF',
-    borderTopWidth: 1,
+    borderTopWidth: '1@ms',
     borderTopColor: '#F3F4F6',
     paddingHorizontal: '10@ms',
     paddingTop: '12@ms',
@@ -406,32 +406,32 @@ const styles = ScaledSheet.create({
   footer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    gap: 4
+    gap: '4@ms'
   },
 
   actionGroup: {
     flexDirection: 'column',
     alignItems: 'center',
-    gap: 8,
+    gap: '8@ms',
     paddingBottom: '4@ms'
   },
 
   iconButton: {
-    width: 32,
-    height: 32,
+    width: '32@ms',
+    height: '32@ms',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: '8@ms',
     backgroundColor: '#F9FAFB',
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: '#E5E7EB'
   },
 
   sketchButton: {
     backgroundColor: palette.main[600],
-    width: 32,
-    height: 32,
-    borderRadius: 8,
+    width: '32@ms',
+    height: '32@ms',
+    borderRadius: '8@ms',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -439,11 +439,11 @@ const styles = ScaledSheet.create({
   inputWrapper: {
     flex: 1,
     backgroundColor: '#F9FAFB',
-    borderRadius: 12,
+    borderRadius: '12@ms',
     minHeight: '100@ms',
     paddingHorizontal: '12@ms',
     paddingVertical: '8@ms',
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: '#E5E7EB'
   },
 
@@ -455,13 +455,13 @@ const styles = ScaledSheet.create({
   },
 
   sendButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: '36@ms',
+    height: '36@ms',
+    borderRadius: '10@ms',
     backgroundColor: palette.main[600],
     justifyContent: 'center',
     alignItems: 'center',
-    paddingLeft: 2,
+    paddingLeft: '2@ms',
     marginBottom: '6@ms'
   }
 })

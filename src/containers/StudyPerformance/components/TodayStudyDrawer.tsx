@@ -71,18 +71,18 @@ const styles = ScaledSheet.create({
     alignItems: 'center',
     paddingHorizontal: '20@ms',
     paddingVertical: '16@ms',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderColor: palette.grey[100]
   },
   buttonRow: {
     flexDirection: 'row',
-    gap: 16,
+    gap: '16@ms',
     alignItems: 'center'
   },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 8
+    padding: '8@ms'
   },
   backText: {
     ...TYPO.button2,
@@ -90,10 +90,10 @@ const styles = ScaledSheet.create({
   },
   sidebarContainer: {
     backgroundColor: palette.bg[100],
-    borderRadius: 6
+    borderRadius: '6@ms'
   },
   divider: {
-    height: 1,
+    height: '1@ms',
     backgroundColor: palette.grey[100]
   }
 })

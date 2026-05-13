@@ -46,7 +46,7 @@ const styles = ScaledSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: '20@ms',
     paddingVertical: '16@ms',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderBottomColor: '#eee'
   },
   headerTitle: {
@@ -57,7 +57,7 @@ const styles = ScaledSheet.create({
     textAlign: 'center'
   },
   backButton: {
-    width: 24
+    width: '24@ms'
   },
   container: {
     flex: 1,

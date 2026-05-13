@@ -1,9 +1,8 @@
-import Loading from '@/components/Loading'
-import useAuthStore from '@/store/useAuthStore'
 import { palette } from '@/theme/colors'
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Animated, Dimensions, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Animated, Dimensions, Modal, Text, TouchableOpacity, View } from 'react-native'
+import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   visible: boolean
@@ -57,7 +56,7 @@ const WaitingExamStart = ({ visible, position = 'right', onClose }: Props) => {
 
 export default WaitingExamStart
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF'
@@ -65,12 +64,12 @@ const styles = StyleSheet.create({
 
   exitButton: {
     alignSelf: 'flex-end',
-    paddingHorizontal: 20,
-    paddingTop: 50
+    paddingHorizontal: '20@ms',
+    paddingTop: '50@ms'
   },
 
   exitText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     color: '#333'
   },
 
@@ -81,16 +80,16 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 20,
+    fontSize: '20@ms',
     fontWeight: '700',
     color: palette.grey[900],
     textAlign: 'center',
-    lineHeight: 28,
-    marginBottom: 100
+    lineHeight: '28@ms',
+    marginBottom: '100@ms'
   },
 
   timer: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '600',
     color: palette.main[600]
   },

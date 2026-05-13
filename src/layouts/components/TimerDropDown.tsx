@@ -156,14 +156,14 @@ export default React.memo(TimerDropdown)
 
 const styles = ScaledSheet.create({
   iconButton: {
-    borderRadius: 6,
+    borderRadius: '6@ms',
     padding: '16@ms',
     justifyContent: 'center',
     alignItems: 'center'
   },
   menuContent: {
     backgroundColor: '#FFF',
-    minWidth: 250,
-    borderRadius: 6
+    minWidth: '250@ms',
+    borderRadius: '6@ms'
   }
 })

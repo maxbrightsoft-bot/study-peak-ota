@@ -44,9 +44,9 @@ const styles = ScaledSheet.create({
     gap: '24@ms'
   },
   title: {
-    fontSize: 12,
-    lineHeight: 22,
-    marginBottom: 8,
+    fontSize: '12@ms',
+    lineHeight: '22@ms',
+    marginBottom: '8@ms',
     textAlign: 'center'
   },
   inputWrapper: {},
@@ -56,10 +56,10 @@ const styles = ScaledSheet.create({
     textAlign: 'center'
   },
   label: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '700',
     color: palette.grey[900],
-    marginBottom: 8
+    marginBottom: '8@ms'
   },
   footer: {
     flexDirection: 'row',
@@ -83,7 +83,7 @@ const styles = ScaledSheet.create({
   },
   confirmButton: {
     backgroundColor: palette.main[600],
-    borderRadius: 6
+    borderRadius: '6@ms'
   },
   cancelButtonText: {
     ...TYPO.button2,

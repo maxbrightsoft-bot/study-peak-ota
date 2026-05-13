@@ -121,7 +121,7 @@ const styles = ScaledSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: '16@ms',
-    borderTopWidth: 1,
+    borderTopWidth: '1@ms',
     borderTopColor: palette.grey[200]
   },
   button: {

@@ -1,10 +1,11 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text } from "react-native";
 import { Button } from "react-native-paper";
 import Loading from "@/components/Loading";
 import { Routes } from "@/navigators/RouteName";
 import { palette, TYPO } from "@/theme";
 import useAcademyInvitation from "./hooks/useAcademyInvitation";
+import { ScaledSheet } from 'react-native-size-matters'
 
 const AcademyInvitation = () => {
   const {
@@ -81,12 +82,12 @@ const AcademyInvitation = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 24,
+    padding: '24@ms',
     backgroundColor: palette.grey[50],
   },
   centerContainer: {
@@ -105,33 +106,33 @@ const styles = StyleSheet.create({
     ...TYPO.heading1,
     color: palette.grey[900],
     textAlign: "center",
-    marginBottom: 24,
+    marginBottom: '24@ms',
   },
   messageContainer: {
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: '24@ms',
   },
   subtitle: {
     ...TYPO.heading3,
     color: palette.grey[800],
-    marginBottom: 8,
+    marginBottom: '8@ms',
   },
   errorText: {
     ...TYPO.body1,
     color: palette.error.main,
-    marginBottom: 8,
+    marginBottom: '8@ms',
     textAlign: "center",
   },
   mutedText: {
     ...TYPO.body1,
     color: palette.grey[500],
-    marginBottom: 8,
+    marginBottom: '8@ms',
     textAlign: "center",
   },
   button: {
-    marginTop: 8,
+    marginTop: '8@ms',
     backgroundColor: palette.main[600],
-    borderRadius: 8,
+    borderRadius: '8@ms',
   },
   buttonText: {
     ...TYPO.button2,

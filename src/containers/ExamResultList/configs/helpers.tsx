@@ -1,8 +1,6 @@
-import { palette } from '@/theme';
 import { utcToLocalTime } from '@/utils/helpers';
 import { ExamSessionResponse } from '@/utils/types';
-import { StyleSheet } from 'react-native';
-
+;
 export const groupMonth = (exams: Array<ExamSessionResponse> | null) => {
   if (!exams?.length) return;
   const examsSorted = exams;
@@ -22,10 +20,3 @@ export const groupMonth = (exams: Array<ExamSessionResponse> | null) => {
 
   return obj;
 };
-
-const styles = StyleSheet.create({
-  highlighted: {
-    backgroundColor: palette.main[500],
-    color: '#000',
-  },
-});

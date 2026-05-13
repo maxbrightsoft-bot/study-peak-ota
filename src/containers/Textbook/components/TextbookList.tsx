@@ -10,6 +10,7 @@ import SearchInput from '@/components/Input/SearchInput'
 import FilterIcon from '@/assets/iconJSX/filter'
 import { palette, TYPO } from '@/theme'
 import SelectTimeDialog from '@/layouts/components/SelectTimeDialog'
+import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   preparedType?: PreparedType
@@ -127,36 +128,36 @@ const TextbookList = ({ preparedType, preparedFilterType }: Props) => {
 
 export default TextbookList
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF'
   },
   header: {
-    paddingVertical: 20,
-    paddingHorizontal: 18
+    paddingVertical: '20@ms',
+    paddingHorizontal: '18@ms'
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: '20@ms',
     fontWeight: 600,
     color: '#222222'
   },
   scrollView: {
-    gap: 24,
-    padding: 8
+    gap: '24@ms',
+    padding: '8@ms'
   },
   startButton: {
-    paddingVertical: 6,
-    borderRadius: 6,
-    maxWidth: 200
+    paddingVertical: '6@ms',
+    borderRadius: '6@ms',
+    maxWidth: '200@ms'
   },
   filterButton: {
-    width: 40,
-    height: 40,
+    width: '40@ms',
+    height: '40@ms',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 10,
-    borderRadius: 100,
+    paddingVertical: '10@ms',
+    borderRadius: '100@ms',
     backgroundColor: palette.grey[100]
   },
   tabButton: {},
@@ -167,7 +168,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#D0D5DD'
   },
   tabText: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '700',
     textAlign: 'center'
   },
@@ -179,7 +180,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 16
+    gap: '16@ms'
   },
   buttonText: {
     ...TYPO.button1,
@@ -191,18 +192,18 @@ const styles = StyleSheet.create({
     textAlign: 'center'
   },
   filterCountButton: {
-    width: 20,
-    height: 20,
-    borderRadius: 43,
+    width: '20@ms',
+    height: '20@ms',
+    borderRadius: '43@ms',
     backgroundColor: '#3DC674',
     position: 'absolute',
-    top: -10,
-    right: -10,
+    top: '-10@ms',
+    right: '-10@ms',
     justifyContent: 'center',
     alignItems: 'center'
   },
   filterButtonText: {
-    fontSize: 12,
+    fontSize: '12@ms',
     color: '#fff'
   }
 })

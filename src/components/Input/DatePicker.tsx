@@ -126,7 +126,7 @@ const styles = ScaledSheet.create({
   yearText: {
     fontSize: '14@ms',
     fontWeight: '500',
-    lineHeight: 22,
+    lineHeight: '22@ms',
     color: '#222222'
   },
 

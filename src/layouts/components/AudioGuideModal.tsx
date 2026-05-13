@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native'
+import { View, Text, TouchableOpacity, Modal, Platform } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { Audio } from 'expo-av'
+import { Audio, InterruptionModeIOS, InterruptionModeAndroid } from 'expo-av'
 import { DEFAULT_AUDIO_URL } from '../../layouts/configs/constants'
 import useAudioTimer from '../hooks/useAudioTimer'
 import { palette } from '@/theme'
 import { getErrorMessage, toast } from '@/utils/helpers'
-import { Checkbox } from 'react-native-paper'
 import Loading from '@/components/Loading'
+import { ScaledSheet } from 'react-native-size-matters'
 
 export type AudioGuideModalProps = {
   open: boolean
@@ -25,17 +25,49 @@ const AudioGuideModal: React.FC<AudioGuideModalProps> = ({ open, audioUrls, onCl
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isSoundLoaded, setIsSoundLoaded] = useState<boolean>(false)
 
+  const unloadSound = async () => {
+    try {
+      if (soundRef.current) {
+        await soundRef.current.unloadAsync().catch(() => {})
+        soundRef.current = null
+      }
+    } catch (error) {
+      console.error('Error unloading sound:', error)
+    } finally {
+      setIsSoundLoaded(false)
+    }
+  }
+
   useEffect(() => {
     let isMounted = true
 
     const loadSound = async () => {
+      if (!audioUrl || !open) return
+
       try {
         setIsLoading(true)
         setIsSoundLoaded(false)
 
+        await Audio.setAudioModeAsync({
+          playsInSilentModeIOS: true,
+          staysActiveInBackground: false,
+          shouldDuckAndroid: true,
+          allowsRecordingIOS: false,
+          interruptionModeIOS: InterruptionModeIOS.DoNotMix,
+          interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
+          playThroughEarpieceAndroid: false,
+        }).catch(err => console.log('Audio mode error:', err))
+
         await unloadSound()
 
-        const { sound } = await Audio.Sound.createAsync({ uri: audioUrl }, { shouldPlay: false })
+        const { sound } = await Audio.Sound.createAsync(
+          { uri: audioUrl.replace('http://', 'https://') },
+          { 
+            shouldPlay: false, 
+            volume: 1.0, 
+            isMuted: false
+          }
+        )
 
         if (isMounted) {
           soundRef.current = sound
@@ -50,6 +82,7 @@ const AudioGuideModal: React.FC<AudioGuideModalProps> = ({ open, audioUrls, onCl
       } catch (error) {
         console.error('Error loading audio:', error)
         if (isMounted) {
+          setIsSoundLoaded(false)
           toast.error(getErrorMessage(t, error))
         }
       } finally {
@@ -59,37 +92,19 @@ const AudioGuideModal: React.FC<AudioGuideModalProps> = ({ open, audioUrls, onCl
       }
     }
 
-    if (open && audioUrl) {
-      loadSound()
-    }
+    loadSound()
 
     return () => {
       isMounted = false
       unloadSound()
     }
-  }, [open, audioUrl, t])
+  }, [open, audioUrl])
 
   useEffect(() => {
     if (isPlayAudio && isSoundLoaded && !isLoading) {
       playSound()
     }
   }, [isPlayAudio, isSoundLoaded, isLoading])
-
-  const unloadSound = async () => {
-    try {
-      if (soundRef.current) {
-        const status = await soundRef.current.getStatusAsync()
-        if (status.isLoaded) {
-          await soundRef.current.unloadAsync()
-        }
-        soundRef.current = null
-      }
-    } catch (error) {
-      toast.error(getErrorMessage(t, error))
-    } finally {
-      setIsSoundLoaded(false)
-    }
-  }
 
   const stopSound = async () => {
     try {
@@ -109,9 +124,20 @@ const AudioGuideModal: React.FC<AudioGuideModalProps> = ({ open, audioUrls, onCl
   const playSound = async () => {
     try {
       if (soundRef.current && isSoundLoaded && isPlayAudio && !isLoading) {
+        // Ensure audio mode is active right before playing on iOS
+        await Audio.setAudioModeAsync({
+          playsInSilentModeIOS: true,
+          shouldDuckAndroid: true,
+          allowsRecordingIOS: false,
+        }).catch(() => {})
+
         const status = await soundRef.current.getStatusAsync()
         if (status.isLoaded) {
           await soundRef.current.setPositionAsync(0)
+          // Adding a very small delay for iOS to be ready
+          if (Platform.OS === 'ios') {
+            await new Promise(resolve => setTimeout(resolve, 100))
+          }
           await soundRef.current.playAsync()
         }
       }
@@ -176,8 +202,8 @@ const AudioGuideModal: React.FC<AudioGuideModalProps> = ({ open, audioUrls, onCl
 
   return (
     <Modal visible={open} transparent animationType="fade" onRequestClose={handleCloseDialog}>
-      {isLoading && <Loading isOverlay={false} />}
       <View style={styles.overlay}>
+        {isLoading && <Loading isOverlay={true} />}
         <View style={styles.container}>
           <View style={styles.header}>
             <Text style={styles.title}>{t('voice_guidance_settings')}</Text>
@@ -223,80 +249,80 @@ const AudioGuideModal: React.FC<AudioGuideModalProps> = ({ open, audioUrls, onCl
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20
+    paddingHorizontal: '20@ms'
   },
   container: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    width: 364,
+    borderRadius: '8@ms',
+    width: '364@ms',
     maxWidth: '100%',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: '2@ms' },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5
+    shadowRadius: '8@ms',
+    elevation: '5@ms'
   },
   header: {
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderBottomWidth: 1,
+    paddingVertical: '16@ms',
+    paddingHorizontal: '24@ms',
+    borderBottomWidth: '1@ms',
     borderBottomColor: '#E5E7EB'
   },
   title: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '600',
     color: '#111827',
     textAlign: 'center'
   },
   content: {
-    paddingVertical: 32,
-    paddingHorizontal: 24
+    paddingVertical: '32@ms',
+    paddingHorizontal: '24@ms'
   },
   contentInner: {
-    paddingHorizontal: 52
+    paddingHorizontal: '52@ms'
   },
   textContainer: {
     alignItems: 'center',
-    gap: 8
+    gap: '8@ms'
   },
   mainText: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '700',
     color: '#111827',
     textAlign: 'center',
-    marginBottom: 8,
-    lineHeight: 24
+    marginBottom: '8@ms',
+    lineHeight: '24@ms'
   },
   subText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '600',
     color: '#374151',
     textAlign: 'center',
-    lineHeight: 20
+    lineHeight: '20@ms'
   },
   timerContainer: {
     alignItems: 'center',
     justifyContent: 'center'
   },
   timerText: {
-    fontSize: 32,
+    fontSize: '32@ms',
     fontWeight: '700',
     color: palette.grey[900],
     textAlign: 'center'
   },
   divider: {
-    height: 1,
+    height: '1@ms',
     backgroundColor: '#D0D0C8'
   },
   footer: {
     flexDirection: 'row',
-    padding: 12
+    padding: '12@ms'
   },
   footerBetween: {
     justifyContent: 'space-between'
@@ -305,29 +331,28 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end'
   },
   primaryButton: {
-    minWidth: 120,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 4,
-    borderWidth: 1,
+    minWidth: '120@ms',
+    paddingVertical: '8@ms',
+    paddingHorizontal: '16@ms',
+    borderRadius: '4@ms',
+    borderWidth: '1@ms',
     borderColor: palette.main[500],
-    color: palette.main[500],
     backgroundColor: 'transparent'
   },
   primaryButtonText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '700',
     color: palette.main[500],
     textAlign: 'center'
   },
   secondaryButton: {
-    minWidth: 120,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 4
+    minWidth: '120@ms',
+    paddingVertical: '8@ms',
+    paddingHorizontal: '16@ms',
+    borderRadius: '4@ms'
   },
   secondaryButtonText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '700',
     color: palette.main[500],
     textAlign: 'center'

@@ -4,6 +4,7 @@ import { View, StyleSheet } from 'react-native'
 import { Dropdown, IDropdownRef } from 'react-native-element-dropdown'
 import { useTranslation } from 'react-i18next'
 import Ionicons from '@expo/vector-icons/Ionicons'
+import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   value: any
@@ -88,18 +89,18 @@ const CustomSelect = forwardRef<IDropdownRef, Props>(
   }
 )
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
-    paddingHorizontal: 20,
-    paddingTop: 40
+    paddingHorizontal: '20@ms',
+    paddingTop: '40@ms'
   },
 
   dropdown: {
-    height: 50,
+    height: '50@ms',
     backgroundColor: palette.grey[100],
-    borderRadius: 10,
+    borderRadius: '10@ms',
     overflow: 'hidden',
-    paddingHorizontal: 12,
+    paddingHorizontal: '12@ms',
     justifyContent: 'center'
   },
   disabledDropdown: {
@@ -108,7 +109,7 @@ const styles = StyleSheet.create({
   },
 
   dropdownContainer: {
-    borderRadius: 12,
+    borderRadius: '12@ms',
     overflow: 'hidden',
     shadowColor: 'transparent',
     shadowOpacity: 0,
@@ -116,35 +117,35 @@ const styles = StyleSheet.create({
     shadowRadius: 0,
     elevation: 0,
 
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: '#E5E5E5'
   },
 
   placeholderStyle: {
-    fontSize: 14,
+    fontSize: '14@ms',
     color: '#222222'
   },
 
   itemTextStyle: {
-    fontSize: 14,
+    fontSize: '14@ms',
     color: palette.grey[900]
   },
 
   selectedTextStyle: {
-    fontSize: 14,
+    fontSize: '14@ms',
     flex: 1,
     fontWeight: '500',
     color: '#222222'
   },
 
   iconStyle: {
-    width: 24,
-    height: 24
+    width: '24@ms',
+    height: '24@ms'
   },
 
   inputSearchStyle: {
-    height: 40,
-    fontSize: 14,
+    height: '40@ms',
+    fontSize: '14@ms',
     color: '#222222'
   }
 })

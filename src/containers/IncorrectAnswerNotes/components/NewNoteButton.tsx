@@ -25,11 +25,11 @@ const styles = ScaledSheet.create({
     alignSelf: "flex-end",
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 26,
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-    gap: 8,
+    borderWidth: '1@ms',
+    borderRadius: '26@ms',
+    paddingVertical: '7@ms',
+    paddingHorizontal: '12@ms',
+    gap: '8@ms',
     borderColor: "#222222"
   }
 })

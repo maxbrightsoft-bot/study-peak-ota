@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   children?: React.ReactNode;
@@ -23,7 +24,7 @@ const TabPanel: React.FC<Props> = ({
 
 export default TabPanel;
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
   },
 });

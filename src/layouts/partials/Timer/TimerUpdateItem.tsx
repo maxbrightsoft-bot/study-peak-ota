@@ -1,11 +1,8 @@
 import React, { FC, useMemo, useState } from "react";
-import {
-  View,
+import { View,
   Text,
-  StyleSheet,
   TouchableOpacity,
-  TextInput,
-} from "react-native";
+  TextInput } from "react-native";
 import { useTranslation } from "react-i18next";
 import moment from "moment";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -16,6 +13,7 @@ import { palette } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import CommonDialog from "@/components/ModalBase/CommonDialog";
 import { ConfirmDialog } from "@/components/ModalBase/ConfirmDialog";
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   data: Timer;
@@ -420,105 +418,105 @@ const TimerUpdateItem: FC<Props> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
-    marginBottom: 16,
-    padding: 16,
-    borderRadius: 16,
+    marginBottom: '16@ms',
+    padding: '16@ms',
+    borderRadius: '16@ms',
     backgroundColor: "#ffffff",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: '2@ms' },
     shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-    borderWidth: 1,
+    shadowRadius: '8@ms',
+    elevation: '2@ms',
+    borderWidth: '1@ms',
     borderColor: "#f0f0f0",
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: '16@ms',
   },
-  row: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 6 },
-  subjectName: { fontSize: 15, fontWeight: "700", color: "#1a1a1a" },
+  row: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: '6@ms' },
+  subjectName: { fontSize: '15@ms', fontWeight: "700", color: "#1a1a1a" },
   statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: '10@ms',
+    paddingVertical: '4@ms',
+    borderRadius: '12@ms',
   },
-  badgeText: { fontSize: 10, fontWeight: "700", textTransform: "uppercase" },
+  badgeText: { fontSize: '10@ms', fontWeight: "700", textTransform: "uppercase" },
   stopBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    borderWidth: 1,
+    paddingHorizontal: '10@ms',
+    paddingVertical: '4@ms',
+    borderRadius: '8@ms',
+    borderWidth: '1@ms',
     borderColor: "#d32f2f",
   },
   stopBtnDisabled: {
     borderColor: "#ccc",
   },
-  stopBtnText: { fontSize: 10, fontWeight: "700", color: "#d32f2f" },
+  stopBtnText: { fontSize: '10@ms', fontWeight: "700", color: "#d32f2f" },
   actionIcons: { flexDirection: "row", alignItems: "center" },
-  iconBtn: { padding: 6, marginLeft: 4 },
-  timeRow: { flexDirection: "row", gap: 16 },
+  iconBtn: { padding: '6@ms', marginLeft: '4@ms' },
+  timeRow: { flexDirection: "row", gap: '16@ms' },
   flex1: { flex: 1 },
-  label: { fontSize: 12, fontWeight: "600", marginBottom: 6, color: "#666" },
+  label: { fontSize: '12@ms', fontWeight: "600", marginBottom: '6@ms', color: "#666" },
   timeInput: {
     flexDirection: "row",
     backgroundColor: "#f8f9fa",
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: '12@ms',
+    padding: '12@ms',
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: "#f0f0f0",
   },
   timeInputError: {
     borderColor: "#d32f2f",
     backgroundColor: "#fff5f5",
   },
-  timeValueText: { fontSize: 14, fontWeight: "600", color: "#333" },
-  errorText: { fontSize: 10, color: "#d32f2f", marginTop: 4 },
-  maxDurationText: { fontSize: 10, color: "#666", marginTop: 4 },
+  timeValueText: { fontSize: '14@ms', fontWeight: "600", color: "#333" },
+  errorText: { fontSize: '10@ms', color: "#d32f2f", marginTop: '4@ms' },
+  maxDurationText: { fontSize: '10@ms', color: "#666", marginTop: '4@ms' },
   adjusterContainer: { flex: 1, justifyContent: "center" },
   stepperControl: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#f8f9fa",
-    borderRadius: 12,
-    padding: 4,
-    borderWidth: 1,
+    borderRadius: '12@ms',
+    padding: '4@ms',
+    borderWidth: '1@ms',
     borderColor: "#f0f0f0",
   },
   stepBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
+    width: '32@ms',
+    height: '32@ms',
+    borderRadius: '10@ms',
     justifyContent: "center",
     alignItems: "center",
   },
   stepInput: {
-    width: 40,
+    width: '40@ms',
     textAlign: "center",
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: "600",
     color: "#333",
-    marginHorizontal: 4,
+    marginHorizontal: '4@ms',
   },
   dialogActions: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    gap: 8,
+    paddingHorizontal: '16@ms',
+    paddingBottom: '12@ms',
+    gap: '8@ms',
   },
   dialogBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
+    paddingHorizontal: '16@ms',
+    paddingVertical: '8@ms',
+    borderRadius: '8@ms',
+    borderWidth: '1@ms',
     borderColor: "#ccc",
   },
   dialogBtnDanger: {
@@ -526,15 +524,15 @@ const styles = StyleSheet.create({
     borderColor: "#d32f2f",
   },
   dialogText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     color: "#333",
   },
   dialogBtnText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     color: "#555",
   },
   dialogBtnDangerText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: "600",
     color: "#fff",
   },

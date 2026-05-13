@@ -157,7 +157,7 @@ const TrickyProblem: FC<Props> = ({ data, isPrint, categories }) => {
 
 const styles = ScaledSheet.create({
   wrapper: {
-    borderRadius: 14,
+    borderRadius: '14@ms',
     overflow: 'hidden'
   },
   header: {
@@ -171,32 +171,32 @@ const styles = ScaledSheet.create({
     backgroundColor: '#FAFAFA'
   },
   headerText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: 'bold',
     color: '#171719',
     textAlign: 'center'
   },
   content: {
-    maxHeight: 300
+    maxHeight: '300@ms'
   },
   sectionContainer: {
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderBottomColor: '#EEEEEE'
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: palette.bg[100],
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
+    borderTopWidth: '1@ms',
+    borderBottomWidth: '1@ms',
     borderColor: palette.grey[100],
     paddingVertical: '8@ms',
     paddingHorizontal: '12@ms'
   },
   sectionTitle: {
-    fontSize: 12,
+    fontSize: '12@ms',
     fontWeight: '700',
-    marginLeft: 8,
+    marginLeft: '8@ms',
     color: palette.grey[700]
   },
   questionsContainer: {
@@ -206,9 +206,9 @@ const styles = ScaledSheet.create({
     backgroundColor: '#FFF'
   },
   questionText: {
-    fontSize: 12,
+    fontSize: '12@ms',
     fontWeight: 500,
-    padding: 8
+    padding: '8@ms'
   },
   noDataText: {
     width: '100%',
@@ -217,15 +217,15 @@ const styles = ScaledSheet.create({
     paddingVertical: '12@ms'
   },
   questionItemWrapper: {
-    padding: 4
+    padding: '4@ms'
   },
   questionPressable: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 8
+    padding: '8@ms'
   },
   categoryInfoText: {
-    fontSize: 13,
+    fontSize: '13@ms',
     color: '#000'
   }
 })

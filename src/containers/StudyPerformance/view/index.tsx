@@ -112,11 +112,11 @@ const styles = ScaledSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 20
+    paddingVertical: '16@ms',
+    paddingHorizontal: '20@ms'
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: '20@ms',
     fontWeight: 600,
     color: '#222222'
   },
@@ -128,14 +128,14 @@ const styles = ScaledSheet.create({
   },
   tabButton: {
     flex: 1,
-    paddingVertical: 12
+    paddingVertical: '12@ms'
   },
   tabButtonActive: {
     backgroundColor: palette.sub[400]
   },
   tabText: {
     textAlign: 'center',
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '500',
     color: palette.grey[400]
   },
@@ -145,15 +145,15 @@ const styles = ScaledSheet.create({
   printButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderWidth: 1,
+    paddingVertical: '8@ms',
+    paddingHorizontal: '12@ms',
+    borderWidth: '1@ms',
     borderColor: '#D0D0C8',
-    borderRadius: 6,
-    gap: 4
+    borderRadius: '6@ms',
+    gap: '4@ms'
   },
   printText: {
-    fontSize: 13,
+    fontSize: '13@ms',
     fontWeight: '700',
     color: '#6d6e6f'
   }

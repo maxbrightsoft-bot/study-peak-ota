@@ -204,7 +204,7 @@ const Vulnerable: FC<Props> = ({ data, isPrint, isMyStoryStudent }) => {
 
 const styles = ScaledSheet.create({
   wrapper: {
-    borderRadius: 14,
+    borderRadius: '14@ms',
     overflow: 'hidden'
   },
   header: {
@@ -218,23 +218,23 @@ const styles = ScaledSheet.create({
     backgroundColor: '#FAFAFA'
   },
   headerText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: 'bold',
     color: '#171719',
     textAlign: 'center'
   },
   content: {
-    maxHeight: 300
+    maxHeight: '300@ms'
   },
   titleContainer: {
-    padding: 16,
+    padding: '16@ms',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center'
   },
   titleOpen: {
     backgroundColor: '#F8F9FA',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderBottomColor: '#E4E7EC'
   },
   titleClosed: {
@@ -243,10 +243,10 @@ const styles = ScaledSheet.create({
   titleContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 24
+    gap: '24@ms'
   },
   titleText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '700',
     color: '#414E62'
   },
@@ -254,29 +254,29 @@ const styles = ScaledSheet.create({
     color: '#97A1AF'
   },
   subtitleText: {
-    fontSize: 11,
+    fontSize: '11@ms',
     fontWeight: '500',
     color: '#97A1AF'
   },
   tableContainer: {
-    maxHeight: 400
+    maxHeight: '400@ms'
   },
   table: {
     width: '100%',
-    marginBottom: 120
+    marginBottom: '120@ms'
   },
   tableHeader: {
     backgroundColor: '#F8F9FA',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderBottomColor: '#E4E7EC'
   },
   tableRow: {
     flexDirection: 'row',
-    paddingVertical: 12,
-    paddingHorizontal: 8
+    paddingVertical: '12@ms',
+    paddingHorizontal: '8@ms'
   },
   tableRowBorder: {
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderBottomColor: '#E4E7EC'
   },
   tdColumn1: {
@@ -300,62 +300,62 @@ const styles = ScaledSheet.create({
   },
   problemText: {
     color: '#101828',
-    fontSize: 13,
+    fontSize: '13@ms',
     fontWeight: '600'
   },
   centerText: {
     color: '#101828',
-    fontSize: 13,
+    fontSize: '13@ms',
     fontWeight: '600',
     textAlign: 'center'
   },
   wrongAnswerText: {
     color: '#B42318',
-    fontSize: 13,
+    fontSize: '13@ms',
     fontWeight: '500'
   },
   normalText: {
     color: '#667085',
-    fontSize: 13,
+    fontSize: '13@ms',
     textAlign: 'center'
   },
   contentContainer: {
     flexDirection: 'row',
-    padding: 16,
-    borderBottomWidth: 1,
+    padding: '16@ms',
+    borderBottomWidth: '1@ms',
     borderBottomColor: '#E4E7EC'
   },
   contentColumn1: {
-    width: 160
+    width: '160@ms'
   },
   contentColumn2: {
     flex: 1,
     justifyContent: 'center'
   },
   column1Content: {
-    gap: 8
+    gap: '8@ms'
   },
   problemInfo: {
     flexDirection: 'row',
-    gap: 4
+    gap: '4@ms'
   },
   labelText: {
-    fontSize: 12,
+    fontSize: '12@ms',
     color: '#667085'
   },
   problemNumber: {
-    fontSize: 12,
+    fontSize: '12@ms',
     fontWeight: '600',
     color: '#101828'
   },
   categoryText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '600',
     color: '#18442A',
     textAlign: 'center'
   },
   column2Content: {
-    gap: 8
+    gap: '8@ms'
   },
   rateInfo: {
     flexDirection: 'row',
@@ -367,12 +367,12 @@ const styles = ScaledSheet.create({
     alignItems: 'center'
   },
   rateValue: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '600',
     color: '#101828'
   },
   answerText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     color: '#667085',
     flexShrink: 1
   },

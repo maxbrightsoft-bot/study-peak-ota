@@ -1,5 +1,4 @@
-import { StyleSheet } from 'react-native'
-import { scale, verticalScale } from 'react-native-size-matters'
+import { ScaledSheet, scale, verticalScale} from 'react-native-size-matters'
 
 export const getStatusStyle = (status: string) => {
   switch (status) {
@@ -13,13 +12,13 @@ export const getStatusStyle = (status: string) => {
   }
 }
 
-export const styles = StyleSheet.create({
+export const styles = ScaledSheet.create({
   accordionContainer: {
     marginVertical: verticalScale(4),
     borderRadius: scale(12),
     overflow: 'hidden',
     backgroundColor: '#fff',
-    elevation: 1,
+    elevation: '1@ms',
   },
   answerBox: {
     marginVertical: verticalScale(8),

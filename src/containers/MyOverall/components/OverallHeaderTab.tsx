@@ -1,6 +1,7 @@
 import { palette } from '@/theme';
 import React, { FC } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   title: string;
@@ -16,18 +17,18 @@ const OverallTabHeader: FC<Props> = ({ title }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     backgroundColor: palette.grey[50],
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: '8@ms',
+    paddingHorizontal: '16@ms',
     alignItems: 'center',
     justifyContent: 'center',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderBottomColor: palette.grey[100]
   },
   title: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '600',
     color: palette.grey[500],
     overflow: 'hidden',
