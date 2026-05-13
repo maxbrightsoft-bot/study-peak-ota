@@ -1,9 +1,10 @@
 import React, { FC } from 'react'
-import { View, ActivityIndicator, StyleSheet } from 'react-native'
+import { View, ActivityIndicator } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import OverallTabHeader from './OverallHeaderTab'
 import HexagonChart from './HexagonChart'
 import { checkEmptyValue } from '../configs/helpers'
+import { ScaledSheet } from 'react-native-size-matters'
 
 export interface CategoriesOverallChartContainerProps {
   isLoading?: boolean
@@ -56,11 +57,11 @@ const CategoriesOverallChartContainer: FC<CategoriesOverallChartContainerProps> 
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
   },
   loadingContainer: {
-    height: 400,
+    height: '400@ms',
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center'

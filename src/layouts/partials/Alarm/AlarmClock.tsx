@@ -10,6 +10,7 @@ import PauseIcon from '@/assets/iconJSX/pause'
 import StopIcon from '@/assets/iconJSX/stop'
 import { Ionicons } from '@expo/vector-icons'
 import AlarmClockNote from './AlarmClockNote'
+import { ScaledSheet } from 'react-native-size-matters'
 
 export interface AlarmClockProps {
   isLoading: boolean
@@ -61,37 +62,37 @@ const AlarmClock: FC<AlarmClockProps> = ({
 
 export default AlarmClock
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
-    padding: 16,
+    padding: '16@ms',
     justifyContent: 'center',
-    paddingTop: 50,
+    paddingTop: '50@ms',
     alignItems: 'center',
-    paddingBottom: 60
+    paddingBottom: '60@ms'
   },
   actions: {
     flex: 1,
-    marginTop: 32,
+    marginTop: '32@ms',
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 16
+    gap: '16@ms'
   },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 26,
-    gap: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderWidth: 1,
+    borderRadius: '26@ms',
+    gap: '8@ms',
+    paddingHorizontal: '20@ms',
+    paddingVertical: '10@ms',
+    borderWidth: '1@ms',
     borderColor: '#222222'
   },
   buttonLabel: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '500',
     color: palette.grey[900]
   },
   note: {
-    marginTop: 14,
+    marginTop: '14@ms',
   }
 })

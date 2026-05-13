@@ -93,7 +93,7 @@ export const style = ScaledSheet.create({
     paddingHorizontal: '24@ms',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8
+    gap: '8@ms'
   },
   viewContainer: {
     backgroundColor: '#FFF'

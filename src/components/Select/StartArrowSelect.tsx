@@ -5,6 +5,7 @@ import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { View, Text, StyleSheet } from 'react-native'
 import { Dropdown } from 'react-native-element-dropdown'
+import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   value: any
@@ -43,17 +44,17 @@ const StartArrowSelect = ({ value, onValueChange, items, placeholder }: Props) =
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     backgroundColor: 'white',
-    borderRadius: 8
+    borderRadius: '8@ms'
   },
   dropdown: {
-    minWidth: 100,
-    height: 50,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 8,
+    minWidth: '100@ms',
+    height: '50@ms',
+    borderWidth: '1@ms',
+    borderRadius: '8@ms',
+    paddingHorizontal: '8@ms',
     alignSelf: 'flex-start',
     borderColor: palette.grey[100]
   },
@@ -65,39 +66,39 @@ const styles = StyleSheet.create({
     wordWrap: 'unset'
   },
   dropdownContainer: {
-    borderRadius: 4
+    borderRadius: '4@ms'
   },
   dropdownLabel: {
-    fontSize: 16,
+    fontSize: '16@ms',
     color: '#333',
-    marginRight: 8
+    marginRight: '8@ms'
   },
   placeholderStyle: {
-    fontSize: 16
+    fontSize: '16@ms'
   },
   selectedTextStyle: {
-    fontSize: 16
+    fontSize: '16@ms'
   },
   inputSearchStyle: {
-    height: 40,
-    fontSize: 16
+    height: '40@ms',
+    fontSize: '16@ms'
   },
   iconStyle: {
-    width: 20,
-    height: 20
+    width: '20@ms',
+    height: '20@ms'
   },
   item: {
-    padding: 17,
+    padding: '17@ms',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center'
   },
   textItem: {
     flex: 1,
-    fontSize: 16
+    fontSize: '16@ms'
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: '16@ms',
     color: '#999'
   }
 })

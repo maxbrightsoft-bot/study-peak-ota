@@ -4,6 +4,7 @@ import { WebView } from 'react-native-webview'
 import { useTranslation } from 'react-i18next'
 import { palette } from '@/theme'
 import ArrowRight from '@/assets/iconJSX/arrowRight'
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface Question {
   questionOrder: number
@@ -488,11 +489,11 @@ const SolutionOrderChart: React.FC<Props> = ({ data, loading = false }) => {
 
 
 export default SolutionOrderChart
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    paddingVertical: 20,
+    borderRadius: '14@ms',
+    paddingVertical: '20@ms',
   },
   chartContainer: {
     height: CHART_HEIGHT,
@@ -508,13 +509,13 @@ const styles = StyleSheet.create({
   navRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingHorizontal: '20@ms',
+    paddingTop: '12@ms',
   },
   circleBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: '44@ms',
+    height: '44@ms',
+    borderRadius: '22@ms',
     backgroundColor: '#7C3AED',
     alignItems: 'center',
     justifyContent: 'center',
@@ -524,9 +525,9 @@ const styles = StyleSheet.create({
   },
   circleBtnText: {
     color: '#FFFFFF',
-    fontSize: 24,
-    lineHeight: 28,
+    fontSize: '24@ms',
+    lineHeight: '28@ms',
     fontWeight: '400',
-    marginTop: -2,
+    marginTop: '-2@ms',
   },
 })

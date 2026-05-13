@@ -63,83 +63,83 @@ const ChapterDetail = ({ t, isEnglish, isMock, chapter, isStudying, handleOpenCh
 
 const styles = ScaledSheet.create({
   accordion: {
-    marginBottom: 12,
-    borderRadius: 8,
+    marginBottom: '12@ms',
+    borderRadius: '8@ms',
     overflow: 'hidden'
   },
   summary: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 16,
+    padding: '16@ms',
     alignItems: 'center'
   },
   summaryLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8
+    gap: '8@ms'
   },
   summaryRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12
+    gap: '12@ms'
   },
   chapterName: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: 'bold',
     color: '#333'
   },
   questionCount: {
-    fontSize: 12,
+    fontSize: '12@ms',
     fontWeight: '600',
     color: '#666'
   },
   details: {
     paddingHorizontal: '32@ms',
-    paddingBottom: 16,
-    gap: 16
+    paddingBottom: '16@ms',
+    gap: '16@ms'
   },
   row: {
     flexDirection: 'row',
-    gap: 16
+    gap: '16@ms'
   },
   label: {
-    fontSize: 13,
+    fontSize: '13@ms',
     fontWeight: '600',
     color: '#111',
     justifyContent: 'flex-start'
   },
   divider: {
     backgroundColor: palette.grey[300],
-    width: 1,
-    height: 10,
+    width: '1@ms',
+    height: '10@ms',
     alignSelf: 'center',
-    marginHorizontal: 10
+    marginHorizontal: '10@ms'
   },
   value: {
-    fontSize: 13,
+    fontSize: '13@ms',
     fontWeight: '600',
     color: '#111'
   },
   statRow: {
     flexDirection: 'row',
-    gap: 8
+    gap: '8@ms'
   },
   grayText: {
-    fontSize: 13,
+    fontSize: '13@ms',
     color: '#888',
     fontWeight: '600'
   },
   lightText: {
-    fontSize: 13,
+    fontSize: '13@ms',
     color: '#aaa',
     fontWeight: '600'
   },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 6,
+    paddingVertical: '8@ms',
+    paddingHorizontal: '16@ms',
+    borderRadius: '6@ms',
     alignSelf: 'flex-start'
   },
   buttonText: {
@@ -189,7 +189,7 @@ const styles = ScaledSheet.create({
     color: '#667085'
   },
   resultBtn: {
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: palette.main[500],
     borderRadius: '16@ms',
     paddingHorizontal: '12@ms',

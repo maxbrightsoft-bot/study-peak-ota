@@ -1,18 +1,16 @@
 import React, { FC, useState, useEffect } from "react";
-import { 
-    Modal, 
+import { Modal, 
     View, 
     Text, 
-    StyleSheet, 
     TouchableOpacity, 
-    ScrollView, 
-} from "react-native";
+    ScrollView } from "react-native";
 import { useTranslation } from "react-i18next";
 import moment from "moment";
 import { Timer } from "../../configs/types";
 import { TimerStatus } from "@/utils/enums";
 import { DATE_TIME_MIN_VALUE } from "@/utils/constants";
 import TimerUpdateItem from "./TimerUpdateItem";
+import { ScaledSheet } from 'react-native-size-matters'
 
 export interface AddTimerDialogProps {
     open: boolean;
@@ -173,7 +171,7 @@ const AddTimerDialog: FC<AddTimerDialogProps> = ({
     );
 };
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
     overlay: {
         flex: 1,
         backgroundColor: 'rgba(0,0,0,0.5)',
@@ -182,43 +180,43 @@ const styles = StyleSheet.create({
     },
     container: {
         width: '90%',
-        maxWidth: 500,
+        maxWidth: '500@ms',
         backgroundColor: 'white',
-        borderRadius: 8,
-        padding: 16,
+        borderRadius: '8@ms',
+        padding: '16@ms',
         maxHeight: '80%',
     },
     title: {
-        fontSize: 18,
+        fontSize: '18@ms',
         fontWeight: 'bold',
-        marginBottom: 16,
+        marginBottom: '16@ms',
     },
     content: {
-        marginBottom: 16,
+        marginBottom: '16@ms',
     },
     anchorBox: {
         backgroundColor: '#e3f2fd',
-        padding: 12,
-        borderRadius: 4,
-        marginBottom: 16,
+        padding: '12@ms',
+        borderRadius: '4@ms',
+        marginBottom: '16@ms',
     },
     anchorTitle: {
         fontWeight: '600',
-        fontSize: 14,
+        fontSize: '14@ms',
         color: '#01579b',
     },
     anchorText: {
-        fontSize: 14,
+        fontSize: '14@ms',
         color: '#01579b',
     },
     actions: {
         flexDirection: 'row',
         justifyContent: 'flex-end',
-        gap: 12,
+        gap: '12@ms',
     },
     btnSecondary: {
-        paddingVertical: 8,
-        paddingHorizontal: 16,
+        paddingVertical: '8@ms',
+        paddingHorizontal: '16@ms',
     },
     btnTextSecondary: {
         color: '#757575',
@@ -226,9 +224,9 @@ const styles = StyleSheet.create({
     },
     btnPrimary: {
         backgroundColor: '#2196f3',
-        paddingVertical: 8,
-        paddingHorizontal: 20,
-        borderRadius: 4,
+        paddingVertical: '8@ms',
+        paddingHorizontal: '20@ms',
+        borderRadius: '4@ms',
     },
     btnDisabled: {
         backgroundColor: '#bdbdbd',

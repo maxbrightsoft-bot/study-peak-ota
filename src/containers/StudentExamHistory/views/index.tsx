@@ -252,15 +252,15 @@ const styles = ScaledSheet.create({
   },
 
   header: {
-    paddingVertical: 20,
-    paddingHorizontal: 18,
-    borderBottomWidth: 1,
+    paddingVertical: '20@ms',
+    paddingHorizontal: '18@ms',
+    borderBottomWidth: '1@ms',
     backgroundColor: "#FFF",
     borderColor: palette.grey[100]
   },
 
   headerTitle: {
-    fontSize: 20,
+    fontSize: '20@ms',
     fontWeight: "600",
     color: "#222222"
   },
@@ -281,19 +281,19 @@ const styles = ScaledSheet.create({
   selectAll: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6
+    gap: '6@ms'
   },
 
   selectAllText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: "500"
   },
 
   deleteButton: {
     backgroundColor: "#f44336",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6
+    paddingHorizontal: '16@ms',
+    paddingVertical: '8@ms',
+    borderRadius: '6@ms'
   },
 
   deleteText: {
@@ -317,8 +317,8 @@ const styles = ScaledSheet.create({
     alignItems: "center",
     backgroundColor: "#fff",
     padding: "12@ms",
-    borderRadius: 10,
-    gap: 10
+    borderRadius: '10@ms',
+    gap: '10@ms'
   },
 
   selectedItem: {
@@ -330,25 +330,25 @@ const styles = ScaledSheet.create({
   },
 
   name: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: "600",
     color: "#222"
   },
 
   meta: {
-    fontSize: 12,
+    fontSize: '12@ms',
     color: palette.grey[600]
   },
 
   row: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8
+    gap: '8@ms'
   },
 
   actionGroup: {
     flexDirection: "row",
-    gap: 12
+    gap: '12@ms'
   },
 
   view: {

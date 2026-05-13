@@ -144,7 +144,7 @@ const styles = ScaledSheet.create({
     marginBottom: '20@ms',
   },
   backButton: {
-    width: 24
+    width: '24@ms'
   },
   logoBadge: {
     width: '56@ms',
@@ -175,7 +175,7 @@ const styles = ScaledSheet.create({
   consentArea: {
     backgroundColor: '#fff',
     borderRadius: '16@ms',
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: palette.grey[200],
     paddingVertical: '4@ms',
   },
@@ -192,7 +192,7 @@ const styles = ScaledSheet.create({
     color: '#111',
   },
   separator: {
-    height: 1,
+    height: '1@ms',
     backgroundColor: palette.grey[200],
     marginHorizontal: '16@ms',
   },
@@ -230,7 +230,7 @@ const styles = ScaledSheet.create({
     width: '22@ms',
     height: '22@ms',
     borderRadius: '6@ms',
-    borderWidth: 2,
+    borderWidth: '2@ms',
     borderColor: palette.grey[300],
     alignItems: 'center',
     justifyContent: 'center',

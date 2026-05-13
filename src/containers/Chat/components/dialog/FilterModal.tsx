@@ -1,6 +1,6 @@
 import { palette, TYPO } from '@/theme'
 import React from 'react'
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Text, TouchableOpacity, View } from 'react-native'
 import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 import { Ionicons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -33,14 +33,14 @@ const FilterModal = ({ t, title, open, onClose = () => {} }: Props) => {
 
 const styles = ScaledSheet.create({
   container: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 16,
+    paddingHorizontal: '24@ms',
+    paddingTop: '24@ms',
+    paddingBottom: '16@ms',
   },
   examTitle: {
     ...TYPO.heading3,
     textAlign: 'center',
-    marginBottom: 12
+    marginBottom: '12@ms'
   },
   backButton: {
     flexDirection: 'row',

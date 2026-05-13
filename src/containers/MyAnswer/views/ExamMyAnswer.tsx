@@ -1,5 +1,5 @@
 import React, { FC, useMemo } from 'react'
-import { View, Text, ScrollView, StyleSheet } from 'react-native'
+import { View, Text, ScrollView } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import _ from 'lodash'
 import { CategoryResponse, EffectSize, ExamResult, Question } from '@/utils/types'
@@ -8,6 +8,7 @@ import { formatDataMyAnswer } from '../configs/helpers'
 import { formatTimeDiffV2, formatTimeSecond } from '@/utils/helpers'
 import AnswerItem from '../components/AnswerItem'
 import { palette, primary, red } from '@/theme/colors'
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   data: ExamResult
@@ -212,66 +213,66 @@ const MyAnswer: FC<Props> = ({ data, categories, effectSize, onCreateNote, onCre
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {},
   categorySection: {},
   headerRow: {
     flexDirection: 'row',
-    borderTopRightRadius: 14,
-    borderTopLeftRadius: 14,
+    borderTopRightRadius: '14@ms',
+    borderTopLeftRadius: '14@ms',
     backgroundColor: '#F9FAFB',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
+    paddingVertical: '12@ms',
+    paddingHorizontal: '12@ms',
+    borderBottomWidth: '1@ms',
     borderBottomColor: '#E5E7EB',
-    minHeight: 60
+    minHeight: '60@ms'
   },
   column1: {
     flex: 1.2,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 4
+    paddingHorizontal: '4@ms'
   },
   column2: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 4
+    paddingHorizontal: '4@ms'
   },
   column3: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 4
+    paddingHorizontal: '4@ms'
   },
   column4: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 4
+    paddingHorizontal: '4@ms'
   },
   column5: {
     flex: 1.5,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 4
+    paddingHorizontal: '4@ms'
   },
   headerText: {
-    fontSize: 11,
+    fontSize: '11@ms',
     fontWeight: '600',
     color: '#97A1AF',
     textAlign: 'center'
   },
   skipRateText: {
-    fontSize: 9,
+    fontSize: '9@ms',
     color: red[900]
   },
   categoryHeader: {
     flexDirection: 'row',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: '8@ms',
+    paddingHorizontal: '12@ms',
     backgroundColor: '#F9FAFB',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderBottomColor: '#E5E7EB'
   },
   categoryColumn: {
@@ -281,12 +282,12 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap'
   },
   categoryLabel: {
-    fontSize: 12,
+    fontSize: '12@ms',
     color: '#97A1AF',
-    marginRight: 4
+    marginRight: '4@ms'
   },
   categoryName: {
-    fontSize: 12,
+    fontSize: '12@ms',
     fontWeight: '700',
     color: '#414E62',
     flex: 1
@@ -297,68 +298,68 @@ const styles = StyleSheet.create({
   },
   groupHeader: {
     flexDirection: 'row',
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    minHeight: 32
+    paddingVertical: '4@ms',
+    paddingHorizontal: '12@ms',
+    minHeight: '32@ms'
   },
   groupHeaderColumn1: {
     flex: 1.2,
     justifyContent: 'center',
-    paddingHorizontal: 4
+    paddingHorizontal: '4@ms'
   },
   groupHeaderColumn2: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 4
+    paddingHorizontal: '4@ms'
   },
   groupHeaderColumn3: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 4
+    paddingHorizontal: '4@ms'
   },
   groupHeaderColumn4: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 4
+    paddingHorizontal: '4@ms'
   },
   groupHeaderColumn5: {
     flex: 1.5,
-    paddingHorizontal: 4
+    paddingHorizontal: '4@ms'
   },
   subcategoryText: {
-    fontSize: 12,
+    fontSize: '12@ms',
     fontWeight: '700',
     color: primary.main
   },
   groupHeaderTime: {
-    fontSize: 12,
+    fontSize: '12@ms',
     fontWeight: '700',
     color: primary.main,
     textAlign: 'center'
   },
   questionTypeContainer: {
     flexDirection: 'row',
-    paddingVertical: 4,
-    paddingHorizontal: 12,
+    paddingVertical: '4@ms',
+    paddingHorizontal: '12@ms',
     backgroundColor: '#FEF3C7',
-    minHeight: 28
+    minHeight: '28@ms'
   },
   questionTypeColumn: {
     flex: 1.2,
     justifyContent: 'center',
-    paddingHorizontal: 4
+    paddingHorizontal: '4@ms'
   },
   questionTypeEmptyColumn: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 4
+    paddingHorizontal: '4@ms'
   },
   questionTypeText: {
-    fontSize: 12,
+    fontSize: '12@ms',
     fontWeight: '700',
     color: '#92400E'
   }

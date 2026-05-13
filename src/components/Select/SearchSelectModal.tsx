@@ -1,20 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import {
-  View,
+import { View,
   Text,
   TextInput,
   TouchableOpacity,
   FlatList,
-  StyleSheet,
   ActivityIndicator,
-  SafeAreaView,
-} from 'react-native';
+  SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { palette, TYPO } from '@/theme';
 import SlideDrawerRoot from '../ModalBase/SlideDrawerRoot';
-import { ms } from 'react-native-size-matters';
+import { ScaledSheet, ms} from 'react-native-size-matters';
 
 interface Option {
   label: string;
@@ -78,7 +75,7 @@ const SearchSelectModal: React.FC<SearchSelectModalProps> = ({
             <Ionicons name="arrow-back" size={24} color={palette.grey[900]} />
           </TouchableOpacity>
           <Text style={styles.title}>{title || t('search_find')}</Text>
-          <View style={{ width: 24 }} />
+          <View style={{ width: 24}} />
         </View>
 
         <View style={styles.searchContainer}>
@@ -128,7 +125,7 @@ const SearchSelectModal: React.FC<SearchSelectModalProps> = ({
 
 export default SearchSelectModal;
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF',
@@ -139,7 +136,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: ms(16),
     paddingVertical: ms(12),
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderBottomColor: palette.grey[100],
   },
   backBtn: {
@@ -183,7 +180,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: ms(20),
     paddingVertical: ms(16),
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderBottomColor: palette.grey[50],
   },
   itemText: {

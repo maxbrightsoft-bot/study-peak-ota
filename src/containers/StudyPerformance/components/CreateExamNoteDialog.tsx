@@ -214,7 +214,7 @@ const styles = ScaledSheet.create({
     alignItems: 'center',
     paddingVertical: '16@ms',
     paddingHorizontal: '20@ms',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderColor: palette.grey[100]
   },
 
@@ -239,22 +239,22 @@ const styles = ScaledSheet.create({
     fontSize: '12@ms',
     fontWeight: '400',
     color: '#222222',
-    lineHeight: 20,
-    marginBottom: 10
+    lineHeight: '20@ms',
+    marginBottom: '10@ms'
   },
 
   image: {
-    width: 120,
-    height: 120,
-    borderRadius: 8,
-    borderWidth: 1,
+    width: '120@ms',
+    height: '120@ms',
+    borderRadius: '8@ms',
+    borderWidth: '1@ms',
     borderColor: palette.grey[500]
   },
 
   footer: {
     paddingHorizontal: '20@ms',
     paddingVertical: '16@ms',
-    borderTopWidth: 1,
+    borderTopWidth: '1@ms',
     borderColor: palette.grey[100],
     backgroundColor: '#FFF'
   },
@@ -275,22 +275,22 @@ const styles = ScaledSheet.create({
     color: 'white'
   },
   imageContainer: {
-    width: 120,
-    height: 120,
+    width: '120@ms',
+    height: '120@ms',
     position: 'relative'
   },
   removeImageButton: {
     position: 'absolute',
-    top: -10,
-    right: -10,
+    top: '-10@ms',
+    right: '-10@ms',
     backgroundColor: '#FFF',
-    borderRadius: 12
+    borderRadius: '12@ms'
   },
   uploadPlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 8,
-    borderWidth: 1,
+    width: '120@ms',
+    height: '120@ms',
+    borderRadius: '8@ms',
+    borderWidth: '1@ms',
     borderStyle: 'dashed',
     borderColor: palette.grey[300],
     justifyContent: 'center',
@@ -298,9 +298,9 @@ const styles = ScaledSheet.create({
     backgroundColor: '#F9FAFB'
   },
   uploadText: {
-    fontSize: 12,
+    fontSize: '12@ms',
     color: palette.grey[500],
-    marginTop: 4,
+    marginTop: '4@ms',
     fontWeight: '500'
   }
 })

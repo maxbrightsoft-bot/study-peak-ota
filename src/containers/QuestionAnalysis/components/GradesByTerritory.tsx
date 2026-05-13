@@ -18,19 +18,19 @@ const GradesByTerritory = ({ data, isPrint }: Props) => {
 
   const styles = ScaledSheet.create({
     wrapper: {
-      borderRadius: 14,
+      borderRadius: '14@ms',
       overflow: 'hidden',
       backgroundColor: '#FFF'
     },
     header: {
       justifyContent: 'center',
       backgroundColor: palette.bg[100],
-      paddingVertical: 12,
-      borderBottomWidth: 1,
+      paddingVertical: '12@ms',
+      borderBottomWidth: '1@ms',
       borderColor: palette.grey[100]
     },
     headerText: {
-      fontSize: 14,
+      fontSize: '14@ms',
       fontWeight: 'bold',
       color: '#171719',
       textAlign: 'center'
@@ -40,22 +40,22 @@ const GradesByTerritory = ({ data, isPrint }: Props) => {
     },
     row: {
       flexDirection: 'row',
-      minHeight: 44,
+      minHeight: '44@ms',
       backgroundColor: '#FFF'
     },
     headerRow: {
       backgroundColor: palette.bg[100],
-      borderBottomWidth: 1,
+      borderBottomWidth: '1@ms',
       borderBottomColor: palette.grey[100]
     },
     rowBorder: {
-      borderBottomWidth: 1,
+      borderBottomWidth: '1@ms',
       borderBottomColor: palette.grey[200]
     },
     cell: {
-      padding: 12,
+      padding: '12@ms',
       justifyContent: 'center',
-      borderRightWidth: 1,
+      borderRightWidth: '1@ms',
       borderRightColor: palette.grey[100]
     },
     cellCategory: {
@@ -66,7 +66,7 @@ const GradesByTerritory = ({ data, isPrint }: Props) => {
       alignItems: 'flex-end'
     },
     cellLast: {
-      borderRightWidth: 1,
+      borderRightWidth: '1@ms',
       borderRightColor: palette.grey[100]
     },
     headerCell: {
@@ -75,12 +75,12 @@ const GradesByTerritory = ({ data, isPrint }: Props) => {
       alignItems: 'center'
     },
     headerCellText: {
-      fontSize: 13,
+      fontSize: '13@ms',
       fontWeight: 600,
       color: palette.grey[500]
     },
     cellText: {
-      fontSize: 12,
+      fontSize: '12@ms',
       fontWeight: '500',
       color: palette.grey[700]
     },
@@ -92,7 +92,7 @@ const GradesByTerritory = ({ data, isPrint }: Props) => {
       textAlign: 'center'
     },
     noDataContainer: {
-      paddingVertical: 20,
+      paddingVertical: '20@ms',
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: '#FFF'
@@ -100,7 +100,7 @@ const GradesByTerritory = ({ data, isPrint }: Props) => {
     noDataText: {
       color: palette.grey[500],
       textAlign: 'center',
-      fontSize: 14
+      fontSize: '14@ms'
     }
   })
 

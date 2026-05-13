@@ -10,6 +10,7 @@ import { palette } from '@/theme/colors'
 import { AlarmType } from '@/utils/enums'
 import PlusIcon from '@/assets/iconJSX/plus'
 import ReduceIcon from '@/assets/iconJSX/reduce'
+import { ScaledSheet } from 'react-native-size-matters'
 
 export interface AlarmClockPanelProps {
   subjects: SubjectTimerResponse[]
@@ -130,28 +131,28 @@ const AlarmClockPanel: FC<AlarmClockPanelProps> = ({
 
 export default AlarmClockPanel
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
-    paddingVertical: 20,
-    gap: 16
+    paddingVertical: '20@ms',
+    gap: '16@ms'
   },
 
   topRow: {
-    gap: 12,
-    marginBottom: 40
+    gap: '12@ms',
+    marginBottom: '40@ms'
   },
 
   setTime: {
     flex: 1,
     justifyContent: 'center',
-    gap: 16
+    gap: '16@ms'
   },
 
   setTimeLabel: {
     textAlign: 'center',
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '500',
-    lineHeight: 22,
+    lineHeight: '22@ms',
     color: palette.grey[500]
   },
   flex: {
@@ -170,18 +171,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: palette.main[600],
-    borderRadius: 100,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    gap: 2
+    borderRadius: '100@ms',
+    paddingHorizontal: '10@ms',
+    paddingVertical: '4@ms',
+    gap: '2@ms'
   },
 
   minutesText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '500',
-    lineHeight: 22,
+    lineHeight: '22@ms',
     color: palette.main[600]
   },
 
@@ -190,48 +191,48 @@ const styles = StyleSheet.create({
   },
 
   startBtn: {
-    marginTop: 20,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    marginTop: '20@ms',
+    paddingVertical: '14@ms',
+    paddingHorizontal: '16@ms',
     justifyContent: 'center',
     backgroundColor: palette.main[600],
-    borderRadius: 12
+    borderRadius: '12@ms'
   },
 
   startBtnLabel: {
-    fontSize: 13,
+    fontSize: '13@ms',
     fontWeight: '500',
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: '22@ms',
     color: '#FFF'
   },
 
   quickRow: {
-    gap: 10,
-    maxHeight: 50
+    gap: '10@ms',
+    maxHeight: '50@ms'
   },
 
   quickBtn: {
     flex: 1,
-    borderRadius: 8,
+    borderRadius: '8@ms',
     backgroundColor: palette.grey[100],
-    paddingVertical: 7,
+    paddingVertical: '7@ms',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 12
+    paddingHorizontal: '12@ms'
   },
 
   quickBtnLabel: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '600',
-    lineHeight: 22,
+    lineHeight: '22@ms',
     color: palette.grey[900]
   },
 
   subjectList: {},
 
   subjectBtnLabel: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '600'
   },
 
@@ -239,22 +240,22 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     backgroundColor: palette.sub[50],
-    paddingVertical: 11,
+    paddingVertical: '11@ms',
     justifyContent: 'center',
-    gap: 4,
-    borderRadius: 6,
-    marginBottom: 8
+    gap: '4@ms',
+    borderRadius: '6@ms',
+    marginBottom: '8@ms'
   },
 
   subjectText: {
-    fontSize: 12,
+    fontSize: '12@ms',
     fontWeight: '500',
     flexShrink: 1,
     color: palette.grey[500]
   },
 
   subjectMinutes: {
-    fontSize: 12,
+    fontSize: '12@ms',
     fontWeight: '500',
     color: palette.sub[400],
     textAlign: 'center'

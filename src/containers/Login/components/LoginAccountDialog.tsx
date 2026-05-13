@@ -10,6 +10,7 @@ import CustomTouchable from '@/components/Button/CustomTouchable'
 import CommonDialog from '@/components/ModalBase/CommonDialog'
 import ForgotPasswordDialog from './ForgotPasswordDialog'
 import Select from '@/components/Select/CustomSelect'
+import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   visible: boolean
@@ -257,25 +258,25 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
 
 export default LoginAccountDialog
 
-const styles = StyleSheet.create({
-  form: { gap: 12 },
+const styles = ScaledSheet.create({
+  form: { gap: '12@ms' },
 
   label: {
-    fontSize: 13,
+    fontSize: '13@ms',
     fontWeight: '500',
     color: palette.grey[700],
-    marginBottom: 8,
+    marginBottom: '8@ms',
   },
 
   tabContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: '16@ms',
   },
 
   tab: {
-    marginHorizontal: 12,
-    fontSize: 16,
+    marginHorizontal: '12@ms',
+    fontSize: '16@ms',
     color: palette.grey[500],
   },
 
@@ -285,11 +286,11 @@ const styles = StyleSheet.create({
   },
 
   primaryButton: {
-    marginTop: 12,
+    marginTop: '12@ms',
     backgroundColor: palette.main[600],
-    height: 50,
-    paddingHorizontal: 24,
-    borderRadius: 10,
+    height: '50@ms',
+    paddingHorizontal: '24@ms',
+    borderRadius: '10@ms',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -301,9 +302,9 @@ const styles = StyleSheet.create({
 
   secondaryButton: {
     backgroundColor: palette.grey[300],
-    paddingHorizontal: 16,
-    height: 50,
-    borderRadius: 10,
+    paddingHorizontal: '16@ms',
+    height: '50@ms',
+    borderRadius: '10@ms',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -312,7 +313,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: "center",
     justifyContent: 'space-between',
-    gap: 8,
+    gap: '8@ms',
   },
 
   stepText: {

@@ -484,53 +484,53 @@ const styles = ScaledSheet.create({
     justifyContent: 'space-between',
     paddingVertical: '16@ms',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
+    paddingHorizontal: '20@ms',
+    borderBottomWidth: '1@ms',
     zIndex: 10,
     borderColor: palette.grey[100],
     backgroundColor: '#FFF',
-    elevation: 5
+    elevation: '5@ms'
   },
   title: {
-    fontSize: 16,
+    fontSize: '16@ms',
     color: '#222222',
     fontWeight: '600'
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '500',
     color: palette.grey[400]
   },
   currentQuestion: {
     fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: '14@ms',
     color: palette.grey[900]
   },
   scrollContainer: {
-    marginTop: 20,
-    paddingHorizontal: 24,
-    paddingBottom: 200,
-    gap: 24
+    marginTop: '20@ms',
+    paddingHorizontal: '24@ms',
+    paddingBottom: '200@ms',
+    gap: '24@ms'
   },
   footer: {
-    borderTopRightRadius: 12,
-    borderTopLeftRadius: 12,
+    borderTopRightRadius: '12@ms',
+    borderTopLeftRadius: '12@ms',
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    gap: 20,
+    gap: '20@ms',
     backgroundColor: '#FFF',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -6 },
+    shadowOffset: { width: 0, height: '-6@ms' },
     shadowOpacity: 0.1,
-    shadowRadius: 14,
-    elevation: 10,
+    shadowRadius: '14@ms',
+    elevation: '10@ms',
     zIndex: 20
   },
   footerTop: {
-    paddingVertical: 14,
-    paddingHorizontal: 20,
+    paddingVertical: '14@ms',
+    paddingHorizontal: '20@ms',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center'
@@ -538,7 +538,7 @@ const styles = ScaledSheet.create({
   finishText: {
     color: '#222222',
     fontWeight: '500',
-    fontSize: 14
+    fontSize: '14@ms'
   },
   timeContainer: {
     flexDirection: 'row',
@@ -548,34 +548,34 @@ const styles = ScaledSheet.create({
   timeLeft: {
     color: '#222222',
     fontWeight: '600',
-    fontSize: 16
+    fontSize: '16@ms'
   },
   totalTime: {
     color: '#222222',
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '600'
   },
   navRow: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    paddingBottom: 34,
-    gap: 8,
+    paddingVertical: '12@ms',
+    paddingHorizontal: '20@ms',
+    paddingBottom: '34@ms',
+    gap: '8@ms',
     flexDirection: 'row',
     justifyContent: 'space-between'
   },
   actionTitle: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: '14@ms',
+    lineHeight: '22@ms',
     color: '#222222',
     fontWeight: '500'
   },
   navButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-    borderRadius: 26,
-    borderWidth: 1,
+    paddingVertical: '7@ms',
+    paddingHorizontal: '12@ms',
+    borderRadius: '26@ms',
+    borderWidth: '1@ms',
     borderColor: '#222222'
   }
 })

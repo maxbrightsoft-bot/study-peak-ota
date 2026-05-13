@@ -184,7 +184,7 @@ const styles = ScaledSheet.create({
   card: {
     padding: '16@ms',
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: '16@ms',
   },
   header: {
     flexDirection: 'row',
@@ -200,7 +200,7 @@ const styles = ScaledSheet.create({
   iconWrapper: {
     backgroundColor: palette.main[50],
     padding: '4@ms',
-    borderRadius: 999,
+    borderRadius: '999@ms',
   },
   title: {
     ...TYPO.heading3,
@@ -209,18 +209,20 @@ const styles = ScaledSheet.create({
   subtitle: {
     fontSize: '11@ms',
     color: palette.main[600],
+    textAlign: 'center',
     fontWeight: '500',
   },
   categoryRow: {
     flexDirection: 'row',
     gap: '8@ms',
+    flexWrap: 'wrap',
     marginBottom: '20@ms',
   },
   categoryBtn: {
     flex: 1,
     paddingVertical: '8@ms',
     backgroundColor: palette.main[50],
-    borderRadius: 8,
+    borderRadius: '8@ms',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -252,7 +254,7 @@ const styles = ScaledSheet.create({
     backgroundColor: palette.main[600],
     paddingVertical: '10@ms',
     paddingHorizontal: '18@ms',
-    borderRadius: 999,
+    borderRadius: '999@ms',
     gap: '6@ms',
   },
   startBtnText: {

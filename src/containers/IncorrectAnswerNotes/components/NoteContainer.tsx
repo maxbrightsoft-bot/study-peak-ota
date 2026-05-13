@@ -59,19 +59,19 @@ const NotesContainer: FC<NotesContainerProps> = ({
 const styles = ScaledSheet.create({
   container: {
     flexDirection: 'column',
-    borderRadius: 6,
-    borderWidth: 1,
+    borderRadius: '6@ms',
+    borderWidth: '1@ms',
     borderColor: palette.grey[100],
   },
   text: {
     color: palette.grey[500],
-    fontSize:  16, 
+    fontSize: '16@ms', 
     fontWeight: 600,
-    marginTop: 160,
+    marginTop: '160@ms',
     textAlign: "center"
   },
   itemWrapper: {
-    marginBottom: 16
+    marginBottom: '16@ms'
   }
 })
 

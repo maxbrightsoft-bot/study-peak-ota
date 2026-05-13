@@ -8,6 +8,7 @@ import { FontAwesome6 } from '@expo/vector-icons'
 import NoteDialog from './NoteDialog'
 import GroupedNoteCard from './GroupedNoteCard'
 import FilterBottomSheet from './FilterBottomSheet'
+import { ScaledSheet } from 'react-native-size-matters'
 
 export default function IncorrectNotes({ contentRef }: { contentRef?: React.RefObject<FlatList> }) {
   const {
@@ -167,19 +168,19 @@ export default function IncorrectNotes({ contentRef }: { contentRef?: React.RefO
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   safe: {
     height: '100%',
     backgroundColor: '#F9FAFB'
   },
   fixedHeader: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: '20@ms',
+    paddingTop: '20@ms',
     backgroundColor: '#F9FAFB',
   },
   list: {
-    paddingHorizontal: 20,
-    paddingBottom: 200
+    paddingHorizontal: '20@ms',
+    paddingBottom: '200@ms'
   },
   listEmpty: {
     flex: 1,
@@ -189,63 +190,63 @@ const styles = StyleSheet.create({
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
+    paddingVertical: '60@ms',
   },
   emptyText: {
-    marginTop: 16,
-    fontSize: 15,
+    marginTop: '16@ms',
+    fontSize: '15@ms',
     color: '#9CA3AF',
     fontWeight: '500',
   },
   topHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: '16@ms',
   },
   searchFlex: {
     flex: 1,
     backgroundColor: '#F9FAFB',
-    marginRight: 10,
+    marginRight: '10@ms',
   },
   filterBtn: {
-    width: 48,
-    height: 48,
+    width: '48@ms',
+    height: '48@ms',
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
+    borderRadius: '24@ms',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: '#F3F4F6',
     position: 'relative',
   },
   activeFilterDot: {
     position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    top: '12@ms',
+    right: '12@ms',
+    width: '8@ms',
+    height: '8@ms',
+    borderRadius: '4@ms',
     backgroundColor: '#EF4444',
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: '#FFFFFF',
   },
   chipScroll: {
-    marginBottom: 20,
+    marginBottom: '20@ms',
   },
   chipScrollContent: {
-    paddingRight: 20,
+    paddingRight: '20@ms',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: '8@ms',
   },
   subjectChip: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderWidth: 1,
+    borderRadius: '20@ms',
+    paddingHorizontal: '16@ms',
+    paddingVertical: '10@ms',
+    borderWidth: '1@ms',
     borderColor: '#F3F4F6',
   },
   subjectChipActive: {
@@ -253,13 +254,13 @@ const styles = StyleSheet.create({
     borderColor: '#7C3AED',
   },
   chipDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 6,
+    width: '6@ms',
+    height: '6@ms',
+    borderRadius: '3@ms',
+    marginRight: '6@ms',
   },
   subjectChipText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     color: '#4B5563',
     fontWeight: '500'
   },

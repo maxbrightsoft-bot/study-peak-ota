@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native'
+import { View, Text, Platform, TouchableOpacity } from 'react-native'
 import { palette, TYPO } from '@/theme'
 import GoogleLoginButton from '../components/GoogleLoginButton'
 import LogoEN from '@/assets/icons/with-slogan_full-logo_eng.svg'
@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next'
 import Checkbox from '@/components/Button/Checkbox'
 import { setDataStorage } from '@/utils/storage'
 import { KEEP_LOGIN } from '@/utils/constants'
+import { ScaledSheet } from 'react-native-size-matters'
 // import PhoneNumberLoginButton from '../components/PhoneNumberLoginButton'
 
 const Login = () => {
@@ -35,10 +36,10 @@ const Login = () => {
       <View style={styles.content}>
         {isEnglish ? <LogoEN style={styles.logo} /> : <LogoKO style={styles.logo} />}
         <View style={styles.text1}>
-          <Text style={{ ...TYPO.body3, ...styles.title }}>
+          <Text style={[TYPO.body3, styles.title ]}>
             {t('study_face_maker_description_1')}
             {'\n'}
-            <Text style={{ ...TYPO.body3, ...styles.title }}>{t('study_face_maker_description_2')}</Text>
+            <Text style={[TYPO.body3, styles.title ]}>{t('study_face_maker_description_2')}</Text>
           </Text>
         </View>
 
@@ -67,43 +68,43 @@ const Login = () => {
 
 export default Login
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff'
   },
   logo: {
     textAlign: 'center',
-    width: 216,
-    height: 71,
+    width: '216@ms',
+    height: '71@ms',
   },
   content: {
     display: 'flex',
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 24
+    paddingHorizontal: '24@ms'
   },
   text1: {
-    marginTop: 20,
-    marginBottom: 8
+    marginTop: '20@ms',
+    marginBottom: '8@ms'
   },
   title: {
     textAlign: 'center',
     color: palette.grey[900],
-    paddingHorizontal: 45
+    paddingHorizontal: '45@ms'
   },
   bold: {
     fontWeight: 'bold'
   },
   description: {
     textAlign: 'center',
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: 600,
     color: palette.grey[900],
-    lineHeight: 23,
-    marginBottom: 100,
-    paddingHorizontal: 45
+    lineHeight: '23@ms',
+    marginBottom: '100@ms',
+    paddingHorizontal: '45@ms'
   },
   highlight: {
     color: palette.main[500],
@@ -112,13 +113,13 @@ const styles = StyleSheet.create({
   keepLoginContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 8,
+    gap: '8@ms',
+    marginTop: '8@ms',
     alignSelf: 'flex-start',
-    paddingVertical: 4,
+    paddingVertical: '4@ms',
   },
   keepLoginText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     color: palette.grey[700],
     fontWeight: '500'
   }

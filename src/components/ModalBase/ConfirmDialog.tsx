@@ -93,7 +93,7 @@ const styles = ScaledSheet.create({
     paddingVertical: '14@ms'
   },
   title: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: 600,
     color: '#222222'
   },
@@ -105,20 +105,20 @@ const styles = ScaledSheet.create({
   },
   text: {
     fontWeight: '600',
-    marginBottom: 10,
-    fontSize: 16,
+    marginBottom: '10@ms',
+    fontSize: '16@ms',
     color: '#222222'
   },
   confirmHint: {
-    marginBottom: 8,
+    marginBottom: '8@ms',
     color: '#666'
   },
   input: {
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: '#ccc',
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    borderRadius: '6@ms',
+    paddingHorizontal: '12@ms',
+    paddingVertical: '8@ms',
     color: '#222222'
   },
   inputError: {
@@ -144,20 +144,20 @@ const styles = ScaledSheet.create({
   },
   cancelButton: {
     borderWidth: 0,
-    borderRadius: 999
+    borderRadius: '999@ms'
   },
   confirmButton: {
     backgroundColor: palette.main[600],
-    borderRadius: 6
+    borderRadius: '6@ms'
   },
   cancelButtonText: {
     ...TYPO.button2,
-    lineHeight: 22,
+    lineHeight: '22@ms',
     color: palette.main[600]
   },
   confirmButtonText: {
     ...TYPO.button2,
-    lineHeight: 22,
+    lineHeight: '22@ms',
     color: '#FFF'
   },
   disabledButton: {

@@ -4,6 +4,7 @@ import { TouchableOpacity, Text, StyleSheet } from 'react-native'
 import IconGoogle from '@/assets/icons/google.svg'
 import { palette } from '@/theme'
 import { useTranslation } from 'react-i18next'
+import { ScaledSheet } from 'react-native-size-matters'
 
 const GoogleLoginButton = ({ loginWithGoogle }: { loginWithGoogle: () => void }) => {
   const { t } = useTranslation()
@@ -17,24 +18,24 @@ const GoogleLoginButton = ({ loginWithGoogle }: { loginWithGoogle: () => void })
 
 export default GoogleLoginButton
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   googleButton: {
     flexDirection: 'row',
     alignItems: 'center',
     borderColor: palette.grey[700],
-    borderWidth: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 6,
+    borderWidth: '1@ms',
+    paddingVertical: '12@ms',
+    paddingHorizontal: '16@ms',
+    borderRadius: '6@ms',
     justifyContent: 'center'
   },
   googleIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 8
+    width: '20@ms',
+    height: '20@ms',
+    marginRight: '8@ms'
   },
   googleButtonText: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '500',
     color: "#222222"
   }

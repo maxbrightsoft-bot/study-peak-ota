@@ -116,12 +116,12 @@ const styles = ScaledSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: '20@ms',
     paddingVertical: '16@ms',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderBottomColor: palette.grey[200],
     backgroundColor: '#fff'
   },
   container: {
-    paddingTop: 16,
+    paddingTop: '16@ms',
     backgroundColor: palette.bg[100],
     flex: 1
   },
@@ -133,30 +133,30 @@ const styles = ScaledSheet.create({
   },
 
   badge: {
-    height: 10,
-    width: 10,
-    borderRadius: 255,
+    height: '10@ms',
+    width: '10@ms',
+    borderRadius: '255@ms',
     backgroundColor: palette.main[600],
     position: 'absolute',
     top: 0,
-    right: 10
+    right: '10@ms'
   },
 
   backButton: {
-    width: 24
+    width: '24@ms'
   },
   tabsWrapper: {
     backgroundColor: '#fff',
-    paddingBottom: 8,
+    paddingBottom: '8@ms',
   },
   tabsContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
+    paddingHorizontal: '16@ms',
   },
   tab: {
     paddingHorizontal: '12@ms',
     paddingVertical: '10@ms',
-    marginRight: 8,
+    marginRight: '8@ms',
     position: 'relative'
   },
   activeIndicator: {
@@ -164,10 +164,10 @@ const styles = ScaledSheet.create({
     bottom: 0,
     left: '12@ms',
     right: '12@ms',
-    height: 3,
+    height: '3@ms',
     backgroundColor: palette.main[600],
-    borderTopLeftRadius: 3,
-    borderTopRightRadius: 3
+    borderTopLeftRadius: '3@ms',
+    borderTopRightRadius: '3@ms'
   },
   tabActive: {
     color: palette.main[600]
@@ -184,32 +184,32 @@ const styles = ScaledSheet.create({
   },
 
   listContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 32,
-    gap: 12
+    paddingHorizontal: '16@ms',
+    paddingTop: '16@ms',
+    paddingBottom: '32@ms',
+    gap: '12@ms'
   },
 
   item: {
     flexDirection: 'row',
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: '12@ms',
     padding: '16@ms',
   },
 
   itemIconContainer: {
     width: '40@ms',
     height: '40@ms',
-    borderRadius: 20,
+    borderRadius: '20@ms',
     backgroundColor: palette.main[50],
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12
+    marginRight: '12@ms'
   },
 
   itemContent: {
     flex: 1,
-    gap: 6,
+    gap: '6@ms',
     justifyContent: 'center'
   },
 
@@ -217,19 +217,19 @@ const styles = ScaledSheet.create({
     fontSize: '16@ms',
     fontWeight: '700',
     color: palette.grey[900],
-    marginBottom: 2
+    marginBottom: '2@ms'
   },
 
   teacherRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6
+    gap: '6@ms'
   },
   
   dateRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6
+    gap: '6@ms'
   },
 
   teacher: {
@@ -247,8 +247,8 @@ const styles = ScaledSheet.create({
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 60,
-    gap: 12
+    paddingTop: '60@ms',
+    gap: '12@ms'
   },
 
   emptyText: {

@@ -190,46 +190,46 @@ const SubjectProgress = ({ data, loading, isPrint }: Props) => {
 
 const styles = ScaledSheet.create({
   container: {
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderBottomColor: palette.grey[100],
     padding: '16@ms',
     gap: '16@ms'
   },
   loadingContainer: {
-    height: 400,
+    height: '400@ms',
     justifyContent: 'center',
     alignItems: 'center'
   },
   title: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: 700,
     textAlign: 'center',
     color: palette.grey[900],
-    marginBottom: 8
+    marginBottom: '8@ms'
   },
   grid: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     flexWrap: 'wrap',
-    rowGap: 16
+    rowGap: '16@ms'
   },
   gridItem: {
     display: 'flex',
     width: '50%',
     flexDirection: 'row',
     justifyContent: 'center',
-    paddingVertical: 4
+    paddingVertical: '4@ms'
   },
   subjectItemContainer: {
     display: 'flex',
     flexDirection: 'row',
-    gap: 16
+    gap: '16@ms'
   },
   circularProgressWrapper: {
   },
   subjectInfo: {
-    width: 58,
+    width: '58@ms',
     alignItems: 'flex-start',
     justifyContent: 'center',
   },
@@ -249,20 +249,20 @@ const styles = ScaledSheet.create({
     alignItems: 'center'
   },
   hoursValue: {
-    fontSize: 18,
+    fontSize: '18@ms',
     fontWeight: 700,
     color: "#222222",
     textAlign: 'center'
   },
   hoursUnit: {
-    fontSize: 12,
+    fontSize: '12@ms',
     fontWeight: 400,
     color: palette.grey[500]
   },
   subjectName: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: 700,
-    lineHeight: 24,
+    lineHeight: '24@ms',
     color: palette.grey[900]
   },
   changeRow: {
@@ -272,27 +272,27 @@ const styles = ScaledSheet.create({
     textAlign: 'center'
   },
   changeText: {
-    marginTop: 4,
+    marginTop: '4@ms',
     fontWeight: 600,
-    fontSize: 12,
-    lineHeight: 20
+    fontSize: '12@ms',
+    lineHeight: '20@ms'
   },
   tooltipContainer: {
     position: 'relative'
   },
   tooltip: {
     position: 'absolute',
-    top: -30,
-    left: -20,
+    top: '-30@ms',
+    left: '-20@ms',
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+    paddingHorizontal: '8@ms',
+    paddingVertical: '4@ms',
+    borderRadius: '4@ms',
     zIndex: 1000
   },
   tooltipText: {
     color: '#FFF',
-    fontSize: 12
+    fontSize: '12@ms'
   }
 })
 

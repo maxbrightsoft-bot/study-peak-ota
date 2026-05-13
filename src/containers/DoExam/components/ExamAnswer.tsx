@@ -140,63 +140,63 @@ const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer
 const styles = ScaledSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    padding: '20@ms',
     justifyContent: 'center',
     alignItems: 'stretch',
     backgroundColor: '#f5f5f5'
   },
   question: {
-    fontSize: 20,
+    fontSize: '20@ms',
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: '20@ms',
     textAlign: 'center'
   },
   optionButton: {
     backgroundColor: '#e0e0e0',
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 10
+    padding: '15@ms',
+    borderRadius: '8@ms',
+    marginBottom: '10@ms'
   },
   optionWrap: {
-    borderRadius: 255,
-    borderWidth: 1,
-    width: 18,
-    height: 18,
+    borderRadius: '255@ms',
+    borderWidth: '1@ms',
+    width: '18@ms',
+    height: '18@ms',
     alignItems: 'center',
     justifyContent: 'center'
   },
   optionText: {
-    fontSize: 13
+    fontSize: '13@ms'
   },
   feedbackContainer: {
-    marginTop: 20,
+    marginTop: '20@ms',
     alignItems: 'center'
   },
   feedbackText: {
-    fontSize: 18,
+    fontSize: '18@ms',
     fontWeight: 'bold',
-    marginBottom: 15,
+    marginBottom: '15@ms',
     textAlign: 'center'
   },
   nextButton: {
     backgroundColor: '#007bff',
-    padding: 15,
-    borderRadius: 8
+    padding: '15@ms',
+    borderRadius: '8@ms'
   },
   nextButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: 'bold',
     textAlign: 'center'
   },
   finishButton: {
     backgroundColor: '#28a745',
-    padding: 15,
-    borderRadius: 8
+    padding: '15@ms',
+    borderRadius: '8@ms'
   },
   finishButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: 'bold',
     textAlign: 'center'
   },
@@ -204,44 +204,44 @@ const styles = ScaledSheet.create({
     alignItems: 'center'
   },
   resultsText: {
-    fontSize: 24,
+    fontSize: '24@ms',
     fontWeight: 'bold',
-    marginBottom: 20
+    marginBottom: '20@ms'
   },
   scoreText: {
-    fontSize: 18,
-    marginBottom: 15
+    fontSize: '18@ms',
+    marginBottom: '15@ms'
   },
   resetButton: {
     backgroundColor: '#6c757d',
-    padding: 15,
-    borderRadius: 8
+    padding: '15@ms',
+    borderRadius: '8@ms'
   },
   answerRow: {
     flexDirection: 'row',
-    gap: 16,
+    gap: '16@ms',
     justifyContent: 'space-between'
   },
   answerButton: {
     flex: 1,
-    height: 50,
-    borderRadius: 25,
-    borderWidth: 1,
+    height: '50@ms',
+    borderRadius: '25@ms',
+    borderWidth: '1@ms',
     borderColor: '#EAEAEA',
     justifyContent: 'center',
     alignItems: 'center'
   },
   navRow: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingVertical: '12@ms',
+    paddingHorizontal: '20@ms',
     flexDirection: 'row',
-    paddingBottom: 34,
-    gap: 8,
+    paddingBottom: '34@ms',
+    gap: '8@ms',
     justifyContent: 'space-between'
   },
   actionTitle: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: '14@ms',
+    lineHeight: '22@ms',
     color: '#222222',
     fontWeight: 500
   },
@@ -252,16 +252,16 @@ const styles = ScaledSheet.create({
   navButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-    borderRadius: 26,
-    borderWidth: 1,
+    gap: '6@ms',
+    paddingVertical: '7@ms',
+    paddingHorizontal: '12@ms',
+    borderRadius: '26@ms',
+    borderWidth: '1@ms',
     borderColor: '#222222'
   },
   resetButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: 'bold',
     textAlign: 'center'
   },

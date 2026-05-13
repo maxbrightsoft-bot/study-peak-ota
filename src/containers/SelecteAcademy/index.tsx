@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native'
 import { Button } from 'react-native-paper'
 import useSelectAcademy from './hooks/useSelectAcademy'
 import Select from '@/components/Select/CustomSelect'
+import { ScaledSheet } from 'react-native-size-matters'
 
 const SelectAcademy = () => {
   const { academy, academyOptions, handleSwitchAcademy, handleSelectedAcademy } = useSelectAcademy()
@@ -49,22 +50,22 @@ const SelectAcademy = () => {
 
 export default SelectAcademy
 
-const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 24 },
+const styles = ScaledSheet.create({
+  container: { flex: 1, paddingHorizontal: '24@ms' },
   content: {
     justifyContent: 'center'
   },
-  title: { ...TYPO.heading1, color: palette.main[600], marginBottom: 80, marginTop: 156 },
+  title: { ...TYPO.heading1, color: palette.main[600], marginBottom: '80@ms', marginTop: '156@ms' },
   label: { ...TYPO.caption },
   input: {
-    fontSize: 16,
-    paddingVertical: 4
+    fontSize: '16@ms',
+    paddingVertical: '4@ms'
   },
-  error: { color: 'red', marginBottom: 12 },
+  error: { color: 'red', marginBottom: '12@ms' },
   button: {
     backgroundColor: palette.main[600],
-    padding: 16,
-    borderRadius: 6,
+    padding: '16@ms',
+    borderRadius: '6@ms',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center'
@@ -76,12 +77,12 @@ const styles = StyleSheet.create({
   labelText: {
     ...TYPO.caption,
     color: palette.grey[900],
-    marginBottom: 8
+    marginBottom: '8@ms'
   },
   helperText: {
     ...TYPO.caption,
     color: palette.grey[500],
-    marginTop: 4
+    marginTop: '4@ms'
   },
   checkbox: {
     padding: 0
@@ -90,18 +91,18 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8
+    gap: '8@ms'
   },
   containerSelect: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8
+    gap: '8@ms'
   },
   cancelButton: {
-    borderRadius: 12,
-    padding: 8,
-    marginTop: 24,
+    borderRadius: '12@ms',
+    padding: '8@ms',
+    marginTop: '24@ms',
     borderColor: palette.main[600]
   }
 })

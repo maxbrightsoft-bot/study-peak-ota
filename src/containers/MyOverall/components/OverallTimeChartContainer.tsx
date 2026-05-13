@@ -1,9 +1,10 @@
 import React, { useRef, FC } from 'react';
-import { View, ActivityIndicator, StyleSheet, FlatList } from 'react-native';
+import { View, ActivityIndicator, FlatList } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import OverallTimeChart from './OverallTimeChart';
 import OverallTabHeader from './OverallHeaderTab';
 import { QuestionTimeCategoryData } from '@/utils/types';
+import { ScaledSheet } from 'react-native-size-matters'
 
 export interface OverallTimeChartContainerProps {
   isLoading: boolean;
@@ -60,24 +61,24 @@ const OverallTimeChartContainer: FC<OverallTimeChartContainerProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
   },
   loadingContainer: {
     width: '100%',
   },
   loader: {
-    height: 300,
+    height: '300@ms',
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
   },
   listContent: {
-    paddingBottom: 16,
+    paddingBottom: '16@ms',
   },
   printItem: {
     width: '50%',
-    padding: 8,
+    padding: '8@ms',
   },
   fullItem: {
     width: '100%',

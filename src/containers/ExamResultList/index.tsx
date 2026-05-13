@@ -155,9 +155,9 @@ const styles = ScaledSheet.create({
     backgroundColor: palette.grey[50]
   },
   header: {
-    paddingVertical: 20,
-    paddingHorizontal: 18,
-    borderBottomWidth: 1,
+    paddingVertical: '20@ms',
+    paddingHorizontal: '18@ms',
+    borderBottomWidth: '1@ms',
     backgroundColor: '#FFF',
     borderColor: palette.grey[100],
     flexDirection: 'row',
@@ -165,7 +165,7 @@ const styles = ScaledSheet.create({
     justifyContent: 'space-between'
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: '20@ms',
     fontWeight: 600,
     color: '#222222'
   },
@@ -210,7 +210,7 @@ const styles = ScaledSheet.create({
     padding: '18@ms',
     marginHorizontal: '16@ms',
     marginBottom: '14@ms',
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: palette.grey[100]
   },
 

@@ -71,7 +71,7 @@ const styles = ScaledSheet.create({
     paddingVertical: '14@ms'
   },
   title: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: 600,
     color: '#222222'
   },
@@ -83,7 +83,7 @@ const styles = ScaledSheet.create({
     flexShrink: 1
   },
   input: {
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: palette.grey[300],
     borderRadius: '8@ms',
     padding: '12@ms',
@@ -110,20 +110,20 @@ const styles = ScaledSheet.create({
   },
   cancelButton: {
     borderWidth: 0,
-    borderRadius: 999,
+    borderRadius: '999@ms',
   },
   confirmButton: {
     backgroundColor: palette.main[600],
-    borderRadius: 6
+    borderRadius: '6@ms'
   },
   cancelButtonText: {
     ...TYPO.button2,
-    lineHeight: 22,
+    lineHeight: '22@ms',
     color: palette.main[600]
   },
   confirmButtonText: {
     ...TYPO.button2,
-    lineHeight: 22,
+    lineHeight: '22@ms',
     color: '#FFF'
   }
 })

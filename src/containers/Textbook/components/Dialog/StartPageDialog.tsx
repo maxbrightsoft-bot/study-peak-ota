@@ -1,10 +1,11 @@
 import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
 import { Formik } from 'formik'
 import CommonDialog from '@/components/ModalBase/CommonDialog'
 import { palette } from '@/theme'
 import CustomSelect from '@/components/Select/CustomSelect'
 import Loading from '@/components/Loading'
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   open: boolean
@@ -45,7 +46,7 @@ const StartPageDialog = ({ t, loading, onClose, open, options, onSubmit }: Props
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   modalOverlay: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
@@ -53,7 +54,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     backgroundColor: 'white',
-    borderRadius: 8,
+    borderRadius: '8@ms',
     overflow: 'hidden'
   },
   header: {
@@ -62,46 +63,46 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   title: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: 'bold',
     color: '#202B37'
   },
   label: {
-    fontSize: 13,
+    fontSize: '13@ms',
     fontWeight: '600',
     color: '#111827',
-    marginBottom: 8
+    marginBottom: '8@ms'
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
-    marginBottom: -24
+    paddingVertical: '12@ms',
+    marginBottom: '-24@ms'
   },
   cancelButton: {
-    padding: 8
+    padding: '8@ms'
   },
   cancelButtonText: {
     color: palette.main[600],
     fontWeight: 'bold',
-    fontSize: 14,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    fontSize: '14@ms',
+    paddingVertical: '14@ms',
+    paddingHorizontal: '16@ms',
   },
   submitButton: {
     backgroundColor: palette.main[600],
-    borderRadius: 14,
-    minWidth: 120,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    borderRadius: '14@ms',
+    minWidth: '120@ms',
+    paddingVertical: '14@ms',
+    paddingHorizontal: '16@ms',
     alignItems: 'center'
   },
   submitButtonText: {
     color: 'white',
     fontWeight: 'bold',
-    fontSize: 14,
-    lineHeight: 22
+    fontSize: '14@ms',
+    lineHeight: '22@ms'
   }
 })
 

@@ -4,6 +4,7 @@ import { View, StyleSheet, ScrollView } from 'react-native'
 import AlarmClockPanel, { AlarmClockPanelProps } from './AlarmClockPanel'
 import AlarmClock, { AlarmClockProps } from './AlarmClock'
 import Loading from '@/components/Loading'
+import { ScaledSheet } from 'react-native-size-matters'
 
 export interface AlarmClockTabProps {
   isLoading: boolean
@@ -35,17 +36,17 @@ const AlarmClockTab: FC<AlarmClockTabProps> = ({ isLoading, isPlaying, panelProp
 
 export default AlarmClockTab
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
-    gap: 16,
+    gap: '16@ms',
   },
   loading: {
     width: '100%',
-    paddingVertical: 16,
+    paddingVertical: '16@ms',
     justifyContent: 'center',
     alignItems: 'center'
   },
   note: {
-    marginTop: 4
+    marginTop: '4@ms'
   }
 })

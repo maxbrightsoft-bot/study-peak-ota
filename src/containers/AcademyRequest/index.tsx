@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { Button, Card, Chip, ActivityIndicator } from "react-native-paper";
 import { useTranslation } from "react-i18next";
 import { palette, TYPO } from "@/theme";
@@ -7,6 +7,7 @@ import useAcademyRequest, { AcademyEnrollmentRequestStatus } from "./hooks/useAc
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { formatRole } from "@/utils/helpers";
 import { Role } from "@/utils/enums";
+import { ScaledSheet } from 'react-native-size-matters'
 
 const AcademyRequest = () => {
   const {
@@ -180,7 +181,7 @@ const AcademyRequest = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     flex: 1,
     backgroundColor: palette.grey[50],
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: "center",
-    padding: 20,
+    padding: '20@ms',
   },
   centerContainer: {
     flex: 1,
@@ -196,15 +197,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   card: {
-    borderRadius: 16,
-    elevation: 4,
+    borderRadius: '16@ms',
+    elevation: '4@ms',
     backgroundColor: "#fff",
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: '24@ms',
   },
   title: {
     ...TYPO.heading2,
@@ -212,19 +213,19 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   statusChip: {
-    height: 40,
+    height: '40@ms',
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: '8@ms',
   },
   infoContainer: {
-    marginBottom: 24,
+    marginBottom: '24@ms',
   },
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 12,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
+    marginBottom: '12@ms',
+    paddingVertical: '8@ms',
+    borderBottomWidth: '1@ms',
     borderBottomColor: palette.grey[100],
   },
   infoLabel: {
@@ -237,24 +238,24 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   otherRoleContainer: {
-    marginTop: 16,
-    padding: 12,
-    borderRadius: 8,
+    marginTop: '16@ms',
+    padding: '12@ms',
+    borderRadius: '8@ms',
     backgroundColor: palette.error.main + '05',
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderStyle: "dashed",
     borderColor: palette.error.main + '40',
   },
   currentRoleRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 8,
+    marginTop: '8@ms',
   },
   contentSection: {
-    minHeight: 40,
+    minHeight: '40@ms',
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: '24@ms',
   },
   contentText: {
     ...TYPO.body2,
@@ -262,30 +263,30 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   actionSection: {
-    gap: 12,
+    gap: '12@ms',
   },
   primaryButton: {
-    gap: 8,
+    gap: '8@ms',
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 12,
-    paddingVertical: 6,
+    borderRadius: '12@ms',
+    paddingVertical: '6@ms',
     backgroundColor: palette.main[600],
   },
   secondaryButton: {
-    borderRadius: 12,
-    paddingVertical: 6,
+    borderRadius: '12@ms',
+    paddingVertical: '6@ms',
     borderColor: palette.grey[300],
   },
   notFoundText: {
     ...TYPO.heading3,
     color: palette.grey[600],
-    marginTop: 16,
-    marginBottom: 24,
+    marginTop: '16@ms',
+    marginBottom: '24@ms',
   },
   button: {
-    borderRadius: 12,
+    borderRadius: '12@ms',
     backgroundColor: palette.main[600],
   },
 });

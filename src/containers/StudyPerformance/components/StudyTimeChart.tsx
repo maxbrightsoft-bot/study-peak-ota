@@ -79,7 +79,7 @@ const StudyTimeDescriptionItem = ({
 
 const CHART_HEIGHT = 165
 const BAR_BG_COLOR = palette.main[100]
-const COLOR_PRIMARY = '#B09FFF'
+const COLOR_PRIMARY = palette.main[600]
 const COLOR_SECONDARY = '#FFD572'
 
 type PillBarProps = {
@@ -342,30 +342,30 @@ const Divider = () => <View style={styles.divider} />
 const styles = ScaledSheet.create({
   card: {},
   loading: {
-    height: 200,
+    height: '200@ms',
     justifyContent: 'center',
     alignItems: 'center'
   },
   chartBox: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 20,
-    gap: 20,
+    borderRadius: '24@ms',
+    padding: '20@ms',
+    gap: '20@ms',
     shadowColor: '#0000000A',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: '2@ms' },
     shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 3
+    shadowRadius: '12@ms',
+    elevation: '3@ms'
   },
   chartLabel: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 4,
-    marginBottom: 14
+    paddingHorizontal: '4@ms',
+    marginBottom: '14@ms'
   },
   chartLabelText: {
-    fontSize: 15,
+    fontSize: '15@ms',
     fontWeight: '700',
     color: '#111827',
     textAlign: 'center'
@@ -379,14 +379,14 @@ const styles = ScaledSheet.create({
     backgroundColor: '#FFFFFF',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    borderRadius: 20,
+    borderRadius: '20@ms',
     gap: '12@ms',
     padding: '16@ms',
     shadowColor: '#0000000A',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: '2@ms' },
     shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 3
+    shadowRadius: '12@ms',
+    elevation: '3@ms'
   },
   statsItem: {},
   statsTitleRow: {
@@ -395,31 +395,31 @@ const styles = ScaledSheet.create({
   },
   statsTitle: {
     flex: 1,
-    fontSize: 11,
+    fontSize: '11@ms',
     color: '#6B7280',
-    lineHeight: 16
+    lineHeight: '16@ms'
   },
   statsValueRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 2
+    marginTop: '2@ms'
   },
   statsValue: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '700'
   },
   statsUnit: {
-    fontSize: 13,
+    fontSize: '13@ms',
     fontWeight: '500'
   },
   subStatsValue: {
-    fontSize: 11,
+    fontSize: '11@ms',
     color: palette.main[600],
-    marginLeft: 4
+    marginLeft: '4@ms'
   },
   divider: {
-    height: 28,
-    width: 1.5,
+    height: '28@ms',
+    width: '1.5@ms',
     backgroundColor: '#E5E7EB',
     alignSelf: 'center'
   }

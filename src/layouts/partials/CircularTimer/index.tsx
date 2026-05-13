@@ -2,7 +2,8 @@ import { palette } from '@/theme'
 import { formatMinutesToTime } from '@/utils/helpers'
 import React, { FC } from 'react'
 import { useTranslation } from 'react-i18next'
-import { View, Text, StyleSheet, TextInput } from 'react-native'
+import { View, Text, TextInput } from 'react-native'
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface CircularTimerProps {
   subject?: string
@@ -67,11 +68,11 @@ const CircularTimer: FC<CircularTimerProps> = ({
 
 export default CircularTimer
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
-    height: 115,
-    width: 115,
-    borderRadius: 9999,
+    height: '115@ms',
+    width: '115@ms',
+    borderRadius: '9999@ms',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: palette.main[50]
@@ -81,14 +82,14 @@ const styles = StyleSheet.create({
   },
   center: {
     position: 'absolute',
-    gap: 4,
+    gap: '4@ms',
     alignItems: 'center',
     justifyContent: 'center'
   },
   text: {
-    fontSize: 24,
+    fontSize: '24@ms',
     fontWeight: '700',
-    lineHeight: 32,
+    lineHeight: '32@ms',
     color: palette.main[600]
   },
   inputRow: {
@@ -100,6 +101,6 @@ const styles = StyleSheet.create({
     padding: 0,
     margin: 0,
     textAlign: 'center',
-    minWidth: 32,
+    minWidth: '32@ms',
   },
 })

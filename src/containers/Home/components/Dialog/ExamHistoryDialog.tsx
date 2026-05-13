@@ -185,7 +185,7 @@ const styles = ScaledSheet.create({
     backgroundColor: palette.bg[100],
     paddingHorizontal: '20@ms',
     paddingVertical: '16@ms',
-    gap: 18
+    gap: '18@ms'
   },
   header: {
     flexDirection: 'row',
@@ -194,14 +194,14 @@ const styles = ScaledSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: '20@ms',
     backgroundColor: '#FFF',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderBottomColor: palette.grey[100]
   },
   divider: {
-    height: 12,
-    width: 1.5,
+    height: '12@ms',
+    width: '1.5@ms',
     backgroundColor: palette.grey[300],
-    marginHorizontal: 8
+    marginHorizontal: '8@ms'
   },
   headerTitle: {
     fontSize: '17@ms',
@@ -217,7 +217,7 @@ const styles = ScaledSheet.create({
     flexDirection: 'row'
   },
   tab: {
-    minWidth: 70,
+    minWidth: '70@ms',
     paddingHorizontal: '18@ms',
     paddingVertical: '6@ms'
   },
@@ -246,7 +246,7 @@ const styles = ScaledSheet.create({
     paddingHorizontal: '12@ms',
     paddingVertical: '6@ms',
     borderRadius: '20@ms',
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: palette.grey[100]
   },
   sortText: {
@@ -255,7 +255,7 @@ const styles = ScaledSheet.create({
     fontWeight: '500'
   },
   scrollContainer: {
-    paddingBottom: 200,
+    paddingBottom: '200@ms',
     gap: '12@ms'
   },
   examCard: {

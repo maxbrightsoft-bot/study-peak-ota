@@ -1,6 +1,7 @@
 import { palette } from '@/theme'
 import React, { useEffect, useRef } from 'react'
 import { View, Animated, TouchableOpacity, StyleSheet, Dimensions, Modal, Platform } from 'react-native'
+import { ScaledSheet } from 'react-native-size-matters'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 
@@ -71,7 +72,7 @@ const SlideDrawer: React.FC<SlideDrawerProps> = ({ visible, children, position =
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   modalContainer: {},
   container: {
     position: 'absolute',

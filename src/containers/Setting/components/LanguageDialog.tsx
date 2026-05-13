@@ -73,8 +73,8 @@ const styles = ScaledSheet.create({
   },
   sheet: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: '20@ms',
+    borderTopRightRadius: '20@ms',
     paddingHorizontal: '20@ms',
     paddingBottom: '32@ms',
     paddingTop: '12@ms',
@@ -83,7 +83,7 @@ const styles = ScaledSheet.create({
     width: '40@ms',
     height: '4@ms',
     backgroundColor: '#ddd',
-    borderRadius: 2,
+    borderRadius: '2@ms',
     alignSelf: 'center',
     marginBottom: '16@ms',
   },
@@ -102,13 +102,13 @@ const styles = ScaledSheet.create({
     alignItems: 'center',
     paddingVertical: '14@ms',
     paddingHorizontal: '16@ms',
-    borderRadius: 12,
+    borderRadius: '12@ms',
     backgroundColor: '#f5f5f5',
     gap: '12@ms',
   },
   itemActive: {
     backgroundColor: palette.main[50] ?? '#e8f0fe',
-    borderWidth: 1.5,
+    borderWidth: '1.5@ms',
     borderColor: palette.main[600],
   },
   flag: {
@@ -127,7 +127,7 @@ const styles = ScaledSheet.create({
   dot: {
     width: '8@ms',
     height: '8@ms',
-    borderRadius: 4,
+    borderRadius: '4@ms',
     backgroundColor: palette.main[600],
   },
 })

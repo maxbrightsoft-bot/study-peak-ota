@@ -73,14 +73,14 @@ const InfoRow = ({ label, value }: { label: string; value: string }) => (
 
 const styles = ScaledSheet.create({
   container: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 16
+    paddingHorizontal: '24@ms',
+    paddingTop: '24@ms',
+    paddingBottom: '16@ms'
   },
   examTitle: {
     ...TYPO.heading3,
     textAlign: 'center',
-    marginBottom: 12
+    marginBottom: '12@ms'
   },
   backButton: {
     flexDirection: 'row',
@@ -98,24 +98,24 @@ const styles = ScaledSheet.create({
     paddingHorizontal: '20@ms'
   },
   score: {
-    fontSize: 36,
+    fontSize: '36@ms',
     fontWeight: '700',
     textAlign: 'center',
     color: palette.main[600],
-    marginBottom: 6
+    marginBottom: '6@ms'
   },
   percentage: {
     textAlign: 'center',
     color: palette.grey[500],
-    marginBottom: 24
+    marginBottom: '24@ms'
   },
   infoBlock: {
-    marginBottom: 24
+    marginBottom: '24@ms'
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12
+    marginBottom: '12@ms'
   },
   infoLabel: {
     ...TYPO.button4,
@@ -126,19 +126,19 @@ const styles = ScaledSheet.create({
     color: palette.grey[800]
   },
   buttonContainer: {
-    gap: 12
+    gap: '12@ms'
   },
   outlineButton: {
-    borderRadius: 12,
-    paddingVertical: 8,
+    borderRadius: '12@ms',
+    paddingVertical: '8@ms',
     borderColor: palette.main[500]
   },
   outlineText: {
     color: palette.main[500]
   },
   filledButton: {
-    borderRadius: 12,
-    paddingVertical: 8,
+    borderRadius: '12@ms',
+    paddingVertical: '8@ms',
     backgroundColor: palette.main[600]
   },
   filledText: {

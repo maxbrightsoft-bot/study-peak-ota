@@ -1,10 +1,10 @@
 import React, { useCallback, useState } from 'react'
 import { View, StyleSheet, Animated, TouchableOpacity, Text, Dimensions, Pressable } from 'react-native'
-import { IconButton } from 'react-native-paper'
 import { ExamStatus } from '@/utils/enums'
 import { Ionicons } from '@expo/vector-icons'
 import { useFocusEffect } from '@react-navigation/native'
 import { palette } from '@/theme'
+import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   t: (key: string) => string
@@ -164,17 +164,17 @@ const FloatingActionButton: React.FC<Props> = ({
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     position: 'relative',
     zIndex: 10
   },
   menuContainer: {
     position: 'absolute',
-    top: 30,
+    top: '30@ms',
     right: 0,
     alignItems: 'flex-end',
-    gap: 12,
+    gap: '12@ms',
     minWidth: screenWidth,
     zIndex: 9999
   },
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end'
   },
   menuButton: {
-    borderRadius: 24,
+    borderRadius: '24@ms',
     alignSelf: 'flex-start'
   },
   pauseResumeButton: {
@@ -196,14 +196,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: '16@ms',
+    paddingVertical: '10@ms',
   },
   buttonLabel: {
     textAlign: 'center',
     color: 'white',
-    marginLeft: 8,
-    fontSize: 16,
+    marginLeft: '8@ms',
+    fontSize: '16@ms',
   },
   disabledButton: {
     backgroundColor: '#9E9E9E'

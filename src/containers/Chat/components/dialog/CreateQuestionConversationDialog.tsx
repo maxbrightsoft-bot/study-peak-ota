@@ -191,7 +191,7 @@ const styles = ScaledSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
-    padding: 20
+    padding: '20@ms'
   },
   container: {
     flex: 1,
@@ -206,8 +206,8 @@ const styles = ScaledSheet.create({
     color: palette.main[500]
   },
   content: {
-    paddingHorizontal: 20,
-    paddingVertical: 24
+    paddingHorizontal: '20@ms',
+    paddingVertical: '24@ms'
   },
   header: {
     flexDirection: 'row',
@@ -215,35 +215,35 @@ const styles = ScaledSheet.create({
     alignItems: 'center',
     paddingVertical: '16@ms',
     paddingHorizontal: '20@ms',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderColor: palette.grey[100]
   },
   labelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 8
+    gap: '6@ms',
+    marginBottom: '8@ms'
   },
   hintBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: '6@ms',
     backgroundColor: palette.main[50] || '#EFF6FF',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    borderRadius: '8@ms',
+    paddingHorizontal: '10@ms',
+    paddingVertical: '8@ms',
   },
   hintText: {
     fontSize: '11@ms',
     color: palette.main[600],
     flex: 1,
-    lineHeight: 18,
+    lineHeight: '18@ms',
   },
   labelText: {
     fontSize: '12@ms',
     fontWeight: 400,
     color: '#222222',
-    lineHeight: 20,
+    lineHeight: '20@ms',
   },
   optionalText: {
     fontSize: '11@ms',
@@ -251,28 +251,28 @@ const styles = ScaledSheet.create({
     fontWeight: '400'
   },
   title: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '700',
     color: '#202B37'
   },
   close: {
-    fontSize: 18,
+    fontSize: '18@ms',
     color: palette.grey[500]
   },
   body: {
-    gap: 20,
-    paddingBottom: 20
+    gap: '20@ms',
+    paddingBottom: '20@ms'
   },
   label: {
-    fontSize: 12,
+    fontSize: '12@ms',
     fontWeight: '400',
-    marginBottom: 8
+    marginBottom: '8@ms'
   },
   textarea: {
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: '#CED2DA',
-    borderRadius: 8,
-    padding: 12,
+    borderRadius: '8@ms',
+    padding: '12@ms',
     textAlignVertical: 'top'
   },
   errorInput: {
@@ -280,8 +280,8 @@ const styles = ScaledSheet.create({
   },
   errorText: {
     color: 'red',
-    fontSize: 12,
-    marginTop: 4
+    fontSize: '12@ms',
+    marginTop: '4@ms'
   },
   footer: {
     flexDirection: 'row',
@@ -292,9 +292,9 @@ const styles = ScaledSheet.create({
     textAlign: 'center',
     justifyContent: 'center',
     backgroundColor: palette.main[600],
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 12
+    paddingVertical: '14@ms',
+    paddingHorizontal: '16@ms',
+    borderRadius: '12@ms'
   },
   disabledBtn: {
     backgroundColor: palette.grey[200]
@@ -303,7 +303,7 @@ const styles = ScaledSheet.create({
     color: 'white',
     textAlign: 'center',
     fontWeight: '500',
-    lineHeight: 22,
-    fontSize: 14
+    lineHeight: '22@ms',
+    fontSize: '14@ms'
   }
 })

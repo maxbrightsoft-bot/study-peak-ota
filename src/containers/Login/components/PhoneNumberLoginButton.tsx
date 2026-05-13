@@ -1,9 +1,10 @@
 import React from "react";
 
-import { TouchableOpacity, Text, StyleSheet } from "react-native";
+import { TouchableOpacity, Text } from "react-native";
 import { palette } from "@/theme";
 import { navigate } from "@/navigators/NavigationHelpers";
 import { Routes } from "@/navigators/RouteName";
+import { ScaledSheet } from 'react-native-size-matters'
 
 const PhoneNumberLoginButton = () => {
   return (
@@ -18,25 +19,25 @@ const PhoneNumberLoginButton = () => {
 
 export default PhoneNumberLoginButton;
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   googleButton: {
     flexDirection: "row",
     alignItems: "center",
     borderColor: palette.main[500],
-    borderWidth: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 6,
+    borderWidth: '1@ms',
+    paddingVertical: '12@ms',
+    paddingHorizontal: '16@ms',
+    borderRadius: '6@ms',
     color: palette.main[500],
     justifyContent: "center",
   },
   googleIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 8,
+    width: '20@ms',
+    height: '20@ms',
+    marginRight: '8@ms',
   },
   googleButtonText: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: "500",
     color: palette.main[500],
   },

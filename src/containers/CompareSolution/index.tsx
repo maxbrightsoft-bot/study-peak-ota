@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { EffectSize, ExamResult, TextbookResult } from '@/utils/types'
 import { palette } from '@/theme'
 import { Ionicons } from '@expo/vector-icons'
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   effectSize: EffectSize[]
@@ -133,29 +134,29 @@ const CompareSolution: FC<Props> = ({ effectSize: originalEffectSize, data, isTe
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
   },
   subjectHeader: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: '20@ms',
+    paddingVertical: '12@ms',
     backgroundColor: '#FFF',
-    marginBottom: 10,
+    marginBottom: '10@ms',
   },
   subjectText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '600',
     color: '#333',
   },
   separator: {
     color: '#DDD',
-    marginHorizontal: 4,
+    marginHorizontal: '4@ms',
   },
   statsCard: {
-    padding: 16,
+    padding: '16@ms',
     backgroundColor: '#FFF',
-    borderRadius: 16,
-    marginBottom: 12,
+    borderRadius: '16@ms',
+    marginBottom: '12@ms',
   },
   statsRow: {
     flexDirection: 'row',
@@ -163,40 +164,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statsLabel: {
-    fontSize: 12,
+    fontSize: '12@ms',
     color: '#999',
-    marginBottom: 4,
+    marginBottom: '4@ms',
   },
   statsValueRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
   },
   statsValueMain: {
-    fontSize: 24,
+    fontSize: '24@ms',
     fontWeight: '700',
     color: palette.main[600],
   },
   statsValueSub: {
-    fontSize: 14,
+    fontSize: '14@ms',
     color: '#666',
   },
   rateBadge: {
     backgroundColor: '#F3E5F5',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingHorizontal: '12@ms',
+    paddingVertical: '6@ms',
+    borderRadius: '20@ms',
   },
   rateText: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '700',
     color: palette.main[600],
   },
   legendContainer: {
     flexDirection: 'row',
-    padding: 12,
+    padding: '12@ms',
     backgroundColor: '#FFF',
-    borderRadius: 12,
-    marginBottom: 16,
+    borderRadius: '12@ms',
+    marginBottom: '16@ms',
     justifyContent: 'space-around',
   },
   legendItem: {
@@ -204,76 +205,76 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   legendBox: {
-    width: 16,
-    height: 16,
-    borderRadius: 4,
-    marginRight: 6,
+    width: '16@ms',
+    height: '16@ms',
+    borderRadius: '4@ms',
+    marginRight: '6@ms',
   },
   legendText: {
-    fontSize: 11,
+    fontSize: '11@ms',
     color: '#666',
   },
   questionCard: {
-    padding: 16,
+    padding: '16@ms',
     backgroundColor: '#FFF',
-    borderRadius: 16,
-    marginBottom: 12,
+    borderRadius: '16@ms',
+    marginBottom: '12@ms',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: '1@ms' },
     shadowOpacity: 0.03,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowRadius: '2@ms',
+    elevation: '1@ms',
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: '16@ms',
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   questionTitle: {
-    fontSize: 15,
+    fontSize: '15@ms',
     fontWeight: '700',
     color: '#333',
-    marginRight: 8,
+    marginRight: '8@ms',
   },
   statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
+    paddingHorizontal: '8@ms',
+    paddingVertical: '2@ms',
+    borderRadius: '8@ms',
   },
   statusText: {
-    fontSize: 11,
+    fontSize: '11@ms',
     fontWeight: '600',
   },
   correctAnswerLabel: {
-    fontSize: 12,
+    fontSize: '12@ms',
     color: '#999',
   },
   optionsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginHorizontal: -4,
+    marginHorizontal: '-4@ms',
   },
   optionBlock: {
     width: '18%',
     aspectRatio: 1,
     marginHorizontal: '1%',
-    marginVertical: 4,
-    borderRadius: 12,
+    marginVertical: '4@ms',
+    borderRadius: '12@ms',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
   },
   optionNum: {
-    fontSize: 14,
-    marginBottom: 2,
+    fontSize: '14@ms',
+    marginBottom: '2@ms',
   },
   optionRate: {
-    fontSize: 12,
+    fontSize: '12@ms',
     fontWeight: '600',
   },
   defaultBlock: {
@@ -287,7 +288,7 @@ const styles = StyleSheet.create({
   },
   incorrectBlock: {
     backgroundColor: '#FFF',
-    borderWidth: 1.5,
+    borderWidth: '1.5@ms',
     borderColor: '#FF5252',
   },
   whiteText: {
@@ -298,11 +299,11 @@ const styles = StyleSheet.create({
   },
   checkBadge: {
     position: 'absolute',
-    top: 4,
-    right: 4,
-    borderRadius: 6,
-    width: 14,
-    height: 14,
+    top: '4@ms',
+    right: '4@ms',
+    borderRadius: '6@ms',
+    width: '14@ms',
+    height: '14@ms',
     alignItems: 'center',
     justifyContent: 'center',
   },

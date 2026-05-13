@@ -1,7 +1,8 @@
 import React from 'react'
-import { Text, TouchableOpacity, View, StyleSheet } from 'react-native'
+import { Text, TouchableOpacity, View } from 'react-native'
 import { Divider } from 'react-native-paper'
 import { palette } from '@/theme'
+import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   onEdit: () => void
@@ -19,25 +20,25 @@ const ContentTooltip = ({ t, onEdit, onDelete }: Props) => {
       <Divider />
 
       <TouchableOpacity onPress={onDelete} style={styles.button}>
-        <Text style={{ ...styles.text, color: palette.error.main }}>{t('delete_schedule')}</Text>
+        <Text style={[styles.text, { color: palette.error.main }]}>{t('delete_schedule')}</Text>
       </TouchableOpacity>
     </View>
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
-    paddingVertical: 8
+    paddingVertical: '8@ms'
   },
   button: {
-    paddingVertical: 12,
-    paddingHorizontal: 35,
+    paddingVertical: '12@ms',
+    paddingHorizontal: '35@ms',
     justifyContent: 'center',
     alignItems: 'center'
   },
   text: {
     fontWeight: '700',
-    fontSize: 14,
+    fontSize: '14@ms',
     color: palette.main[500]
   }
 })

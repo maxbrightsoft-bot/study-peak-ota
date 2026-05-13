@@ -173,7 +173,7 @@ const styles = ScaledSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: '20@ms',
     paddingVertical: '16@ms',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderBottomColor: '#eee'
   },
   headerTitle: {
@@ -183,7 +183,7 @@ const styles = ScaledSheet.create({
   },
 
   backButton: {
-    width: 24
+    width: '24@ms'
   },
 
   container: {
@@ -195,7 +195,7 @@ const styles = ScaledSheet.create({
 
   accountInfoCard: {
     backgroundColor: '#fff',
-    borderRadius: 14,
+    borderRadius: '14@ms',
     marginBottom: '16@ms',
     paddingVertical: '16@ms',
     paddingHorizontal: '16@ms',
@@ -216,7 +216,7 @@ const styles = ScaledSheet.create({
 
   card: {
     backgroundColor: '#fff',
-    borderRadius: 14,
+    borderRadius: '14@ms',
     marginBottom: '16@ms',
     overflow: 'hidden'
   },
@@ -229,7 +229,7 @@ const styles = ScaledSheet.create({
   },
 
   icon: {
-    width: 30
+    width: '30@ms'
   },
 
   text: {
@@ -239,7 +239,7 @@ const styles = ScaledSheet.create({
   },
 
   divider: {
-    height: 1,
+    height: '1@ms',
     backgroundColor: palette.grey[100]
   },
 
@@ -248,7 +248,7 @@ const styles = ScaledSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: '20@ms',
-    gap: 6
+    gap: '6@ms'
   },
 
   logoutText: {
@@ -261,7 +261,7 @@ const styles = ScaledSheet.create({
     backgroundColor: palette.main[600],
     marginBottom: '20@ms',
     paddingVertical: '16@ms',
-    borderRadius: 12,
+    borderRadius: '12@ms',
     alignItems: 'center'
   },
 

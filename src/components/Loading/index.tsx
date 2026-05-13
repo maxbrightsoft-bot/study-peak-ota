@@ -1,4 +1,5 @@
 import React from "react";
+import { ScaledSheet } from 'react-native-size-matters'
 import {
   ActivityIndicator,
   View,
@@ -45,7 +46,7 @@ const Loading = ({
 
 export default Loading;
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   overlayColor: {
     backgroundColor: "rgba(0, 0, 0, 0.3)",
   },
@@ -71,8 +72,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   text: {
-    marginTop: 12,
-    fontSize: 14,
+    marginTop: '12@ms',
+    fontSize: '14@ms',
     color: "#666",
   },
 });

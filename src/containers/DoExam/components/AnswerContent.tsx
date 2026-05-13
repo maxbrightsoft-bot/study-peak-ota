@@ -91,62 +91,62 @@ const styles = ScaledSheet.create({
     maxHeight: SCREEN_H * 0.5
   },
   questionHeader: {
-    marginBottom: 16
+    marginBottom: '16@ms'
   },
   problemNumberText: {
-    fontSize: 13,
+    fontSize: '13@ms',
     fontWeight: '600',
     color: '#212121'
   },
   questionNumberText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '700',
     color: palette.main[500]
   },
   answersContainer: {
-    marginBottom: 16
+    marginBottom: '16@ms'
   },
   answerItem: {
-    marginBottom: 16
+    marginBottom: '16@ms'
   },
   correctAnswerText: {
-    fontSize: 13,
+    fontSize: '13@ms',
     fontWeight: '600',
     color: '#212121',
-    marginBottom: 8
+    marginBottom: '8@ms'
   },
   answerInputContainer: {
     flexDirection: 'row',
     flex: 1,
     alignItems: 'center',
-    gap: 8
+    gap: '8@ms'
   },
   textInput: {
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: '#e0e0e0',
     color: "#222222",
-    borderRadius: 4,
-    padding: 12,
+    borderRadius: '4@ms',
+    padding: '12@ms',
     flex: 1,
     backgroundColor: '#fff'
   },
   deleteButton: {
     backgroundColor: '#dc3545',
-    padding: 8,
-    borderRadius: 255
+    padding: '8@ms',
+    borderRadius: '255@ms'
   },
   addButton: {
     alignItems: 'center',
-    paddingBottom: 24
+    paddingBottom: '24@ms'
   },
   disabledButton: {
     opacity: 0.5
   },
   errorText: {
     fontWeight: '500',
-    fontSize: 10,
+    fontSize: '10@ms',
     color: '#F34B4B',
-    marginTop: 4
+    marginTop: '4@ms'
   },
 })
 

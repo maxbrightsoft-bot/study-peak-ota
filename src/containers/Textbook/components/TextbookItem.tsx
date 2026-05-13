@@ -4,6 +4,7 @@ import { Textbook } from '@/utils/types'
 import { Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import { formatTime } from '../configs/helpers'
 import moment from 'moment'
+import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   textbook: Textbook
@@ -42,22 +43,22 @@ const TextbookItem = ({ textbook, t, handleOpenDialog }: Props) => {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   card: {
     flexDirection: 'row',
     backgroundColor: '#FFF'
   },
   divider: {
-    height: 1,
+    height: '1@ms',
     flex: 1,
     backgroundColor: '#E6E6E6',
-    marginVertical: 20
+    marginVertical: '20@ms'
   },
   cover: {
-    width: 62,
-    height: 78,
-    borderRadius: 8,
-    marginRight: 16
+    width: '62@ms',
+    height: '78@ms',
+    borderRadius: '8@ms',
+    marginRight: '16@ms'
   },
 
   content: {
@@ -73,19 +74,19 @@ const styles = StyleSheet.create({
 
   badge: {
     backgroundColor: '#E6F2FF',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12
+    paddingHorizontal: '10@ms',
+    paddingVertical: '4@ms',
+    borderRadius: '12@ms'
   },
 
   badgeText: {
-    fontSize: 12,
+    fontSize: '12@ms',
     fontWeight: '600',
     color: '#36BFEC'
   },
 
   timeText: {
-    fontSize: 12,
+    fontSize: '12@ms',
     color: palette.grey[500]
   },
 
@@ -93,23 +94,23 @@ const styles = StyleSheet.create({
     ...TYPO.body1,
     fontWeight: '600',
     color: palette.grey[900],
-    marginVertical: 6
+    marginVertical: '6@ms'
   },
 
   progressRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8
+    gap: '8@ms'
   },
 
   progressText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '700',
     color: palette.grey[900]
   },
 
   durationText: {
-    fontSize: 13,
+    fontSize: '13@ms',
     color: palette.grey[500]
   }
 })

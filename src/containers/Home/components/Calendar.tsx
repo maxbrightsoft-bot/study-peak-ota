@@ -172,8 +172,8 @@ const styles = ScaledSheet.create({
     color: "#222222"
   },
   calendarWrapper: {
-    borderWidth: 1,
-    borderRadius: 12,
+    borderWidth: '1@ms',
+    borderRadius: '12@ms',
     borderColor: palette.grey[100],
     overflow: 'hidden'
   },
@@ -181,10 +181,10 @@ const styles = ScaledSheet.create({
     height: '32@ms',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 6
+    borderRadius: '6@ms'
   },
   dayText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: 600,
     color: palette.grey[900]
   },
@@ -198,9 +198,9 @@ const styles = ScaledSheet.create({
     color: palette.grey[400]
   },
   dotStyle: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
+    width: '4@ms',
+    height: '4@ms',
+    borderRadius: '2@ms',
     backgroundColor: palette.main[600],
     position: 'absolute',
     bottom: '2@ms'

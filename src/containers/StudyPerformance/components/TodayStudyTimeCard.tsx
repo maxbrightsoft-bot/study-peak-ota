@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { Divider } from 'react-native-paper'
 import { ceilTo, formatAccumulatedTime, formatAccumulatedTimeSplit, sum } from '../configs/helper'
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   data: any
@@ -93,63 +94,63 @@ const TodayStudyTimeCard: React.FC<Props> = ({ data, isTimerTab, onOpen }) => {
 
 export default TodayStudyTimeCard
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   wrapper: {},
   card: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: '20@ms',
+    paddingVertical: '12@ms',
     backgroundColor: palette.main[600],
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 8
+    gap: '8@ms'
   },
   content: {
-    gap: 8,
+    gap: '8@ms',
     flex: 1
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 16
+    gap: '16@ms'
   },
   title: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '700'
   },
   timeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8
+    gap: '8@ms'
   },
   timeValue: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '700'
   },
   timeUnit: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '500'
   },
   bottomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 16,
+    gap: '16@ms',
     alignItems: 'center'
   },
   subValue: {
-    fontSize: 13,
+    fontSize: '13@ms',
     fontWeight: '600'
   },
   subUnitBold: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '700'
   },
   subUnit: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '400'
   },
   moreText: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '700'
   },
   changeRow: {
@@ -157,11 +158,11 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   changeText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '600'
   },
   unitText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     color: "#FFF"
   }
 })

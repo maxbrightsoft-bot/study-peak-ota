@@ -142,13 +142,13 @@ const ConversationItem = ({
 
 const styles = ScaledSheet.create({
   container: {
-    paddingVertical: 16,
-    borderRadius: 5,
-    gap: 8,
+    paddingVertical: '16@ms',
+    borderRadius: '5@ms',
+    gap: '8@ms',
   },
   avatar: {
     backgroundColor: '#fff',
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: palette.grey[300]
   },
   firstLine: {
@@ -159,20 +159,20 @@ const styles = ScaledSheet.create({
   leftContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: '8@ms',
     flex: 1
   },
   inline: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: '4@ms',
     flexShrink: 1
   },
   title: {
     ...TYPO.heading3,
     color: palette.grey[700],
     flexShrink: 1,
-    maxWidth: 200,
+    maxWidth: '200@ms',
     flexWrap: "wrap"
   },
   activeText: {
@@ -181,19 +181,19 @@ const styles = ScaledSheet.create({
   rightContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4
+    gap: '4@ms'
   },
   badge: {
     backgroundColor: palette.main[700],
-    width: 14,
-    height: 14,
-    borderRadius: 50,
+    width: '14@ms',
+    height: '14@ms',
+    borderRadius: '50@ms',
     justifyContent: 'center',
     alignItems: 'center'
   },
   badgeText: {
     color: 'white',
-    fontSize: 10,
+    fontSize: '10@ms',
     fontWeight: 'bold'
   },
   typeText: {

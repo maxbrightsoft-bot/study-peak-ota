@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, Pressable, StyleSheet, ViewStyle, GestureResponderEvent } from 'react-native'
 import { Shadow } from 'react-native-shadow-2'
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface CustomCardProps {
   children: React.ReactNode
@@ -29,7 +30,7 @@ const CustomCard = ({ children, style, onPress, radius = 20 }: CustomCardProps) 
 
 export default CustomCard
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   card: {
     backgroundColor: '#FFFFFF'
   }

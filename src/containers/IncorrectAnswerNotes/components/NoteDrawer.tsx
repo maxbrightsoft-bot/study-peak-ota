@@ -77,35 +77,35 @@ const NoteDrawer: FC<Props> = (props) => {
       paddingHorizontal: '24@ms'
     },
     headerContent: {
-      paddingHorizontal: 16
+      paddingHorizontal: '16@ms'
     },
     closeButton: {
-      padding: 8,
+      padding: '8@ms',
       alignSelf: 'flex-start'
     },
     studentInfo: {
-      paddingHorizontal: 40,
+      paddingHorizontal: '40@ms',
       paddingVertical: '24@ms'
     },
     studentRow: {
       flexDirection: 'row',
-      gap: 12,
+      gap: '12@ms',
       flexWrap: 'wrap'
     },
     studentName: {
-      fontSize: 18,
+      fontSize: '18@ms',
       fontWeight: '700',
       color: palette.main[500]
     },
     studentDetails: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 4,
+      gap: '4@ms',
       flexWrap: 'wrap'
     },
     studentText: {
       color: palette.grey[500],
-      fontSize: 13,
+      fontSize: '13@ms',
       fontWeight: '500'
     },
     contentContainer: {
@@ -115,53 +115,53 @@ const NoteDrawer: FC<Props> = (props) => {
       flex: 1
     },
     content: {
-      paddingHorizontal: 24,
-      paddingBottom: 16
+      paddingHorizontal: '24@ms',
+      paddingBottom: '16@ms'
     },
     noDataContainer: {
-      paddingHorizontal: 24,
-      paddingTop: 40,
-      gap: 16
+      paddingHorizontal: '24@ms',
+      paddingTop: '40@ms',
+      gap: '16@ms'
     },
     noteHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginBottom: 16
+      marginBottom: '16@ms'
     },
     noteTitle: {
-      fontSize: 16,
+      fontSize: '16@ms',
       fontWeight: '700',
       color: '#414E62',
       flex: 1,
-      marginRight: 8
+      marginRight: '8@ms'
     },
     noteInfo: {
       alignItems: 'flex-end'
     },
     noteDate: {
-      fontSize: 12,
+      fontSize: '12@ms',
       fontWeight: '500',
       color: '#97A1AF',
       textAlign: 'right'
     },
     noteAcademy: {
-      fontSize: 12,
+      fontSize: '12@ms',
       fontWeight: '500',
       color: '#97A1AF',
       textAlign: 'right',
-      marginTop: 2
+      marginTop: '2@ms'
     },
     commentsContainer: {
-      paddingHorizontal: 24,
-      paddingTop: 8,
+      paddingHorizontal: '24@ms',
+      paddingTop: '8@ms',
       flex: 1
     },
     skeletonText: {
-      fontSize: 18,
-      lineHeight: 22
+      fontSize: '18@ms',
+      lineHeight: '22@ms'
     },
     skeletonSmallText: {
-      fontSize: 13
+      fontSize: '13@ms'
     }
   })
 

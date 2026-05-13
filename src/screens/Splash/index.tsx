@@ -1,9 +1,10 @@
 import { navigate, reset } from "@/navigators/NavigationHelpers";
 import React, { useEffect } from "react";
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
 import Logo from "@/assets/icons/student_full-logo_eng.svg";
 import { palette } from "@/theme";
 import { Routes } from "@/navigators/RouteName";
+import { ScaledSheet } from 'react-native-size-matters'
 
 const SplashScreen = () => {
   useEffect(() => {
@@ -21,7 +22,7 @@ const SplashScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     flex: 1,
     backgroundColor: palette.main[500],

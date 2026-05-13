@@ -4,6 +4,7 @@ import { View, StyleSheet } from 'react-native'
 import OverallTabHeader from './OverallHeaderTab'
 import { QuestionTimeCategoryData } from '@/utils/types'
 import TimeChart from './TimeChart'
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   data: QuestionTimeCategoryData
@@ -81,7 +82,7 @@ const OverallTimeChart: FC<Props> = ({ data, total, index, isPrint, onRendered }
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   chartContainer: {
     flex: 1
   }

@@ -58,7 +58,7 @@ const ScheduleForm: FC<Props> = ({ open, formikProp, scheduleRequest, onClose, s
     }
 
     if (pickerMode === 'end') {
-      if (values.startTime && selectedMoment.isSameOrBefore(values.startTime)) {
+      if (values.startTime && selectedMoment.isSameOrBefore(values.startTime, 'minute')) {
         setPickerMode(null)
         return
       }
@@ -140,7 +140,7 @@ const ScheduleForm: FC<Props> = ({ open, formikProp, scheduleRequest, onClose, s
             ? date.toDate()
             : pickerMode === 'start'
             ? values.startTime?.toDate() || new Date()
-            : values.endTime?.toDate() || new Date()
+            : values.endTime?.toDate() || minTime?.toDate() || new Date()
         }
         minimumDate={pickerMode === 'end' ? minTime?.toDate() : undefined}
         maximumDate={pickerMode === 'start' ? maxTime?.toDate() : undefined}

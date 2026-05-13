@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { palette } from "@/theme";
+import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   size?: number;
@@ -56,7 +57,7 @@ const DonutProgress = ({
 
 export default DonutProgress;
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   center: {
     position: "absolute",
     top: 0,
@@ -67,7 +68,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   percentText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: "500",
     color: "#222222",
   },

@@ -10,6 +10,7 @@ import { SubjectTimerResponse } from '@/utils/types'
 import AlarmClockNote from '../Alarm/AlarmClockNote'
 import { useTranslation } from 'react-i18next'
 import { TimerBase } from '@/layouts/configs/types'
+import { ScaledSheet } from 'react-native-size-matters'
 
 export interface AlarmClockProps {
   isLoading: boolean
@@ -64,35 +65,35 @@ const TimerClock: FC<AlarmClockProps> = ({ isLoading, time, onTerminate, data, o
 
 export default TimerClock
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
-    padding: 16,
+    padding: '16@ms',
     justifyContent: 'center',
-    paddingTop: 20,
+    paddingTop: '20@ms',
     alignItems: 'center',
   },
   actions: {
-    marginTop: 32,
+    marginTop: '32@ms',
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 16
+    gap: '16@ms'
   },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 26,
-    gap: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderWidth: 1,
+    borderRadius: '26@ms',
+    gap: '8@ms',
+    paddingHorizontal: '24@ms',
+    paddingVertical: '10@ms',
+    borderWidth: '1@ms',
     borderColor: '#222222'
   },
   buttonLabel: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '500',
     color: palette.grey[900]
   },
   note: {
-    marginTop: 14
+    marginTop: '14@ms'
   }
 })

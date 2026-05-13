@@ -8,6 +8,7 @@ import TabPanel from '@/components/Tab/TabPanel'
 import TextbookList from '../components/TextbookList'
 import { PreparedFilterType, PreparedType } from '../configs/type'
 import HeaderAction from '@/layouts/components/HeaderAction'
+import { ScaledSheet } from 'react-native-size-matters'
 
 const Textbook = () => {
   const { t } = useTranslation()
@@ -69,7 +70,7 @@ const Textbook = () => {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF'
@@ -78,30 +79,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 18,
-    paddingHorizontal: 20
+    paddingVertical: '18@ms',
+    paddingHorizontal: '20@ms'
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: '20@ms',
     fontWeight: 600,
     color: '#222222'
   },
   scrollView: {
-    gap: 24,
-    padding: 8
+    gap: '24@ms',
+    padding: '8@ms'
   },
   startButton: {
-    paddingVertical: 6,
-    borderRadius: 6,
-    maxWidth: 200
+    paddingVertical: '6@ms',
+    borderRadius: '6@ms',
+    maxWidth: '200@ms'
   },
   filterButton: {
-    width: 40,
-    height: 40,
+    width: '40@ms',
+    height: '40@ms',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 10,
-    borderRadius: 100,
+    paddingVertical: '10@ms',
+    borderRadius: '100@ms',
     backgroundColor: palette.grey[100]
   },
   tabButton: {},
@@ -112,7 +113,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#D0D5DD'
   },
   tabText: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '700',
     textAlign: 'center'
   },
@@ -124,7 +125,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 16
+    gap: '16@ms'
   },
   buttonText: {
     ...TYPO.button1,

@@ -272,7 +272,7 @@ const styles = ScaledSheet.create({
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16
+    gap: '16@ms'
   },
 
   meta: {
@@ -292,7 +292,7 @@ const styles = ScaledSheet.create({
   },
 
   progressSub: {
-    paddingLeft: 8,
+    paddingLeft: '8@ms',
     fontSize: '12@ms',
     color: palette.grey[900]
   },
@@ -314,8 +314,8 @@ const styles = ScaledSheet.create({
     marginTop: '30@ms',
     paddingHorizontal: '20@ms',
     paddingVertical: '12@ms',
-    gap: 24,
-    borderTopWidth: 1,
+    gap: '24@ms',
+    borderTopWidth: '1@ms',
     borderColor: palette.grey[100],
     backgroundColor: palette.bg[100]
   },
@@ -323,7 +323,7 @@ const styles = ScaledSheet.create({
   tabContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 10
+    gap: '10@ms'
   },
 
   tabBtn: {
@@ -338,7 +338,7 @@ const styles = ScaledSheet.create({
   },
 
   activeTab: {
-    borderBottomWidth: 2,
+    borderBottomWidth: '2@ms',
     borderBottomColor: '#222222'
   },
 
@@ -352,7 +352,7 @@ const styles = ScaledSheet.create({
   },
 
   bottomBar: {
-    borderTopWidth: 1,
+    borderTopWidth: '1@ms',
     borderColor: palette.grey[100],
     backgroundColor: '#FFF'
   },
@@ -366,16 +366,16 @@ const styles = ScaledSheet.create({
   },
 
   button: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 8,
+    paddingHorizontal: '16@ms',
+    paddingVertical: '14@ms',
+    borderRadius: '8@ms',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8
+    gap: '8@ms'
   },
 
   pageBtn: {
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: '#C7C7C8',
     borderRadius: '6@ms',
     alignItems: 'center',
@@ -392,19 +392,19 @@ const styles = ScaledSheet.create({
   },
 
   outlineButton: {
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: palette.main[600],
     backgroundColor: 'white'
   },
 
   buttonText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '600',
     color: 'white'
   },
 
   outlineButtonText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '600',
     color: palette.main[600]
   }

@@ -3,6 +3,7 @@ import { palette } from '@/theme'
 import { ChapterResponse } from '@/utils/types'
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
+import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   t: any
@@ -51,41 +52,41 @@ const Statistic = ({ t, isEnglish, chapter }: Props) => {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   card: {
     backgroundColor: 'white',
-    borderRadius: 14,
-    padding: 16
+    borderRadius: '14@ms',
+    padding: '16@ms'
   },
 
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 14
+    marginBottom: '14@ms'
   },
 
   title: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '700',
     color: palette.grey[900]
   },
 
   total: {
-    fontSize: 12,
+    fontSize: '12@ms',
     color: palette.grey[500],
     fontWeight: '500'
   },
 
   doneBadge: {
     backgroundColor: '#D7FFE7',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12
+    paddingHorizontal: '10@ms',
+    paddingVertical: '4@ms',
+    borderRadius: '12@ms'
   },
 
   doneText: {
-    fontSize: 12,
+    fontSize: '12@ms',
     fontWeight: '600',
     color: '#3DC674'
   },
@@ -93,20 +94,20 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 10
+    gap: '10@ms'
   },
 
   statBox: {
     flex: 1,
     backgroundColor: palette.grey[100],
-    borderRadius: 12,
-    padding: 12
+    borderRadius: '12@ms',
+    padding: '12@ms'
   },
 
   statLabel: {
-    fontSize: 12,
+    fontSize: '12@ms',
     color: palette.grey[900],
-    marginBottom: 2,
+    marginBottom: '2@ms',
     fontWeight: '500'
   }
 })

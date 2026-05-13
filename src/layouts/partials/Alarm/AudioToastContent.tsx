@@ -1,5 +1,5 @@
 import React, { FC, useEffect, useRef, useState } from 'react'
-import { View, StyleSheet } from 'react-native'
+import { View } from 'react-native'
 import { Text, IconButton, ProgressBar } from 'react-native-paper'
 import { Audio } from 'expo-av'
 import { useTranslation } from 'react-i18next'
@@ -18,6 +18,7 @@ import {
   setAudioToastSound,
   stopAudioToastSound
 } from './audioToastController'
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   audioSrc: string
@@ -268,47 +269,47 @@ export const audioToastConfig = {
   }
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderWidth: 1,
+    paddingVertical: '12@ms',
+    paddingHorizontal: '24@ms',
+    borderWidth: '1@ms',
     borderColor: palette.main[500],
     backgroundColor: '#FFF',
-    borderRadius: 6,
-    elevation: 3
+    borderRadius: '6@ms',
+    elevation: '3@ms'
   },
   close: {
     position: 'absolute',
-    top: 2,
-    right: 2
+    top: '2@ms',
+    right: '2@ms'
   },
   header: {
     alignItems: 'center'
   },
   title: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '700',
     color: palette.main[500]
   },
   timeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6
+    gap: '6@ms'
   },
   label: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '600',
     color: palette.grey[700]
   },
   time: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '600',
     color: palette.main[500]
   },
   progress: {
-    marginTop: 12,
-    height: 4,
+    marginTop: '12@ms',
+    height: '4@ms',
     transform: [{ scaleX: -1 }]
   }
 })

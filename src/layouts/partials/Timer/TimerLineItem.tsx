@@ -12,6 +12,7 @@ import TimerDivider from './TimerDivider'
 import { palette } from '@/theme/colors'
 import { TimerStatus } from '@/utils/enums'
 import { FontAwesome5, Ionicons } from '@expo/vector-icons'
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   data: RecordItem
@@ -213,33 +214,33 @@ const TimerLineItem: FC<Props> = ({
 
 export default TimerLineItem
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
   },
   row: {
     flexDirection: 'row',
-    paddingVertical: 12
+    paddingVertical: '12@ms'
   },
   left: {
     width: '50%'
   },
   timeText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '500'
   },
   chip: {
-    marginTop: 4,
-    borderRadius: 8,
+    marginTop: '4@ms',
+    borderRadius: '8@ms',
     backgroundColor: palette.main[500]
   },
   center: {
-    width: 24,
+    width: '24@ms',
     alignItems: 'center'
   },
   dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: '10@ms',
+    height: '10@ms',
+    borderRadius: '5@ms',
     backgroundColor: palette.main[500]
   },
   dotPaused: {
@@ -249,30 +250,30 @@ const styles = StyleSheet.create({
     backgroundColor: 'red'
   },
   line: {
-    width: 2,
+    width: '2@ms',
     flex: 1,
     backgroundColor: palette.main[500]
   },
   right: {
     flex: 1,
-    paddingLeft: 8
+    paddingLeft: '8@ms'
   },
   title: {
     fontWeight: '500',
     textAlign: 'center',
-    marginBottom: 4
+    marginBottom: '4@ms'
   },
   actions: {
     display: 'flex',
     alignItems: 'center',
-    gap: 16,
+    gap: '16@ms',
     justifyContent: 'center',
     flexDirection: 'row',
-    marginTop: 4
+    marginTop: '4@ms'
   },
   icon: {
     backgroundColor: palette.grey[50],
-    width: 24,
-    height: 24
+    width: '24@ms',
+    height: '24@ms'
   }
 })

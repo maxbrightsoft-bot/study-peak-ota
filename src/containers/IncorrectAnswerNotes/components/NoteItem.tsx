@@ -6,6 +6,7 @@ import { TooltipProps } from '../configs/types'
 import { palette } from '@/theme'
 import { ExamResult, NoteResponse } from '@/utils/types'
 import MathRender from '@/components/MathRender'
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface NoteItemProps extends TooltipProps<NoteResponse> {
   data: NoteResponse
@@ -111,12 +112,12 @@ const NoteItem: FC<NoteItemProps> = ({
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     backgroundColor: '#FFF',
-    borderRadius: 14,
-    padding: 16,
-    gap: 12
+    borderRadius: '14@ms',
+    padding: '16@ms',
+    gap: '12@ms'
   },
 
   pressed: {
@@ -130,23 +131,23 @@ const styles = StyleSheet.create({
   },
 
   headerText: {
-    fontSize: 12,
-    lineHeight: 20,
+    fontSize: '12@ms',
+    lineHeight: '20@ms',
     color: palette.grey[400],
     fontWeight: 500
   },
   separator: {
-    width: 1,
-    height: 10,
+    width: '1@ms',
+    height: '10@ms',
     backgroundColor: palette.grey[400],
-    marginHorizontal: 10
+    marginHorizontal: '10@ms'
   },
 
   metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 6
+    gap: '6@ms'
   },
 
   metaLeft: {
@@ -155,20 +156,20 @@ const styles = StyleSheet.create({
   },
 
   number: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '700',
-    lineHeight: 25,
+    lineHeight: '25@ms',
     color: palette.grey[900],
-    marginRight: 12
+    marginRight: '12@ms'
   },
 
   metaText: {
-    fontSize: 12,
+    fontSize: '12@ms',
     color: palette.grey[500]
   },
 
   description: {
-    fontSize: 20,
+    fontSize: '20@ms',
     color: '#111',
   }
 })

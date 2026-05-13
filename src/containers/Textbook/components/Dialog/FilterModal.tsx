@@ -37,14 +37,14 @@ const FilterModal = ({ t, title, open, textbookFilter, onClose = () => {}, handl
 
 const styles = ScaledSheet.create({
   container: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 16,
+    paddingHorizontal: '24@ms',
+    paddingTop: '24@ms',
+    paddingBottom: '16@ms',
   },
   examTitle: {
     ...TYPO.heading3,
     textAlign: 'center',
-    marginBottom: 12
+    marginBottom: '12@ms',
   },
   backButton: {
     flexDirection: 'row',

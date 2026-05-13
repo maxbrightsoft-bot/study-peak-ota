@@ -160,11 +160,11 @@ const styles = ScaledSheet.create({
   },
   inputWrapper: {
     backgroundColor: palette.grey[100],
-    borderRadius: 20,
+    borderRadius: '20@ms',
     height: '80@ms'
   },
   input: {
-    borderWidth: 1,
+    borderWidth: '1@ms',
     borderColor: palette.grey[100],
     backgroundColor: 'transparent'
   },

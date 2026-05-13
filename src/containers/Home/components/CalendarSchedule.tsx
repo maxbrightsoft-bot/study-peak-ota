@@ -85,17 +85,12 @@ const CalendarSchedule = ({ isVisible, onClose }: Props) => {
           handleUpdateScheduleStatus={handleUpdateScheduleStatus}
         />
         <View style={{ position: 'absolute', bottom: 20, left: 20, right: 20 }}>
-          <Button
-            mode="contained"
+          <TouchableOpacity
             style={styles.newScheduleButton}
-            labelStyle={styles.newScheduleButtonLabel}
-            contentStyle={styles.newScheduleButtonContent}
             onPress={() => handleOpenDialog()}
           >
-            <View style={{ flexDirection: 'row' }}>
-              <Text style={styles.newScheduleButtonText}>{t('add_new_schedule')}</Text>
-            </View>
-          </Button>
+            <Text style={styles.newScheduleButtonText}>{t('add_new_schedule')}</Text>
+          </TouchableOpacity>
         </View>
       </View>
       <CreateNewScheduleDialog
@@ -148,7 +143,7 @@ const styles = ScaledSheet.create({
     paddingHorizontal: '20@ms'
   },
   newScheduleButton: {
-    borderRadius: 12,
+    borderRadius: '12@ms',
     backgroundColor: palette.main[600],
     paddingHorizontal: '14@ms',
     paddingVertical: '16@ms'
@@ -161,8 +156,9 @@ const styles = ScaledSheet.create({
     marginHorizontal: 0
   },
   newScheduleButtonText: {
-    ...TYPO.button2,
+    fontSize: '16@ms',
+    fontWeight: 700,
+    textAlign: 'center',
     color: '#fff',
-    marginLeft: '4@ms'
   }
 })

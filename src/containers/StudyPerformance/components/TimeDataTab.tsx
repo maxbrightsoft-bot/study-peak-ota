@@ -12,6 +12,7 @@ import { palette } from '@/theme'
 import { StudentInfo } from '@/utils/types'
 import TodayStudyTimeCard from './TodayStudyTimeCard'
 import TodayStudyDrawer from './TodayStudyDrawer'
+import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   studentId?: number
@@ -224,7 +225,7 @@ const TimeData = ({ studentId, contentRef, studentInfo, handleReadyPrint }: Prop
   )
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     backgroundColor: palette.grey[50]
   },
@@ -244,12 +245,12 @@ const styles = StyleSheet.create({
   },
   paper: {
     backgroundColor: '#FFF',
-    borderRadius: 4,
+    borderRadius: '4@ms',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: '1@ms' },
     shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2
+    shadowRadius: '2@ms',
+    elevation: '2@ms'
   },
   row: {
     flexDirection: 'row',
@@ -257,11 +258,11 @@ const styles = StyleSheet.create({
   },
   col: {
     flex: 1,
-    paddingHorizontal: 8
+    paddingHorizontal: '8@ms'
   },
   boldText: {
     fontWeight: '700',
-    fontSize: 14
+    fontSize: '14@ms'
   }
 })
 

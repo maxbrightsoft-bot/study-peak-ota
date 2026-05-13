@@ -175,7 +175,7 @@ export default StudyTimerTab
 const styles = ScaledSheet.create({
   container: {
     flexDirection: 'column',
-    paddingBottom: 34
+    paddingBottom: '34@ms'
   },
   listContent: {
     gap: '8@ms'
@@ -183,17 +183,17 @@ const styles = ScaledSheet.create({
   center: {
     justifyContent: 'center',
     alignItems: 'center',
-    minHeight: 50
+    minHeight: '50@ms'
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '500',
     color: palette.grey[300],
     textAlign: 'center'
   },
   actionContainer: {
     borderTopColor: palette.grey[100],
-    borderTopWidth: 1,
+    borderTopWidth: '1@ms',
     display: 'flex',
     paddingTop: '16@ms',
     justifyContent: 'flex-end',
@@ -202,37 +202,37 @@ const styles = ScaledSheet.create({
   addingActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 16
+    marginTop: '16@ms'
   },
   backBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    paddingVertical: '10@ms',
+    paddingHorizontal: '20@ms',
+    borderRadius: '8@ms',
     backgroundColor: palette.grey[200]
   },
   backBtnText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '600',
     color: palette.grey[800]
   },
   startBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    paddingVertical: '10@ms',
+    paddingHorizontal: '20@ms',
+    borderRadius: '8@ms',
     backgroundColor: palette.main[600]
   },
   startBtnText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     fontWeight: '600',
     color: '#FFF'
   },
   addSubjectBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: '44@ms',
+    height: '44@ms',
+    borderRadius: '22@ms',
     backgroundColor: palette.main[50],
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10
+    marginBottom: '10@ms'
   }
 })

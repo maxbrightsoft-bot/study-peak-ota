@@ -6,6 +6,7 @@ import { Audio } from 'expo-av'
 import { DEFAULT_AUDIO_URL } from '../../configs/constants'
 import { SubjectTimerResponse } from '@/utils/types'
 import useInactiveWarning from '@/layouts/hooks/useInactiveWarning'
+import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   isRunning: boolean
@@ -78,24 +79,24 @@ const InactiveWarningOverlay: FC<Props> = ({ isRunning, onPauseTimer }) => {
 
 export default InactiveWarningOverlay
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: '#CBCED4',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16
+    padding: '16@ms'
   },
   title: {
-    fontSize: 28,
+    fontSize: '28@ms',
     fontWeight: '700',
     textAlign: 'center',
     textTransform: 'uppercase',
     color: '#434343'
   },
   subtitle: {
-    marginTop: 16,
-    fontSize: 18,
+    marginTop: '16@ms',
+    fontSize: '18@ms',
     textAlign: 'center',
     color: '#434343'
   }

@@ -62,27 +62,27 @@ const styles = ScaledSheet.create({
     alignItems: 'center',
     paddingHorizontal: '24@ms',
     paddingVertical: '24@ms',
-    borderBottomWidth: 1,
+    borderBottomWidth: '1@ms',
     borderBottomColor: '#f0f0f0'
   },
   profileInfo: {
     flex: 1
   },
   nameText: {
-    fontSize: 20,
+    fontSize: '20@ms',
     fontWeight: 'bold',
-    marginBottom: 5
+    marginBottom: '5@ms'
   },
   emailText: {
-    fontSize: 14,
+    fontSize: '14@ms',
     color: '#666'
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 15,
-    paddingLeft: 10
+    marginBottom: '15@ms',
+    paddingLeft: '10@ms'
   },
   menuContainer: {
     paddingHorizontal: '24@ms',
@@ -98,14 +98,14 @@ const styles = ScaledSheet.create({
     alignItems: 'center'
   },
   icon: {
-    marginRight: 15
+    marginRight: '15@ms'
   },
   menuText: {
     ...TYPO.button2,
     color: palette.grey[700]
   },
   arrow: {
-    fontSize: 18,
+    fontSize: '18@ms',
     color: '#999'
   }
 })

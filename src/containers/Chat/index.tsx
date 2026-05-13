@@ -300,30 +300,30 @@ const styles = ScaledSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
+    paddingVertical: '16@ms',
+    paddingHorizontal: '20@ms',
+    borderBottomWidth: '1@ms',
     borderColor: palette.grey[100]
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: '20@ms',
     fontWeight: 'bold',
-    marginRight: 12,
+    marginRight: '12@ms',
     color: "#222"
   },
   headerSub: {
-    fontSize: 20,
+    fontSize: '20@ms',
     color: palette.grey[400]
   },
   tabsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4
+    marginBottom: '4@ms'
   },
   tabs: {
     alignItems: 'center',
-    marginRight: 20,
-    paddingBottom: 8,
+    marginRight: '20@ms',
+    paddingBottom: '8@ms',
     position: 'relative'
   },
   activeTabWrapper: {
@@ -333,10 +333,10 @@ const styles = ScaledSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 3,
+    height: '3@ms',
     backgroundColor: palette.main[600],
-    borderTopLeftRadius: 3,
-    borderTopRightRadius: 3
+    borderTopLeftRadius: '3@ms',
+    borderTopRightRadius: '3@ms'
   },
   attemptBadge: {
     paddingHorizontal: '8@ms',
@@ -348,7 +348,7 @@ const styles = ScaledSheet.create({
     fontWeight: '600'
   },
   tab: {
-    fontSize: 16,
+    fontSize: '16@ms',
     color: palette.grey[500],
     fontWeight: '600',
     textAlign: 'center'
@@ -360,52 +360,52 @@ const styles = ScaledSheet.create({
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16
+    marginBottom: '16@ms'
   },
   searchInput: {
     flex: 1,
     backgroundColor: '#ECECF1',
-    borderRadius: 25,
-    paddingHorizontal: 16,
-    height: 40
+    borderRadius: '25@ms',
+    paddingHorizontal: '16@ms',
+    height: '40@ms'
   },
   filterButton: {
-    marginLeft: 10,
+    marginLeft: '10@ms',
     backgroundColor: '#ECECF1',
-    borderRadius: 20,
-    padding: 10
+    borderRadius: '20@ms',
+    padding: '10@ms'
   },
   filterCountButton: {
-    width: 20,
-    height: 20,
-    borderRadius: 43,
+    width: '20@ms',
+    height: '20@ms',
+    borderRadius: '43@ms',
     backgroundColor: '#3DC674',
     position: 'absolute',
-    top: -10,
-    right: -10,
+    top: '-10@ms',
+    right: '-10@ms',
     justifyContent: 'center',
     alignItems: 'center'
   },
   filterButtonText: {
-    fontSize: 12,
+    fontSize: '12@ms',
     color: '#fff'
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
+    borderRadius: '16@ms',
+    padding: '16@ms',
+    marginBottom: '16@ms',
   },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12
+    marginBottom: '12@ms'
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    marginRight: 12,
+    width: '44@ms',
+    height: '44@ms',
+    borderRadius: '22@ms',
+    marginRight: '12@ms',
     backgroundColor: palette.grey[200]
   },
   cardHeaderContent: {
@@ -416,76 +416,76 @@ const styles = ScaledSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4
+    marginBottom: '4@ms'
   },
   teacherName: {
-    fontSize: 16,
+    fontSize: '16@ms',
     fontWeight: '700',
     color: palette.grey[900],
     flex: 1,
-    marginRight: 8
+    marginRight: '8@ms'
   },
   timeText: {
-    fontSize: 12,
+    fontSize: '12@ms',
     color: palette.grey[500]
   },
   cardCategory: {
-    fontSize: 13,
+    fontSize: '13@ms',
     color: palette.main[600],
     fontWeight: '600'
   },
   cardBody: {
     backgroundColor: palette.grey[50],
-    padding: 12,
-    borderRadius: 12,
-    gap: 8
+    padding: '12@ms',
+    borderRadius: '12@ms',
+    gap: '8@ms'
   },
   messagePreview: {
     justifyContent: 'center'
   },
   cardInfoRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: '8@ms',
     alignItems: 'center',
     flexWrap: 'wrap'
   },
   infoBadge: {
     backgroundColor: '#fff',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    borderWidth: 1,
+    paddingHorizontal: '8@ms',
+    paddingVertical: '4@ms',
+    borderRadius: '6@ms',
+    borderWidth: '1@ms',
     borderColor: palette.grey[200]
   },
   infoBadgeText: {
-    fontSize: 11,
+    fontSize: '11@ms',
     fontWeight: '600',
     color: palette.grey[700]
   },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 60,
-    gap: 12
+    paddingTop: '60@ms',
+    gap: '12@ms'
   },
   emptyText: {
-    fontSize: 15,
+    fontSize: '15@ms',
     fontWeight: '500',
     color: palette.grey[500]
   },
   floatingButton: {
     margin: 0,
     backgroundColor: palette.main[600],
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 100,
+    paddingHorizontal: '12@ms',
+    paddingVertical: '8@ms',
+    borderRadius: '100@ms',
     flexDirection: 'row',
     alignSelf: 'flex-end',
-    gap: 5
+    gap: '5@ms'
   },
   floatingButtonText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 14
+    fontSize: '14@ms'
   }
 })
