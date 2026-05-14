@@ -68,7 +68,10 @@ const Header = ({ headerProps }: Props) => {
             }}
           >
             <TouchableRipple
-              onPress={() => handleSwitchAcademy(true, undefined, false)}
+              onPress={() => {
+                closeAcademyMenu()
+                handleSwitchAcademy(true, undefined, false)
+              }}
               style={{
                 width: '100%',
                 flexDirection: 'row',
@@ -100,7 +103,9 @@ const Header = ({ headerProps }: Props) => {
             {academies.map((academy, index) => (
               <TouchableRipple
                 key={index}
-                onPress={() => handleSwitchAcademy(false, academy)}
+                onPress={() => {
+                  closeAcademyMenu()
+                  handleSwitchAcademy(false, academy)}}
                 style={{
                   width: '100%',
                   flexDirection: 'row',

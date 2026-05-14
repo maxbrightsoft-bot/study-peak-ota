@@ -7,12 +7,16 @@ import {
   PusherChannel,
   PusherEvent,
 } from "@pusher/pusher-websocket-react-native";
-
 import {
   AcademyHeaders,
   BASE_URL,
   NoAcademyHeaders,
   PUSHER_CONFIG,
+  ACCESS_TOKEN,
+  ACADEMY_DOMAIN,
+  LEARNING_SPACE,
+  REDIRECT_URL,
+  APPLE_USER_KEY,
 } from "@/utils/constants";
 import {
   AcademyResponse,
@@ -51,6 +55,7 @@ interface StoreState {
 
   pusher?: Pusher;
   channel?: PusherChannel;
+  hasSeenTutorial: boolean;
 }
 
 interface StoreActions {
@@ -95,6 +100,7 @@ interface StoreActions {
   ) => Promise<void>;
 
   logout: () => Promise<void>;
+  setHasSeenTutorial: (value: boolean) => void;
 }
 
 type AuthStore = StoreState & StoreActions;
@@ -110,7 +116,7 @@ const useAuthStore = create<AuthStore>()(
       selectedAcademy: null,
       redirectUrl: null,
       redirectParams: null,
-      language:  null,
+      language: null,
       timers: [],
       alarm: null,
       activeTimerId: undefined,
@@ -119,6 +125,7 @@ const useAuthStore = create<AuthStore>()(
       hasEnteredSelectAcademy: true,
       pusher: undefined,
       channel: undefined,
+      hasSeenTutorial: false,
 
       setUser: (user) => {
         set((state) => {
@@ -137,8 +144,13 @@ const useAuthStore = create<AuthStore>()(
           state.hasEnteredSelectAcademy = value
         })
       },
+      setHasSeenTutorial: (value) => {
+        set((state) => {
+          state.hasSeenTutorial = value
+        })
+      },
 
-      setCrashlyticsUser: async(user?: any) => {
+      setCrashlyticsUser: async (user?: any) => {
         if (!user?.id) return
 
         crashlytics().setUserId(String(user.id))
@@ -274,8 +286,8 @@ const useAuthStore = create<AuthStore>()(
           channelName,
           onEvent: (event: PusherEvent) => {
             try {
-              console.log({ channelName, eventHandlers});
-              
+              console.log({ channelName, eventHandlers });
+
               console.log("[Pusher] Event:", event.eventName);
               const matched = eventHandlers.find(
                 (e) => e.eventName === event.eventName
@@ -344,14 +356,13 @@ const useAuthStore = create<AuthStore>()(
         toast.dismiss()
         clearCrashlyticsUser()
 
-        set(() => ({
+        set((state) => ({
           isLoading: false,
 
           user: null,
           academies: [],
           selectedAcademy: null,
 
-          language: null,
           timers: [],
           alarm: null,
 
@@ -361,7 +372,14 @@ const useAuthStore = create<AuthStore>()(
           channel: undefined,
         }));
 
-        await AsyncStorage.clear();
+        const keysToRemove = [
+          ACCESS_TOKEN,
+          ACADEMY_DOMAIN,
+          LEARNING_SPACE,
+          REDIRECT_URL,
+          APPLE_USER_KEY,
+        ].filter((key): key is string => typeof key === 'string');
+        await AsyncStorage.multiRemove(keysToRemove);
       },
     })),
     {
@@ -374,6 +392,7 @@ const useAuthStore = create<AuthStore>()(
         isLoading: state.isLoading,
         language: state.language,
         hasConsented: state.hasConsented,
+        hasSeenTutorial: state.hasSeenTutorial,
       }),
     }
   )

@@ -98,16 +98,23 @@ const NoteItem: FC<NoteItemProps> = ({
             })}
           </Text>
           <Text style={styles.metaText}>{data.categoryName}</Text>
-          {!!data?.page && (
-            <>
-              <View style={styles.separator} />
-              <Text style={styles.metaText}>p.{data?.page}</Text>
-            </>
-          )}
         </View>
         <FontAwesome6 name="angle-right" size={20} color={palette.grey[300]} />
       </View>
-      <MathRender content={data.content} textColor={palette.grey[700]} maxLines={1} />
+      <View style={styles.contentHighlight}>
+        <MathRender content={data.content} textColor={palette.grey[800]} maxLines={1} />
+      </View>
+      <View style={styles.bottomRow}>
+        {!!data?.questionTypeName && (
+          <Text style={styles.childTitlePage}>{data.questionTypeName}</Text>
+        )}
+        {!!data?.page && (
+          <>
+            <View style={styles.separator} />
+            <Text style={styles.metaText}>p.{data?.page}</Text>
+          </>
+        )}
+      </View>
     </Pressable>
   )
 }
@@ -154,7 +161,12 @@ const styles = ScaledSheet.create({
     flexDirection: 'row',
     alignItems: 'center'
   },
-
+  bottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: '6@ms',
+    flexWrap: 'wrap'
+  },
   number: {
     fontSize: '16@ms',
     fontWeight: '700',
@@ -162,10 +174,21 @@ const styles = ScaledSheet.create({
     color: palette.grey[900],
     marginRight: '12@ms'
   },
-
+  childTitlePage: {
+    fontSize: '11@ms',
+    fontWeight: '600',
+    color: '#111827',
+    flexShrink: 0,
+  },
   metaText: {
     fontSize: '12@ms',
     color: palette.grey[500]
+  },
+
+  contentHighlight: {
+    backgroundColor: '#F9FAFB',
+    padding: '12@ms',
+    borderRadius: '10@ms',
   },
 
   description: {

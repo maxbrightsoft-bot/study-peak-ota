@@ -4,7 +4,7 @@ import { getSocket, initSocket } from '@/services'
 import useAuthStore from '@/store/useAuthStore'
 
 export const useSocketInit = () => {
-  const { user } = useAuthStore()
+  const user = useAuthStore(state => state.user)
 
   useEffect(() => {
     const startSocket = async () => {

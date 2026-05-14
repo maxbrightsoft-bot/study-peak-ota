@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons'
 import { Avatar } from 'react-native-paper'
 import { ScaledSheet } from 'react-native-size-matters'
 import { palette, TYPO } from '@/theme'
+import { useNavigation } from '@react-navigation/native'
+import { Routes } from '@/navigators/RouteName'
 import useProfile from './hooks/useProfile'
 import { profileItems, settingItems } from './configs/constants'
 import Chat from '../Chat'
@@ -12,6 +14,7 @@ import { SettingIndex } from './configs/types'
 const Profile = () => {
   const { user, isVisibleDrawer, handleCloseDrawer,
     handleVisibleDrawer } = useProfile()
+  const navigation = useNavigation<any>()
 
   return (
     <View style={styles.container}>
@@ -39,7 +42,17 @@ const Profile = () => {
       </View>
       <View style={[styles.menuContainer, { marginTop: 24}]}>
         {settingItems.map((item) => (
-          <TouchableOpacity key={item.id} style={styles.menuItem} onPress={() => handleVisibleDrawer(item.id)}>
+          <TouchableOpacity 
+            key={item.id} 
+            style={styles.menuItem} 
+            onPress={() => {
+              if (item.id === SettingIndex.Tutorial) {
+                navigation.navigate(Routes.Auth.Tutorial)
+              } else {
+                handleVisibleDrawer(item.id)
+              }
+            }}
+          >
             <View style={styles.menuItemContent}>
               <Ionicons name={item.icon as any} size={24} color={palette.grey[700]} style={styles.icon} />
               <Text style={styles.menuText}>{item.title}</Text>

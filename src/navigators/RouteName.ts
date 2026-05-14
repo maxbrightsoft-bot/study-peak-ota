@@ -14,9 +14,11 @@ export const Routes = {
         Profile: "PROFILE",
         Question: "QUESTION",
         StudentExamHistory: "STUDENT_EXAM_HISTORY",
+        Tutorial: "TUTORIAL",
     },
     UnAuth: {
         Splash: 'SPLASH',
+        Tutorial: 'TUTORIAL',
         Login: 'LOGIN',
         LoginParentPhone: 'LOGIN_PARENT_PHONE',
         LoginQRCode: 'LOGIN_QR',

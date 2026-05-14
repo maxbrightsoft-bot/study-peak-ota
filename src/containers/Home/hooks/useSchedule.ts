@@ -26,7 +26,9 @@ import _ from "lodash";
 import { convertScheduleFormToRequest } from "../configs/helpers";
 
 const useSchedule = () => {
-  const { user, setLoading, setLoadingWithoutOverlay } = useAuthStore()
+  const user = useAuthStore(state => state.user)
+  const setLoading = useAuthStore(state => state.setLoading)
+  const setLoadingWithoutOverlay = useAuthStore(state => state.setLoadingWithoutOverlay)
   const [isOpenDialog, setOpenDialog] = useState<boolean>(false);
   const [isOpenConfirmDeleteDialog, setOpenConfirmDeleteDialog] =
     useState<boolean>(false);
