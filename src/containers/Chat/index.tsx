@@ -18,6 +18,7 @@ import { ScaledSheet } from 'react-native-size-matters'
 import MathRender from '@/components/MathRender'
 import { Ionicons } from '@expo/vector-icons'
 import { useFocusEffect } from '@react-navigation/native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const getConversationTitle = (
   conversation: ConversationsResponse,
@@ -152,6 +153,7 @@ export default function Question() {
   const { isLoadingMessages, chatListProps, inputProps, chatHeaderProps, handleLoadMoreMessages } = useChatContainer({
     conversation: selectedConversation
   })
+  const insets = useSafeAreaInsets()
 
   const {
     openConversationDialog: openQuestionConversationDialog,
@@ -196,8 +198,8 @@ export default function Question() {
   }, [conversations, selected])
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <View style={styles.container}>
+      <View style={[styles.header, { paddingTop: Math.max(insets.top, 16) }]}>
         <View style={{ flexDirection: "row" }}>
           <Text style={styles.headerTitle}>{t('question')}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -287,7 +289,7 @@ export default function Question() {
           chatHeaderProps={chatHeaderProps}
         />
       ) : null}
-    </SafeAreaView>
+    </View>
   )
 }
 

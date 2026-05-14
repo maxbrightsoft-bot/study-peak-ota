@@ -7,6 +7,7 @@ import dayjs from 'dayjs'
 import { Calendar } from 'react-native-calendars'
 import ArrowRightIcon from '@/assets/iconJSX/arrowRight'
 import { ScaledSheet } from 'react-native-size-matters'
+import BottomSheet from '@/components/ModalBase/BottomSheet'
 
 interface FilterBottomSheetProps {
   isVisible: boolean
@@ -121,7 +122,7 @@ export default function FilterBottomSheet({ isVisible, onClose, onApply, initial
 
   const onDayPress = (day: any) => {
     const selectedDate = new Date(day.dateString)
-    
+
     if (!customStartDate || (customStartDate && customEndDate)) {
       setCustomStartDate(selectedDate)
       setCustomEndDate(null)
@@ -136,15 +137,15 @@ export default function FilterBottomSheet({ isVisible, onClose, onApply, initial
 
   const getMarkedDates = () => {
     const marked: any = {}
-    
+
     if (customStartDate) {
       const startStr = dayjs(customStartDate).format('YYYY-MM-DD')
       marked[startStr] = { startingDay: true, color: '#7C3AED', textColor: 'white' }
-      
+
       if (customEndDate) {
         const endStr = dayjs(customEndDate).format('YYYY-MM-DD')
         marked[endStr] = { endingDay: true, color: '#7C3AED', textColor: 'white' }
-        
+
         let current = dayjs(startStr).add(1, 'day')
         while (current.isBefore(dayjs(endStr), 'day')) {
           marked[current.format('YYYY-MM-DD')] = { color: '#EDE9FE', textColor: '#7C3AED' }
@@ -157,210 +158,207 @@ export default function FilterBottomSheet({ isVisible, onClose, onApply, initial
 
   const totalSelected = selectedSubjects.length + selectedCategories.length + selectedExamTypes.length + (customStartDate || customEndDate ? 1 : 0) + (hasIncorrectOrImage ? 1 : 0)
 
+  const titleChildren = (
+    <View style={styles.header}>
+      <View style={{ width: 50 }} />
+      <View style={styles.titleRow}>
+        <Text style={styles.titleText}>{t('filter_title')}</Text>
+        {totalSelected > 0 ? (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{totalSelected}</Text>
+          </View>
+        ) : null}
+      </View>
+      <TouchableOpacity onPress={handleReset} style={styles.resetBtn}>
+        <Text style={styles.resetText}>{t('filter_reset')}</Text>
+      </TouchableOpacity>
+    </View>
+  )
+
   if (!isVisible) return null
 
   return (
-    <Modal
-      visible={isVisible}
-      animationType="slide"
-      presentationStyle="fullScreen"
-      onRequestClose={onClose}
+    <BottomSheet
+      isVisible={isVisible}
+      onClose={onClose}
+      titleChildren={titleChildren}
+      closeChildren={null}
     >
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" backgroundColor="#FFF" />
-
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={{ width: 50 }} />
-          <View style={styles.titleRow}>
-            <Text style={styles.titleText}>{t('filter_title')}</Text>
-            {totalSelected > 0 ? (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{totalSelected}</Text>
-              </View>
-            ) : null}
+      {/* Body */}
+      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        {/* 1. Subject */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.numberIcon}><Text style={styles.numberText}>1</Text></View>
+            <Text style={styles.sectionTitle}>{t('filter_subject')}</Text>
           </View>
-          <TouchableOpacity onPress={handleReset} style={styles.resetBtn}>
-            <Text style={styles.resetText}>{t('filter_reset')}</Text>
-          </TouchableOpacity>
+          <View style={styles.chipRow}>
+            <TouchableOpacity
+              style={[styles.chip, selectedSubjects.length === 0 && styles.chipActive]}
+              onPress={() => toggleSubject('all')}
+            >
+              <Text style={[styles.chipText, selectedSubjects.length === 0 && styles.chipTextActive]}>{t('filter_all')}</Text>
+            </TouchableOpacity>
+            {subjectOptions.map(opt => {
+              const isActive = selectedSubjects.includes(opt.label)
+              return (
+                <TouchableOpacity
+                  key={opt.value}
+                  style={[styles.chip, isActive && styles.chipActive]}
+                  onPress={() => toggleSubject(opt.label)}
+                >
+                  <View style={[styles.dot, isActive ? { backgroundColor: '#7C3AED' } : { backgroundColor: '#D1D5DB' }]} />
+                  <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{opt.label}</Text>
+                </TouchableOpacity>
+              )
+            })}
+          </View>
         </View>
 
-        {/* Body */}
-        <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-          {/* 1. Subject */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.numberIcon}><Text style={styles.numberText}>1</Text></View>
-              <Text style={styles.sectionTitle}>{t('filter_subject')}</Text>
-            </View>
-            <View style={styles.chipRow}>
-              <TouchableOpacity
-                style={[styles.chip, selectedSubjects.length === 0 && styles.chipActive]}
-                onPress={() => toggleSubject('all')}
-              >
-                <Text style={[styles.chipText, selectedSubjects.length === 0 && styles.chipTextActive]}>{t('filter_all')}</Text>
-              </TouchableOpacity>
-              {subjectOptions.map(opt => {
-                const isActive = selectedSubjects.includes(opt.label)
-                return (
-                  <TouchableOpacity
-                    key={opt.value}
-                    style={[styles.chip, isActive && styles.chipActive]}
-                    onPress={() => toggleSubject(opt.label)}
-                  >
-                    <View style={[styles.dot, isActive ? { backgroundColor: '#7C3AED' } : { backgroundColor: '#D1D5DB' }]} />
-                    <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{opt.label}</Text>
-                  </TouchableOpacity>
-                )
-              })}
-            </View>
+        {/* 2. Category */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.numberIcon}><Text style={styles.numberText}>2</Text></View>
+            <Text style={styles.sectionTitle}>{t('filter_category')}</Text>
+            {selectedCategories.length > 0 && <Text style={styles.selectedCount}>{t('filter_n_selected', { n: selectedCategories.length })}</Text>}
+          </View>
+          <View style={styles.chipRow}>
+            {categoryOptions.map(opt => {
+              const isActive = selectedCategories.includes(opt.value as string)
+              return (
+                <TouchableOpacity
+                  key={opt.value}
+                  style={[styles.chip, isActive && styles.chipActive]}
+                  onPress={() => toggleCategory(opt.value as string)}
+                >
+                  <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{opt.label}</Text>
+                </TouchableOpacity>
+              )
+            })}
           </View>
 
-          {/* 2. Category */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.numberIcon}><Text style={styles.numberText}>2</Text></View>
-              <Text style={styles.sectionTitle}>{t('filter_category')}</Text>
-              {selectedCategories.length > 0 && <Text style={styles.selectedCount}>{t('filter_n_selected', { n: selectedCategories.length })}</Text>}
-            </View>
-            <View style={styles.chipRow}>
-              {categoryOptions.map(opt => {
-                const isActive = selectedCategories.includes(opt.value as string)
-                return (
-                  <TouchableOpacity
-                    key={opt.value}
-                    style={[styles.chip, isActive && styles.chipActive]}
-                    onPress={() => toggleCategory(opt.value as string)}
-                  >
-                    <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{opt.label}</Text>
-                  </TouchableOpacity>
-                )
-              })}
-            </View>
-
-            {/* Child Categories */}
-            {categoryOptions.filter(opt => selectedCategories.includes(opt.value as string) && opt.children && opt.children.length > 0).map(parentOpt => (
-              <View key={`child-box-${parentOpt.value}`} style={styles.childCategoryBox}>
-                <Text style={styles.childCategoryLabel}>{t('filter_subcategory', { parent: parentOpt.label })}</Text>
-                <View style={styles.chipRow}>
-                  {parentOpt.children!.map(child => {
-                    const isChildActive = selectedCategories.includes(child.value as string)
-                    return (
-                      <TouchableOpacity
-                        key={child.value}
-                        style={[styles.chip, isChildActive && styles.chipActive]}
-                        onPress={() => toggleCategory(child.value as string)}
-                      >
-                        <Text style={[styles.chipText, isChildActive && styles.chipTextActive]}>{child.label}</Text>
-                      </TouchableOpacity>
-                    )
-                  })}
-                </View>
+          {/* Child Categories */}
+          {categoryOptions.filter(opt => selectedCategories.includes(opt.value as string) && opt.children && opt.children.length > 0).map(parentOpt => (
+            <View key={`child-box-${parentOpt.value}`} style={styles.childCategoryBox}>
+              <Text style={styles.childCategoryLabel}>{t('filter_subcategory', { parent: parentOpt.label })}</Text>
+              <View style={styles.chipRow}>
+                {parentOpt.children!.map(child => {
+                  const isChildActive = selectedCategories.includes(child.value as string)
+                  return (
+                    <TouchableOpacity
+                      key={child.value}
+                      style={[styles.chip, isChildActive && styles.chipActive]}
+                      onPress={() => toggleCategory(child.value as string)}
+                    >
+                      <Text style={[styles.chipText, isChildActive && styles.chipTextActive]}>{child.label}</Text>
+                    </TouchableOpacity>
+                  )
+                })}
               </View>
-            ))}
-          </View>
+            </View>
+          ))}
+        </View>
 
-          {/* 3. Exam Type */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.numberIcon}><Text style={styles.numberText}>3</Text></View>
-              <Text style={styles.sectionTitle}>{t('filter_exam_type')}</Text>
-              {selectedExamTypes.length > 0 && <Text style={styles.selectedCount}>{t('filter_n_selected', { n: selectedExamTypes.length })}</Text>}
-            </View>
-            <View style={styles.chipRow}>
-              {EXAM_TYPE_MAPPINGS.map(item => {
-                const label = t(item.labelKey)
-                const isActive = selectedExamTypes.includes(item.value)
-                return (
-                  <TouchableOpacity
-                    key={item.value}
-                    style={[styles.chip, isActive && styles.chipActive]}
-                    onPress={() => toggleSelection(selectedExamTypes, setSelectedExamTypes, item.value)}
-                  >
-                    <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{label}</Text>
-                  </TouchableOpacity>
-                )
-              })}
-            </View>
+        {/* 3. Exam Type */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.numberIcon}><Text style={styles.numberText}>3</Text></View>
+            <Text style={styles.sectionTitle}>{t('filter_exam_type')}</Text>
+            {selectedExamTypes.length > 0 && <Text style={styles.selectedCount}>{t('filter_n_selected', { n: selectedExamTypes.length })}</Text>}
           </View>
+          <View style={styles.chipRow}>
+            {EXAM_TYPE_MAPPINGS.map(item => {
+              const label = t(item.labelKey)
+              const isActive = selectedExamTypes.includes(item.value)
+              return (
+                <TouchableOpacity
+                  key={item.value}
+                  style={[styles.chip, isActive && styles.chipActive]}
+                  onPress={() => toggleSelection(selectedExamTypes, setSelectedExamTypes, item.value)}
+                >
+                  <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{label}</Text>
+                </TouchableOpacity>
+              )
+            })}
+          </View>
+        </View>
 
-          {/* 4. Period */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.numberIcon}><Text style={styles.numberText}>4</Text></View>
-              <Text style={styles.sectionTitle}>{t('filter_period')}</Text>
-            </View>
-            <View style={styles.chipRow}>
-              {PERIOD_KEYS.map(opt => {
-                const isActive = period === opt.value
-                let displayText = t(opt.labelKey)
-                if (opt.value === 'custom' && customStartDate) {
-                  const startStr = dayjs(customStartDate).format('DD/MM/YYYY')
-                  if (customEndDate) {
-                    const endStr = dayjs(customEndDate).format('DD/MM/YYYY')
-                    displayText = `${startStr} - ${endStr}`
-                  } else {
-                    displayText = startStr
-                  }
+        {/* 4. Period */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.numberIcon}><Text style={styles.numberText}>4</Text></View>
+            <Text style={styles.sectionTitle}>{t('filter_period')}</Text>
+          </View>
+          <View style={styles.chipRow}>
+            {PERIOD_KEYS.map(opt => {
+              const isActive = period === opt.value
+              let displayText = t(opt.labelKey)
+              if (opt.value === 'custom' && customStartDate) {
+                const startStr = dayjs(customStartDate).format('DD/MM/YYYY')
+                if (customEndDate) {
+                  const endStr = dayjs(customEndDate).format('DD/MM/YYYY')
+                  displayText = `${startStr} - ${endStr}`
+                } else {
+                  displayText = startStr
                 }
-                
-                return (
-                  <TouchableOpacity
-                    key={opt.value}
-                    style={[styles.chip, isActive && styles.chipActive]}
-                    onPress={() => {
-                      if (opt.value === 'custom') {
-                        setShowCustomDateModal(true)
-                      } else {
-                        setPeriod(opt.value)
-                        setCustomStartDate(null)
-                        setCustomEndDate(null)
-                      }
-                    }}
-                  >
-                    <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{displayText}</Text>
-                    {opt.value === 'custom' && (
-                      <ArrowRightIcon color={isActive ? '#7C3AED' : '#374151'} style={{ marginLeft: 4 }} />
-                    )}
-                  </TouchableOpacity>
-                )
-              })}
-            </View>
-          </View>
+              }
 
-          {/* 5. Additional Condition */}
-          <View style={[styles.section, { borderBottomWidth: 0 }]}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.numberIcon}><Text style={styles.numberText}>5</Text></View>
-              <Text style={styles.sectionTitle}>{t('filter_additional')}</Text>
-            </View>
-            <View style={styles.switchRow}>
-              <Text style={styles.switchLabel}>{t('filter_memo_or_image_only')}</Text>
-              <Switch
-                value={hasIncorrectOrImage}
-                onValueChange={setHasIncorrectOrImage}
-                trackColor={{ false: "#D1D5DB", true: "#7C3AED" }}
-                thumbColor={"#FFFFFF"}
-              />
-            </View>
+              return (
+                <TouchableOpacity
+                  key={opt.value}
+                  style={[styles.chip, isActive && styles.chipActive]}
+                  onPress={() => {
+                    if (opt.value === 'custom') {
+                      setShowCustomDateModal(true)
+                    } else {
+                      setPeriod(opt.value)
+                      setCustomStartDate(null)
+                      setCustomEndDate(null)
+                    }
+                  }}
+                >
+                  <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{displayText}</Text>
+                  {opt.value === 'custom' && (
+                    <ArrowRightIcon color={isActive ? '#7C3AED' : '#374151'} style={{ marginLeft: 4 }} />
+                  )}
+                </TouchableOpacity>
+              )
+            })}
           </View>
-        </ScrollView>
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
-            <Text style={styles.cancelText}>{t('filter_cancel')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.applyBtn} onPress={handleApply}>
-            <Text style={styles.applyText}>{t('filter_apply')}</Text>
-            {totalSelected > 0 ? (
-              <View style={styles.badgeSmall}>
-                <Text style={styles.badgeSmallText}>{t('filter_n_applied', { n: totalSelected })}</Text>
-              </View>
-            ) : null}
-          </TouchableOpacity>
         </View>
-      </SafeAreaView>
+
+        {/* 5. Additional Condition */}
+        <View style={[styles.section, { borderBottomWidth: 0 }]}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.numberIcon}><Text style={styles.numberText}>5</Text></View>
+            <Text style={styles.sectionTitle}>{t('filter_additional')}</Text>
+          </View>
+          <View style={styles.switchRow}>
+            <Text style={styles.switchLabel}>{t('filter_memo_or_image_only')}</Text>
+            <Switch
+              value={hasIncorrectOrImage}
+              onValueChange={setHasIncorrectOrImage}
+              trackColor={{ false: "#D1D5DB", true: "#7C3AED" }}
+              thumbColor={"#FFFFFF"}
+            />
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* Footer */}
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
+          <Text style={styles.cancelText}>{t('filter_cancel')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.applyBtn} onPress={handleApply}>
+          <Text style={styles.applyText}>{t('filter_apply')}</Text>
+          {totalSelected > 0 ? (
+            <View style={styles.badgeSmall}>
+              <Text style={styles.badgeSmallText}>{t('filter_n_applied', { n: totalSelected })}</Text>
+            </View>
+          ) : null}
+        </TouchableOpacity>
+      </View>
 
       <Modal visible={showCustomDateModal} transparent animationType="fade">
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
@@ -394,23 +392,20 @@ export default function FilterBottomSheet({ isVisible, onClose, onApply, initial
           </View>
         </View>
       </Modal>
-    </Modal>
+    </BottomSheet>
   )
 }
 
 const styles = ScaledSheet.create({
   safeArea: {
-    flex: 1,
-    backgroundColor: '#FFF',
   },
   header: {
+    width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: '20@ms',
     paddingVertical: '16@ms',
-    borderBottomWidth: '1@ms',
-    borderBottomColor: '#F3F4F6',
   },
   titleRow: {
     flexDirection: 'row',
@@ -445,7 +440,6 @@ const styles = ScaledSheet.create({
     fontWeight: '500',
   },
   scroll: {
-    flex: 1,
   },
   scrollContent: {
     paddingHorizontal: '20@ms',

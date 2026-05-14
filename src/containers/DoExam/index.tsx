@@ -1,5 +1,6 @@
 import React, { useMemo, useCallback } from 'react'
 import { View, Text, Platform, KeyboardAvoidingView, TouchableOpacity, FlatList } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
 import useExam from './hooks/useExam'
@@ -73,6 +74,7 @@ const DoExam = ({ examCode }: Props) => {
     handleFinishExam,
     isLoading
   } = useExam({ examCode })
+  const insets = useSafeAreaInsets()
 
   const currentQuestion = useMemo(
     () => questionList.find((q) => q.id === currentQuestionId),
@@ -122,7 +124,7 @@ const DoExam = ({ examCode }: Props) => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={80}
       >
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: Math.max(insets.top, 16) }]}>
           <TouchableOpacity onPress={handleOpenLeaveDialog}>
             <View style={{ transform: 'rotate(180deg)' }}>
               <ArrowRight width={24} height={24} color={palette.grey[300]} />
@@ -268,7 +270,7 @@ const DoExam = ({ examCode }: Props) => {
               <Text style={{ color: 'red', fontWeight: '500', fontSize: 14 }}>{t('end_exam')}</Text>
             </TouchableOpacity>
           </View>
-          <View style={styles.navRow}>
+          <View style={[styles.navRow, { paddingBottom: insets.bottom || 34 }]}>
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <TouchableOpacity
                 disabled={currentQuestion?.id === questionList[0]?.id}
@@ -505,7 +507,6 @@ const styles = ScaledSheet.create({
     paddingVertical: '12@ms',
     paddingHorizontal: '20@ms',
     flexDirection: 'row',
-    paddingBottom: '34@ms',
     gap: '8@ms',
     justifyContent: 'space-between'
   },

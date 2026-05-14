@@ -1,6 +1,7 @@
 import { palette, TYPO } from '@/theme'
 import React from 'react'
 import { View, StyleSheet, TouchableOpacity, ScrollView, Text } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { TabList } from '../configs/constants'
 import useTab from '@/hooks/useTab'
 import { useTranslation } from 'react-i18next'
@@ -13,10 +14,11 @@ import { ScaledSheet } from 'react-native-size-matters'
 const Textbook = () => {
   const { t } = useTranslation()
   const { selected, handleChangeTab } = useTab(TabList)
+  const insets = useSafeAreaInsets()
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: Math.max(insets.top, 18) }]}>
         <Text style={styles.headerTitle}>{t('question_bank')}</Text>
         <View>
           <HeaderAction />

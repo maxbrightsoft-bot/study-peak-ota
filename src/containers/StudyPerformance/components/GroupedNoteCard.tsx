@@ -130,6 +130,7 @@ export default function GroupedNoteCard({ item, t, filter, refreshGroup, onOpenD
 
   return (
     <View style={[styles.container, expanded && styles.containerExpanded]}>
+      <View style={styles.accentBar} />
       <TouchableOpacity
         activeOpacity={0.7}
         style={[styles.header, expanded && styles.headerExpanded]}
@@ -190,13 +191,20 @@ const styles = ScaledSheet.create({
     borderRadius: '16@ms',
     borderWidth: '1@ms',
     borderColor: '#F3F4F6',
-    borderLeftWidth: '4@ms',
-    borderLeftColor: '#FCD34D',
     overflow: 'hidden',
+    position: 'relative',
+  },
+  accentBar: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: '4@ms',
+    backgroundColor: '#FCD34D',
+    zIndex: 1,
   },
   containerExpanded: {
     borderColor: '#FDE68A',
-    borderLeftColor: '#FCD34D',
   },
   header: {
     flexDirection: 'row',

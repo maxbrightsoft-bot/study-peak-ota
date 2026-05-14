@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, Text, Pressable, TouchableOpacity } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { StudySpaceTabList, TabList } from '../configs/constants'
 import useMyData from '../hooks/useMyData'
 import { palette } from '@/theme'
@@ -38,10 +39,11 @@ const MyData = () => {
     handleRemoveImage,
     isAdminOrNonAcademy
   } = useMyData()
+  const insets = useSafeAreaInsets()
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: Math.max(insets.top, 16) }]}>
         <Text style={styles.headerTitle}>{t('statistics')}</Text>
         <View style={{ flexDirection: 'row', gap: 20, alignItems: 'center' }}>
           <HeaderAction />
