@@ -75,6 +75,7 @@ const useMyData = () => {
 
   const handleChangeCourse = (value: string) => {
     setCourseIdSelected(value)
+    getListExamByCourse({ courseId: value || undefined })
   }
 
   const handleCloseCreateNote = () => {
@@ -113,21 +114,24 @@ const useMyData = () => {
     content,
     questionId,
     examSessionId,
-    studentExamSessionId
+    studentExamSessionId,
+    courseId
   }: {
     content: string
-    questionId?: number
-    examSessionId: number
-    studentExamSessionId: number
+    questionId?: number | null
+    examSessionId?: number
+    studentExamSessionId?: number
+    courseId?: number
   }) => {
     try {
       if (content.trim().length === 0) return
 
       const data: NoteRequest = {
         content,
-        questionId,
+        questionId: questionId === null ? undefined : questionId,
         examSessionId,
         studentExamSessionId,
+        courseId,
         imageUrl
       }
 
@@ -152,12 +156,12 @@ const useMyData = () => {
     setLoading(false)
   }
 
-  const getListExamByCourse = async ({ courseId }: { courseId: string }) => {
+  const getListExamByCourse = async ({ courseId }: { courseId?: string }) => {
     setLoadingWithoutOverlay(true)
     try {
       const res = await getListExamByCourseApi({ courseId })
       setListExam(res.data.items || [])
-      !!res.data.items.length && setExamSessionIdSelected(`${res.data.items[0]?.id}.${res.data.items[0]?.studentExamSessionId}`)
+      setExamSessionIdSelected(undefined)
     } catch (error) {
       toast.error(getErrorMessage(t, error))
     }
@@ -189,14 +193,10 @@ const useMyData = () => {
   }, [examSessionIdSelected, openCreateNote])
 
   useEffect(() => {
-    if (!courseIdSelected || !openCreateNote) return
-    getListExamByCourse({ courseId: courseIdSelected })
-  }, [courseIdSelected, openCreateNote])
-
-  useEffect(() => {
-    if (!openCreateNote || !courses?.length) return
-    setCourseIdSelected(String(courses[0].id))
-  }, [JSON.stringify(courses), openCreateNote])
+    if (openCreateNote) {
+      getListExamByCourse({})
+    }
+  }, [openCreateNote])
 
   const courseOptions = useMemo(() => {
     if (!courses) return []
@@ -208,11 +208,11 @@ const useMyData = () => {
 
   const questionOptions = useMemo(() => {
     if (!questions || !examList) return []
-    return questions.map(({ superId, questionOrder, parentQuestionId, parentQuestionOrder = 0 }) => ({
+    return questions.map(({ id, questionOrder, parentQuestionId, parentQuestionOrder = 0 }) => ({
       label: t('question_order', {
         number: !!parentQuestionId ? `${parentQuestionOrder + 1}.${questionOrder + 1}` : questionOrder + 1
       }),
-      value: superId
+      value: id
     }))
   }, [questions])
 

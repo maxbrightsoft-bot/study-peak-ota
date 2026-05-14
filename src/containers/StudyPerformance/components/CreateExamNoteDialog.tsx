@@ -28,8 +28,8 @@ interface ExamNoteDialogProps {
   handleRemoveImage: () => void
   isLoadingNotes?: boolean
   onClose: () => void
-  examOptions: { label: any; value: any }[]
-  courseOptions: { label: any; value: any }[]
+  examOptions: { label: string; value: string }[]
+  courseOptions: { label: string; value: number }[]
   questions?: ConversationQuestion[]
   courseValue?: string
   handleChangeCourse: (value: string) => void
@@ -40,19 +40,20 @@ interface ExamNoteDialogProps {
     content,
     questionId,
     examSessionId,
-    studentExamSessionId
+    studentExamSessionId,
+    courseId
   }: {
     content: string
-    questionId: number
-    examSessionId: number
-    studentExamSessionId: number
+    questionId?: number | null
+    examSessionId?: number
+    studentExamSessionId?: number
+    courseId?: number
   }) => void
 }
 
 const schema = Yup.object().shape({
   content: Yup.string().required(),
-  questionId: Yup.number(),
-  studentExamSessionId: Yup.string()
+  questionId: Yup.mixed().nullable()
 })
 
 const CreateExamNoteDialog: FC<ExamNoteDialogProps> = ({
@@ -73,13 +74,30 @@ const CreateExamNoteDialog: FC<ExamNoteDialogProps> = ({
   onSaveNote
 }) => {
   const { t } = useTranslation()
+  const formikRef = React.useRef<any>(null)
+
+  React.useEffect(() => {
+    if (formikRef.current) {
+      formikRef.current.setFieldValue('questionId', null)
+    }
+  }, [examSessionValue])
+
+  React.useEffect(() => {
+    if (!open && formikRef.current) {
+      formikRef.current.resetForm()
+    }
+  }, [open])
+  
+
+  console.log({ questionOptions });
+  
 
   return (
     <SlideDrawerRoot onClose={onClose} visible={open}>
       <View style={styles.wrapper}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={onClose}>
-            <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />
+            <Ionicons name="close" size={20} color={palette.grey[900]} />
           </TouchableOpacity>
 
           <Text style={styles.headerTitle}>
@@ -96,52 +114,82 @@ const CreateExamNoteDialog: FC<ExamNoteDialogProps> = ({
           keyboardVerticalOffset={80}
         >
           <Formik
+            innerRef={formikRef}
             initialValues={{
               content: '',
-              questionId: examSessionValue && questions?.length ? questions[0]?.superId : 0
+              questionId: null
             }}
             validationSchema={schema}
             onSubmit={(values) =>
               onSaveNote({
                 ...values,
-                examSessionId: Number(examSessionValue?.split('.')?.[0]) ?? 0,
-                studentExamSessionId: Number(examSessionValue?.split('.')?.[1]) ?? 0
+                courseId: courseValue ? Number(courseValue) : undefined,
+                examSessionId: examSessionValue ? Number(examSessionValue.split('.')?.[0]) : undefined,
+                studentExamSessionId: examSessionValue ? Number(examSessionValue.split('.')?.[1]) : undefined
               })
             }
           >
-            {({ handleChange, handleSubmit, values, setFieldValue }) => (
+            {({ handleChange, handleSubmit, values, setFieldValue }) => {
+              console.log({ values });
+              
+              return(
               <>
                 <ScrollView
                   style={styles.contentWrapper}
                   contentContainerStyle={{ paddingBottom: 20 }}
                   showsVerticalScrollIndicator={false}
+                  keyboardShouldPersistTaps="handled"
                 >
-                  <View>
-                    <Text style={styles.labelText}>{t('half_selection')}</Text>
+                  <View style={styles.hintBox}>
+                    <Ionicons name="information-circle-outline" size={15} color={palette.main[500]} />
+                    <Text style={styles.hintText}>{t('select_class_or_exam_hint')}</Text>
+                  </View>
+
+                  <View style={{ marginTop: 20 }}>
+                    <View style={styles.labelRow}>
+                      <Text style={styles.labelText}>{t('half_selection')}</Text>
+                    </View>
                     <Select
-                      onValueChange={handleChangeCourse}
+                      onValueChange={(v) => {
+                        handleChangeCourse(v as any)
+                        if (!v) {
+                          setFieldValue('questionId', null)
+                        }
+                      }}
                       value={courseValue && Number(courseValue)}
                       options={courseOptions}
+                      placeholder={t('select_placeholder')}
                     />
                   </View>
 
                   <View style={{ marginTop: 20 }}>
-                    <Text style={styles.labelText}>{t('test_selection')}</Text>
+                    <View style={styles.labelRow}>
+                      <Text style={styles.labelText}>{t('test_selection')}</Text>
+                    </View>
                     <Select
-                      onValueChange={handleChangeExam}
+                      onValueChange={(v) => {
+                        handleChangeExam(v as any)
+                        if (!v) setFieldValue('questionId', null)
+                      }}
                       value={examSessionValue}
                       options={examOptions}
+                      placeholder={t('select_placeholder')}
                     />
                   </View>
 
-                  <View style={{ marginTop: 20 }}>
-                    <Text style={styles.labelText}>{t('problem_number')}</Text>
-                    <Select
-                      onValueChange={(value) => setFieldValue('questionId', value)}
-                      value={values.questionId}
-                      options={questionOptions}
-                    />
-                  </View>
+                  {!!examSessionValue && (
+                    <View style={{ marginTop: 20 }}>
+                      <View style={styles.labelRow}>
+                        <Text style={styles.labelText}>{t('problem_number')}</Text>
+                      </View>
+                      <Select
+                        onValueChange={(value) => setFieldValue('questionId', value)}
+                        value={values.questionId}
+                        options={questionOptions}
+                        placeholder={t('select_placeholder')}
+                      />
+                    </View>
+                  )}
 
                   <View style={{ marginTop: 20 }}>
                     <Text style={styles.labelText}>
@@ -185,14 +233,20 @@ const CreateExamNoteDialog: FC<ExamNoteDialogProps> = ({
 
                 <View style={styles.footer}>
                   <TouchableOpacity
-                    style={[styles.button, styles.confirmButton]}
+                    style={[
+                      styles.button,
+                      styles.confirmButton,
+                      (!values.content.trim() || (!!examSessionValue && !values.questionId)) && { backgroundColor: palette.grey[200] }
+                    ]}
                     onPress={handleSubmit as any}
+                    disabled={!values.content.trim() || (!!examSessionValue && !values.questionId)}
                   >
-                    <Text style={styles.confirmButtonText}>{t('register')}</Text>
+                    <Text style={[styles.confirmButtonText, (!values.content.trim() || (!!examSessionValue && !values.questionId)) && { color: palette.grey[500] }]}>{t('register')}</Text>
                   </TouchableOpacity>
                 </View>
               </>
             )}
+            }
           </Formik>
         </KeyboardAvoidingView>
 
@@ -302,5 +356,26 @@ const styles = ScaledSheet.create({
     color: palette.grey[500],
     marginTop: '4@ms',
     fontWeight: '500'
+  },
+  hintBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: '6@ms',
+    backgroundColor: palette.main[50] || '#EFF6FF',
+    borderRadius: '8@ms',
+    paddingHorizontal: '10@ms',
+    paddingVertical: '8@ms',
+  },
+  hintText: {
+    fontSize: '11@ms',
+    color: palette.main[600],
+    flex: 1,
+    lineHeight: '18@ms',
+  },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: '6@ms',
+    marginBottom: '8@ms'
   }
 })

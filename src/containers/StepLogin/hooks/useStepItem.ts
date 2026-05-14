@@ -26,7 +26,10 @@ type Props = {
 
 const useStepItem = ({ values, errors, setFieldTouched }: Props) => {
   const [step, setStep] = useState(0);
-  const { user, setLoading, setUser, setHasEnteredSelectAcademy } = useAuthStore()
+  const user = useAuthStore(state => state.user)
+  const setLoading = useAuthStore(state => state.setLoading)
+  const setUser = useAuthStore(state => state.setUser)
+  const setHasEnteredSelectAcademy = useAuthStore(state => state.setHasEnteredSelectAcademy)
   const { t } = useTranslation();
   const textSearchRef = useRef()
   const [isCheckPhoneNumber, setIsCheckPhoneNumber] = useState<boolean>(false)

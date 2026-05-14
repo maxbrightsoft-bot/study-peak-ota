@@ -32,8 +32,9 @@ const useAcademyRequest = () => {
     const route = useRoute<any>()
     const { domain: academyDomain } = route.params || {}
     const courseId = route.params?.class ? +route.params.class : undefined
-
-    const { user, setLoading: setGlobalLoading, setSelectAcademy } = useAuthStore()
+    const user = useAuthStore(state => state.user)
+    const setGlobalLoading = useAuthStore(state => state.setLoading)
+    const setSelectAcademy = useAuthStore(state => state.setSelectAcademy)
     const { handleLoginAccessToken } = useLogin()
 
     const [isLoading, setLoading] = useState<boolean>(false)

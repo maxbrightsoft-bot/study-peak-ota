@@ -29,6 +29,7 @@ export type NoteResponse = {
   isMentionAll: boolean
   isStudentNote: boolean
   mentionUsers: MentionUser[]
+  questionTypeName?: string
 }
 
 export type GroupedNoteResponse = {
@@ -58,6 +59,7 @@ export type NoteUserInfo = {
 
 export type NoteRequest = {
   examSessionId?: number
+  courseId?: number
   questionId?: number
   studentId?: number
   student?: any

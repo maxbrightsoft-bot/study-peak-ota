@@ -22,7 +22,8 @@ const EXAM_TYPE_MAPPINGS = [
   { value: 2, labelKey: 'filter_official_mock' },
   { value: 3, labelKey: 'filter_private_mock' },
   { value: 4, labelKey: 'filter_commercial' },
-  { value: 5, labelKey: 'filter_school_past' }
+  { value: 5, labelKey: 'filter_school_past' },
+  { value: 0, labelKey: 'filter_etc' }
 ]
 
 const PERIOD_KEYS = [

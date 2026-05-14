@@ -98,7 +98,7 @@ const validationSchema = Yup.object().shape({
 
 const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectOptions }: Props) => {
   const { t } = useTranslation()
-  const { user } = useAuthStore()
+  const user = useAuthStore(state => state.user)
   const [editingField, setEditingField] = useState<string | null>(null)
 
   const initialValues = {

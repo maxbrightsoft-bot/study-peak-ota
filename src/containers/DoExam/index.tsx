@@ -192,13 +192,14 @@ const DoExam = ({ examCode }: Props) => {
                 flexDirection: 'row',
                 paddingHorizontal: 14,
                 paddingVertical: 8,
-                justifyContent: 'space-between'
+                justifyContent: 'space-between',
+                alignItems: 'center'
               }}
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Text style={{ fontSize: 14, fontWeight: '600', color: '#171719' }}>{examSession?.subject}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1, marginRight: 8 }}>
+                <Text style={{ fontSize: 14, fontWeight: '600', color: '#171719' }} numberOfLines={1}>{examSession?.subject}</Text>
                 <View style={{ backgroundColor: palette.grey[300], paddingVertical: 7, width: 2 }} />
-                <Text style={{ fontSize: 12, fontWeight: '500', color: '#222222' }}>{exam?.title}</Text>
+                <Text style={{ fontSize: 12, fontWeight: '500', color: '#222222', flexShrink: 1 }} numberOfLines={1}>{exam?.title}</Text>
                 {(exam?.totalStudentAttemptNumber || 0) >= 1 && (
                   <View
                     style={[

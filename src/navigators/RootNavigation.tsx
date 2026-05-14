@@ -2,7 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { NavigationContainer, getStateFromPath as defaultGetStateFromPath } from '@react-navigation/native'
 import React, { useEffect } from 'react'
-import NavigationHelpers, { currentScreen } from './NavigationHelpers'
+import NavigationHelpers from './NavigationHelpers'
 import Authorized from './Authorized'
 import UnAuthorized from './UnAuthorized'
 import useAuthStore from '@/store/useAuthStore'
@@ -18,6 +18,7 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin'
 import { IOS_GOOGLE_CLIENT_ID, WEB_GOOGLE_CLIENT_ID } from '@/utils/constants'
 import AcademyRequestScreen from '@/screens/AcademyRequest'
 import AcademyInvitationScreen from '@/screens/AcademyInvitation'
+import TutorialScreen from '@/screens/Tutorial'
 
 const Stack = createNativeStackNavigator()
 
@@ -82,6 +83,7 @@ const RootNavigation: React.FC = () => {
   const setCrashlyticsUser = useAuthStore(state => state.setCrashlyticsUser)
   const isLoadingWithoutOverlay = useAuthStore(state => state.isLoadingWithoutOverlay)
   const setLoading = useAuthStore(state => state.setLoading)
+  const hasSeenTutorial = useAuthStore(state => state.hasSeenTutorial)
   useLanguage()
   useSocketInit()
 
@@ -94,6 +96,8 @@ const RootNavigation: React.FC = () => {
       setCrashlyticsUser(user)
     }
   }, [user?.id])
+
+
 
   return (
     <SafeAreaProvider>
@@ -109,12 +113,17 @@ const RootNavigation: React.FC = () => {
         >
           <Stack.Navigator screenOptions={{ headerShown: false }}>
             {!user?.id ? (
-              <Stack.Screen name={MainRoutes.UnAuthStack} component={UnAuthorized} />
+              <Stack.Screen
+                name={MainRoutes.UnAuthStack}
+                component={UnAuthorized}
+                initialParams={{ tutorialSeen: hasSeenTutorial }}
+              />
             ) : (
               <Stack.Screen name={MainRoutes.AuthStack} component={Authorized} />
             )}
             <Stack.Screen name={Routes.AcademyRequest} component={AcademyRequestScreen} />
             <Stack.Screen name={Routes.AcademyInvitation} component={AcademyInvitationScreen} />
+            <Stack.Screen name={Routes.Auth.Tutorial} component={TutorialScreen} />
           </Stack.Navigator>
         </NavigationContainer>
         {isLoading && <Loading isOverlay />}

@@ -13,7 +13,7 @@ const useSocketConversation = ({
   selectedConversation,
   conversationEvents
 }: Props) => {
-  const { user } = useAuthStore()
+  const user = useAuthStore(state => state.user)
   const socket = getSocket()
 
   const roles = user?.roles

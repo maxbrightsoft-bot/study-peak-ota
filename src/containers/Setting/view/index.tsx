@@ -5,6 +5,8 @@ import { palette } from '@/theme'
 import { Ionicons } from '@expo/vector-icons'
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
+import { useNavigation } from '@react-navigation/native'
+import { Routes } from '@/navigators/RouteName'
 import Notice from '@/containers/Notice/view'
 import UpdateAccount from '../components/UpdateAccount'
 import useSetting from '../hooks/useSetting'
@@ -55,6 +57,14 @@ const Setting = ({ open, onClose }: Props) => {
     handleTogglePrivacyPolicy,
     handleToggleTermsOfService,
   } = useSetting()
+
+  const navigation = useNavigation<any>()
+
+  const handleOpenTutorial = () => {
+    onClose()
+    navigation.navigate(Routes.Auth.Tutorial)
+  }
+
   return (
     <SlideDrawerRoot visible={open} onClose={onClose}>
       <View style={styles.header}>
@@ -106,6 +116,14 @@ const Setting = ({ open, onClose }: Props) => {
               onPress={() => handleToggleTermsOfService()}
               icon={<Ionicons name="newspaper-outline" size={22} color={'#222222'} />}
               title={t('terms_of_service')}
+            />
+          </View>
+
+          <View style={styles.card}>
+            <SettingItem
+              onPress={handleOpenTutorial}
+              icon={<Ionicons name="information-circle-outline" size={22} color={'#222222'} />}
+              title={t('app_tutorial')}
             />
           </View>
 
@@ -248,6 +266,7 @@ const styles = ScaledSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: '20@ms',
+    paddingBottom: '120@ms',
     gap: '6@ms'
   },
 

@@ -1,9 +1,6 @@
 import { Platform, StatusBar } from "react-native"
 import { PagingResponse } from "../types"
 import { QuestionAnswerType } from "../enums"
-import Constants from "expo-constants";
-
-const extra = Constants.expoConfig?.extra || {};
 export const KEEP_LOGIN = 'KEEP_LOGIN'
 export const ACCESS_TOKEN = 'ACCESS_TOKEN'
 export const LanguageHeaders = "Accept-Language"
@@ -22,7 +19,7 @@ export const DEFAULT_PAGING_RESPONSE: PagingResponse = {
   totalPages: 0,
 }
 
-export const CONSENT_POLICY_VERSION = extra.CONSENT_POLICY_VERSION || ''
+export const CONSENT_POLICY_VERSION = process.env.EXPO_PUBLIC_CONSENT_POLICY_VERSION || ''
 export const TOAST_EXAM_STATUS = 'TOAST_EXAM_STATUS'
 export const STATUS_BAR_HEIGHT = Platform.OS === 'ios' ? 44 : StatusBar.currentHeight || 0;
 export const HEADER_HEIGHT = Platform.OS === 'ios' ? 100 : 90;
@@ -32,25 +29,25 @@ export const DATE_MIN_VALUE = '0001-01-01T00:00:00+00:00'
 export const DATE_TIME_MIN_VALUE = '0001-01-01T00:00:00'
 
 export const PUSHER_CONFIG = {
-  cluster: extra.PUSHER_CLUSTER || "",
-  key: extra.PUSHER_KEY || ""
+  cluster: process.env.EXPO_PUBLIC_PUSHER_CONFIG_CLUSTER || "",
+  key: process.env.EXPO_PUBLIC_PUSHER_CONFIG_KEY || ""
 }
-export const OTA_URL = extra.OTA_URL || ""
-export const BASE_URL = extra.BASE_URL || ''
+export const OTA_URL = process.env.EXPO_PUBLIC_OTA_URL || ""
+export const BASE_URL = process.env.EXPO_PUBLIC_BASE_URL || ''
 export const SUPER_ADMIN_BASE_URL =
-  extra.SUPER_ADMIN_BASE_URL || ""
-export const SOCKET_URL = extra.SOCKET_URL || ""
-export const STUDENT_URL = extra.STUDENT_URL || ""
+  process.env.EXPO_PUBLIC_SUPER_ADMIN_BASE_URL || ""
+export const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL || ""
+export const STUDENT_URL = process.env.EXPO_PUBLIC_STUDENT_URL || ""
 
 export const GOOGLE_RECAPTCHA_KEY =
-  extra.GOOGLE_RECAPTCHA_KEY || ""
+  process.env.EXPO_PUBLIC_GOOGLE_RECAPTCHA_KEY || ""
 
-export const GOOGLE_CLIENT_ID = extra.GOOGLE_CLIENT_ID || ""
-export const IOS_GOOGLE_CLIENT_ID = extra.IOS_GOOGLE_CLIENT_ID || ""
-export const WEB_GOOGLE_CLIENT_ID = extra.WEB_GOOGLE_CLIENT_ID || ""
-export const ANDROID_GOOGLE_CLIENT_ID = extra.ANDROID_GOOGLE_CLIENT_ID || ""
+export const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || ""
+export const IOS_GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_IOS_GOOGLE_CLIENT_ID || ""
+export const WEB_GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID || ""
+export const ANDROID_GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_ANDROID_GOOGLE_CLIENT_ID || ""
 export const GOOGLE_RECAPTCHA_ID =
-  extra.GOOGLE_RECAPTCHA_ID || ""
+  process.env.EXPO_PUBLIC_GOOGLE_RECAPTCHA_ID || ""
 
 export const answerTypeOptions = (t: any) => ([
   {

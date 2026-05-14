@@ -48,7 +48,7 @@ body {
   display: block;
   width: 100%;
   word-break: break-word;
-  white-space: normal;
+  white-space: pre-wrap;
   overflow: hidden;
 }
 
@@ -57,12 +57,12 @@ ${isChat ? `
   display: inline-block;
   width: auto;
   max-width: ${Math.floor(SCREEN_W * 0.65)}px;
-  white-space: nowrap;
+  white-space: pre;
 }
 #content.wrap {
   display: block;
   width: ${Math.floor(SCREEN_W * 0.65)}px;
-  white-space: normal;
+  white-space: pre-wrap;
   word-break: break-word;
 }
 ` : ''}
@@ -73,7 +73,7 @@ ${isChat ? `
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-word;
-  white-space: normal;
+  white-space: pre-wrap;
 }
 
 .katex { font-size: 1em; }

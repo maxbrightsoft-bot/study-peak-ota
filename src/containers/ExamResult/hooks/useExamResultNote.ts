@@ -35,7 +35,8 @@ const useExamResultNote = ({
 }: UseExamResultNoteParams) => {
 
     const { t } = useTranslation()
-    const { user, setLoadingWithoutOverlay } = useAuthStore()
+    const user = useAuthStore(state => state.user)
+    const setLoadingWithoutOverlay = useAuthStore(state => state.setLoadingWithoutOverlay)
     const [notesFilter, setNotesFilter] = useState<NoteSearchQuery>()
     const [selectedNote, setSelectedNote] = useState<NoteResponse>()
     const [openNoteDialog, setOpenNoteDialog] = useState<boolean>(false)

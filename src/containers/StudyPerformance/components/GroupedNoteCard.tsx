@@ -18,6 +18,7 @@ interface GroupedNoteCardProps {
 }
 
 const ChildNoteItem = ({ note, t, onOpenDialog }: { note: NoteResponse, t: any, onOpenDialog: (item?: NoteResponse) => void }) => {
+
   return (
     <Pressable style={({ pressed }) => [styles.childContainer, pressed && styles.pressed]} onPress={() => onOpenDialog(note)}>
       <View style={styles.childLeft}>
@@ -29,7 +30,10 @@ const ChildNoteItem = ({ note, t, onOpenDialog }: { note: NoteResponse, t: any, 
             <Text style={styles.childTitleText} numberOfLines={1}>{note.title}</Text>
             {note.page ? <Text style={styles.childTitlePage}> · p.{note.page}</Text> : null}
           </View>
-          <Text style={styles.childSubtitle} numberOfLines={2}>{note.content?.replace(/<[^>]+>/g, '') || t('grouped_note_no_content')}</Text>
+          <View style={styles.contentHighlight}>
+            <Text style={styles.childSubtitle} numberOfLines={2}>{note.content?.replace(/<[^>]+>/g, '') || t('grouped_note_no_content')}</Text>
+          </View>
+          {note.questionTypeName ? <Text style={styles.childTitlePage} numberOfLines={1}>{note.questionTypeName}</Text> : null}
         </View>
       </View>
       <Text style={styles.childDate}>{dayjs(note.createdAt).format('MM.DD')}</Text>
@@ -297,15 +301,21 @@ const styles = ScaledSheet.create({
     flexShrink: 1,
   },
   childTitlePage: {
-    fontSize: '15@ms',
+    fontSize: '11@ms',
     fontWeight: '600',
     color: '#111827',
     flexShrink: 0,
   },
   childSubtitle: {
     fontSize: '14@ms',
-    color: '#6B7280',
+    color: '#4B5563',
     lineHeight: '20@ms',
+  },
+  contentHighlight: {
+    backgroundColor: '#F9FAFB',
+    padding: '10@ms',
+    borderRadius: '8@ms',
+    marginVertical: '4@ms',
   },
   childDate: {
     fontSize: '13@ms',

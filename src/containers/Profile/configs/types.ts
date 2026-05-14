@@ -4,5 +4,6 @@ export enum SettingIndex {
   Setting,
   PrivatePolicy,
   TermsOfUse,
-  About
+  About,
+  Tutorial
 }
