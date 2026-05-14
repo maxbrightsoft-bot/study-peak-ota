@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs'
 import { Ionicons } from '@expo/vector-icons'
 import { palette, TYPO } from '@/theme'
@@ -18,6 +19,7 @@ import { ScaledSheet } from 'react-native-size-matters'
 const Footer = ({ navigation }: BottomTabBarProps) => {
   const user = useAuthStore(state => state.user)
   const { t } = useTranslation()
+  const insets = useSafeAreaInsets()
 
   const studySpaceTabItems = [
     {
@@ -68,7 +70,7 @@ const Footer = ({ navigation }: BottomTabBarProps) => {
   ]
 
   return (
-    <View style={styles.tabBar}>
+    <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
       {(user?.academyDomain ? tabItems : studySpaceTabItems).map((item) => {
         const isFocused = currentScreen() == item.name
 
@@ -100,7 +102,7 @@ const styles = ScaledSheet.create({
     backgroundColor: 'white',
     paddingVertical: '12@ms',
     paddingHorizontal: '24@ms',
-    height: TAB_BAR_HEIGHT
+
   },
   tabItem: {
     paddingHorizontal: '5@ms',

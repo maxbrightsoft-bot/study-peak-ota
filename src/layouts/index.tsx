@@ -1,5 +1,5 @@
-import { StatusBar, StyleSheet } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { StatusBar, StyleSheet, View } from 'react-native'
+
 import Header from './Header'
 import { noLayoutScreens } from '@/navigators/RouteName'
 import { currentScreen } from '@/navigators/NavigationHelpers'
@@ -15,11 +15,11 @@ const LayoutApp = ({ children, headerProps }: Props) => {
   const isNoLayout = noLayoutScreens.includes(currentScreen())
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={palette.main[600]} />
       {!isNoLayout && <Header headerProps={headerProps} />}
       {children}
-    </SafeAreaView>
+    </View>
   )
 }
 
