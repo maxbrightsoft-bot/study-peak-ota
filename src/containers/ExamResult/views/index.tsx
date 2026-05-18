@@ -423,7 +423,7 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
         </View>}
         <View style={styles.contentContainer}>{renderBody()}</View>
       </View>
-      <View style={{ opacity: 0, position: 'absolute', top: -9999 }}>
+      <View style={{ opacity: 0, position: 'absolute', top: -9999 }} pointerEvents="none">
         <PrintExamResult
           contentRef={contentRef}
           categoryResponses={categoryResponses}

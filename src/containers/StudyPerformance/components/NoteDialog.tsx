@@ -154,10 +154,10 @@ const NoteDialog: FC<ExamNoteDialogProps> = ({
                     <Text style={styles.confirmButtonText}>{t('delete')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={[styles.button, styles.confirmButton, !dirty && styles.disabledButton]}
+                    style={[styles.button, styles.confirmButton, { backgroundColor: palette.main[600] }]}
                     onPress={handleSubmit as any}
                   >
-                    <Text style={[styles.confirmButtonText, !dirty && styles.disabledButtonText]}>{t('register')}</Text>
+                    <Text style={[styles.confirmButtonText, { color: "#FFF" }]}>{t('register')}</Text>
                   </TouchableOpacity>
                 </View>
               </>

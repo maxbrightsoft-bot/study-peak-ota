@@ -34,7 +34,7 @@ export type ExamSessionResponse = {
     status: ExamStatus;
     isLate: boolean
     teacher: any;
-    courses: {id: number, name: string}[]
+    courses: { id: number, name: string }[]
     subjectName: string
     startTimeSession: string
     studentStartTime: string
@@ -221,6 +221,7 @@ export type EffectSize = {
     answersCount: number
     averageAnswers: number[]
     questionAnswerType?: QuestionAnswerType
+    unit?: string
 }
 
 export type OrderQuestion = {
@@ -303,15 +304,15 @@ export type QuestionTime = {
 }
 
 export interface InfoExamSessionByCode {
-  id: number
-  code: string
-  title: string
-  subject: string
-  grade: number
-  category: string
-  gradeYear: number
-  classes: string[]
-  teacherName: string
-  duration?: number
-  isLate?: boolean
+    id: number
+    code: string
+    title: string
+    subject: string
+    grade: number
+    category: string
+    gradeYear: number
+    classes: string[]
+    teacherName: string
+    duration?: number
+    isLate?: boolean
 }

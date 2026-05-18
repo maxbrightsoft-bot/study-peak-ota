@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Switch, Modal, StatusBar } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Switch, Modal, StatusBar, Dimensions } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { NoteSearchQuery } from '@/utils/types'
 import { useTranslation } from 'react-i18next'
@@ -159,20 +159,20 @@ export default function FilterBottomSheet({ isVisible, onClose, onApply, initial
   const totalSelected = selectedSubjects.length + selectedCategories.length + selectedExamTypes.length + (customStartDate || customEndDate ? 1 : 0) + (hasIncorrectOrImage ? 1 : 0)
 
   const titleChildren = (
-    <View style={styles.header}>
-      <View style={{ width: 50 }} />
-      <View style={styles.titleRow}>
-        <Text style={styles.titleText}>{t('filter_title')}</Text>
-        {totalSelected > 0 ? (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{totalSelected}</Text>
-          </View>
-        ) : null}
-      </View>
-      <TouchableOpacity onPress={handleReset} style={styles.resetBtn}>
-        <Text style={styles.resetText}>{t('filter_reset')}</Text>
-      </TouchableOpacity>
+    <View style={styles.titleRow}>
+      <Text style={styles.titleText}>{t('filter_title')}</Text>
+      {totalSelected > 0 ? (
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>{totalSelected}</Text>
+        </View>
+      ) : null}
     </View>
+  )
+
+  const closeChildren = (
+    <TouchableOpacity onPress={handleReset} style={styles.resetBtn}>
+      <Text style={styles.resetText}>{t('filter_reset')}</Text>
+    </TouchableOpacity>
   )
 
   if (!isVisible) return null
@@ -182,7 +182,7 @@ export default function FilterBottomSheet({ isVisible, onClose, onApply, initial
       isVisible={isVisible}
       onClose={onClose}
       titleChildren={titleChildren}
-      closeChildren={null}
+      closeChildren={closeChildren}
     >
       {/* Body */}
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -440,6 +440,7 @@ const styles = ScaledSheet.create({
     fontWeight: '500',
   },
   scroll: {
+    maxHeight: Dimensions.get('window').height * 0.55
   },
   scrollContent: {
     paddingHorizontal: '20@ms',

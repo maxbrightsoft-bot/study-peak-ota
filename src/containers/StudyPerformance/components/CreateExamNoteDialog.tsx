@@ -87,10 +87,6 @@ const CreateExamNoteDialog: FC<ExamNoteDialogProps> = ({
       formikRef.current.resetForm()
     }
   }, [open])
-  
-
-  console.log({ questionOptions });
-  
 
   return (
     <SlideDrawerRoot onClose={onClose} visible={open}>
@@ -236,12 +232,10 @@ const CreateExamNoteDialog: FC<ExamNoteDialogProps> = ({
                     style={[
                       styles.button,
                       styles.confirmButton,
-                      (!values.content.trim() || (!!examSessionValue && !values.questionId)) && { backgroundColor: palette.grey[200] }
                     ]}
                     onPress={handleSubmit as any}
-                    disabled={!values.content.trim() || (!!examSessionValue && !values.questionId)}
                   >
-                    <Text style={[styles.confirmButtonText, (!values.content.trim() || (!!examSessionValue && !values.questionId)) && { color: palette.grey[500] }]}>{t('register')}</Text>
+                    <Text style={[styles.confirmButtonText]}>{t('register')}</Text>
                   </TouchableOpacity>
                 </View>
               </>

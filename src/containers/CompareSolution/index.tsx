@@ -2,6 +2,7 @@ import React, { FC, useMemo } from 'react'
 import { View, Text, ScrollView, StyleSheet } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { EffectSize, ExamResult, TextbookResult } from '@/utils/types'
+import { QuestionAnswerType } from '@/utils/enums'
 import { palette } from '@/theme'
 import { Ionicons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -21,8 +22,21 @@ const CompareSolution: FC<Props> = ({ effectSize: originalEffectSize, data, isTe
     return originalEffectSize.filter((item) => (item.selectedAnswers?.length || 0) > 0 || (item.textualAnswers?.length || 0) > 0)
   }, [originalEffectSize, isTextbook])
 
+  const examResult = (!isTextbook && data && 'questions' in data) ? data as ExamResult : null
+
+  const questionMap = useMemo(() => {
+    if (!examResult?.questions) return {}
+    return examResult.questions.reduce((acc, q) => {
+      acc[q.questionOrder] = q
+      return acc
+    }, {} as Record<number, typeof examResult.questions[0]>)
+  }, [examResult?.questions])
+
   const statistics = useMemo(() => {
-    const correctCount = effectSize.filter((item) => item.isCorrect).length
+    const correctCount = effectSize.filter((item) => {
+      const q = questionMap[item.questionOrder]
+      return q ? q.isCorrect : item.isCorrect
+    }).length
     const totalCount = effectSize.length
     const rate = totalCount > 0 ? (correctCount / totalCount) * 100 : 0
     return {
@@ -30,12 +44,14 @@ const CompareSolution: FC<Props> = ({ effectSize: originalEffectSize, data, isTe
       totalCount,
       rate: rate.toFixed(1)
     }
-  }, [effectSize])
+  }, [effectSize, questionMap])
 
   const renderOptionBlock = (item: EffectSize, optionIndex: number) => {
     const optionNum = optionIndex + 1
-    const isCorrectAnswer = item.correctAnswers?.includes(optionNum)
-    const isSelected = item.selectedAnswers?.includes(optionNum.toString()) || item.selectedAnswers?.includes(optionNum)
+    const q = questionMap[item.questionOrder]
+    const isCorrectAnswer = (q?.correctAnswers ?? item.correctAnswers)?.includes(optionNum)
+    const selectedAnswers = q?.selectedAnswers ?? item.selectedAnswers
+    const isSelected = selectedAnswers?.includes(optionNum.toString()) || selectedAnswers?.includes(optionNum)
     const rate = item.averageAnswers?.[optionIndex] || 0
 
     let blockStyle: any = styles.defaultBlock
@@ -105,30 +121,57 @@ const CompareSolution: FC<Props> = ({ effectSize: originalEffectSize, data, isTe
         </View>
       </View>
 
-      {effectSize.map((item, index) => (
-        <View key={item.id || index} style={styles.questionCard}>
-          <View style={styles.cardHeader}>
-            <View style={styles.headerLeft}>
-              <Text style={styles.questionTitle}>{t('problem')} {item.questionOrder + 1}</Text>
-              <View style={[styles.statusBadge, { backgroundColor: item.isCorrect ? '#F3E5F5' : '#FFEBEE' }]}>
-                <Text style={[styles.statusText, { color: item.isCorrect ? palette.main[600] : '#D32F2F' }]}>
-                  {item.isCorrect ? t('correct') : t('incorrect')}
-                </Text>
+      {effectSize.map((item, index) => {
+        const isChoice = item.questionAnswerType === QuestionAnswerType.SingleChoice || item.questionAnswerType === QuestionAnswerType.MultipleChoice || item.questionAnswerType === undefined;
+        const q = questionMap[item.questionOrder];
+        const isCorrect = q?.isCorrect ?? item.isCorrect;
+        
+        return (
+          <View key={item.id || index} style={styles.questionCard}>
+            <View style={styles.cardHeader}>
+              <View style={styles.headerLeft}>
+                <Text style={styles.questionTitle}>{t('problem')} {item.questionOrder + 1}</Text>
+                <View style={[styles.statusBadge, { backgroundColor: isCorrect ? '#F3E5F5' : '#FFEBEE' }]}>
+                  <Text style={[styles.statusText, { color: isCorrect ? palette.main[600] : '#D32F2F' }]}>
+                    {isCorrect ? t('correct') : t('incorrect')}
+                  </Text>
+                </View>
               </View>
+              {isChoice && (
+                <Text style={styles.correctAnswerLabel}>
+                  {t('correct_answer')} {item.correctAnswers?.map(ans => {
+                    const circleNumbers = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩']
+                    return circleNumbers[ans - 1] || ans
+                  }).join(', ')}
+                </Text>
+              )}
             </View>
-            <Text style={styles.correctAnswerLabel}>
-              {t('correct_answer')} {item.correctAnswers?.map(ans => {
-                const circleNumbers = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩']
-                return circleNumbers[ans - 1] || ans
-              }).join(', ')}
-            </Text>
-          </View>
 
-          <View style={styles.optionsRow}>
-            {Array.from({ length: item.answersCount || 5 }).map((_, optIndex) => renderOptionBlock(item, optIndex))}
+            {isChoice ? (
+              <View style={styles.optionsRow}>
+                {Array.from({ length: item.answersCount || 5 }).map((_, optIndex) => renderOptionBlock(item, optIndex))}
+              </View>
+            ) : (
+              <View style={styles.textAnswerContainer}>
+                <View style={styles.textAnswerRow}>
+                  <Text style={styles.textAnswerLabel}>{t('answer')}</Text>
+                  <Text style={styles.textAnswerValue}>{item.correctTextualAnswers?.join(', ')} {item.unit}</Text>
+                </View>
+                <View style={styles.textAnswerRow}>
+                  <Text style={styles.textAnswerLabel}>{t('my_solution')}</Text>
+                  <Text style={[styles.textAnswerValue, { color: isCorrect ? palette.main[600] : '#FF5252' }]}>
+                    {(q?.textualAnswers ?? item.textualAnswers)?.join(', ')} {item.unit}
+                  </Text>
+                </View>
+                <View style={styles.textAnswerRow}>
+                  <Text style={styles.textAnswerLabel}>{t('correct_rate')}</Text>
+                  <Text style={styles.textAnswerValue}>{item.correctRate?.toFixed(2)}%</Text>
+                </View>
+              </View>
+            )}
           </View>
-        </View>
-      ))}
+        );
+      })}
       <View style={{ height: 40 }} />
     </ScrollView>
   )
@@ -306,6 +349,27 @@ const styles = ScaledSheet.create({
     height: '14@ms',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  textAnswerContainer: {
+    backgroundColor: '#F9F9F9',
+    padding: '12@ms',
+    borderRadius: '8@ms',
+    gap: '8@ms',
+  },
+  textAnswerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  textAnswerLabel: {
+    fontSize: '13@ms',
+    color: '#666',
+    width: '100@ms',
+  },
+  textAnswerValue: {
+    fontSize: '14@ms',
+    fontWeight: '600',
+    color: '#333',
+    flex: 1,
   },
 })
 
