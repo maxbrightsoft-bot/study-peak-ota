@@ -70,7 +70,7 @@ const Footer = ({ navigation }: BottomTabBarProps) => {
   ]
 
   return (
-    <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+    <View style={[styles.tabBar]}>
       {(user?.academyDomain ? tabItems : studySpaceTabItems).map((item) => {
         const isFocused = currentScreen() == item.name
 

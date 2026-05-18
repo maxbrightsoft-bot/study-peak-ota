@@ -73,13 +73,13 @@ const RestartPageDialog = ({ t, loading, onClose, title, open, options, onSubmit
                 style={[
                   styles.button,
                   styles.submitButton,
-                  (!values.startPage || !values.endPage || isSubmitting) && styles.disabledButton
+                  (isSubmitting) && styles.disabledButton
                 ]}
                 onPress={() => { 
                   onClose () 
                   handleSubmit()
                 }}
-                disabled={!values.startPage || !values.endPage || isSubmitting}
+                disabled={isSubmitting}
               >
                 <Text style={styles.submitButtonText}>{t('restart')}</Text>
               </TouchableOpacity>

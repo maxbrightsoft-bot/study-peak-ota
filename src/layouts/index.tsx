@@ -5,6 +5,7 @@ import { noLayoutScreens } from '@/navigators/RouteName'
 import { currentScreen } from '@/navigators/NavigationHelpers'
 import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 interface Props {
   children?: React.ReactNode
@@ -15,11 +16,11 @@ const LayoutApp = ({ children, headerProps }: Props) => {
   const isNoLayout = noLayoutScreens.includes(currentScreen())
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={palette.main[600]} />
       {!isNoLayout && <Header headerProps={headerProps} />}
       {children}
-    </View>
+    </SafeAreaView>
   )
 }
 

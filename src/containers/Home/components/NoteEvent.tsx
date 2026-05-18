@@ -41,7 +41,7 @@ const NoteEvent = (noteProps: Props) => {
   } = noteProps
 
   return (
-      <ScrollView>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 20 }} showsVerticalScrollIndicator={false}>
         <View
           style={{
             marginTop: 20,

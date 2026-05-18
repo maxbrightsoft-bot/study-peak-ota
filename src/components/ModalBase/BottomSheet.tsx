@@ -49,7 +49,7 @@ export default BottomSheet
 const styles = ScaledSheet.create({
   container: {
     paddingBottom: '20@ms',
-    minHeight: '200@ms'
+    minHeight: 200
   },
   header: {
     flexDirection: 'row',

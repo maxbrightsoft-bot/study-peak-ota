@@ -51,18 +51,26 @@ const ScheduleForm: FC<Props> = ({ open, formikProp, scheduleRequest, onClose, s
 
     if (pickerMode === 'start') {
       if (values.endTime && selectedMoment.isSameOrAfter(values.endTime)) {
-        setPickerMode(null)
-        return
+        setValues({
+          ...values,
+          startTime: selectedMoment,
+          endTime: null
+        })
+      } else {
+        setFieldValue('startTime', selectedMoment)
       }
-      setFieldValue('startTime', selectedMoment)
     }
 
     if (pickerMode === 'end') {
       if (values.startTime && selectedMoment.isSameOrBefore(values.startTime, 'minute')) {
-        setPickerMode(null)
-        return
+        setValues({
+          ...values,
+          startTime: null,
+          endTime: selectedMoment
+        })
+      } else {
+        setFieldValue('endTime', selectedMoment)
       }
-      setFieldValue('endTime', selectedMoment)
     }
 
     setPickerMode(null)
@@ -142,8 +150,6 @@ const ScheduleForm: FC<Props> = ({ open, formikProp, scheduleRequest, onClose, s
             ? values.startTime?.toDate() || new Date()
             : values.endTime?.toDate() || minTime?.toDate() || new Date()
         }
-        minimumDate={pickerMode === 'end' ? minTime?.toDate() : undefined}
-        maximumDate={pickerMode === 'start' ? maxTime?.toDate() : undefined}
         onConfirm={handleConfirm}
         onCancel={() => setPickerMode(null)}
       />

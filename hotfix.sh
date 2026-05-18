@@ -2,9 +2,15 @@
 set -e
 
 VERSION=$1
+PLATFORM=$2 # android or ios (optional)
 
 if [ -z "$VERSION" ]; then
-  echo "Usage: hotfix.sh <version>"
+  echo "Usage: hotfix.sh <version> [android|ios]"
+  exit 1
+fi
+
+if [ -n "$PLATFORM" ] && [ "$PLATFORM" != "android" ] && [ "$PLATFORM" != "ios" ]; then
+  echo "❌ Platform must be 'android' or 'ios' (hoặc để trống để chạy cả hai)"
   exit 1
 fi
 
@@ -27,73 +33,71 @@ mkdir -p ota
 
 ENTRY_FILE="node_modules/expo-router/entry.js"
 
-echo "=== Building Android bundle ==="
-npx expo export:embed \
-  --platform android --dev false \
-  --entry-file $ENTRY_FILE \
-  --bundle-output ota/index.android.bundle \
-  --assets-dest ota/assets || {
-    echo "❌ Android bundle failed"
-    exit 1
-}
-
-echo "=== Building iOS bundle ==="
-npx expo export:embed \
-  --platform ios --dev false \
-  --entry-file $ENTRY_FILE \
-  --bundle-output ota/main.jsbundle \
-  --assets-dest ota/assets || {
-    echo "❌ iOS bundle failed"
-    exit 1
-}
-
-echo "=== Validating bundles ==="
-
-if [ ! -f ota/index.android.bundle ]; then
-  echo "❌ Android bundle missing"
-  exit 1
+# --- Building ---
+if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "android" ]; then
+  echo "=== Building Android bundle ==="
+  npx expo export:embed \
+    --platform android --dev false \
+    --entry-file $ENTRY_FILE \
+    --bundle-output ota/index.android.bundle \
+    --assets-dest ota || {
+      echo "❌ Android bundle failed"
+      exit 1
+  }
 fi
 
-if [ ! -f ota/main.jsbundle ]; then
-  echo "❌ iOS bundle missing"
-  exit 1
+if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "ios" ]; then
+  echo "=== Building iOS bundle ==="
+  npx expo export:embed \
+    --platform ios --dev false \
+    --entry-file $ENTRY_FILE \
+    --bundle-output ota/main.jsbundle \
+    --assets-dest ota || {
+      echo "❌ iOS bundle failed"
+      exit 1
+  }
 fi
 
+# --- Zipping ---
 echo "=== Zipping ==="
-
 if command -v zip >/dev/null 2>&1; then
   cd ota
-  zip -r android.zip index.android.bundle assets
-  zip -r ios.zip main.jsbundle assets
+  if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "android" ]; then
+    zip -r android.zip . --exclude "*.zip"
+  fi
+  if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "ios" ]; then
+    zip -r ios.zip . --exclude "*.zip"
+  fi
   cd ..
 else
   cd ota
-  powershell Compress-Archive -Path "index.android.bundle","assets" -DestinationPath "android.zip" -Force
-  powershell Compress-Archive -Path "main.jsbundle","assets" -DestinationPath "ios.zip" -Force
+  if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "android" ]; then
+    powershell -Command "Get-ChildItem -Exclude @('android.zip','ios.zip') | Compress-Archive -DestinationPath android.zip -Force"
+  fi
+  if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "ios" ]; then
+    powershell -Command "Get-ChildItem -Exclude @('android.zip','ios.zip') | Compress-Archive -DestinationPath ios.zip -Force"
+  fi
   cd ..
 fi
 
-echo "=== Validate zip ==="
-
-if [ ! -f ota/android.zip ]; then
-  echo "❌ android.zip not found"
-  exit 1
-fi
-
-if [ ! -f ota/ios.zip ]; then
-  echo "❌ ios.zip not found"
-  exit 1
-fi
-
+# --- Uploading ---
 echo "=== Uploading to GitHub Releases ==="
 
+FILES_TO_UPLOAD=""
+if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "android" ]; then
+  FILES_TO_UPLOAD="$FILES_TO_UPLOAD ota/android.zip"
+fi
+if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "ios" ]; then
+  FILES_TO_UPLOAD="$FILES_TO_UPLOAD ota/ios.zip"
+fi
+
 gh release create ota-v$TAG_VERSION \
-  ota/android.zip \
-  ota/ios.zip \
+  $FILES_TO_UPLOAD \
   --repo $GITHUB_REPO \
   --title "OTA v$VERSION" \
-  --notes "Hotfix v$VERSION" || echo "⚠️ Release may already exist"
+  --notes "Hotfix v$VERSION ($([[ -z "$PLATFORM" ]] && echo "All" || echo "$PLATFORM"))" || echo "⚠️ Release may already exist, continuing..."
 
+# --- Update update.json ---
 echo "=== Updating update.json ==="
 
 IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
@@ -105,11 +109,32 @@ SHA_RESPONSE=$(curl -s \
 
 SHA=$(echo $SHA_RESPONSE | node -pe "try { JSON.parse(require('fs').readFileSync(0)).sha } catch(e) { '' }" 2>/dev/null || echo "")
 
+# Fetch current JSON to keep URLs if platform skipped
+CURRENT_DATA_BASE64=$(echo $SHA_RESPONSE | node -pe "try { JSON.parse(require('fs').readFileSync(0)).content } catch(e) { '' }")
+if [ -n "$CURRENT_DATA_BASE64" ]; then
+  CURRENT_JSON=$(echo "$CURRENT_DATA_BASE64" | base64 -d)
+else
+  CURRENT_JSON="{}"
+fi
+
+PREV_ANDROID_URL=$(echo "$CURRENT_JSON" | node -pe "try { JSON.parse(require('fs').readFileSync(0)).downloadAndroidUrl } catch(e) { '' }")
+PREV_IOS_URL=$(echo "$CURRENT_JSON" | node -pe "try { JSON.parse(require('fs').readFileSync(0)).downloadIosUrl } catch(e) { '' }")
+
+NEW_ANDROID_URL="https://github.com/$GITHUB_REPO/releases/download/ota-v$TAG_VERSION/android.zip"
+NEW_IOS_URL="https://github.com/$GITHUB_REPO/releases/download/ota-v$TAG_VERSION/ios.zip"
+
+if [ "$PLATFORM" == "ios" ]; then
+  NEW_ANDROID_URL=$PREV_ANDROID_URL
+fi
+if [ "$PLATFORM" == "android" ]; then
+  NEW_IOS_URL=$PREV_IOS_URL
+fi
+
 JSON_CONTENT="{
   \"version\": \"$VERSION\",
   \"versionCode\": $VERSION_CODE,
-  \"downloadAndroidUrl\": \"https://github.com/$GITHUB_REPO/releases/download/ota-v$TAG_VERSION/android.zip\",
-  \"downloadIosUrl\": \"https://github.com/$GITHUB_REPO/releases/download/ota-v$TAG_VERSION/ios.zip\"
+  \"downloadAndroidUrl\": \"$NEW_ANDROID_URL\",
+  \"downloadIosUrl\": \"$NEW_IOS_URL\"
 }"
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -135,4 +160,4 @@ curl -s -X PUT \
   }"
 
 echo ""
-echo "=== ✅ OTA v$VERSION deployed successfully ==="
+echo "=== ✅ OTA v$VERSION ($( [[ -z "$PLATFORM" ]] && echo "Both" || echo "$PLATFORM" )) deployed successfully ==="

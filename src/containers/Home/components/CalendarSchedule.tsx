@@ -65,25 +65,27 @@ const CalendarSchedule = ({ isVisible, onClose }: Props) => {
           getScheduleListForNoteEvent={getScheduleListForNoteEvent}
           onScheduleCountChange={handleGetScheduleCount}
         />
-        <NoteEvent
-          t={t}
-          schedules={schedules}
-          selectedDate={selectedDate}
-          handleCreateSchedule={handleCreateSchedule}
-          openTooltipList={openTooltipList}
-          handleOpenTooltip={handleOpenTooltip}
-          handleCloseTooltip={handleCloseTooltip}
-          selectedSchedule={selectedSchedule}
-          handleCheckInLesson={handleCheckInLesson}
-          isOpenScheduleDialog={isOpenScheduleDialog}
-          handleOpenScheduleDialog={handleOpenScheduleDialog}
-          isOpenConfirmDeleteDialog={isOpenConfirmDeleteDialog}
-          handleCloseScheduleDialog={handleCloseScheduleDialog}
-          handleCloseConfirmDeleteDialog={handleCloseConfirmDeleteDialog}
-          handleOpenConfirmDeleteDialog={handleOpenConfirmDeleteDialog}
-          handleDeleteSchedule={handleDeleteSchedule}
-          handleUpdateScheduleStatus={handleUpdateScheduleStatus}
-        />
+        <View style={{ flex: 1, paddingBottom: 80 }}>
+          <NoteEvent
+            t={t}
+            schedules={schedules}
+            selectedDate={selectedDate}
+            handleCreateSchedule={handleCreateSchedule}
+            openTooltipList={openTooltipList}
+            handleOpenTooltip={handleOpenTooltip}
+            handleCloseTooltip={handleCloseTooltip}
+            selectedSchedule={selectedSchedule}
+            handleCheckInLesson={handleCheckInLesson}
+            isOpenScheduleDialog={isOpenScheduleDialog}
+            handleOpenScheduleDialog={handleOpenScheduleDialog}
+            isOpenConfirmDeleteDialog={isOpenConfirmDeleteDialog}
+            handleCloseScheduleDialog={handleCloseScheduleDialog}
+            handleCloseConfirmDeleteDialog={handleCloseConfirmDeleteDialog}
+            handleOpenConfirmDeleteDialog={handleOpenConfirmDeleteDialog}
+            handleDeleteSchedule={handleDeleteSchedule}
+            handleUpdateScheduleStatus={handleUpdateScheduleStatus}
+          />
+        </View>
         <View style={{ position: 'absolute', bottom: 20, left: 20, right: 20 }}>
           <TouchableOpacity
             style={styles.newScheduleButton}

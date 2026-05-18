@@ -51,7 +51,6 @@ export const apiUpload: AxiosInstance = axios.create({
         if (language) config.headers[LanguageHeaders] = `${language}`
 
         console.log({ header: config.header});
-        
 
         return config
       },

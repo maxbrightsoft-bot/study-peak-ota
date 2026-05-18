@@ -53,8 +53,13 @@ const StudySpaceView = () => {
   } = useSchedule()
 
   return (
-    <View>
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} ref={scrollRef} style={{ backgroundColor: palette.main[600] }}>
+    <View style={{ flex: 1 }}>
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        ref={scrollRef}
+        style={{ backgroundColor: palette.grey[50] }}
+      >
+        <View style={{ position: 'absolute', top: -1000, left: 0, right: 0, height: 1200, backgroundColor: palette.main[600] }} />
         <View style={styles.container}>
           <View style={{ marginBottom: 28 }}>
             <StudyTimerCard />

@@ -11,7 +11,6 @@ import { TimerStatus } from '@/utils/enums/subject'
 import TimerClock from './TimerClock'
 import CustomSelect from '@/components/Select/CustomSelect'
 import { getSubjectListApi } from '@/services/api/subjectService'
-import useAuthStore from '@/store/useAuthStore'
 
 export interface StudyTimerTabProps {
   getTimers: () => Promise<void>
@@ -54,7 +53,7 @@ const StudyTimerTab: FC<StudyTimerTabProps> = ({
   const handleFetchSubjects = async () => {
     setIsLoadingOptions(true)
     try {
-      const res = await getSubjectListApi('', true)
+      const res = await getSubjectListApi('', false)
       setAddingOptions(res.data?.items?.map((i: any) => ({ label: i.name, value: i.id })) || [])
     } catch(e) {
     } finally {
