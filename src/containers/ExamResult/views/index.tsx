@@ -245,7 +245,7 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
             />
           )
       case ExamStatusView.CompareSolution:
-        return effectSize && <CompareSolution effectSize={effectSize} data={resultData} isTextbook={!!chapterId} />
+        return effectSize && <CompareSolution effectSize={effectSize} isTextbook={!!chapterId} />
       case ExamStatusView.MyAnswers:
         return chapterId
           ? textbookResult && <TextbookMyAnswer data={textbookResult} effectSize={effectSize} onCreateNote={handleOpenNoteDialogFromQuestion} onCreateQuestion={(q) => handleOpenQuestionDialog(null as any, q)} />
