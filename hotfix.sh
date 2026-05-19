@@ -91,11 +91,16 @@ if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "ios" ]; then
   FILES_TO_UPLOAD="$FILES_TO_UPLOAD ota/ios.zip"
 fi
 
-gh release create ota-v$TAG_VERSION \
+if gh release create ota-v$TAG_VERSION \
   $FILES_TO_UPLOAD \
   --repo $GITHUB_REPO \
   --title "OTA v$VERSION" \
-  --notes "Hotfix v$VERSION ($([[ -z "$PLATFORM" ]] && echo "All" || echo "$PLATFORM"))" || echo "⚠️ Release may already exist, continuing..."
+  --notes "Hotfix v$VERSION ($([[ -z "$PLATFORM" ]] && echo "All" || echo "$PLATFORM"))"; then
+  echo "Release created successfully."
+else
+  echo "⚠️ Release already exists, uploading files to existing release..."
+  gh release upload ota-v$TAG_VERSION $FILES_TO_UPLOAD --repo $GITHUB_REPO --clobber
+fi
 
 # --- Update update.json ---
 echo "=== Updating update.json ==="
