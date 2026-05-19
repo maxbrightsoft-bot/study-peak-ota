@@ -149,7 +149,7 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
   }
   useEffect(() => {
     getData()
-  }, [examCode, user?.email])
+  }, [studentExamSessionId, examCode, user?.email, chapterId])
 
   const totalTime = useMemo(() => {
     let time = 0
@@ -237,7 +237,7 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
   }
 
   const handleRestartExam = async () => {
-    if (!studentExamSessionId) return
+    if (!examCode) return
     setLoading(true)
     try {
       await restartExamApi(examCode);
@@ -260,9 +260,18 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
 
   const examTime = useMemo(() => {
     const start = chapterId ? textbookResult?.startTime : resultData?.startTime
-    const finish = chapterId ? textbookResult?.startTime : resultData?.finishTime // TextbookResult doesn't have finishTime in type, using startTime as placeholder or check if it exists
+    let finish = resultData?.finishTime;
+    if (chapterId) {
+      if (textbookResult?.startTime && textbookResult?.totalTime) {
+         const startDate = new Date(textbookResult.startTime);
+         startDate.setSeconds(startDate.getSeconds() + textbookResult.totalTime);
+         finish = startDate.toISOString();
+      } else {
+         finish = textbookResult?.startTime;
+      }
+    }
     return `${utcToLocalTime(start, "HH:mm")} ~ ${utcToLocalTime(finish, "HH:mm")}`
-  }, [resultData?.startTime, resultData?.finishTime, textbookResult?.startTime, chapterId])
+  }, [resultData?.startTime, resultData?.finishTime, textbookResult?.startTime, textbookResult?.totalTime, chapterId])
 
   const handlePrint = async () => {
     if (!contentRef.current) return;

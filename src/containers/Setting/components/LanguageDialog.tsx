@@ -1,11 +1,12 @@
 import React from 'react'
-import { Modal, View, Text, TouchableOpacity, Pressable } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 import { palette } from '@/theme'
 import { LANGUAGES } from '@/utils/constants/language'
 import { LanguageResponse } from '@/utils/types'
 import useAuthStore from '@/store/useAuthStore'
 import { useTranslation } from 'react-i18next'
+import BottomSheet from '@/components/ModalBase/BottomSheet'
 
 type Props = {
   open: boolean
@@ -30,72 +31,44 @@ const LanguageDialog = ({ open, onClose, onSelect }: Props) => {
   const { t } = useTranslation()
 
   return (
-    <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={styles.sheet} onPress={() => {}}>
-          <View style={styles.handle} />
-          <Text style={styles.title}>{t('language')}</Text>
-          <View style={styles.list}>
-            {LANGUAGES.map((lang) => {
-              const isActive = language?.code === lang.code
-              return (
-                <TouchableOpacity
-                  key={lang.code}
-                  style={[styles.item, isActive && styles.itemActive]}
-                  onPress={() => {
-                    onSelect(lang)
-                    onClose()
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.flag}>{LANG_FLAGS[lang.code]}</Text>
-                  <Text style={[styles.label, isActive && styles.labelActive]}>
-                    {LANG_LABELS[lang.code]}
-                  </Text>
-                  {isActive && <View style={styles.dot} />}
-                </TouchableOpacity>
-              )
-            })}
-          </View>
-        </Pressable>
-      </Pressable>
-    </Modal>
+    <BottomSheet
+      isVisible={open}
+      onClose={onClose}
+      title={t('language')}
+    >
+      <View style={styles.list}>
+        {LANGUAGES.map((lang) => {
+          const isActive = language?.code === lang.code
+          return (
+            <TouchableOpacity
+              key={lang.code}
+              style={[styles.item, isActive && styles.itemActive]}
+              onPress={() => {
+                onSelect(lang)
+                onClose()
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.flag}>{LANG_FLAGS[lang.code]}</Text>
+              <Text style={[styles.label, isActive && styles.labelActive]}>
+                {LANG_LABELS[lang.code]}
+              </Text>
+              {isActive && <View style={styles.dot} />}
+            </TouchableOpacity>
+          )
+        })}
+      </View>
+    </BottomSheet>
   )
 }
 
 export default LanguageDialog
 
 const styles = ScaledSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: '20@ms',
-    borderTopRightRadius: '20@ms',
-    paddingHorizontal: '20@ms',
-    paddingBottom: '32@ms',
-    paddingTop: '12@ms',
-  },
-  handle: {
-    width: '40@ms',
-    height: '4@ms',
-    backgroundColor: '#ddd',
-    borderRadius: '2@ms',
-    alignSelf: 'center',
-    marginBottom: '16@ms',
-  },
-  title: {
-    fontSize: '16@ms',
-    fontWeight: '600',
-    color: '#222',
-    textAlign: 'center',
-    marginBottom: '20@ms',
-  },
   list: {
     gap: '10@ms',
+    paddingHorizontal: '20@ms',
+    paddingBottom: '20@ms',
   },
   item: {
     flexDirection: 'row',

@@ -9,12 +9,11 @@ import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
   effectSize: EffectSize[]
-  data?: ExamResult | TextbookResult
   isPrint?: boolean
   isTextbook?: boolean
 }
 
-const CompareSolution: FC<Props> = ({ effectSize: originalEffectSize, data, isTextbook }) => {
+const CompareSolution: FC<Props> = ({ effectSize: originalEffectSize, isTextbook }) => {
   const { t } = useTranslation()
 
   const effectSize = useMemo(() => {
@@ -22,21 +21,8 @@ const CompareSolution: FC<Props> = ({ effectSize: originalEffectSize, data, isTe
     return originalEffectSize.filter((item) => (item.selectedAnswers?.length || 0) > 0 || (item.textualAnswers?.length || 0) > 0)
   }, [originalEffectSize, isTextbook])
 
-  const examResult = (!isTextbook && data && 'questions' in data) ? data as ExamResult : null
-
-  const questionMap = useMemo(() => {
-    if (!examResult?.questions) return {}
-    return examResult.questions.reduce((acc, q) => {
-      acc[q.questionOrder] = q
-      return acc
-    }, {} as Record<number, typeof examResult.questions[0]>)
-  }, [examResult?.questions])
-
   const statistics = useMemo(() => {
-    const correctCount = effectSize.filter((item) => {
-      const q = questionMap[item.questionOrder]
-      return q ? q.isCorrect : item.isCorrect
-    }).length
+    const correctCount = effectSize.filter((item) => item.isCorrect).length
     const totalCount = effectSize.length
     const rate = totalCount > 0 ? (correctCount / totalCount) * 100 : 0
     return {
@@ -44,13 +30,12 @@ const CompareSolution: FC<Props> = ({ effectSize: originalEffectSize, data, isTe
       totalCount,
       rate: rate.toFixed(1)
     }
-  }, [effectSize, questionMap])
+  }, [effectSize])
 
   const renderOptionBlock = (item: EffectSize, optionIndex: number) => {
     const optionNum = optionIndex + 1
-    const q = questionMap[item.questionOrder]
-    const isCorrectAnswer = (q?.correctAnswers ?? item.correctAnswers)?.includes(optionNum)
-    const selectedAnswers = q?.selectedAnswers ?? item.selectedAnswers
+    const isCorrectAnswer = item.correctAnswers?.includes(optionNum)
+    const selectedAnswers = item.selectedAnswers
     const isSelected = selectedAnswers?.includes(optionNum.toString()) || selectedAnswers?.includes(optionNum)
     const rate = item.averageAnswers?.[optionIndex] || 0
 
@@ -122,15 +107,16 @@ const CompareSolution: FC<Props> = ({ effectSize: originalEffectSize, data, isTe
       </View>
 
       {effectSize.map((item, index) => {
-        const isChoice = item.questionAnswerType === QuestionAnswerType.SingleChoice || item.questionAnswerType === QuestionAnswerType.MultipleChoice || item.questionAnswerType === undefined;
-        const q = questionMap[item.questionOrder];
-        const isCorrect = q?.isCorrect ?? item.isCorrect;
+        const isChoice = item.questionAnswerType === QuestionAnswerType.SingleChoice || item.questionAnswerType === QuestionAnswerType.MultipleChoice;
+        const isCorrect = item.isCorrect;
         
         return (
           <View key={item.id || index} style={styles.questionCard}>
             <View style={styles.cardHeader}>
               <View style={styles.headerLeft}>
-                <Text style={styles.questionTitle}>{t('problem')} {item.questionOrder + 1}</Text>
+                <Text style={styles.questionTitle}>
+                  {t('problem')} {item.parentQuestionId ? `${(item?.parentQuestionOrder || 0) + 1}.${item.questionOrder + 1}` : item.questionOrder + 1}
+                </Text>
                 <View style={[styles.statusBadge, { backgroundColor: isCorrect ? '#F3E5F5' : '#FFEBEE' }]}>
                   <Text style={[styles.statusText, { color: isCorrect ? palette.main[600] : '#D32F2F' }]}>
                     {isCorrect ? t('correct') : t('incorrect')}
@@ -160,7 +146,7 @@ const CompareSolution: FC<Props> = ({ effectSize: originalEffectSize, data, isTe
                 <View style={styles.textAnswerRow}>
                   <Text style={styles.textAnswerLabel}>{t('my_solution')}</Text>
                   <Text style={[styles.textAnswerValue, { color: isCorrect ? palette.main[600] : '#FF5252' }]}>
-                    {(q?.textualAnswers ?? item.textualAnswers)?.join(', ')} {item.unit}
+                    {item.textualAnswers?.join(', ')} {item.unit}
                   </Text>
                 </View>
                 <View style={styles.textAnswerRow}>
@@ -263,7 +249,7 @@ const styles = ScaledSheet.create({
     borderRadius: '16@ms',
     marginBottom: '12@ms',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: '1@ms' },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.03,
     shadowRadius: '2@ms',
     elevation: '1@ms',

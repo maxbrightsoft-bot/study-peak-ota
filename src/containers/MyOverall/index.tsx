@@ -237,7 +237,7 @@ const MyOverall: FC<OverallTabProps> = React.memo(({
                 <Text style={styles.overviewLabel}>{t('problem_solving_efficiency')}</Text>
                 <Text style={styles.overviewValue}>
                   {(
-                    (resultData?.score || 0 / (resultData?.totalScore || 0)) *
+                    ((resultData?.score || 0) / (resultData?.totalScore || 1)) *
                     100
                   ).toFixed(2)}
                   %
