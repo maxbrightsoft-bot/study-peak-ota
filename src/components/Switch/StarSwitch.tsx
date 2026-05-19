@@ -1,9 +1,9 @@
 import { palette } from '@/theme'
-import { Ionicons } from '@expo/vector-icons'
 import * as React from 'react'
-import { View, StyleSheet, Animated, Easing } from 'react-native'
+import { View, Animated, Easing } from 'react-native'
 import { TouchableRipple } from 'react-native-paper'
 import { ScaledSheet } from 'react-native-size-matters'
+import StarIcon from '@/assets/iconJSX/star'
 
 type Props = {
   onSwitch: () => void
@@ -34,7 +34,7 @@ const StarSwitch = ({ onSwitch, isStar, isDisable }: Props) => {
         }
       >
         <Animated.View style={[styles.thumb, { transform: [{ translateX }] }]}>
-          <Ionicons name="star" size={18} color={isOn ? palette.warning.light : palette.grey[700]} />
+          <StarIcon width={18} height={17} color={isOn ? palette.warning.light : palette.grey[700]} />
         </Animated.View>
       </View>
     </TouchableRipple>

@@ -110,6 +110,8 @@ export const formatGrade = (grade: number, t: any, language?: string) => {
 export const getErrorMessage = (t: TFunction<"translation", undefined>, error: any, defaultErrorMessage?: string): string => {
     let errorMessage = error?.response?.data?.title
     const errorStatus = error?.response?.status
+    if (errorStatus === 401)
+        return t("please_log_in_again")
     if (errorStatus === 409)
         return t("conflict_error_occurred")
     if(errorStatus === 512)
