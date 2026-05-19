@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { CategoryResponse } from '@/utils/types'
 import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
+import { Ionicons } from '@expo/vector-icons'
 import { formatDuration } from '@/utils/helpers'
 
 type Props = {
@@ -63,7 +64,7 @@ const GradesByTerritory = ({ data, isPrint }: Props) => {
     },
     cellNumeric: {
       width: tableWidth / 3,
-      alignItems: 'flex-end'
+      alignItems: 'center'
     },
     cellLast: {
       borderRightWidth: '1@ms',
@@ -126,8 +127,14 @@ const GradesByTerritory = ({ data, isPrint }: Props) => {
 
   return (
     <View style={styles.wrapper}>
-      <View style={styles.header}>
+      <View style={[styles.header, { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16 }]}>
         <Text style={styles.headerText}>{t('grades_by_area')}</Text>
+        {data.length > 0 && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Text style={{ fontSize: 11, color: palette.grey[500] }}>{t('scroll_horizontal', 'Vuốt ngang')}</Text>
+            <Ionicons name="swap-horizontal" size={14} color={palette.grey[500]} />
+          </View>
+        )}
       </View>
 
       <View style={styles.contentContainer}>
@@ -138,7 +145,7 @@ const GradesByTerritory = ({ data, isPrint }: Props) => {
                 <View style={[styles.cell, styles.cellCategory, styles.headerCell]}>
                   <Text style={[styles.headerCellText]}>{t('categories')}</Text>
                 </View>
-                <View style={[styles.cellNumeric, styles.headerCell]}>
+                <View style={[styles.cell, styles.cellNumeric, styles.headerCell]}>
                   <Text style={[styles.headerCellText, styles.textCenter]}>{t('correct_rate')}</Text>
                 </View>
                 <View style={[styles.cell, styles.cellNumeric, styles.headerCell]}>

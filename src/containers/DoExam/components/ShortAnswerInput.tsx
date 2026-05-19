@@ -21,11 +21,16 @@ const ShortAnswerInput = ({ initValue, question, updateQuestionAnswer }: Props) 
 
   return (
     <View style={{ gap: 8 }}>
-      <TextField
-        style={{ borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 4, paddingHorizontal: 12 }}
-        value={value}
-        onChangeText={onChange}
-      />
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <TextField
+          style={{ flex: 1, borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 4, paddingHorizontal: 12 }}
+          value={value}
+          onChangeText={onChange}
+        />
+        {!!question.unit && (
+          <Text style={styles.textAnswerValue}>{question.unit}</Text>
+        )}
+      </View>
       {value !== initValue && (
         <TouchableOpacity
           style={[styles.button, styles.confirmButton]}
@@ -66,6 +71,11 @@ const styles = ScaledSheet.create({
   confirmButtonText: {
     ...TYPO.button2,
     color: 'white'
+  },
+  textAnswerValue: {
+    fontSize: '14@ms',
+    fontWeight: '600',
+    color: '#333'
   }
 })
 

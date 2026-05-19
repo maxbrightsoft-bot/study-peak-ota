@@ -1,27 +1,25 @@
 import React, { FC } from 'react'
 import { View, Text, TouchableOpacity, FlatList } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { ExamResult, LongTimeSpendQuestion } from '@/utils/types'
-import { ProblemKey } from '@/utils/enums'
+import { LongTimeSpendQuestion, Question } from '@/utils/types'
 import { formatTimeSecond } from '@/utils/helpers'
 import MathRender from '@/components/MathRender'
-import { Ionicons } from '@expo/vector-icons'
 import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   data: LongTimeSpendQuestion[]
-  examResult: ExamResult
-  isPrint: boolean
+  questions?: Question[]
+  isPrint?: boolean
 }
 
-const ProtractedProblem: FC<Props> = ({ data, examResult, isPrint }) => {
+const ProtractedProblem: FC<Props> = ({ data, questions, isPrint }) => {
   const { t } = useTranslation()
 
   const renderRow = ({ item }: { item: LongTimeSpendQuestion }) => {
     const timeDiff = item.topDuration - item.duration
     const isBetter = timeDiff > 0
-    const category = examResult?.questions?.find((i) => i.id === item.id)?.category
+    const category = questions?.find((i) => i.id === item.id)?.category
 
     return (
       <View style={styles.itemContainer}>

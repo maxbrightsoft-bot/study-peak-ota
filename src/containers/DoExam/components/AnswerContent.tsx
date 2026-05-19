@@ -56,6 +56,10 @@ const AnswerContent = ({ t, question, questionNumber, errors, values }: Props) =
                       )}
                     </Field>
 
+                    {!!question.unit && (
+                      <Text style={styles.textAnswerValue}>({question.unit})</Text>
+                    )}
+
                     <TouchableOpacity
                       style={[styles.deleteButton, deletable && styles.disabledButton]}
                       disabled={deletable}
@@ -148,6 +152,11 @@ const styles = ScaledSheet.create({
     color: '#F34B4B',
     marginTop: '4@ms'
   },
+  textAnswerValue: {
+    fontSize: '14@ms',
+    fontWeight: '600',
+    color: '#333'
+  }
 })
 
 export default AnswerContent

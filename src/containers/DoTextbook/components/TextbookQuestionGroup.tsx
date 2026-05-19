@@ -124,7 +124,12 @@ const TextbookQuestionGroup = ({
       case QuestionAnswerType.OrderMatters:
       case QuestionAnswerType.OrderDoesNotMatters:
       case QuestionAnswerType.SynonymProcessing:
-        return <MathRender style={{ backgroundColor: 'transparent' }} content={question.textualAnswers?.[0] || ''} />
+        return (
+          <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
+            <MathRender style={{ backgroundColor: 'transparent' }} isChat content={question.textualAnswers?.[0] || ''} />
+            {question.unit && <Text style={styles.textAnswerValue}>({question.unit})</Text>}
+          </View>
+        )
       default:
         return Array.from({ length: question.answerCount }).map((_, index) => {
           const isSelected = question.selectedAnswers?.includes(index + 1)
@@ -260,6 +265,11 @@ const styles = ScaledSheet.create({
   starButton: {
     position: 'absolute',
     right: '10@ms'
+  },
+  textAnswerValue: {
+    fontSize: '14@ms',
+    fontWeight: '600',
+    color: '#333'
   }
 })
 

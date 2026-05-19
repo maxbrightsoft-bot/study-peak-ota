@@ -25,12 +25,13 @@ interface Question {
 }
 
 interface Props {
-  data?: ExamResult
-  isPrint: boolean
+  data: Question[]
+  isPrint?: boolean
   categories?: CategoryResponse[]
+  questionGroups?: any[]
 }
 
-const QuestionItem = ({ question, color, categories, data }: { question: Question; color: string; categories?: CategoryResponse[]; data?: ExamResult }) => {
+const QuestionItem = ({ question, color, categories, questionGroups }: { question: Question; color: string; categories?: CategoryResponse[]; questionGroups?: any[] }) => {
   const [visible, setVisible] = React.useState(false)
 
   const openMenu = () => setVisible(true)
@@ -60,8 +61,8 @@ const QuestionItem = ({ question, color, categories, data }: { question: Questio
       })
     }
 
-    if (data?.questionGroups && question.questionGroupId) {
-      const group = data.questionGroups.find((g: any) => g.id === question.questionGroupId)
+    if (questionGroups && question.questionGroupId) {
+      const group = questionGroups.find((g: any) => g.id === question.questionGroupId)
       group?.articles?.forEach((article: any) => {
         if (article.category?.name) names.add(article.category.name)
         if (article.subcategory?.name) names.add(article.subcategory.name)
@@ -69,7 +70,7 @@ const QuestionItem = ({ question, color, categories, data }: { question: Questio
     }
 
     return Array.from(names)
-  }, [question, categories, data])
+  }, [question, categories, questionGroups])
 
   return (
     <View style={styles.questionItemWrapper}>
@@ -100,10 +101,10 @@ const QuestionItem = ({ question, color, categories, data }: { question: Questio
   )
 }
 
-const TrickyProblem: FC<Props> = ({ data, isPrint, categories }) => {
+const TrickyProblem: FC<Props> = ({ data, isPrint, categories, questionGroups }) => {
   const { t } = useTranslation()
-  const inCorrectQuestions = data?.questions.filter((i) => i.isStar && !i.isCorrect)
-  const correctQuestions = data?.questions.filter((i) => i.isStar && i.isCorrect)
+  const inCorrectQuestions = data?.filter((i) => i.isStar && !i.isCorrect)
+  const correctQuestions = data?.filter((i) => i.isStar && i.isCorrect)
 
   const renderProblems = () => {
     return (
@@ -116,7 +117,7 @@ const TrickyProblem: FC<Props> = ({ data, isPrint, categories }) => {
           <View style={styles.questionsContainer}>
             {inCorrectQuestions?.length ? (
               inCorrectQuestions.map((question: Question) => (
-                <QuestionItem key={question.id} question={question} color={palette.error.main} categories={categories} data={data} />
+                <QuestionItem key={question.id} question={question} color={palette.error.main} categories={categories} questionGroups={questionGroups} />
               ))
             ) : (
               <Text style={styles.noDataText}>{t('no_data')}</Text>
@@ -133,7 +134,7 @@ const TrickyProblem: FC<Props> = ({ data, isPrint, categories }) => {
           <View style={styles.questionsContainer}>
             {correctQuestions?.length ? (
               correctQuestions.map((question: Question) => (
-                <QuestionItem key={question.id} question={question} color={palette.green_support[900]} categories={categories} data={data} />
+                <QuestionItem key={question.id} question={question} color={palette.green_support[900]} categories={categories} questionGroups={questionGroups} />
               ))
             ) : (
               <Text style={styles.noDataText}>{t('no_data')}</Text>
@@ -226,6 +227,10 @@ const styles = ScaledSheet.create({
   categoryInfoText: {
     fontSize: '13@ms',
     color: '#000'
+  },
+  column1: {
+    width: '90@ms',
+    gap: '8@ms'
   }
 })
 

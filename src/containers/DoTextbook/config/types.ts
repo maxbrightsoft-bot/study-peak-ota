@@ -123,6 +123,7 @@ export interface PreparedQuestionResponse {
   score: number;
   questionIndex?: number
   questionAnswerType: QuestionAnswerType
+  unit?: string
 }
 
 export type StoredStudentTextbookAnswer = {
