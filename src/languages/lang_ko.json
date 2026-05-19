@@ -2064,5 +2064,6 @@
   "new_update_title": "새로운 버전 업데이트",
   "new_update_available": "새로운 버전이 있습니다. 업데이트 하시겠습니까?",
   "update_now": "업데이트",
-  "updating_app": "앱을 업데이트하는 중입니다..."
+  "updating_app": "앱을 업데이트하는 중입니다...",
+  "scroll_horizontal": "가로로 스크롤"
 }

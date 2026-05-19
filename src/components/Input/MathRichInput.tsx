@@ -122,22 +122,35 @@ function updateToolbar(){
 }
 function openPicker(){window.ReactNativeWebView.postMessage(JSON.stringify({type:'openPicker'}));}
 function notifyChange(){
-  var out='';
-  function walk(node){
-    if(node.nodeType===3){out+=node.textContent.replace(/\u200B/g,'');}
-    else if(node.classList&&node.classList.contains('math-chip')){out+='$$'+node.getAttribute('data-latex')+'$$';}
-    else{
-      var t=node.nodeName;
-      if(t==='B'||t==='STRONG')out+='<b>';
-      else if(t==='I'||t==='EM')out+='<i>';
-      else if(t==='U')out+='<u>';
-      node.childNodes.forEach(walk);
-      if(t==='B'||t==='STRONG')out+='</b>';
-      else if(t==='I'||t==='EM')out+='</i>';
-      else if(t==='U')out+='</u>';
+  var clone = editor.cloneNode(true);
+  var chips = clone.querySelectorAll('.math-chip');
+  chips.forEach(function(chip){
+    var mathEl = chip.querySelector('math');
+    if(mathEl){
+      var semantics = mathEl.querySelector('semantics');
+      if(semantics){
+         var frag = document.createDocumentFragment();
+         Array.from(semantics.childNodes).forEach(function(c){
+           if(c.tagName!=='annotation' && c.tagName!=='ANNOTATION'){
+             frag.appendChild(c.cloneNode(true));
+           }
+         });
+         mathEl.innerHTML = '';
+         mathEl.appendChild(frag);
+      }
+      mathEl.setAttribute('data-latex', chip.getAttribute('data-latex'));
+      chip.parentNode.replaceChild(mathEl, chip);
+    } else {
+      var txt = document.createTextNode(chip.getAttribute('data-latex') || '');
+      chip.parentNode.replaceChild(txt, chip);
     }
+  });
+  
+  var out = clone.innerHTML;
+  if(out.trim().length > 0 && !/^<(p|div|h[1-6]|ul|ol|li|blockquote|table)/i.test(out.trim())) {
+    out = '<p>' + out + '</p>';
   }
-  editor.childNodes.forEach(walk);
+  
   window.ReactNativeWebView.postMessage(JSON.stringify({type:'change',value:out}));
 }
 
@@ -168,7 +181,7 @@ window.receiveLatex=function(latex, idToEdit){
   }
   
   chip.setAttribute('data-latex',latex);
-  try{katex.render(latex,chip,{throwOnError:false,displayMode:false});}
+  try{katex.render(latex,chip,{throwOnError:false,displayMode:false,output:'mathml'});}
   catch(e){chip.textContent=latex;}
 
   if(!idToEdit){
@@ -182,24 +195,47 @@ window.receiveLatex=function(latex, idToEdit){
 };
 window.setEditorValue=function(val){
   if(!val){editor.innerHTML='';return;}
-  var parts=val.split('$$');
-  var html='';
-  for(var i=0;i<parts.length;i++){
-    if(i%2===1){
-      var latex=parts[i];
-      var id='chip_'+(++chipCounter);
-      html+='<span class="math-chip" id="'+id+'" data-latex="'+latex.replace(/"/g,'&quot;')+'" contenteditable="false"></span>';
-    }else{
-      html+=parts[i];
+  // Legacy $$...$$ format
+  if(val.indexOf('$$')!==-1){
+    var parts=val.split('$$');
+    var html='';
+    for(var i=0;i<parts.length;i++){
+      if(i%2===1){
+        var latex=parts[i];
+        var id='chip_'+(++chipCounter);
+        html+='<span class="math-chip" id="'+id+'" data-latex="'+latex.replace(/"/g,'&quot;')+'" contenteditable="false"></span>';
+      }else{html+=parts[i];}
     }
+    editor.innerHTML=html;
+    editor.querySelectorAll('.math-chip').forEach(function(chip){
+      var ltx=chip.getAttribute('data-latex');
+      try{katex.render(ltx,chip,{throwOnError:false,displayMode:false,output:'mathml'});}
+      catch(e){chip.textContent=ltx;}
+    });
+    return;
   }
-  editor.innerHTML=html;
-  var chips=editor.querySelectorAll('.math-chip');
-  chips.forEach(function(chip){
-    var ltx=chip.getAttribute('data-latex');
-    try{katex.render(ltx,chip,{throwOnError:false,displayMode:false});}
-    catch(e){chip.textContent=ltx;}
+  // MathML format: find <math> elements, extract LaTeX from KaTeX annotation or data-latex
+  var tmp=document.createElement('div');
+  tmp.innerHTML=val;
+  tmp.querySelectorAll('math').forEach(function(mathEl){
+    var latex = mathEl.getAttribute('data-latex');
+    if (!latex) {
+      var ann=mathEl.querySelector('annotation[encoding="application/x-tex"]');
+      latex=ann?ann.textContent.trim():'';
+    }
+    var id='chip_'+(++chipCounter);
+    var chip=document.createElement('span');
+    chip.className='math-chip';
+    chip.id=id;
+    chip.setAttribute('contenteditable','false');
+    chip.setAttribute('data-latex',latex);
+    if(latex){
+      try{katex.render(latex,chip,{throwOnError:false,displayMode:false,output:'mathml'});}
+      catch(e){chip.innerHTML=mathEl.outerHTML;}
+    }else{chip.innerHTML=mathEl.outerHTML;}
+    if(mathEl.parentNode)mathEl.parentNode.replaceChild(chip,mathEl);
   });
+  editor.innerHTML=tmp.innerHTML;
 };
 editor.addEventListener('input',notifyChange);
 editor.addEventListener('keyup',updateToolbar);
@@ -468,7 +504,7 @@ function FormulaBottomSheet({
             scrollEnabled={false}
             originWhitelist={['*']}
             javaScriptEnabled
-            onMessage={(e) => {
+            onMessage={(e: any) => {
               try {
                 const data = JSON.parse(e.nativeEvent.data);
                 if (data.type === 'change') {
@@ -594,9 +630,9 @@ const s = ScaledSheet.create({
     borderTopLeftRadius: '20@ms',
     borderTopRightRadius: '20@ms',
     paddingBottom: Platform.OS === 'ios' ? 34 : 12,
-    elevation: '20@ms',
+    elevation: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: '-4@ms' },
+    shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.15,
     shadowRadius: '10@ms',
   },
@@ -655,4 +691,4 @@ const s = ScaledSheet.create({
   },
   btnDisabled: { backgroundColor: '#ced4da' },
   btnConfirmTxt: { fontSize: '15@ms', color: '#fff', fontWeight: '600' },
-});
+}) as any;

@@ -6,6 +6,7 @@ import { QuestionAnswerType } from '@/utils/enums'
 import { palette } from '@/theme'
 import { Ionicons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
+import MathRender from '@/components/MathRender'
 
 interface Props {
   effectSize: EffectSize[]
@@ -109,7 +110,7 @@ const CompareSolution: FC<Props> = ({ effectSize: originalEffectSize, isTextbook
       {effectSize.map((item, index) => {
         const isChoice = item.questionAnswerType === QuestionAnswerType.SingleChoice || item.questionAnswerType === QuestionAnswerType.MultipleChoice;
         const isCorrect = item.isCorrect;
-        
+
         return (
           <View key={item.id || index} style={styles.questionCard}>
             <View style={styles.cardHeader}>
@@ -141,13 +142,24 @@ const CompareSolution: FC<Props> = ({ effectSize: originalEffectSize, isTextbook
               <View style={styles.textAnswerContainer}>
                 <View style={styles.textAnswerRow}>
                   <Text style={styles.textAnswerLabel}>{t('answer')}</Text>
-                  <Text style={styles.textAnswerValue}>{item.correctTextualAnswers?.join(', ')} {item.unit}</Text>
+                  <View style={{ flexDirection: 'column', gap: 5, alignItems: 'center' }}>
+                    {item.correctTextualAnswers?.map((ans, idx) =>
+                      <View key={idx} style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
+                        <MathRender key={idx} isChat content={ans} fontSize={13} />
+                      </View>)}
+                    {item.unit && <Text style={styles.textAnswerValue}>({item.unit})</Text>}
+                  </View>
                 </View>
                 <View style={styles.textAnswerRow}>
                   <Text style={styles.textAnswerLabel}>{t('my_solution')}</Text>
-                  <Text style={[styles.textAnswerValue, { color: isCorrect ? palette.main[600] : '#FF5252' }]}>
-                    {item.textualAnswers?.join(', ')} {item.unit}
-                  </Text>
+                  <View style={{ flexDirection: 'column', gap: 5, alignItems: 'center' }}>
+                    {item.textualAnswers?.map((ans, idx) =>
+                      <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
+                        <MathRender key={idx} isChat content={ans} fontSize={13} />
+                      </View>
+                    )}
+                    {item.unit && <Text style={styles.textAnswerValue}>({item.unit})</Text>}
+                  </View>
                 </View>
                 <View style={styles.textAnswerRow}>
                   <Text style={styles.textAnswerLabel}>{t('correct_rate')}</Text>
@@ -350,6 +362,7 @@ const styles = ScaledSheet.create({
     fontSize: '13@ms',
     color: '#666',
     width: '100@ms',
+    marginRight: 20
   },
   textAnswerValue: {
     fontSize: '14@ms',

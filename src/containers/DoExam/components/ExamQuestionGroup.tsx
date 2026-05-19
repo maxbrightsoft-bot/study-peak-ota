@@ -19,6 +19,7 @@ type Props = {
   onOpenAnswerSheet: (id?: number) => void
   disabled?: boolean
 }
+
 const QuestionRow = React.memo(({ 
   item, 
   lastQuestionIndex, 
@@ -107,12 +108,20 @@ const ExamQuestionGroup = ({
   ]);
 
   const renderAnswer = useCallback((question: QuestionResponse) => {
+
+    console.log({ question1: question.unit });
+
     switch (question.questionAnswerType) {
       case QuestionAnswerType.ShortAnswer:
       case QuestionAnswerType.OrderMatters:
       case QuestionAnswerType.OrderDoesNotMatters:
       case QuestionAnswerType.SynonymProcessing:
-        return <MathRender style={{ backgroundColor: 'transparent' }} content={question.textualAnswers?.[0] || ''} />
+        return (
+          <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
+            <MathRender style={{ backgroundColor: 'transparent' }} isChat content={question.textualAnswers?.[0] || ''} />
+            {question.unit && <Text style={styles.textAnswerValue}>({question.unit})</Text>}
+          </View>
+        )
       default:
         return Array.from({ length: question.answerCount }).map((_, index) => {
           const isSelected = question.selectedAnswers?.includes(index + 1)
@@ -243,6 +252,11 @@ const styles = ScaledSheet.create({
   },
   selectedText: {
     color: '#fff'
+  },
+  textAnswerValue: {
+    fontSize: '14@ms',
+    fontWeight: '600',
+    color: '#333'
   }
 })
 export default React.memo(ExamQuestionGroup)
