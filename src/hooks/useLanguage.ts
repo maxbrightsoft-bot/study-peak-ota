@@ -8,6 +8,7 @@ import moment from "moment";
 import { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import * as RNLocalize from "react-native-localize";
+import { isDemoMode, switchDemoDatabase } from "@/demoData/mockInterceptor";
 
 export const useLanguage = () => {
   const { i18n } = useTranslation();
@@ -19,16 +20,22 @@ export const useLanguage = () => {
     async (languageItem?: LanguageResponse) => {
       if (!languageItem) return;
 
-      // if (i18n.language === languageItem.code) return;
-
       try {
         setLoading(true);
 
         await i18n.changeLanguage(languageItem.code);
         moment.locale(languageItem.momentLangCode);
+        await setDataStorage(LANGUAGE, languageItem.code);
+
+        // Demo mode: switch sang database riêng của ngôn ngữ mới, không reset DB cũ.
+        try {
+          if (await isDemoMode()) {
+            await switchDemoDatabase(languageItem.code);
+          }
+        } catch (_) { /* không crash nếu lỗi switch demo DB */ }
+
         setLanguage(languageItem);
 
-        await setDataStorage(LANGUAGE, languageItem.code);
       } catch (error) {
         console.error("Change language failed:", error);
       } finally {

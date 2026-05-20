@@ -52,6 +52,9 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props
 
   const progress = textbook?.progress ?? 0
   const isMockTextbook = !!textbook?.isMock
+  const isPlaceholder = textbook?.coverImage?.includes('placehold.co') || !textbook?.coverImage;
+  const colors = ['#6C63FF', '#FF6B6B', '#4ECDC4', '#FFD93D', '#95E1D3', '#7C3AED'];
+  const bgColor = textbook?.id ? colors[textbook.id % colors.length] : colors[0];
 
   return (
     <SlideDrawerRoot visible={isOpen}>
@@ -70,7 +73,15 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.bookCard}>
-            <Image source={{ uri: getSafeUrl(textbook?.coverImage || '') }} style={styles.cover} />
+            {isPlaceholder ? (
+              <View style={[styles.cover, { backgroundColor: bgColor, justifyContent: 'center', alignItems: 'center', padding: 8 }]}>
+                <Text style={{ color: '#FFF', fontSize: 13, fontWeight: '700', textAlign: 'center' }} numberOfLines={5}>
+                  {textbook?.name}
+                </Text>
+              </View>
+            ) : (
+              <Image source={{ uri: getSafeUrl(textbook?.coverImage || '') }} style={styles.cover} />
+            )}
 
             <View style={{ flex: 1 }}>
               <View style={styles.badge}>

@@ -2066,5 +2066,13 @@
   "new_update_available": "A new version is available. Do you want to update?",
   "update_now": "Update",
   "updating_app": "Updating application...",
-  "scroll_horizontal": "Swipe to view"
+  "scroll_horizontal": "Swipe to view",
+  "feature_not_available_in_demo_mode": "This feature is not available in demo mode.",
+  "demo_mode": "Demo Mode",
+  "exit_demo_mode": "Exit Demo Mode",
+  "demo_mode_confirm": "Enter demo mode with sample data? Your current session will switch to the demo account.",
+  "demo_mode_login_required": "Please log in first to enter demo mode.",
+  "demo_academy": "Demo Academy",
+  "demo_mode_session_not_found": "Could not restore previous login session."
 }
+
