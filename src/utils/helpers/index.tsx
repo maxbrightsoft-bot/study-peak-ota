@@ -1,6 +1,7 @@
 import { AxiosResponse } from 'axios'
 import { ACCESS_TOKEN, DATE_MIN_VALUE, DATE_TIME_MIN_VALUE, DefaultErrorMessage, ErrorMessages } from '../constants'
 import { TFunction } from 'i18next'
+import i18n from '@/languages/i18n'
 import moment from 'moment'
 import Toast from 'react-native-toast-message'
 import { ACADEMY_DOMAIN, LEARNING_SPACE } from '@/utils/constants'
@@ -15,11 +16,13 @@ export const toast = {
       type: 'success',
       text1: message
     }),
-  error: (message: string) =>
+  error: (message: string) => {
+    if (message === 'DEMO_BLOCKED') return;
     Toast.show({
       type: 'error',
       text1: message
-    }),
+    })
+  },
   info: (message: string) =>
     Toast.show({
       type: 'info',
@@ -39,6 +42,14 @@ export const toast = {
       visibilityTime: 10000,
       autoHide: false
     })
+  },
+  demoBlocked: () => {
+    Toast.show({
+      type: 'info',
+      text1: i18n.t('demo_mode'),
+      text2: i18n.t('feature_not_available_in_demo_mode'),
+      visibilityTime: 3000,
+    });
   }
 }
 

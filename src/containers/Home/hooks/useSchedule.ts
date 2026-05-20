@@ -29,6 +29,7 @@ const useSchedule = () => {
   const user = useAuthStore(state => state.user)
   const setLoading = useAuthStore(state => state.setLoading)
   const setLoadingWithoutOverlay = useAuthStore(state => state.setLoadingWithoutOverlay)
+  const isDemoMode = useAuthStore(state => state.isDemoMode)
   const [isOpenDialog, setOpenDialog] = useState<boolean>(false);
   const [isOpenConfirmDeleteDialog, setOpenConfirmDeleteDialog] =
     useState<boolean>(false);
@@ -111,6 +112,10 @@ const useSchedule = () => {
   };
 
   const handleOpenDialog = (schedule?: ScheduleResponse) => {
+    if (isDemoMode) {
+      toast.demoBlocked();
+      return;
+    }
     if (schedule) setSelectedSchedule(schedule);
     handleCloseTooltip();
     setOpenDialog(true);
@@ -121,6 +126,10 @@ const useSchedule = () => {
   };
 
   const handleOpenConfirmDeleteDialog = (schedule?: any) => {
+    if (isDemoMode) {
+      toast.demoBlocked();
+      return;
+    }
     if (schedule) {
       setSelectedSchedule(schedule);
     }
@@ -192,6 +201,10 @@ const useSchedule = () => {
         endDate: moment(selectedDate?.endDate).utc().toISOString(),
         textSearch: textSearchRef.current?.value
       });
+
+      console.log('start date', selectedDate?.startDate);
+      console.log('end date', selectedDate?.endDate);
+
 
       const { items = [] } = data;
 

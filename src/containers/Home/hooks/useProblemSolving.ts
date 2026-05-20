@@ -22,6 +22,7 @@ import { ScrollView } from "react-native";
 const useProblemSolving = () => {
   const user = useAuthStore(state => state.user)
   const academy = useAuthStore(state => state.selectedAcademy)
+  const isDemoMode = useAuthStore(state => state.isDemoMode)
   const setLoading = useAuthStore(state => state.setLoading)
   const setLoadingWithoutOverlay = useAuthStore(state => state.setLoadingWithoutOverlay)
   const pusher = useAuthStore(state => state.pusher)
@@ -151,6 +152,11 @@ const useProblemSolving = () => {
   };
 
   const callApiCheckExam = async (code: string) => {
+    if (isDemoMode) {
+      toast.demoBlocked();
+      return;
+    }
+
     try {
       const res = await apiJoinExam(code);
       let status = res.data?.data?.status;

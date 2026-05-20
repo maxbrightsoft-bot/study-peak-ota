@@ -13,7 +13,7 @@ import { CourseExamSession, ExamSessionSortBy } from "../configs/type";
 import { OrderBy } from "@/utils/enums";
 
 const useExamResultList = ({ onClose, open }: { onClose: () => void, open: boolean }) => {
-  const { setLoading } = useAuthStore()
+  const { setLoading, isDemoMode } = useAuthStore()
   const { t } = useTranslation();
   const [listExam, setListExam] = useState<CourseExamSession[]>([]);
   const [search, setSearch] = useState<string>("");
@@ -101,6 +101,11 @@ const useExamResultList = ({ onClose, open }: { onClose: () => void, open: boole
 
 
   const handleJoinExam = async (item: CourseExamSession) => {
+    if (isDemoMode) {
+      toast.demoBlocked();
+      return;
+    }
+
     setLoading(true)
     try {
       await joinExamApi(item.examCode);

@@ -40,6 +40,7 @@ const useTextbook = ({
 }: Props) => {
    const selectedAcademy = useAuthStore(state => state.selectedAcademy)
   const setLoading = useAuthStore(state => state.setLoading)
+  const isDemoMode = useAuthStore(state => state.isDemoMode)
   const { t } = useTranslation();
   const [textbookList, setTextbookList] = useState<Textbook[]>([]);
   const inputSearch = useRef<any>(null);
@@ -246,6 +247,11 @@ const useTextbook = ({
   }
 
   const handleDoTextbook = async (textbook: Textbook) => {
+    if (isDemoMode && textbook.isStudying) {
+      toast.demoBlocked();
+      return;
+    }
+
     if (textbook.isMock) {
       navigate(Routes.Auth.DoTextbook, { textbookId: textbook.id })
     } else {
@@ -307,3 +313,4 @@ const useTextbook = ({
 };
 
 export default useTextbook;
+

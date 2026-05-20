@@ -7,8 +7,8 @@ import { useTranslation } from 'react-i18next'
 import { getAcademyDetailApi, getUserAcademies, switchAcademy } from '../apiClients/academyServices'
 import { AcademyResponse, LoginAccessTokenRequest } from '@/utils/types'
 import useLogin from '@/containers/Login/hooks/useLogin'
-import { getDataStorage } from '@/utils/storage'
-import { ACADEMY_DOMAIN, ACCESS_TOKEN } from '@/utils/constants'
+import { getDataStorage, removeDataStorage, setDataStorage } from '@/utils/storage'
+import { ACADEMY_DOMAIN, ACCESS_TOKEN, LEARNING_SPACE } from '@/utils/constants'
 import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import useTimers from './useTimer'
 import useAlarm from './useAlarm'
@@ -98,6 +98,11 @@ const useLayoutApp = () => {
   }
 
   const handleGetAcademyDetail = async () => {
+    const academyDomain = await getDataStorage(ACADEMY_DOMAIN)
+    if (!academyDomain) {
+      setSelectAcademy(null)
+      return
+    }
 
     setLoadingWithoutOverlay(true)
     try {
@@ -185,6 +190,25 @@ const useLayoutApp = () => {
     isLoading: boolean = true,
     redirectUrlProp?: string
   ) => {
+    // Demo Mode: chỉ cập nhật store, không gọi API thật
+    const demoMode = await getDataStorage('DEMO_MODE');
+    if (demoMode === 'true') {
+      if (selectedAcademy) {
+        await setDataStorage(ACADEMY_DOMAIN, selectedAcademy.domain);
+        await removeDataStorage(LEARNING_SPACE);
+        setUser({ ...user!, academyDomain: selectedAcademy.domain, isLearningSpace: false } as any);
+        setSelectAcademy(selectedAcademy);
+      } else {
+        // "My study space" - xóa academyDomain → Footer hiển thị 3 tab
+        await removeDataStorage(ACADEMY_DOMAIN);
+        await setDataStorage(LEARNING_SPACE, 'true');
+        setUser({ ...user!, academyDomain: '', isLearningSpace } as any);
+        setSelectAcademy(null);
+      }
+      closeAcademyMenu();
+      return;
+    }
+
     isLoading && setLoadingWithoutOverlay(true)
     try {
       const academyId = selectedAcademy ? selectedAcademy.id : 0

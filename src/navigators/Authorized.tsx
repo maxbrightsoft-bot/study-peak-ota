@@ -70,6 +70,10 @@ const Authorized = ({ route }: { route: any }) => {
     }
   }, [t, setLoading])
 
+  const language = useAuthStore(state => state.language)
+  const isDemo = useAuthStore(state => state.isDemoMode)
+  const languageKey = isDemo ? language?.code : undefined
+
   if (hasConsented === false) {
     return <ConsentScreen onAgree={handleConsentAgree} />
   }
@@ -82,7 +86,7 @@ const Authorized = ({ route }: { route: any }) => {
     )
 
   return (
-    <LayoutApp headerProps={headerProps}>
+    <LayoutApp headerProps={headerProps} key={languageKey}>
       <Tab.Navigator
         screenOptions={{
           header: (props) => <></>

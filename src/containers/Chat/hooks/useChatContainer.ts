@@ -21,6 +21,7 @@ const useChatContainer = (props: Props) => {
   const { conversation, student } = props;
   const { t } = useTranslation()
   const user = useAuthStore(state => state.user)
+  const isDemoMode = useAuthStore(state => state.isDemoMode)
   const setLoadingWithoutOverlay = useAuthStore(state => state.setLoadingWithoutOverlay)
   const inputRef = useRef<MathRichInputRef>(null);
   const isReceivedMessage = useRef(false)
@@ -58,6 +59,11 @@ const useChatContainer = (props: Props) => {
   }
 
   const handleAddMessage = async (url?: string) => {
+    if (isDemoMode) {
+      toast.demoBlocked();
+      return;
+    }
+
     setLoadingWithoutOverlay(true);
     if (!selectedConversation?.id) return;
     setScrollToEnd(true)
@@ -113,6 +119,10 @@ const useChatContainer = (props: Props) => {
   };
 
   const handleUploadImage = async () => {
+    if (isDemoMode) {
+      toast.demoBlocked();
+      return;
+    }
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
@@ -153,6 +163,10 @@ const useChatContainer = (props: Props) => {
   }
 
   const handleUploadImageCanvas = async (data: string, callback: any) => {
+    if (isDemoMode) {
+      toast.demoBlocked();
+      return;
+    }
     try {
       setLoadingWithoutOverlay(true)
       const fileName = `signature_${new Date().getTime()}.png`
@@ -256,6 +270,7 @@ const useChatContainer = (props: Props) => {
         isMe: user?.id === i.sender?.id,
       };
     });
+    console.log('results', results);
     return results
   }, [
     messages,
