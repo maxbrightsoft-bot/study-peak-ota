@@ -1,13 +1,13 @@
 import { palette, TYPO } from '@/theme'
-import React from 'react'
+import React, { useState } from 'react'
 import { View, StyleSheet, TouchableOpacity, ScrollView, Text } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { TabList } from '../configs/constants'
+import { TabList, DefaultTextbookFilter } from '../configs/constants'
 import useTab from '@/hooks/useTab'
 import { useTranslation } from 'react-i18next'
 import TabPanel from '@/components/Tab/TabPanel'
 import TextbookList from '../components/TextbookList'
-import { PreparedFilterType, PreparedType } from '../configs/type'
+import { PreparedFilterType, PreparedType, TextbookQuery } from '../configs/type'
 import HeaderAction from '@/layouts/components/HeaderAction'
 import { ScaledSheet } from 'react-native-size-matters'
 
@@ -15,6 +15,9 @@ const Textbook = () => {
   const { t } = useTranslation()
   const { selected, handleChangeTab } = useTab(TabList)
   const insets = useSafeAreaInsets()
+
+  const [search, setSearch] = useState<string>('')
+  const [textbookFilter, setTextbookFilter] = useState<TextbookQuery>(DefaultTextbookFilter)
 
   return (
     <View style={styles.container}>
@@ -51,22 +54,58 @@ const Textbook = () => {
         <TextbookList />
       </TabPanel> */}
       <TabPanel value={selected} index={TabList[0].value}>
-        <TextbookList preparedType={PreparedType.csat_past_questions} />
+        <TextbookList
+          preparedType={PreparedType.csat_past_questions}
+          search={search}
+          setSearch={setSearch}
+          textbookFilter={textbookFilter}
+          setTextbookFilter={setTextbookFilter}
+        />
       </TabPanel>
       <TabPanel value={selected} index={TabList[1].value}>
-        <TextbookList preparedType={PreparedType.official_mock_exam} />
+        <TextbookList
+          preparedType={PreparedType.official_mock_exam}
+          search={search}
+          setSearch={setSearch}
+          textbookFilter={textbookFilter}
+          setTextbookFilter={setTextbookFilter}
+        />
       </TabPanel>
       <TabPanel value={selected} index={TabList[2].value}>
-        <TextbookList preparedType={PreparedType.private_mock_exam} />
+        <TextbookList
+          preparedType={PreparedType.private_mock_exam}
+          search={search}
+          setSearch={setSearch}
+          textbookFilter={textbookFilter}
+          setTextbookFilter={setTextbookFilter}
+        />
       </TabPanel>
       <TabPanel value={selected} index={TabList[3].value}>
-        <TextbookList preparedType={PreparedType.workbook} />
+        <TextbookList
+          preparedType={PreparedType.workbook}
+          search={search}
+          setSearch={setSearch}
+          textbookFilter={textbookFilter}
+          setTextbookFilter={setTextbookFilter}
+        />
       </TabPanel>
       <TabPanel value={selected} index={TabList[4].value}>
-        <TextbookList preparedType={PreparedType.past_exam_questions} />
+        <TextbookList
+          preparedType={PreparedType.past_exam_questions}
+          search={search}
+          setSearch={setSearch}
+          textbookFilter={textbookFilter}
+          setTextbookFilter={setTextbookFilter}
+        />
       </TabPanel>
       <TabPanel value={selected} index={TabList[5].value}>
-        <TextbookList preparedFilterType={PreparedFilterType.academy_questions} />
+        <TextbookList
+          preparedFilterType={PreparedFilterType.academy_questions}
+          search={search}
+          setSearch={setSearch}
+          textbookFilter={textbookFilter}
+          setTextbookFilter={setTextbookFilter}
+        />
       </TabPanel>
     </View>
   )

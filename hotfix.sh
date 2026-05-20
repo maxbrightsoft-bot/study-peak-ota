@@ -36,11 +36,12 @@ ENTRY_FILE="node_modules/expo-router/entry.js"
 # --- Building ---
 if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "android" ]; then
   echo "=== Building Android bundle ==="
+  mkdir -p ota/android_bundle/bundle
   npx expo export:embed \
     --platform android --dev false \
     --entry-file $ENTRY_FILE \
-    --bundle-output ota/index.android.bundle \
-    --assets-dest ota || {
+    --bundle-output ota/android_bundle/bundle/index.android.bundle \
+    --assets-dest ota/android_bundle/bundle || {
       echo "❌ Android bundle failed"
       exit 1
   }
@@ -48,37 +49,99 @@ fi
 
 if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "ios" ]; then
   echo "=== Building iOS bundle ==="
+  mkdir -p ota/ios_bundle/bundle
   npx expo export:embed \
     --platform ios --dev false \
     --entry-file $ENTRY_FILE \
-    --bundle-output ota/main.jsbundle \
-    --assets-dest ota || {
+    --bundle-output ota/ios_bundle/bundle/main.jsbundle \
+    --assets-dest ota/ios_bundle/bundle || {
       echo "❌ iOS bundle failed"
       exit 1
   }
 fi
 
+# --- Copy baseline assets to other densities to prevent missing image bugs on Android ---
+if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "android" ]; then
+  echo "=== Copying baseline assets to all densities ==="
+  for density in hdpi xhdpi xxhdpi xxxhdpi; do
+    mkdir -p ota/android_bundle/bundle/drawable-$density
+    cp -n ota/android_bundle/bundle/drawable-mdpi/* ota/android_bundle/bundle/drawable-$density/ 2>/dev/null || true
+  done
+fi
+
 # --- Zipping ---
 echo "=== Zipping ==="
 if command -v zip >/dev/null 2>&1; then
-  cd ota
   if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "android" ]; then
-    zip -r android.zip . --exclude "*.zip"
+    cd ota/android_bundle
+    zip -r ../android.zip bundle -x "*/index.android.bundle"
+    zip -g ../android.zip bundle/index.android.bundle
+    cd ../..
   fi
   if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "ios" ]; then
-    zip -r ios.zip . --exclude "*.zip"
+    cd ota/ios_bundle
+    zip -r ../ios.zip bundle -x "*/main.jsbundle"
+    zip -g ../ios.zip bundle/main.jsbundle
+    cd ../..
   fi
-  cd ..
 else
-  cd ota
   if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "android" ]; then
-    powershell -Command "Get-ChildItem -Exclude @('android.zip','ios.zip') | Compress-Archive -DestinationPath android.zip -Force"
+    powershell -Command "
+      Add-Type -AssemblyName System.IO.Compression;
+      Add-Type -AssemblyName System.IO.Compression.FileSystem;
+      \$archivePath = Join-Path (Get-Location).Path 'ota/android.zip';
+      if (Test-Path \$archivePath) { Remove-Item \$archivePath -Force };
+      \$zip = [System.IO.Compression.ZipFile]::Open(\$archivePath, [System.IO.Compression.ZipArchiveMode]::Create);
+      \$bundleDir = Join-Path (Get-Location).Path 'ota/android_bundle/bundle';
+      if (Test-Path \$bundleDir) {
+        \$files = Get-ChildItem -Path \$bundleDir -Recurse -File;
+        foreach (\$file in \$files) {
+          if (\$file.Name -ne 'index.android.bundle') {
+            \$entryName = \$file.FullName.Substring(\$bundleDir.Length + 1).Replace('\\', '/');
+            \$null = [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(\$zip, \$file.FullName, 'bundle/' + \$entryName);
+          }
+        }
+        foreach (\$file in \$files) {
+          if (\$file.Name -eq 'index.android.bundle') {
+            \$entryName = \$file.FullName.Substring(\$bundleDir.Length + 1).Replace('\\', '/');
+            \$null = [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(\$zip, \$file.FullName, 'bundle/' + \$entryName);
+          }
+        }
+      }
+      \$zip.Dispose();
+    "
   fi
   if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "ios" ]; then
-    powershell -Command "Get-ChildItem -Exclude @('android.zip','ios.zip') | Compress-Archive -DestinationPath ios.zip -Force"
+    powershell -Command "
+      Add-Type -AssemblyName System.IO.Compression;
+      Add-Type -AssemblyName System.IO.Compression.FileSystem;
+      \$archivePath = Join-Path (Get-Location).Path 'ota/ios.zip';
+      if (Test-Path \$archivePath) { Remove-Item \$archivePath -Force };
+      \$zip = [System.IO.Compression.ZipFile]::Open(\$archivePath, [System.IO.Compression.ZipArchiveMode]::Create);
+      \$bundleDir = Join-Path (Get-Location).Path 'ota/ios_bundle/bundle';
+      if (Test-Path \$bundleDir) {
+        \$files = Get-ChildItem -Path \$bundleDir -Recurse -File;
+        foreach (\$file in \$files) {
+          if (\$file.Name -ne 'main.jsbundle') {
+            \$entryName = \$file.FullName.Substring(\$bundleDir.Length + 1).Replace('\\', '/');
+            \$null = [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(\$zip, \$file.FullName, 'bundle/' + \$entryName);
+          }
+        }
+        foreach (\$file in \$files) {
+          if (\$file.Name -eq 'main.jsbundle') {
+            \$entryName = \$file.FullName.Substring(\$bundleDir.Length + 1).Replace('\\', '/');
+            \$null = [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(\$zip, \$file.FullName, 'bundle/' + \$entryName);
+          }
+        }
+      }
+      \$zip.Dispose();
+    "
   fi
-  cd ..
 fi
+
+# --- Cleanup temp folders ---
+rm -rf ota/android_bundle
+rm -rf ota/ios_bundle
 
 # --- Uploading ---
 echo "=== Uploading to GitHub Releases ==="

@@ -24,17 +24,24 @@ import useServerTime from "@/hooks/useServerTime";
 type Props = {
   preparedType?: PreparedType
   preparedFilterType?: PreparedFilterType
+  search: string
+  setSearch: (value: string) => void
+  textbookFilter: TextbookQuery
+  setTextbookFilter: React.Dispatch<React.SetStateAction<TextbookQuery>>
 }
 
-const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
+const useTextbook = ({
+  preparedType,
+  preparedFilterType,
+  search,
+  setSearch,
+  textbookFilter,
+  setTextbookFilter
+}: Props) => {
    const selectedAcademy = useAuthStore(state => state.selectedAcademy)
   const setLoading = useAuthStore(state => state.setLoading)
   const { t } = useTranslation();
   const [textbookList, setTextbookList] = useState<Textbook[]>([]);
-  const [textbookFilter, setTextbookFilter] = useState<TextbookQuery>(
-    { ...DefaultTextbookFilter, preparedType, preparedFilterType }
-  );
-  const [search, setSearch] = useState<string>("");
   const inputSearch = useRef<any>(null);
   const [selectedTextbook, setSelectedTextbook] = useState<Textbook>()
   const [openFilterModal, setOpenFilterModal] = useState(false)
@@ -71,7 +78,14 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
     setSearch(value);
   };
 
+  const isFirstRender = useRef(true);
+
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
     if (inputSearch.current) {
       clearTimeout(inputSearch.current);
     }
@@ -113,6 +127,8 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
     try {
       const { data } = await getTextbookListApi({
         ...textbookFilter,
+        preparedType,
+        preparedFilterType,
         textSearch
       });
 
@@ -248,8 +264,7 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
 
   useFocusEffect(
     useCallback(() => {
-      getTextbookList();
-      // setTextbookFilter({ ...DefaultTextbookFilter, preparedType, preparedFilterType })
+      getTextbookList(search);
 
       scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true })
 
@@ -257,13 +272,7 @@ const useTextbook = ({ preparedType, preparedFilterType }: Props) => {
         setSelectedTextbook(undefined);
         handleCloseDialog();
       };
-    }, [selectedAcademy?.id, textbookFilter])
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      setTextbookFilter({ ...DefaultTextbookFilter, preparedType, preparedFilterType })
-    }, [])
+    }, [selectedAcademy?.id, textbookFilter, preparedType, preparedFilterType])
   );
 
   return {
