@@ -9,6 +9,7 @@ import ReactNativeBlobUtil from "react-native-blob-util";
 import { OTA_URL } from "@/utils/constants";
 import { useFonts } from "expo-font";
 import RNBootSplash from "react-native-bootsplash";
+import { requireNativeModule } from "expo-modules-core";
 import {
   Ionicons,
   FontAwesome,
@@ -19,7 +20,8 @@ import {
   Feather,
 } from "@expo/vector-icons";
 
-const CURRENT_BUNDLE_VERSION = "1.0.1";
+const CURRENT_BUNDLE_VERSION = "1.0.9";
+const NativeFontLoader = requireNativeModule("ExpoFontLoader");
 
 function isNewerVersion(server: string, current: string): boolean {
   const s = server.split(".").map(Number);
@@ -57,15 +59,56 @@ export default function App() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [fontWaitTimedOut, setFontWaitTimedOut] = useState(false);
 
-  const [fontsLoaded, fontError] = useFonts({
-    ...Ionicons.font,
-    ...FontAwesome.font,
-    ...FontAwesome5.font,
-    ...MaterialIcons.font,
-    ...MaterialCommunityIcons.font,
-    ...AntDesign.font,
-    ...Feather.font,
-  });
+  const [nativeFontsLoaded, setNativeFontsLoaded] = useState(false);
+  const [nativeFontError, setNativeFontError] = useState<any>(null);
+
+  const [expoFontsLoaded, expoFontError] = useFonts(
+    Platform.OS === 'ios'
+      ? {
+          ...Ionicons.font,
+          ...FontAwesome.font,
+          ...FontAwesome5.font,
+          ...MaterialIcons.font,
+          ...MaterialCommunityIcons.font,
+          ...AntDesign.font,
+          ...Feather.font,
+        }
+      : {}
+  );
+
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      const fontMap = {
+        ionicons: "fonts/Ionicons.ttf",
+        FontAwesome: "fonts/FontAwesome.ttf",
+        "FontAwesome5Free-Regular": "fonts/FontAwesome5_Regular.ttf",
+        "FontAwesome5Free-Solid": "fonts/FontAwesome5_Solid.ttf",
+        "FontAwesome5Brands-Brand": "fonts/FontAwesome5_Brands.ttf",
+        material: "fonts/MaterialIcons.ttf",
+        "material-community": "fonts/MaterialCommunityIcons.ttf",
+        anticon: "fonts/AntDesign.ttf",
+        feather: "fonts/Feather.ttf",
+      };
+
+      const loadAndroidFonts = async () => {
+        try {
+          for (const [key, file] of Object.entries(fontMap)) {
+            await NativeFontLoader.loadAsync(key, `asset:///${file}`);
+            console.log(`[FONTS] Successfully loaded native font: ${key}`);
+          }
+          setNativeFontsLoaded(true);
+        } catch (err) {
+          console.error("[FONTS] Failed to load native font:", err);
+          setNativeFontError(err);
+        }
+      };
+
+      loadAndroidFonts();
+    }
+  }, []);
+
+  const fontsLoaded = Platform.OS === 'android' ? nativeFontsLoaded : expoFontsLoaded;
+  const fontError = Platform.OS === 'android' ? nativeFontError : expoFontError;
 
   LogBox.ignoreAllLogs();
 
@@ -80,8 +123,12 @@ export default function App() {
   }, [fontsLoaded, fontError]);
 
   useEffect(() => {
-    if (isUpdating || (!fontsLoaded && !fontError && !fontWaitTimedOut)) {
-      RNBootSplash.hide({ fade: true }).catch(() => undefined);
+    // Chỉ ẩn splash screen khi KHÔNG còn đang check update VÀ việc load font đã hoàn thành (hoặc lỗi/timeout)
+    if (!isUpdating && (fontsLoaded || fontError || fontWaitTimedOut)) {
+      console.log("[FONTS] Hiding splash screen. Loaded:", fontsLoaded, "Error:", fontError, "Timeout:", fontWaitTimedOut);
+      RNBootSplash.hide({ fade: true }).catch((err) => {
+        console.log("[FONTS] Error hiding splash:", err);
+      });
     }
   }, [isUpdating, fontsLoaded, fontError, fontWaitTimedOut]);
 
@@ -106,6 +153,7 @@ export default function App() {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#fff" }}>
         <ActivityIndicator size="large" color="#0000ff" />
+        <Text style={{ marginTop: 10, fontSize: 12, color: "#999" }}>Loading fonts...</Text>
       </View>
     );
   }

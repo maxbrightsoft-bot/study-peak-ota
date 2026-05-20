@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import { PreparedFilterType, PreparedType } from '../configs/type'
+import { PreparedFilterType, PreparedType, TextbookQuery } from '../configs/type'
 import useTextbook from '../hooks/useTextbook'
 import TextbookItem from '../components/TextbookItem'
 import FilterModal from '../components/Dialog/FilterModal'
@@ -15,16 +15,25 @@ import { ScaledSheet } from 'react-native-size-matters'
 type Props = {
   preparedType?: PreparedType
   preparedFilterType?: PreparedFilterType
+  search: string
+  setSearch: (value: string) => void
+  textbookFilter: TextbookQuery
+  setTextbookFilter: React.Dispatch<React.SetStateAction<TextbookQuery>>
 }
-const TextbookList = ({ preparedType, preparedFilterType }: Props) => {
+const TextbookList = ({
+  preparedType,
+  preparedFilterType,
+  search,
+  setSearch,
+  textbookFilter,
+  setTextbookFilter
+}: Props) => {
   const [enableAudio, setEnableAudio] = useState(true)
   const {
     t,
-    search,
     onChangeSearch,
     textbookList,
     scrollViewRef,
-    textbookFilter,
     openFilterModal,
     isOpenAudioGuide,
     handleChangeFilter,
@@ -40,7 +49,14 @@ const TextbookList = ({ preparedType, preparedFilterType }: Props) => {
     isOpenTimeSelectModal,
     handleCloseTimeSelectModal,
     handleStartTextbook
-  } = useTextbook({ preparedType, preparedFilterType })
+  } = useTextbook({
+    preparedType,
+    preparedFilterType,
+    search,
+    setSearch,
+    textbookFilter,
+    setTextbookFilter
+  })
 
   const filterCount =
     (!!textbookFilter.grade ? 1 : 0) +
