@@ -50,7 +50,7 @@ const ChapterDetail = ({ t, isEnglish, isMock, chapter, isStudying, handleOpenCh
           </Text>
         </View>
       </View>
-      {!isCompleted && chapter.completedChapterQuestions > 0 && !isMock && (
+      {!isCompleted && chapter.completedChapterQuestions > 0 && (
         <View style={{ marginBottom: 8 }}>
           <TouchableOpacity onPress={() => handleOpenChapterDialog(chapter)}>
             <Ionicons name="chevron-forward" size={20} color={palette.grey[300]} />

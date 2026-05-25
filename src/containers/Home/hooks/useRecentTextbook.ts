@@ -45,6 +45,7 @@ const fetchWithFallback = async (primaryFilter: TextbookQuery) => {
 const useRecentTextbook = () => {
   const selectedAcademy = useAuthStore(state => state.selectedAcademy)
   const setLoading = useAuthStore(state => state.setLoading)
+  const isDemoMode = useAuthStore(state => state.isDemoMode)
   const { t } = useTranslation();
   const textSearchRef = useRef<HTMLInputElement>(null);
   const [textbookList, setTextbookList] = useState<Textbook[]>([]);
@@ -145,6 +146,11 @@ const useRecentTextbook = () => {
   }
 
   const handleDoTextbook = async (textbook: Textbook) => {
+    if (isDemoMode && textbook.isStudying) {
+      toast.demoBlocked();
+      return;
+    }
+
     if (textbook.isMock) {
       navigate(Routes.Auth.DoTextbook, { textbookId: textbook.id });
     } else {

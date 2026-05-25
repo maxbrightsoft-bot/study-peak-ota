@@ -12,6 +12,7 @@ import {
 } from '../../utils/constants'
 import { getDataStorage } from '@/utils/storage';
 import useAuthStore from '@/store/useAuthStore';
+import { applyMockAdapter } from '@/demoData/mockInterceptor';
 
 export const api: AxiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -50,7 +51,10 @@ export const apiUpload: AxiosInstance = axios.create({
         if (isLearningSpace && config.headers[NoAcademyHeaders] == undefined) config.headers[NoAcademyHeaders] = `${isLearningSpace}`
         if (language) config.headers[LanguageHeaders] = `${language}`
 
-        console.log({ header: config.header});
+        console.log({ headers: config.headers});
+
+        // Kích hoạt chế độ chặn API bằng Mock Data
+        await applyMockAdapter(config);
 
         return config
       },

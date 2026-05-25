@@ -54,8 +54,13 @@ const Setting = ({ open, onClose }: Props) => {
     changeLanguage,
     openPrivacyPolicy,
     openTermsOfService,
+    openDemoDialog,
+    isDemoActive,
     handleTogglePrivacyPolicy,
     handleToggleTermsOfService,
+    handleToggleDemoDialog,
+    handleEnterDemoMode,
+    handleExitDemoMode,
   } = useSetting()
 
   const navigation = useNavigation<any>()
@@ -83,9 +88,11 @@ const Setting = ({ open, onClose }: Props) => {
             <Text style={styles.accountInfoEmail}>{user?.email}</Text>
           </View>
 
-          <View style={styles.card}>
-            <SettingItem onPress={() => handleOpenUpdateUserDialog()} icon={<UserIcon />} title={t('account_management')} />
-          </View>
+          {!isDemoActive && (
+            <View style={styles.card}>
+              <SettingItem onPress={() => handleOpenUpdateUserDialog()} icon={<UserIcon />} title={t('account_management')} />
+            </View>
+          )}
 
           {user?.academyDomain && <View style={styles.card}>
             <SettingItem
@@ -128,8 +135,18 @@ const Setting = ({ open, onClose }: Props) => {
           </View>
 
           <View style={styles.card}>
-            <SettingItem onPress={() => handleToggleConfirmRemoveAccount()} icon={<Ionicons name="trash-outline" size={20} color={palette.error.main} />} title={t('delete_account')} />
+            <SettingItem
+              onPress={isDemoActive ? handleExitDemoMode : handleToggleDemoDialog}
+              icon={<Ionicons name={isDemoActive ? 'exit-outline' : 'game-controller-outline'} size={22} color={'#222222'} />}
+              title={isDemoActive ? t('exit_demo_mode') : t('demo_mode')}
+            />
           </View>
+
+          {!isDemoActive && (
+            <View style={styles.card}>
+              <SettingItem onPress={() => handleToggleConfirmRemoveAccount()} icon={<Ionicons name="trash-outline" size={20} color={palette.error.main} />} title={t('delete_account')} />
+            </View>
+          )}
 
           <TouchableOpacity style={styles.logout} onPress={() => logout()}>
             <SignOut />
@@ -160,6 +177,14 @@ const Setting = ({ open, onClose }: Props) => {
         isDelete
         confirmText={user?.email}
         text={t('delete_account_confirm')}
+      />
+      <ConfirmDialog
+        open={openDemoDialog}
+        toggle={handleToggleDemoDialog}
+        onConfirm={handleEnterDemoMode}
+        title={t('demo_mode')}
+        text={t('demo_mode_confirm')}
+        okText={t('confirm')}
       />
       <LanguageDialog
         open={openLanguageDialog}

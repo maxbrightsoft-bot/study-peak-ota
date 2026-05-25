@@ -2065,5 +2065,13 @@
   "new_update_available": "새로운 버전이 있습니다. 업데이트 하시겠습니까?",
   "update_now": "업데이트",
   "updating_app": "앱을 업데이트하는 중입니다...",
-  "scroll_horizontal": "가로로 스크롤"
+  "scroll_horizontal": "가로로 스크롤",
+  "feature_not_available_in_demo_mode": "데모 모드에서는 이 기능을 사용할 수 없습니다.",
+  "demo_mode": "데모 모드",
+  "exit_demo_mode": "데모 모드 종료",
+  "demo_mode_confirm": "샘플 데이터로 데모 모드를 시작하시겠습니까? 현재 세션이 데모 계정으로 전환됩니다.",
+  "demo_mode_login_required": "데모 모드를 열려면 먼저 로그인해주세요.",
+  "demo_academy": "데모 학원",
+  "demo_mode_session_not_found": "이전 로그인 세션을 복원할 수 없습니다."
 }
+

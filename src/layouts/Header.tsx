@@ -51,7 +51,7 @@ const Header = ({ headerProps }: Props) => {
                       <Text style={{ fontSize: 12, fontWeight: 500, color: '#FFFFFFCC' }}>
                         {t('number_grade', { number: user?.grade })}
                       </Text>
-                      <Text style={{ fontSize: 12, fontWeight: 500, color: '#FFF' }}>{user?.classes.join(',')}</Text>
+                      <Text style={{ fontSize: 12, fontWeight: 500, color: '#FFF' }}>{user?.classes?.join(',')}</Text>
                     </View>
                   </View>
                   <View style={{ alignItems: 'flex-start', marginTop: 4 }}>

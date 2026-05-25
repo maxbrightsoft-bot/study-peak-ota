@@ -19,6 +19,7 @@ import { IOS_GOOGLE_CLIENT_ID, WEB_GOOGLE_CLIENT_ID } from '@/utils/constants'
 import AcademyRequestScreen from '@/screens/AcademyRequest'
 import AcademyInvitationScreen from '@/screens/AcademyInvitation'
 import TutorialScreen from '@/screens/Tutorial'
+import { isDemoMode } from '@/demoData/mockInterceptor'
 
 const Stack = createNativeStackNavigator()
 
@@ -84,11 +85,13 @@ const RootNavigation: React.FC = () => {
   const isLoadingWithoutOverlay = useAuthStore(state => state.isLoadingWithoutOverlay)
   const setLoading = useAuthStore(state => state.setLoading)
   const hasSeenTutorial = useAuthStore(state => state.hasSeenTutorial)
+  const setIsDemoMode = useAuthStore(state => state.setIsDemoMode)
   useLanguage()
   useSocketInit()
 
   useEffect(() => {
     setLoading(false)
+    isDemoMode().then(setIsDemoMode)
   }, [])
 
   useEffect(() => {
