@@ -10,6 +10,84 @@ import { APPLE_USER_KEY } from "@/utils/constants"
 import { removeAccountApi, agreeConsentApi } from "../apiClients"
 import { useLanguage } from "@/hooks/useLanguage"
 import { POLICY_VERSION } from "../configs/policyContent"
+import { ensureDemoDatabase, isDemoMode, setDemoMode } from "@/demoData/mockInterceptor"
+import { getInfoMock } from "@/demoData/containers/Login/authApi"
+import { ACCESS_TOKEN, ACADEMY_DOMAIN, LEARNING_SPACE } from "@/utils/constants"
+import { setDataStorage, removeDataStorage } from "@/utils/storage"
+import { Routes } from "@/navigators/RouteName"
+import { reset } from "@/navigators/NavigationHelpers"
+
+const DEMO_MODE_STORAGE_KEY = 'DEMO_MODE'
+const DEMO_SESSION_BACKUP_STORAGE_KEY = 'DEMO_SESSION_BACKUP'
+const DEMO_ACADEMY = { id: 1, domain: 'demo-academy', name: 'Demo Academy', image: '' }
+
+type DemoSessionBackup = {
+  accessToken: string | null
+  academyDomain: string | null
+  learningSpace: string | null
+  user: ReturnType<typeof useAuthStore.getState>['user']
+  academies: ReturnType<typeof useAuthStore.getState>['academies']
+  selectedAcademy: ReturnType<typeof useAuthStore.getState>['selectedAcademy']
+  hasEnteredSelectAcademy: boolean
+}
+
+const restoreStorageValue = async (key: string, value: string | null) => {
+  if (value) {
+    await setDataStorage(key, value)
+    return
+  }
+
+  await removeDataStorage(key)
+}
+
+const getCurrentSessionBackup = async (): Promise<DemoSessionBackup> => {
+  const currentStore = useAuthStore.getState()
+
+  return {
+    accessToken: await getDataStorage(ACCESS_TOKEN),
+    academyDomain: await getDataStorage(ACADEMY_DOMAIN),
+    learningSpace: await getDataStorage(LEARNING_SPACE),
+    user: currentStore.user,
+    academies: currentStore.academies,
+    selectedAcademy: currentStore.selectedAcademy,
+    hasEnteredSelectAcademy: currentStore.hasEnteredSelectAcademy,
+  }
+}
+
+const saveCurrentSessionBackup = async () => {
+  const backup = await getCurrentSessionBackup()
+  await setDataStorage(DEMO_SESSION_BACKUP_STORAGE_KEY, JSON.stringify(backup))
+}
+
+const activateDemoSession = async (demoUser: any) => {
+  setDemoMode(true)
+  await setDataStorage(ACCESS_TOKEN, 'demo-token-123')
+  await setDataStorage(DEMO_MODE_STORAGE_KEY, 'true')
+  await setDataStorage(ACADEMY_DOMAIN, DEMO_ACADEMY.domain)
+  await removeDataStorage(LEARNING_SPACE)
+
+  const currentStore = useAuthStore.getState()
+  currentStore.setIsDemoMode(true)
+  currentStore.setAcademies([DEMO_ACADEMY as any])
+  currentStore.setSelectAcademy(DEMO_ACADEMY as any)
+  currentStore.setUser({ ...demoUser, academyDomain: DEMO_ACADEMY.domain, isLearningSpace: false } as any)
+  currentStore.setRedirectUrl(Routes.Auth.Home)
+  currentStore.setHasEnteredSelectAcademy(true)
+}
+
+const restorePreviousSession = async (backup: DemoSessionBackup) => {
+  await restoreStorageValue(ACCESS_TOKEN, backup.accessToken)
+  await restoreStorageValue(ACADEMY_DOMAIN, backup.academyDomain)
+  await restoreStorageValue(LEARNING_SPACE, backup.learningSpace)
+
+  const currentStore = useAuthStore.getState()
+  currentStore.setIsDemoMode(false)
+  currentStore.setUser(backup.user)
+  currentStore.setAcademies(backup.academies || [])
+  currentStore.setSelectAcademy(backup.selectedAcademy)
+  currentStore.setHasEnteredSelectAcademy(backup.hasEnteredSelectAcademy)
+  currentStore.setRedirectUrl(Routes.Auth.Home)
+}
 
 const useSetting = () => {
   const [openNoticeDialog, setOpenNoticeDialog] = useState<boolean>(false)
@@ -28,6 +106,21 @@ const useSetting = () => {
   const [openTermsOfService, setOpenTermsOfService] = useState(false)
   const [privacyPolicyAgreed, setPrivacyPolicyAgreed] = useState(false)
   const [termsOfServiceAgreed, setTermsOfServiceAgreed] = useState(false)
+  const [openDemoDialog, setOpenDemoDialog] = useState(false)
+  const [isDemoActive, setIsDemoActive] = useState(false)
+  const language = useAuthStore(state => state.language)
+
+  useEffect(() => {
+    let isMounted = true
+
+    isDemoMode().then((active) => {
+      if (isMounted) setIsDemoActive(active)
+    })
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const handleTogglePrivacyPolicy = () => setOpenPrivacyPolicy(prev => !prev)
   const handleToggleTermsOfService = () => setOpenTermsOfService(prev => !prev)
@@ -100,6 +193,67 @@ const useSetting = () => {
     }
   }
 
+  const handleToggleDemoDialog = () => {
+    if (!user) {
+      toast.error(t('demo_mode_login_required'))
+      return
+    }
+
+    setOpenDemoDialog(prev => !prev)
+  }
+
+  const handleEnterDemoMode = async () => {
+    if (!user) {
+      toast.error(t('demo_mode_login_required'))
+      return
+    }
+
+    setLoading(true)
+    setOpenDemoDialog(false)
+    try {
+      const currentStore = useAuthStore.getState()
+      await saveCurrentSessionBackup()
+      await currentStore.disconnectPusher(currentStore.pusher, currentStore.channel)
+
+      await ensureDemoDatabase(language?.code ?? 'ko')
+
+      const demoUser = await getInfoMock()
+      if (!demoUser) throw new Error('Demo user not found')
+
+      await activateDemoSession(demoUser)
+      setIsDemoActive(true)
+      reset(Routes.Auth.Home)
+    } catch (error: any) {
+      toast.error(getErrorMessage(t, error))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleExitDemoMode = async () => {
+    setLoading(true)
+    try {
+      const backupRaw = await getDataStorage(DEMO_SESSION_BACKUP_STORAGE_KEY)
+      if (!backupRaw) {
+        toast.error(t('demo_mode_session_not_found'))
+        return
+      }
+
+      const backup = JSON.parse(backupRaw) as DemoSessionBackup
+
+      setDemoMode(false)
+      await removeDataStorage(DEMO_MODE_STORAGE_KEY)
+      await removeDataStorage(DEMO_SESSION_BACKUP_STORAGE_KEY)
+      await restorePreviousSession(backup)
+      setIsDemoActive(false)
+      reset(Routes.Auth.Home)
+    } catch (error: any) {
+      toast.error(getErrorMessage(t, error))
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return {
     t,
     logout,
@@ -127,6 +281,11 @@ const useSetting = () => {
     termsOfServiceAgreed,
     handleTogglePrivacyPolicy,
     handleToggleTermsOfService,
+    openDemoDialog,
+    isDemoActive,
+    handleToggleDemoDialog,
+    handleEnterDemoMode,
+    handleExitDemoMode,
   }
 }
 

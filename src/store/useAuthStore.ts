@@ -56,11 +56,13 @@ interface StoreState {
   pusher?: Pusher;
   channel?: PusherChannel;
   hasSeenTutorial: boolean;
+  isDemoMode: boolean;
 }
 
 interface StoreActions {
   setUser: (user: UserResponse | null) => void;
-  setHasConsented: (value: boolean) => void
+  setHasConsented: (value: boolean) => void;
+  setIsDemoMode: (value: boolean) => void;
   setAcademies: (academies: AcademyResponse[]) => void;
   setSelectAcademy: (academy?: AcademyResponse | null) => void;
   setHasEnteredSelectAcademy: (value: boolean) => void
@@ -126,6 +128,7 @@ const useAuthStore = create<AuthStore>()(
       pusher: undefined,
       channel: undefined,
       hasSeenTutorial: false,
+      isDemoMode: false,
 
       setUser: (user) => {
         set((state) => {
@@ -136,6 +139,12 @@ const useAuthStore = create<AuthStore>()(
       setHasConsented: (value) => {
         set((state) => {
           state.hasConsented = value
+        })
+      },
+
+      setIsDemoMode: (value) => {
+        set((state) => {
+          state.isDemoMode = value
         })
       },
 
@@ -227,6 +236,13 @@ const useAuthStore = create<AuthStore>()(
       },
 
       initializePusher: async (academyDomain, isLearningSpace) => {
+        // Skip Pusher trong Demo Mode
+        const { isDemoMode } = get();
+        if (isDemoMode) {
+          console.log('[Pusher] Skipped - Demo Mode');
+          return undefined as any;
+        }
+
         const { pusher } = get();
         if (pusher) return pusher;
 
@@ -358,18 +374,16 @@ const useAuthStore = create<AuthStore>()(
 
         set((state) => ({
           isLoading: false,
-
           user: null,
           academies: [],
           selectedAcademy: null,
-
           timers: [],
           alarm: null,
-
           activeTimerId: undefined,
           activeTimerSeconds: undefined,
           pusher: undefined,
           channel: undefined,
+          isDemoMode: false,
         }));
 
         const keysToRemove = [
@@ -380,6 +394,11 @@ const useAuthStore = create<AuthStore>()(
           APPLE_USER_KEY,
         ].filter((key): key is string => typeof key === 'string');
         await AsyncStorage.multiRemove(keysToRemove);
+        // Tắt demo mode khi logout
+        try {
+          const { setDemoMode } = require('@/demoData/mockInterceptor');
+          setDemoMode(false);
+        } catch {}
       },
     })),
     {
@@ -393,6 +412,7 @@ const useAuthStore = create<AuthStore>()(
         language: state.language,
         hasConsented: state.hasConsented,
         hasSeenTutorial: state.hasSeenTutorial,
+        isDemoMode: state.isDemoMode,
       }),
     }
   )

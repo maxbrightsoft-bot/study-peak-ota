@@ -29,7 +29,7 @@ const useTextbookDrawer = ({
   onClose
 }: Props) => {
   const { t } = useTranslation();
-  const { language, setLoading: setLoadingGlobal } = useAuthStore();
+  const { language, setLoading: setLoadingGlobal, isDemoMode } = useAuthStore();
   const isEnglish = language?.code === Language.en;
   const [loading, setLoading] = useState(false)
   const { selected, handleChangeTab } = useTab(TextbookTabList)
@@ -84,6 +84,10 @@ const useTextbookDrawer = ({
 
   const handleStartFromPage = async (values: { startPage: number }) => {
     if (!textbookId || !values.startPage) return;
+    if (isDemoMode) {
+      toast.demoBlocked();
+      return;
+    }
 
     onOpenAudioGuide?.(values.startPage);
     handleCloseStartPageDialog();
@@ -156,6 +160,10 @@ const useTextbookDrawer = ({
 
   const handleDoTextbook = async () => {
     if (!textbook || !textbookId) return;
+    if (isDemoMode) {
+      toast.demoBlocked();
+      return;
+    }
 
     try {
       if (textbook.isMock && textbook.isStudying) {
@@ -173,6 +181,10 @@ const useTextbookDrawer = ({
 
   const handleRestartMockTextbook = async () => {
     if (!textbookId) return;
+    if (isDemoMode) {
+      toast.demoBlocked();
+      return;
+    }
 
     try {
       await removeDataStorage(TOAST_EXAM_STATUS);
@@ -187,6 +199,10 @@ const useTextbookDrawer = ({
 
   const handleRestartTextbook = async () => {
     if (!textbook || !textbookId) return;
+    if (isDemoMode) {
+      toast.demoBlocked();
+      return;
+    }
 
     setLoading(true);
     try {

@@ -13,11 +13,22 @@ type Props = {
 }
 
 const TextbookItem = ({ textbook, t, handleOpenDialog }: Props) => {
+  const isPlaceholder = textbook?.coverImage?.includes('placehold.co') || !textbook?.coverImage;
+  const colors = ['#6C63FF', '#FF6B6B', '#4ECDC4', '#FFD93D', '#95E1D3', '#7C3AED'];
+  const bgColor = colors[textbook.id % colors.length];
 
   return (
     <View>
       <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={() => handleOpenDialog(textbook)}>
-        <Image source={{ uri: getSafeUrl(textbook?.coverImage || '') }} style={styles.cover} />
+        {isPlaceholder ? (
+          <View style={[styles.cover, { backgroundColor: bgColor, justifyContent: 'center', alignItems: 'center', padding: 4 }]}>
+            <Text style={{ color: '#FFF', fontSize: 10, fontWeight: '700', textAlign: 'center' }} numberOfLines={4}>
+              {textbook.name}
+            </Text>
+          </View>
+        ) : (
+          <Image source={{ uri: getSafeUrl(textbook?.coverImage || '') }} style={styles.cover} />
+        )}
 
         <View style={styles.content}>
           <View style={styles.topRow}>
