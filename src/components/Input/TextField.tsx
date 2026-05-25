@@ -94,40 +94,24 @@ const TextField = ({
   importantForAutofill,
   disableFullscreenUI,
 }: TextFieldProps) => {
-  const internalRef = React.useRef<any>(null)
+  const internalRef = React.useRef<TextInput>(null)
   const resolvedRef = inputRef || internalRef
   const nativeText = React.useRef(value ?? '')
-  const pendingText = React.useRef<string | undefined>(undefined)
   const isFocused = React.useRef(false)
+  const shouldUseNativeText = Platform.OS === 'android'
 
   React.useEffect(() => {
-    if (value === undefined) {
-      pendingText.current = undefined
+    if (!shouldUseNativeText || value === undefined || isFocused.current || value === nativeText.current) {
       return
     }
 
-    if (value === nativeText.current) {
-      pendingText.current = undefined
-      return
-    }
-
-    if (isFocused.current) {
-      pendingText.current = value
-      return
-    }
-
-    pendingText.current = undefined
     nativeText.current = value
-
     resolvedRef.current?.setNativeProps({ text: value })
-  }, [value, resolvedRef])
+  }, [resolvedRef, shouldUseNativeText, value])
 
   const _onChangeText = useCallback(
     (text: string) => {
       nativeText.current = text
-      if (pendingText.current === text) {
-        pendingText.current = undefined
-      }
       onChangeText && onChangeText(text)
     },
     [onChangeText]
@@ -144,18 +128,9 @@ const TextField = ({
   const onBlurClick = useCallback(
     (e: any) => {
       isFocused.current = false
-
-      const nextText = pendingText.current ?? value
-      pendingText.current = undefined
-
-      if (nextText !== undefined && nextText !== nativeText.current) {
-        nativeText.current = nextText
-        resolvedRef.current?.setNativeProps({ text: nextText })
-      }
-
       onBlur && onBlur(e)
     },
-    [onBlur, resolvedRef, value]
+    [onBlur]
   )
 
   const inputHeight = useMemo(() => {
@@ -220,7 +195,7 @@ const TextField = ({
           placeholder={placeholder}
           secureTextEntry={secureTextEntry}
           placeholderTextColor={placeholderTextColor || palette.grey[400]}
-          defaultValue={value ?? ''}
+          {...(shouldUseNativeText ? { defaultValue: value ?? '' } : { value: value ?? '' })}
           maxLength={maxLength}
           autoFocus={autoFocus}
           autoCorrect={autoCorrect}

@@ -1,12 +1,16 @@
 import React, { FC, useEffect, useRef } from 'react'
-import { Modal, Text, StyleSheet, Animated } from 'react-native'
+import { Modal, Text, Animated } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { Audio } from 'expo-av'
 
 import { DEFAULT_AUDIO_URL } from '../../configs/constants'
 import { SubjectTimerResponse } from '@/utils/types'
 import useInactiveWarning from '@/layouts/hooks/useInactiveWarning'
 import { ScaledSheet } from 'react-native-size-matters'
+import {
+  AppAudioPlayer,
+  createAppAudioPlayer,
+  stopAndReleaseAppAudioPlayer
+} from '@/utils/audio'
 
 interface Props {
   isRunning: boolean
@@ -18,7 +22,7 @@ const InactiveWarningOverlay: FC<Props> = ({ isRunning, onPauseTimer }) => {
   const { showWarning } = useInactiveWarning(isRunning, onPauseTimer)
 
   const opacity = useRef(new Animated.Value(1)).current
-  const soundRef = useRef<Audio.Sound | null>(null)
+  const soundRef = useRef<AppAudioPlayer | null>(null)
 
   useEffect(() => {
     if (!showWarning) return
@@ -44,22 +48,28 @@ const InactiveWarningOverlay: FC<Props> = ({ isRunning, onPauseTimer }) => {
 
   useEffect(() => {
     const playSound = async () => {
-      const { sound } = await Audio.Sound.createAsync({ uri: DEFAULT_AUDIO_URL }, { shouldPlay: true, isLooping: true })
-      soundRef.current = sound
+      soundRef.current = await createAppAudioPlayer(
+        { uri: DEFAULT_AUDIO_URL },
+        { shouldPlay: true, isLooping: true }
+      )
     }
 
     if (showWarning) {
       playSound()
     } else {
-      soundRef.current?.stopAsync()
-      soundRef.current?.unloadAsync()
+      stopAndReleaseAppAudioPlayer(soundRef.current)
       soundRef.current = null
     }
 
     return () => {
-      soundRef.current?.unloadAsync()
+      releaseCurrentSound()
     }
   }, [showWarning])
+
+  const releaseCurrentSound = () => {
+    stopAndReleaseAppAudioPlayer(soundRef.current)
+    soundRef.current = null
+  }
 
   if (!showWarning) return null
 

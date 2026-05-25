@@ -3,6 +3,7 @@
     "name": "Study Peak",
     "slug": "touch-study-mobile",
     "jsEngine": "hermes",
+    "newArchEnabled": false,
     "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/app-icon.png",
@@ -96,14 +97,15 @@
           ]
         }
       ],
-       [
+      [
         "expo-build-properties",
         {
           "android": {
             "enablePagesizeMigration": true
           }
         }
-      ]
+      ],
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true

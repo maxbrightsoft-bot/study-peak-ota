@@ -1,13 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { View, Text, TouchableOpacity, Modal, Platform } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { Audio, InterruptionModeIOS, InterruptionModeAndroid } from 'expo-av'
 import { DEFAULT_AUDIO_URL } from '../../layouts/configs/constants'
 import useAudioTimer from '../hooks/useAudioTimer'
 import { palette } from '@/theme'
 import { getErrorMessage, toast } from '@/utils/helpers'
 import Loading from '@/components/Loading'
 import { ScaledSheet } from 'react-native-size-matters'
+import {
+  AppAudioPlayer,
+  addAppAudioStatusListener,
+  configureAudioMode,
+  createAppAudioPlayer,
+  getAppAudioStatus,
+  stopAndReleaseAppAudioPlayer,
+  stopAppAudioPlayer
+} from '@/utils/audio'
 
 export type AudioGuideModalProps = {
   open: boolean
@@ -20,7 +28,8 @@ const AudioGuideModal: React.FC<AudioGuideModalProps> = ({ open, audioUrls, onCl
   const { t } = useTranslation()
   const timeSkip = useRef<boolean>(false)
   const audioUrl = audioUrls[0] || DEFAULT_AUDIO_URL
-  const soundRef = useRef<Audio.Sound | null>(null)
+  const soundRef = useRef<AppAudioPlayer | null>(null)
+  const statusSubscriptionRef = useRef<{ remove: () => void } | null>(null)
   const [isPlayAudio, setPlayAudio] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isSoundLoaded, setIsSoundLoaded] = useState<boolean>(false)
@@ -28,7 +37,9 @@ const AudioGuideModal: React.FC<AudioGuideModalProps> = ({ open, audioUrls, onCl
   const unloadSound = async () => {
     try {
       if (soundRef.current) {
-        await soundRef.current.unloadAsync().catch(() => {})
+        statusSubscriptionRef.current?.remove()
+        statusSubscriptionRef.current = null
+        await stopAndReleaseAppAudioPlayer(soundRef.current)
         soundRef.current = null
       }
     } catch (error) {
@@ -48,19 +59,18 @@ const AudioGuideModal: React.FC<AudioGuideModalProps> = ({ open, audioUrls, onCl
         setIsLoading(true)
         setIsSoundLoaded(false)
 
-        await Audio.setAudioModeAsync({
-          playsInSilentModeIOS: true,
-          staysActiveInBackground: false,
-          shouldDuckAndroid: true,
-          allowsRecordingIOS: false,
-          interruptionModeIOS: InterruptionModeIOS.DoNotMix,
-          interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
-          playThroughEarpieceAndroid: false,
+        await configureAudioMode({
+          playsInSilentMode: true,
+          shouldPlayInBackground: false,
+          interruptionMode: 'doNotMix',
+          interruptionModeAndroid: 'doNotMix',
+          allowsRecording: false,
+          shouldRouteThroughEarpiece: false,
         }).catch(err => console.log('Audio mode error:', err))
 
         await unloadSound()
 
-        const { sound } = await Audio.Sound.createAsync(
+        const sound = await createAppAudioPlayer(
           { uri: audioUrl.replace('http://', 'https://') },
           { 
             shouldPlay: false, 
@@ -73,7 +83,7 @@ const AudioGuideModal: React.FC<AudioGuideModalProps> = ({ open, audioUrls, onCl
           soundRef.current = sound
           setIsSoundLoaded(true)
 
-          sound.setOnPlaybackStatusUpdate((status) => {
+          statusSubscriptionRef.current = addAppAudioStatusListener(sound, (status) => {
             if (status.isLoaded && status.didJustFinish && !timeSkip.current) {
               handleSkip()
             }
@@ -109,9 +119,9 @@ const AudioGuideModal: React.FC<AudioGuideModalProps> = ({ open, audioUrls, onCl
   const stopSound = async () => {
     try {
       if (soundRef.current && isSoundLoaded) {
-        const status = await soundRef.current.getStatusAsync()
+        const status = getAppAudioStatus(soundRef.current)
         if (status.isLoaded) {
-          await soundRef.current.stopAsync()
+          await stopAppAudioPlayer(soundRef.current)
         }
       }
     } catch (error: any) {
@@ -125,20 +135,20 @@ const AudioGuideModal: React.FC<AudioGuideModalProps> = ({ open, audioUrls, onCl
     try {
       if (soundRef.current && isSoundLoaded && isPlayAudio && !isLoading) {
         // Ensure audio mode is active right before playing on iOS
-        await Audio.setAudioModeAsync({
-          playsInSilentModeIOS: true,
-          shouldDuckAndroid: true,
-          allowsRecordingIOS: false,
+        await configureAudioMode({
+          playsInSilentMode: true,
+          interruptionModeAndroid: 'duckOthers',
+          allowsRecording: false,
         }).catch(() => {})
 
-        const status = await soundRef.current.getStatusAsync()
+        const status = getAppAudioStatus(soundRef.current)
         if (status.isLoaded) {
-          await soundRef.current.setPositionAsync(0)
+          await soundRef.current.seekTo(0)
           // Adding a very small delay for iOS to be ready
           if (Platform.OS === 'ios') {
             await new Promise(resolve => setTimeout(resolve, 100))
           }
-          await soundRef.current.playAsync()
+          soundRef.current.play()
         }
       }
     } catch (error) {

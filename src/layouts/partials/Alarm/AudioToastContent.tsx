@@ -1,7 +1,6 @@
 import React, { FC, useEffect, useRef, useState } from 'react'
 import { View } from 'react-native'
-import { Text, IconButton, ProgressBar } from 'react-native-paper'
-import { Audio } from 'expo-av'
+import { Text, ProgressBar } from 'react-native-paper'
 import { useTranslation } from 'react-i18next'
 
 import { palette } from '@/theme/colors'
@@ -12,6 +11,11 @@ import { removeDataStorage } from '@/utils/storage'
 import { TOAST_EXAM_STATUS } from '@/utils/constants'
 import { BaseToast, ErrorToast, InfoToast, SuccessToast } from 'react-native-toast-message'
 import useServerTime from '@/hooks/useServerTime'
+import {
+  addAppAudioStatusListener,
+  createAppAudioPlayer,
+  stopAndReleaseAppAudioPlayer
+} from '@/utils/audio'
 import {
   clearAudioToastSound,
   createAudioToastSession,
@@ -54,19 +58,17 @@ const AudioToastContent: FC<Props> = ({ soundRef, audioSrc, toastId, alarm, rema
         return
       }
 
-      try {
+        try {
         if (sound.current) {
-          await sound.current.stopAsync()
-          await sound.current.unloadAsync()
+          await stopAndReleaseAppAudioPlayer(sound.current)
         }
 
         if (!isMounted) return
 
-        const { sound: audio } = await Audio.Sound.createAsync({ uri: audioSrc }, { shouldPlay: true })
+        const audio = await createAppAudioPlayer({ uri: audioSrc }, { shouldPlay: true })
 
         if (!isMounted || !audioSession.isActive()) {
-          await audio.stopAsync().catch(() => undefined)
-          await audio.unloadAsync()
+          await stopAndReleaseAppAudioPlayer(audio)
           return
         }
 
@@ -75,16 +77,13 @@ const AudioToastContent: FC<Props> = ({ soundRef, audioSrc, toastId, alarm, rema
 
         sound.current = audio
 
-        audio.setOnPlaybackStatusUpdate((status) => {
+        const subscription = addAppAudioStatusListener(audio, (status) => {
           if (!isMounted) return
-          if (status.isLoaded) {
-            if (status.didJustFinish) {
-              setIsClosing(true)
-            }
-          } else if (!status.isLoaded && status.error) {
+          if (status.didJustFinish) {
             setIsClosing(true)
           }
         })
+        ;(audio as any).__audioToastSubscription = subscription
       } catch (e) {
         if (isMounted) setIsClosing(true)
       }
@@ -96,8 +95,8 @@ const AudioToastContent: FC<Props> = ({ soundRef, audioSrc, toastId, alarm, rema
       isMounted = false
       if (sound.current) {
         const currentSound = sound.current
-        currentSound.stopAsync().catch(() => undefined)
-        currentSound.unloadAsync().catch(() => undefined)
+        ;(currentSound as any).__audioToastSubscription?.remove?.()
+        stopAndReleaseAppAudioPlayer(currentSound)
         clearAudioToastSound(currentSound)
         sound.current = null
       }
@@ -181,8 +180,8 @@ const AudioToastContent: FC<Props> = ({ soundRef, audioSrc, toastId, alarm, rema
   const handleClose = async () => {
     await stopAudioToastSound()
     if (sound.current) {
-      await sound.current.stopAsync().catch(() => undefined)
-      await sound.current.unloadAsync().catch(() => undefined)
+      ;(sound.current as any).__audioToastSubscription?.remove?.()
+      await stopAndReleaseAppAudioPlayer(sound.current)
       clearAudioToastSound(sound.current)
       sound.current = null
     }

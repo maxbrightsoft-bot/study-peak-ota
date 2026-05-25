@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import _ from 'lodash'
 import moment from 'moment'
 import { useTranslation } from 'react-i18next'
-import { Audio } from 'expo-av'
 
 import {
   getAlarmApi,
@@ -31,6 +30,11 @@ import { ToastExamStatus } from '../configs/enums'
 import { TOAST_EXAM_STATUS, BASE_URL } from '@/utils/constants'
 import useServerTime from '@/hooks/useServerTime'
 import { stopAudioToastSound } from '../partials/Alarm/audioToastController'
+import {
+  AppAudioPlayer,
+  pauseAppAudioPlayer,
+  stopAndReleaseAppAudioPlayer
+} from '@/utils/audio'
 
 const DEFAULT_ALARM_DURATION = 45
 const TOTAL_MILLISECONDS_IN_MINUTE = 60 * 1000
@@ -56,7 +60,7 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
 
   const [audioPopupProps, setAudioPopupProps] = useState<any>(null)
 
-  const soundRef = useRef<Audio.Sound | null>(null)
+  const soundRef = useRef<AppAudioPlayer | null>(null)
   const toastIdRef = useRef<string | null>(null)
 
   const startAudio = useRef(false)
@@ -72,8 +76,7 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
     return () => {
       const cleanup = async () => {
         try {
-          await soundRef.current?.stopAsync()
-          await soundRef.current?.unloadAsync()
+          await stopAndReleaseAppAudioPlayer(soundRef.current)
         } catch (e) {
           console.log({ e })
         } finally {
@@ -94,8 +97,7 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
   const stopCurrentAudio = async () => {
     try {
       await stopAudioToastSound()
-      await soundRef.current?.stopAsync()
-      await soundRef.current?.unloadAsync()
+      await stopAndReleaseAppAudioPlayer(soundRef.current)
     } catch (e) {
       console.log('Error stopping sound:', e)
     } finally {
@@ -344,7 +346,7 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
   const handleResumeOrPauseAlarm = async () => {
     if (!alarm || !alarm.id || alarm.status == TimerStatus.Stopped) return
     const isPaused = alarm.status === TimerStatus.Paused
-    if (isPaused) soundRef.current?.pauseAsync()
+    if (isPaused) pauseAppAudioPlayer(soundRef.current)
     const nowTime = getServerNow()
     setLoadingItem(true)
     try {

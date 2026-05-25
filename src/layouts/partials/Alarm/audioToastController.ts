@@ -1,6 +1,6 @@
-import { Audio } from 'expo-av'
+import { AppAudioPlayer, stopAndReleaseAppAudioPlayer } from '@/utils/audio'
 
-let activeSound: Audio.Sound | null = null
+let activeSound: AppAudioPlayer | null = null
 let generation = 0
 
 export const createAudioToastSession = () => {
@@ -13,10 +13,9 @@ export const createAudioToastSession = () => {
   }
 }
 
-export const setAudioToastSound = async (sound: Audio.Sound, session: number) => {
+export const setAudioToastSound = async (sound: AppAudioPlayer, session: number) => {
   if (session !== generation) {
-    await sound.stopAsync().catch(() => undefined)
-    await sound.unloadAsync().catch(() => undefined)
+    await stopAndReleaseAppAudioPlayer(sound)
     return false
   }
 
@@ -24,7 +23,7 @@ export const setAudioToastSound = async (sound: Audio.Sound, session: number) =>
   return true
 }
 
-export const clearAudioToastSound = (sound?: Audio.Sound | null) => {
+export const clearAudioToastSound = (sound?: AppAudioPlayer | null) => {
   if (!sound || activeSound === sound) {
     activeSound = null
   }
@@ -37,6 +36,5 @@ export const stopAudioToastSound = async () => {
 
   if (!sound) return
 
-  await sound.stopAsync().catch(() => undefined)
-  await sound.unloadAsync().catch(() => undefined)
+  await stopAndReleaseAppAudioPlayer(sound)
 }

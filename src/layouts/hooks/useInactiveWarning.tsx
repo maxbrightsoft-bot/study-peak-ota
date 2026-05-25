@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
-import { Audio } from 'expo-av';
 import moment from 'moment';
 import { useTranslation } from 'react-i18next';
 
@@ -11,6 +10,13 @@ import {
 } from '../configs/constants';
 import { SubjectTimerResponse } from '../../utils/types';
 import useServerTime from '@/hooks/useServerTime';
+import {
+  AppAudioPlayer,
+  createAppAudioPlayer,
+  replayAppAudioPlayer,
+  stopAndReleaseAppAudioPlayer,
+  stopAppAudioPlayer
+} from '@/utils/audio';
 
 const useInactiveWarning = (
   isRunning: boolean,
@@ -31,20 +37,20 @@ const useInactiveWarning = (
   const intervalRef = useRef<NodeJS.Timeout | null>(
     null
   );
-  const soundRef = useRef<Audio.Sound | null>(
+  const soundRef = useRef<AppAudioPlayer | null>(
     null
   );
 
   const playWarning = async () => {
     try {
       if (!soundRef.current) return;
-      await soundRef.current.replayAsync();
+      await replayAppAudioPlayer(soundRef.current);
     } catch {}
   };
 
   const stopWarning = async () => {
     try {
-      await soundRef.current?.stopAsync();
+      await stopAppAudioPlayer(soundRef.current);
     } catch {}
   };
 
@@ -95,18 +101,16 @@ const useInactiveWarning = (
 
   useEffect(() => {
     const load = async () => {
-      const { sound } =
-        await Audio.Sound.createAsync(
-          require('../assets/warning.mp3'),
-          { isLooping: true }
-        );
-      soundRef.current = sound;
+      soundRef.current = await createAppAudioPlayer(
+        require('../assets/warning.mp3'),
+        { isLooping: true }
+      );
     };
 
     load();
 
     return () => {
-      soundRef.current?.unloadAsync();
+      stopAndReleaseAppAudioPlayer(soundRef.current);
     };
   }, []);
 
