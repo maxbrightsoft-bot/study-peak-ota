@@ -35,6 +35,7 @@ const SchoolSearchSelect = ({ value, onValueChange, style, placeholder }: Props)
         const newOptions = schools.map((school: NeisSchool) => ({
           label: school.SCHUL_NM,
           value: school.SCHUL_NM,
+          subtitle: school.ORG_RDNMA || school.LCTN_NM || ''
         }))
         setOptions(newOptions)
       } finally {

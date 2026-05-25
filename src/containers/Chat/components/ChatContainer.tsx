@@ -1,7 +1,7 @@
 import { palette, TYPO } from '@/theme'
 import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import React, { useEffect, useMemo, useRef } from 'react'
-import { View, Text, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform, TextInput } from 'react-native'
+import { View, Text, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 import { IChatListProps, IInputChatProps } from '../configs/types'
 import { ActivityIndicator } from 'react-native-paper'
@@ -15,8 +15,7 @@ import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 import useDialog from '../hooks/useDialog'
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
 import UpdateMessageDialog from './UpdateMessageDialog'
-import MathRichInput, { MathRichInputRef } from '@/components/Input/MathRichInput'
-import TextField from '@/components/Input/TextField'
+import MathRichInput from '@/components/Input/MathRichInput'
 
 type prevSender = string | undefined
 

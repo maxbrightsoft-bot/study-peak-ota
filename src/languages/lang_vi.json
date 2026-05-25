@@ -543,6 +543,7 @@
   "the_page_you_are_looking_for_was_not_found": "Trang bạn đang tìm kiếm không được tìm thấy.",
   "oops": "Ôi! Bạn đã bị lạc.",
   "please_enter": "Vui lòng nhập...",
+  "use_as_entered": "Sử dụng '{{text}}' đã nhập",
   "notifications": "Thông báo",
   "exams": "Kỳ thi",
   "questions": "Câu hỏi",
@@ -2091,6 +2092,10 @@
   "demo_mode_confirm": "Mở chế độ demo với dữ liệu mẫu? Phiên hiện tại sẽ chuyển sang tài khoản demo.",
   "demo_mode_login_required": "Vui lòng đăng nhập trước khi mở chế độ demo.",
   "demo_academy": "Học viện Demo",
-  "demo_mode_session_not_found": "Không thể khôi phục phiên đăng nhập trước đó."
+  "demo_mode_session_not_found": "Không thể khôi phục phiên đăng nhập trước đó.",
+  "force_update_title": "Yêu Cầu Cập Nhật",
+  "force_update_subtitle": "Để tiếp tục sử dụng ứng dụng với đầy đủ tính năng và bảo mật tốt nhất, vui lòng cập nhật lên phiên bản mới nhất.",
+  "force_update_button": "CẬP NHẬT NGAY",
+  "version_label": "Phiên bản mới"
 }
 

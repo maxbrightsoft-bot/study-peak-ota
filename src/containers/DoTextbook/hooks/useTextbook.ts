@@ -436,6 +436,16 @@ const useTextbook = ({
       await pauseOrFinished(Number(textbookId), req);
       await handleStopAlarm()
       handleCloseLeaveDialog()
+      track({
+        action: ActivityAction.End,
+        resourceType: ActivityResource.Textbook,
+        resourceId: String(textbook?.id),
+        triggeredAt: new Date(nowTime).toISOString(),
+        metaData: {
+          textbookId: textbook?.id || '',
+          studentTextbookId: textbook?.studentTextbookId
+        }
+      })
       navigate(Routes.Auth.Textbook);
     } catch (error) {
       toast.error(getErrorMessage(t, error));
@@ -444,6 +454,7 @@ const useTextbook = ({
         triggeredAt: new Date(nowTime).toISOString(),
         resourceId: textbook?.id,
         metaData: {
+          action: Object.keys(ActivityAction.End),
           textbookId: textbook?.id || '',
           studentTextbookId: String(textbook?.studentTextbookId || ''),
         }
@@ -509,6 +520,8 @@ const useTextbook = ({
         triggeredAt: new Date(nowTime).toISOString(),
         resourceId: textbook?.id,
         metaData: {
+          action: status === ExamStatus.Paused ? Object.keys(ActivityAction.Pause) : Object.keys(ActivityAction.Resume),
+          status: textbook?.status,
           studentTextbookId: String(textbook?.studentTextbookId || ''),
         }
       });
@@ -553,6 +566,8 @@ const useTextbook = ({
         triggeredAt: new Date(nowTime).toISOString(),
         resourceId: textbook?.id,
         metaData: {
+          action: Object.keys(ActivityAction.Restart),
+          status: textbook?.status,
           studentTextbookId: String(textbook?.studentTextbookId || ''),
         }
       });

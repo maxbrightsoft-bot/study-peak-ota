@@ -202,10 +202,6 @@ const useSchedule = () => {
         textSearch: textSearchRef.current?.value
       });
 
-      console.log('start date', selectedDate?.startDate);
-      console.log('end date', selectedDate?.endDate);
-
-
       const { items = [] } = data;
 
       setScheduleList(items);

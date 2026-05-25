@@ -2,7 +2,7 @@
   "expo": {
     "name": "Study Peak",
     "slug": "touch-study-mobile",
-    "jsEngine": "jsc",
+    "jsEngine": "hermes",
     "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/app-icon.png",

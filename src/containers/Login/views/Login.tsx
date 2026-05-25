@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { View, Text, Platform, TouchableOpacity } from 'react-native'
 import { palette, TYPO } from '@/theme'
 import GoogleLoginButton from '../components/GoogleLoginButton'
@@ -22,7 +22,7 @@ const Login = () => {
   const { language } = useAuthStore()
   const { loginWithGoogle, onAppleButtonPress, openLoginAccountDialog, handleOpenLoginAccountDialog, handleCloseLoginAccountDialog } = useLogin()
 
-  const [isKeepLogin, setIsKeepLogin] = useState(false)
+  const [isKeepLogin, setIsKeepLogin] = useState(true)
 
   const handleToggleKeepLogin = async () => {
     const newVal = !isKeepLogin

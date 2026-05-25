@@ -136,6 +136,7 @@ const useLogin = () => {
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
         const payload = JSON.parse(atob(base64));
         const keepLogin = await getDataStorage(KEEP_LOGIN);
+        const isKeepMeLoggedIn = keepLogin !== 'false';
 
         const infoLogin: LoginRequest = {
           imageUrl: payload.picture,
@@ -145,7 +146,7 @@ const useLogin = () => {
           googleId: payload.sub,
           role: Role.Student,
           isMobile: true,
-          isKeepMeLoggedIn: keepLogin === 'true'
+          isKeepMeLoggedIn,
         };
 
         await handleLogin(() => handleAuthGoogle(infoLogin));
@@ -198,6 +199,7 @@ const useLogin = () => {
 
       await setDataStorage(APPLE_USER_KEY, user);
       const keepLogin = await getDataStorage(KEEP_LOGIN);
+      const isKeepMeLoggedIn = keepLogin !== 'false';
 
       const infoLogin: LoginRequest = {
         fullName: nameFromResponse,
@@ -205,7 +207,7 @@ const useLogin = () => {
         token: identityToken,
         role: Role.Student,
         isMobile: true,
-        isKeepMeLoggedIn: keepLogin === 'true'
+        isKeepMeLoggedIn,
       };
 
       await handleLogin(() => handleAuthApple(infoLogin));

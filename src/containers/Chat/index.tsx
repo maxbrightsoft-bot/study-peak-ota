@@ -1,7 +1,6 @@
 import SearchInput from '@/components/Input/SearchInput'
 import React, { useMemo, useCallback } from 'react'
-import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Image, SafeAreaView } from 'react-native'
-import FilterIcon from '@/assets/iconJSX/filter'
+import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native'
 import useConversationList from './hooks/useConversationList'
 import useChatContainer from './hooks/useChatContainer'
 import { TabList } from './configs/constants'

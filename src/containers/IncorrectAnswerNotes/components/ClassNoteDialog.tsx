@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next'
 import CommonDialog from '@/components/ModalBase/CommonDialog'
 import { palette, TYPO } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
-import { Ionicons } from '@expo/vector-icons'
+import TextField from '@/components/Input/TextField'
 
 interface ClassNoteDialogProps {
   visible: boolean
@@ -66,8 +66,7 @@ const ClassNoteDialog: FC<ClassNoteDialogProps> = ({
             <Text variant="labelLarge" style={{ color: palette.grey[700] }}>
               {t('incorrect_answer_note_contents')}
             </Text>
-            <TextInput
-              mode="outlined"
+            <TextField
               multiline
               numberOfLines={4}
               placeholder={t('the_problem_is_difficult')}

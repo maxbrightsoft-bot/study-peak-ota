@@ -2,7 +2,6 @@ import React from 'react'
 import {
   View,
   Text,
-  TextInput,
   ScrollView,
   TouchableOpacity,
   KeyboardAvoidingView,

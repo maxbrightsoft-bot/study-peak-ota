@@ -231,46 +231,45 @@ const useTextbookSolving = (props: Props) => {
   const updateQuestionAnswer = ({ questionId, textualAnswers = [], answer }: TextbookQuestion) => {
     if (!textbook) return;
     const { now, nowTime } = getServerTimeFormatted();
+
+    const listQuestionNews = _.cloneDeep(questionList);
+    const arrQuestionNew = listQuestionNews.map((item: PreparedQuestionResponse) => {
+      const isTextAnswerType = isTextType(item.questionAnswerType)
+      if (item.textualAnswers !== undefined && !isTextAnswerType) {
+        delete item.textualAnswers
+      }
+      if (item.selectedAnswers !== undefined && isTextAnswerType) {
+        delete item.selectedAnswers
+      }
+      if (item.id === questionId) {
+        switch (item.questionAnswerType) {
+          case QuestionAnswerType.SingleChoice:
+            if (answer === undefined) break;
+            item.selectedAnswers = item.selectedAnswers?.includes(answer)
+              ? item.selectedAnswers.filter((i: number) => i != answer)
+              : [answer];
+            break;
+          case QuestionAnswerType.MultipleChoice:
+            if (answer === undefined) break;
+            item.selectedAnswers = item.selectedAnswers?.includes(answer)
+              ? item.selectedAnswers.filter((i: number) => i != answer)
+              : [...(item.selectedAnswers ?? []), answer];
+            break;
+          default:
+            item.textualAnswers = textualAnswers
+            break;
+        }
+
+        const diff = getDiffTime(now, nowTime);
+        item.duration = (item.duration || 0) + +diff;
+        item.answerTime =
+          item.answerTime && item.answerTime !== 0
+            ? item.answerTime
+            : nowTime;
+      }
+      return item;
+    });
     try {
-
-      const listQuestionNews = _.cloneDeep(questionList);
-      const arrQuestionNew = listQuestionNews.map((item: PreparedQuestionResponse) => {
-        const isTextAnswerType = isTextType(item.questionAnswerType)
-        if (item.textualAnswers !== undefined && !isTextAnswerType) {
-          delete item.textualAnswers
-        }
-        if (item.selectedAnswers !== undefined && isTextAnswerType) {
-          delete item.selectedAnswers
-        }
-        if (item.id === questionId) {
-          switch (item.questionAnswerType) {
-            case QuestionAnswerType.SingleChoice:
-              if (answer === undefined) break;
-              item.selectedAnswers = item.selectedAnswers?.includes(answer)
-                ? item.selectedAnswers.filter((i: number) => i != answer)
-                : [answer];
-              break;
-            case QuestionAnswerType.MultipleChoice:
-              if (answer === undefined) break;
-              item.selectedAnswers = item.selectedAnswers?.includes(answer)
-                ? item.selectedAnswers.filter((i: number) => i != answer)
-                : [...(item.selectedAnswers ?? []), answer];
-              break;
-            default:
-              item.textualAnswers = textualAnswers
-              break;
-          }
-
-          const diff = getDiffTime(now, nowTime);
-          item.duration = (item.duration || 0) + +diff;
-          item.answerTime =
-            item.answerTime && item.answerTime !== 0
-              ? item.answerTime
-              : nowTime;
-        }
-        return item;
-      });
-
       track({
         action: ActivityAction.Answer,
         resourceId: String(questionId),
@@ -292,12 +291,24 @@ const useTextbookSolving = (props: Props) => {
         status: textbook?.status,
         studentTextbookId: textbook?.studentTextbookId
       })
+      const body: StudentTextbookAnswerRequest = {
+        lastAnswerTime: nowTime,
+        questions: arrQuestionNew.map((i) => ({
+          questionId: i.id,
+          selectedAnswers: i.selectedAnswers,
+          textualAnswers: i.textualAnswers,
+          duration: i.duration,
+          isStar: i.isStar,
+          answerTime: i.answerTime
+        }))
+      };
       trackError(error, {
         resourceId: String(questionId),
         resourceType: ActivityResource.Question,
         triggeredAt: now,
         metaData: {
-          action: ActivityAction.Answer,
+          action: Object.keys(ActivityAction.Answer),
+          body,
           textbookId: String(textbook?.id),
           status: textbook?.status,
           studentTextbookId: textbook?.studentTextbookId
@@ -310,28 +321,27 @@ const useTextbookSolving = (props: Props) => {
   const updateQuestionStar = (questionId: number, isStar: boolean) => {
     if (!textbook) return;
     const { now, nowTime } = getServerTimeFormatted();
+    const listQuestionNews = _.cloneDeep(questionList);
+    const arrQuestionNew = listQuestionNews.map((item: PreparedQuestionResponse) => {
+      const isTextAnswerType = isTextType(item.questionAnswerType)
+      if (item.textualAnswers !== undefined && !isTextAnswerType) {
+        delete item.textualAnswers
+      }
+      if (item.selectedAnswers !== undefined && isTextAnswerType) {
+        delete item.selectedAnswers
+      }
+      if (item.id === questionId) {
+        item.isStar = isStar;
+        const diff = getDiffTime(now, nowTime);
+        item.duration = (item.duration || 0) + +diff;
+        item.answerTime =
+          item.answerTime && item.answerTime !== 0
+            ? item.answerTime
+            : nowTime;
+      }
+      return item;
+    });
     try {
-
-      const listQuestionNews = _.cloneDeep(questionList);
-      const arrQuestionNew = listQuestionNews.map((item: PreparedQuestionResponse) => {
-        const isTextAnswerType = isTextType(item.questionAnswerType)
-        if (item.textualAnswers !== undefined && !isTextAnswerType) {
-          delete item.textualAnswers
-        }
-        if (item.selectedAnswers !== undefined && isTextAnswerType) {
-          delete item.selectedAnswers
-        }
-        if (item.id === questionId) {
-          item.isStar = isStar;
-          const diff = getDiffTime(now, nowTime);
-          item.duration = (item.duration || 0) + +diff;
-          item.answerTime =
-            item.answerTime && item.answerTime !== 0
-              ? item.answerTime
-              : nowTime;
-        }
-        return item;
-      });
       track({
         action: ActivityAction.StarAnswer,
         resourceId: String(questionId),
@@ -354,13 +364,25 @@ const useTextbookSolving = (props: Props) => {
         status: textbook?.status,
         studentTextbookId: textbook?.studentTextbookId
       })
+      const body: StudentTextbookAnswerRequest = {
+        lastAnswerTime: nowTime,
+        questions: arrQuestionNew.map((i) => ({
+          questionId: i.id,
+          selectedAnswers: i.selectedAnswers,
+          textualAnswers: i.textualAnswers,
+          duration: i.duration,
+          isStar: i.isStar,
+          answerTime: i.answerTime
+        }))
+      };
       trackError(error, {
         resourceId: String(questionId),
         resourceType: ActivityResource.Question,
         triggeredAt: now,
         metaData: {
-          action: ActivityAction.StarAnswer,
+          action: Object.keys(ActivityAction.StarAnswer),
           textbookId: String(textbook?.id),
+          body,
           status: textbook?.status,
           studentTextbookId: textbook?.studentTextbookId
         }

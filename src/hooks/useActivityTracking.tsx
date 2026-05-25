@@ -106,9 +106,10 @@ export const useActivityTracking = (props?: Props) => {
   }) => {
     const deviceInfo = await getDeviceInfo();
     const serverTime = new Date(getServerNow()).toISOString();
+    const buildNumber = DeviceInfo?.getBuildNumber();
     const event: CreateActivityRequest = {
       action,
-      metaData: JSON.stringify(metaData),
+      metaData: JSON.stringify({ ...metaData, buildNumber }),
       screen,
       resourceType,
       resourceId,
@@ -121,26 +122,18 @@ export const useActivityTracking = (props?: Props) => {
   }, [screen]);
 
   const trackError = useCallback((error: any, context?: any) => {
+    const buildNumber = DeviceInfo?.getBuildNumber();
     track({
       action: ActivityAction.Error,
       resourceType: context?.resourceType,
       resourceId: context?.resourceId,
       triggeredAt: context?.triggeredAt,
-      metaData: {
+      metaData: JSON.stringify({
+        ...context.metaData, 
         message: error?.message || String(error),
-        stack: error?.stack,
-        ...context?.metaData
-      }
-    });
-  }, [track]);
+        buildNumber,
+      }),
 
-  const trackInfo = useCallback((message: string, context?: any) => {
-    track({
-      action: ActivityAction.Info,
-      metaData: {
-        message,
-        context
-      }
     });
   }, [track]);
 
@@ -150,5 +143,5 @@ export const useActivityTracking = (props?: Props) => {
     };
   }, []);
 
-  return { track, trackError, trackInfo, flush: () => trackingManager.flush() };
+  return { track, trackError, flush: () => trackingManager.flush() };
 };

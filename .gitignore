@@ -5,6 +5,7 @@ node_modules/
 .env
 ota/
 eas.json
+project_summary.txt
 # iOS
 ios/Pods/
 ios/build/

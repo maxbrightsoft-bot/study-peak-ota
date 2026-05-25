@@ -14,7 +14,7 @@ if [ -n "$PLATFORM" ] && [ "$PLATFORM" != "android" ] && [ "$PLATFORM" != "ios" 
   exit 1
 fi
 
-CURRENT_IN_CODE=$(grep -o '"[0-9]\+\.[0-9]\+\.[0-9]\+"' app/index.tsx | head -1 | tr -d '"')
+CURRENT_IN_CODE=$(grep -E 'CURRENT_BUNDLE_VERSION\s*=\s*"[0-9\.]+"' app/index.tsx | grep -o '"[0-9\.]\+"' | head -1 | tr -d '"')
 
 if [ "$CURRENT_IN_CODE" != "$VERSION" ]; then
   echo "❌ CURRENT_BUNDLE_VERSION trong app/index.tsx là '$CURRENT_IN_CODE', chưa cập nhật thành '$VERSION'"
