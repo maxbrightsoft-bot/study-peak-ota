@@ -47,6 +47,30 @@ if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "android" ]; then
       echo "❌ Android bundle failed"
       exit 1
   }
+
+  # Compile to Hermes bytecode (required because Android uses Hermes engine)
+  echo "=== Compiling Android bundle to Hermes bytecode ==="
+  HERMESC_PATH="node_modules/react-native/sdks/hermesc/osx-bin/hermesc"
+  if [ ! -f "$HERMESC_PATH" ]; then
+    HERMESC_PATH="node_modules/react-native/sdks/hermesc/linux64-bin/hermesc"
+  fi
+  if [ ! -f "$HERMESC_PATH" ]; then
+    HERMESC_PATH="node_modules/react-native/sdks/hermesc/win64-bin/hermesc.exe"
+  fi
+  if [ -f "$HERMESC_PATH" ]; then
+    mv ota/android_bundle/bundle/index.android.bundle ota/android_bundle/bundle/index.android.bundle.js
+    "$HERMESC_PATH" \
+      -emit-binary \
+      -out ota/android_bundle/bundle/index.android.bundle \
+      ota/android_bundle/bundle/index.android.bundle.js && \
+    rm ota/android_bundle/bundle/index.android.bundle.js || {
+      echo "⚠️  Hermes compile failed, using plain JS bundle"
+      mv ota/android_bundle/bundle/index.android.bundle.js ota/android_bundle/bundle/index.android.bundle
+    }
+    echo "✅ Hermes bytecode compiled"
+  else
+    echo "⚠️  hermesc not found, using plain JS bundle (may not work with Hermes)"
+  fi
 fi
 
 if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "ios" ]; then

@@ -5,7 +5,7 @@ import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 import { palette } from '@/theme'
 import { Ionicons } from '@expo/vector-icons'
 import { Formik } from 'formik'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -44,8 +44,20 @@ type FormItemProps = {
   setEditingField: (field: string | null) => void
 }
 
+const getOptionDisplayValue = (
+  value: any,
+  options?: { label: string; value: any }[]
+) => {
+  if (options?.length) {
+    const match = options.find((o) => o.value === value)
+    return match?.label ?? (value != null && value !== '' ? String(value) : '')
+  }
+  return value != null && value !== '' ? String(value) : ''
+}
+
 const FormItem = ({ label, name, options, value, onChange, editingField, setEditingField }: FormItemProps) => {
   const isEditing = editingField === name
+  const displayValue = useMemo(() => getOptionDisplayValue(value, options), [value, options])
 
   return (
     <View style={styles.item}>
@@ -71,7 +83,7 @@ const FormItem = ({ label, name, options, value, onChange, editingField, setEdit
             />
           )
         ) : (
-          <Text style={styles.valueText} numberOfLines={1} ellipsizeMode="tail">{value}</Text>
+          <Text style={styles.valueText} numberOfLines={2} ellipsizeMode="tail">{displayValue}</Text>
         )}
 
         <TouchableOpacity onPress={() => setEditingField(isEditing ? null : name)}>
@@ -82,22 +94,21 @@ const FormItem = ({ label, name, options, value, onChange, editingField, setEdit
   )
 }
 
-const validationSchema = Yup.object().shape({
-  phoneNumber: Yup.string().nullable(),
-
-  parentName: Yup.string().nullable(),
-
-  parentPhoneNumber: Yup.string().nullable(),
-
-  schoolName: Yup.string().nullable(),
-
-  major: Yup.string().nullable(),
-
-  fullName: Yup.string().required('이름을 입력해주세요.')
-})
-
 const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectOptions }: Props) => {
   const { t } = useTranslation()
+
+  const validationSchema = useMemo(
+    () =>
+      Yup.object().shape({
+        phoneNumber: Yup.string().nullable(),
+        parentName: Yup.string().nullable(),
+        parentPhoneNumber: Yup.string().nullable(),
+        schoolName: Yup.string().nullable(),
+        major: Yup.string().nullable(),
+        fullName: Yup.string().required(t('full_name_required')),
+      }),
+    [t]
+  )
   const user = useAuthStore(state => state.user)
   const [editingField, setEditingField] = useState<string | null>(null)
 
@@ -125,6 +136,7 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
 
       <View style={styles.container}>
         <Formik
+          enableReinitialize
           initialValues={initialValues}
           validationSchema={validationSchema}
           onSubmit={(values) => {
@@ -307,13 +319,18 @@ const styles = ScaledSheet.create({
 
   label: {
     fontSize: '16@ms',
-    fontWeight: 600,
+    fontWeight: '600',
     color: '#222',
+    flexShrink: 0,
+    marginRight: '8@ms',
   },
 
   right: {
+    flex: 1,
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    minWidth: 0,
   },
 
   input: {
@@ -361,11 +378,13 @@ const styles = ScaledSheet.create({
     fontWeight: '600'
   },
   valueText: {
+    flex: 1,
+    flexShrink: 1,
     fontSize: '14@ms',
     color: palette.main[600],
     marginRight: '4@ms',
     fontWeight: '500',
-    maxWidth: '100@ms'
+    textAlign: 'right',
   },
 
   profileRow: {

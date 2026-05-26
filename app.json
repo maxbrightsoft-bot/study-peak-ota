@@ -14,6 +14,7 @@
     ],
     "userInterfaceStyle": "automatic",
     "ios": {
+      "jsEngine": "jsc",
       "supportsTablet": true,
       "bundleIdentifier": "com.max.britghtsoft.touchstudymobile",
       "infoPlist": {
@@ -37,6 +38,7 @@
       ]
     },
     "android": {
+      "jsEngine": "hermes",
       "versionCode": 2,
       "package": "com.max.britghtsoft.touchstudymobile",
       "intentFilters": [

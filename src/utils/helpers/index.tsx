@@ -1,3 +1,4 @@
+import { decode as base64Decode } from 'base-64'
 import { AxiosResponse } from 'axios'
 import { ACCESS_TOKEN, DATE_MIN_VALUE, DATE_TIME_MIN_VALUE, DefaultErrorMessage, ErrorMessages } from '../constants'
 import { TFunction } from 'i18next'
@@ -261,6 +262,22 @@ export const toISOString =(time?: string) => {
     } catch {
         return ""
     }
+}
+
+export const decodeJwtPayload = <T extends Record<string, unknown>>(token: string): T => {
+  const base64Url = token.split('.')[1]
+  if (!base64Url) {
+    throw new Error('INVALID_JWT')
+  }
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+  const decoded = base64Decode(base64)
+  const json = decodeURIComponent(
+    decoded
+      .split('')
+      .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+      .join('')
+  )
+  return JSON.parse(json) as T
 }
 
 export * from './times'
