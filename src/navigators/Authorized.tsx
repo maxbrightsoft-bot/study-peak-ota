@@ -31,6 +31,7 @@ const Authorized = ({ route }: { route: any }) => {
   const setLoading = useAuthStore(state => state.setLoading)
   const hasConsented = useAuthStore(state => state.hasConsented)
   const setHasConsented = useAuthStore(state => state.setHasConsented)
+  const [isCheckingConsent, setIsCheckingConsent] = useState(true)
   const { headerProps } =
     useLayoutApp()
   const { t } = useTranslation()
@@ -41,9 +42,13 @@ const Authorized = ({ route }: { route: any }) => {
   )
 
   useEffect(() => {
+    let isMounted = true
+
     const checkConsent = async () => {
       try {
         const res = await getConsentStatusApi()
+        if (!isMounted) return
+
         if (res.data) {
           const consented = !!res.data.privacyPolicyAgreed && !!res.data.termsOfServiceAgreed
           setHasConsented(consented)
@@ -51,11 +56,17 @@ const Authorized = ({ route }: { route: any }) => {
           setHasConsented(false)
         }
       } catch (error) {
-        setHasConsented(false)
+        if (isMounted) setHasConsented(true)
+      } finally {
+        if (isMounted) setIsCheckingConsent(false)
       }
     }
     checkConsent()
-  }, [])
+
+    return () => {
+      isMounted = false
+    }
+  }, [setHasConsented])
 
   const handleConsentAgree = useCallback(async () => {
     try {
@@ -74,7 +85,7 @@ const Authorized = ({ route }: { route: any }) => {
   const isDemo = useAuthStore(state => state.isDemoMode)
   const languageKey = isDemo ? language?.code : undefined
 
-  if (hasConsented === false) {
+  if (!isCheckingConsent && hasConsented === false) {
     return <ConsentScreen onAgree={handleConsentAgree} />
   }
 

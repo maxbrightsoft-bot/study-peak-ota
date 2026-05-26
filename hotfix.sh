@@ -3,6 +3,7 @@ set -e
 
 VERSION=$1
 PLATFORM=$2 # android or ios (optional)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 if [ -z "$VERSION" ]; then
   echo "Usage: hotfix.sh <version> [android|ios]"
@@ -14,16 +15,17 @@ if [ -n "$PLATFORM" ] && [ "$PLATFORM" != "android" ] && [ "$PLATFORM" != "ios" 
   exit 1
 fi
 
-CURRENT_IN_CODE=$(grep -E 'CURRENT_BUNDLE_VERSION\s*=\s*"[0-9\.]+"' app/index.tsx | grep -o '"[0-9\.]\+"' | head -1 | tr -d '"')
+set -a
+source "$SCRIPT_DIR/.env"
+set +a
+
+CURRENT_IN_CODE=${EXPO_PUBLIC_CURRENT_BUNDLE_VERSION:-}
 
 if [ "$CURRENT_IN_CODE" != "$VERSION" ]; then
-  echo "❌ CURRENT_BUNDLE_VERSION trong app/index.tsx là '$CURRENT_IN_CODE', chưa cập nhật thành '$VERSION'"
-  echo "   Hãy sửa trước rồi chạy lại script"
+  echo "EXPO_PUBLIC_CURRENT_BUNDLE_VERSION is '$CURRENT_IN_CODE', expected '$VERSION'"
+  echo "Please update .env first, then rerun this script"
   exit 1
 fi
-
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-source "$SCRIPT_DIR/.env"
 
 TAG_VERSION=$(echo $VERSION | tr '.' '-')
 
