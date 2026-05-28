@@ -67,8 +67,8 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
   const scrollViewRef = useRef<FlatList>(null);
   const questionRefs = useRef<Array<View | null>>([]);
   const [currentQuestionId, setCurrentQuestionId] = useState<number>();
-  const channel = useRef<PusherChannel>();
-  const channelName = useRef<string>();
+  const channel = useRef<PusherChannel>(undefined);
+  const channelName = useRef<string>(undefined);
   const [openConfirmFinishDialog, setOpenConfirmFinishDialog] = useState(false);
   const [openAnswerSheet, setOpenAnswerSheet] = useState(false);
   const [openInfoExamDialog, setOpenInfoExamDialog] = useState<boolean>(false);
@@ -380,7 +380,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
   }, []);
 
   const handleExamEnded = useCallback(() => {
-    currentScreen() === Routes.Auth.DoExam && isEnding && setLiveResultDialog(true);
+    currentScreen() === Routes.Auth.DoExam && isEnding && handleOpenLiveResultDialog()
   }, [examCode, isEnding, onExamEnded]);
 
 

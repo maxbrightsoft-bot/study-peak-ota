@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Pressable } from 'react-native'
 import { GroupedNoteResponse, NoteResponse } from '@/utils/types'
 import { palette } from '@/theme'
 import { FontAwesome6 } from '@expo/vector-icons'
-import dayjs from 'dayjs'
+import moment from 'moment'
 import { getNotesByGroupApi } from '../../ExamResultList/apiClients/noteService'
 import { ActivityIndicator } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -36,7 +36,7 @@ const ChildNoteItem = ({ note, t, onOpenDialog }: { note: NoteResponse, t: any, 
           {note.questionTypeName ? <Text style={styles.childTitlePage} numberOfLines={1}>{note.questionTypeName}</Text> : null}
         </View>
       </View>
-      <Text style={styles.childDate}>{dayjs(note.createdAt).format('MM.DD')}</Text>
+      <Text style={styles.childDate}>{moment(note.createdAt).format('MM.DD')}</Text>
     </Pressable>
   )
 }
@@ -143,7 +143,7 @@ export default function GroupedNoteCard({ item, t, filter, refreshGroup, onOpenD
           <View style={styles.headerTitles}>
             <Text style={styles.categoryName}>{categoryNameText}</Text>
             <Text style={styles.headerSubtitle}>
-              {item.latestScore ? `${t('grouped_note_score_question', { score: String(item.latestScore) })} · ` : ''}{t('grouped_note_recent', { date: dayjs(item.latestCreatedAt).format('MM.DD') })}
+              {item.latestScore ? `${t('grouped_note_score_question', { score: String(item.latestScore) })} · ` : ''}{t('grouped_note_recent', { date: moment(item.latestCreatedAt).format('MM.DD') })}
             </Text>
           </View>
         </View>

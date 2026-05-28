@@ -3,7 +3,7 @@ import { palette } from '@/theme'
 import { InfoExamSessionByCode } from '@/utils/types'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 
 interface Props {
@@ -66,7 +66,8 @@ const styles = ScaledSheet.create({
   },
 
   value: {
-    fontSize: '16@ms',
+    width: '60%',
+    fontSize: '13@ms',
     fontWeight: '500',
     color: '#222222',
     textAlign: 'right'

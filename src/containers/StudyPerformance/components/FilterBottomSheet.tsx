@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Switch, Modal, StatusBar, Dimensions } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
 import { NoteSearchQuery } from '@/utils/types'
 import { useTranslation } from 'react-i18next'
-import dayjs from 'dayjs'
+import moment from 'moment'
 import { Calendar } from 'react-native-calendars'
 import ArrowRightIcon from '@/assets/iconJSX/arrowRight'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -67,8 +66,8 @@ export default function FilterBottomSheet({ isVisible, onClose, onApply, initial
 
   const handleApply = () => {
     const formatStr = 'YYYY-MM-DD'
-    const finalStartDate = customStartDate ? dayjs(customStartDate).format(formatStr) : undefined
-    const finalEndDate = customEndDate ? dayjs(customEndDate).format(formatStr) : undefined
+    const finalStartDate = customStartDate ? moment(customStartDate).format(formatStr) : undefined
+    const finalEndDate = customEndDate ? moment(customEndDate).format(formatStr) : undefined
 
     onApply({
       subjectNames: selectedSubjects.length > 0 ? selectedSubjects : undefined,
@@ -127,7 +126,7 @@ export default function FilterBottomSheet({ isVisible, onClose, onApply, initial
       setCustomStartDate(selectedDate)
       setCustomEndDate(null)
     } else if (customStartDate && !customEndDate) {
-      if (dayjs(selectedDate).isBefore(dayjs(customStartDate), 'day')) {
+      if (moment(selectedDate).isBefore(moment(customStartDate), 'day')) {
         setCustomStartDate(selectedDate)
       } else {
         setCustomEndDate(selectedDate)
@@ -139,15 +138,15 @@ export default function FilterBottomSheet({ isVisible, onClose, onApply, initial
     const marked: any = {}
 
     if (customStartDate) {
-      const startStr = dayjs(customStartDate).format('YYYY-MM-DD')
+      const startStr = moment(customStartDate).format('YYYY-MM-DD')
       marked[startStr] = { startingDay: true, color: '#7C3AED', textColor: 'white' }
 
       if (customEndDate) {
-        const endStr = dayjs(customEndDate).format('YYYY-MM-DD')
+        const endStr = moment(customEndDate).format('YYYY-MM-DD')
         marked[endStr] = { endingDay: true, color: '#7C3AED', textColor: 'white' }
 
-        let current = dayjs(startStr).add(1, 'day')
-        while (current.isBefore(dayjs(endStr), 'day')) {
+        let current = moment(startStr).add(1, 'day')
+        while (current.isBefore(moment(endStr), 'day')) {
           marked[current.format('YYYY-MM-DD')] = { color: '#EDE9FE', textColor: '#7C3AED' }
           current = current.add(1, 'day')
         }
@@ -294,9 +293,9 @@ export default function FilterBottomSheet({ isVisible, onClose, onApply, initial
               const isActive = period === opt.value
               let displayText = t(opt.labelKey)
               if (opt.value === 'custom' && customStartDate) {
-                const startStr = dayjs(customStartDate).format('DD/MM/YYYY')
+                const startStr = moment(customStartDate).format('DD/MM/YYYY')
                 if (customEndDate) {
-                  const endStr = dayjs(customEndDate).format('DD/MM/YYYY')
+                  const endStr = moment(customEndDate).format('DD/MM/YYYY')
                   displayText = `${startStr} - ${endStr}`
                 } else {
                   displayText = startStr
@@ -369,7 +368,7 @@ export default function FilterBottomSheet({ isVisible, onClose, onApply, initial
                 markingType={'period'}
                 markedDates={getMarkedDates()}
                 onDayPress={onDayPress}
-                maxDate={dayjs().format('YYYY-MM-DD')}
+                maxDate={moment().format('YYYY-MM-DD')}
                 theme={{
                   todayTextColor: '#7C3AED',
                   arrowColor: '#7C3AED',

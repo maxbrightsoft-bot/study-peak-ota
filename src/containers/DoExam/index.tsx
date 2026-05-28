@@ -88,7 +88,7 @@ const DoExam = ({ examCode }: Props) => {
 
   const disabled = (exam?.isLate
     ? exam?.lateStatus === ExamStatus.Paused || exam.lateStatus === ExamStatus.Completed
-    : exam?.status === ExamStatus.Paused || exam?.status === ExamStatus.Completed)
+    : exam?.status === ExamStatus.Paused || exam?.status === ExamStatus.Completed) || (remainTime !== undefined && remainTime <= 0);
 
   const renderQuestionGroup = useCallback(({ item }: { item: any }) => (
     <ExamQuestionGroup

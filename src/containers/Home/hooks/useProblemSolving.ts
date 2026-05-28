@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { apiJoinExam, getCheckInLessonsApi, getExamInfoApi, getInfoAcademyApi } from "../apiClients/index";
-import { EVENT_DELETED_MEMBER, ExamStatus, FormatDate } from "../configs/constants";
+import { apiJoinExam, getCheckInLessonsApi, getExamInfoApi } from "../apiClients/index";
+import { EVENT_DELETED_MEMBER, ExamStatus } from "../configs/constants";
 import { InfoLesson, ScheduleResponse, ScheduleSortBy, ScheduleStatus, ScheduleStatusRequest, ScheduleType } from "../configs/type";
 import { getScheduleCountApi, getSchedulesApi, updateScheduleStatusApi } from "../apiClients/scheduleService";
 import useAuthStore from "@/store/useAuthStore";
@@ -36,10 +36,10 @@ const useProblemSolving = () => {
     useState<boolean>(false);
   const { t } = useTranslation();
   const userId = user?.id
-  const channel = useRef<PusherChannel>();
-  const channelName = useRef<string>()
-  const studentChannel = useRef<PusherChannel>();
-  const studentChannelName = useRef<string>();
+  const channel = useRef<PusherChannel>(null);
+  const channelName = useRef<string>(null)
+  const studentChannel = useRef<PusherChannel>(null);
+  const studentChannelName = useRef<string>(null);
   const isBelongAcademy = !!user && user.academyDomain && !user.isLearningSpace;
   const [openConfirmDialog, setOpenConfirmDialog] = useState<boolean>(false);
   const [openExamHistoryDialog, setOpenExamHistoryDialog] = useState<boolean>(false);
