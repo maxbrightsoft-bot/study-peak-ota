@@ -49,6 +49,9 @@ export const ANDROID_GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_ANDROID_GOOGLE_C
 export const GOOGLE_RECAPTCHA_ID =
   process.env.EXPO_PUBLIC_GOOGLE_RECAPTCHA_ID || ""
 
+export const STORE_VERSION_ANDROID = process.env.EXPO_PUBLIC_STORE_VERSION_ANDROID || ""
+export const STORE_VERSION_IOS = process.env.EXPO_PUBLIC_STORE_VERSION_IOS || ""
+export const CURRENT_BUNDLE_VERSION = process.env.EXPO_PUBLIC_CURRENT_BUNDLE_VERSION || "1.0.0"
 export const answerTypeOptions = (t: any) => ([
   {
     label: t("singlechoice"),

@@ -15,6 +15,8 @@ import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
 import LanguageDialog from '../components/LanguageDialog'
 import PolicyViewer from '../components/PolicyViewer'
 import { PRIVACY_POLICY_CONTENT, TERMS_OF_SERVICE_CONTENT } from '../configs/policyContent'
+import useAppStore from '@/store/useAppStore'
+import DeviceInfo from 'react-native-device-info'
 
 type Props = {
   open: boolean
@@ -63,6 +65,8 @@ const Setting = ({ open, onClose }: Props) => {
     handleExitDemoMode,
   } = useSetting()
 
+  const bundleVersion = useAppStore((state) => state.bundleVersion)
+  const appVersion = DeviceInfo.getVersion();
   const navigation = useNavigation<any>()
 
   const handleOpenTutorial = () => {
@@ -157,6 +161,10 @@ const Setting = ({ open, onClose }: Props) => {
         <TouchableOpacity style={styles.button} onPress={() => handleToggleSchedule()}>
           <Text style={styles.buttonText}>{t('add_new_schedule')}</Text>
         </TouchableOpacity>
+
+        <View style={styles.versionFooter}>
+          <Text style={styles.versionFooterText}>{`${t('version')}: ${appVersion} (${bundleVersion})`}</Text>
+        </View>
       </View>
       <Notice open={openNoticeDialog} onClose={handleCloseNoticeDialog} />
       {openUpdateUserDialog && (
@@ -313,6 +321,16 @@ const styles = ScaledSheet.create({
     color: '#fff',
     fontSize: '15@ms',
     fontWeight: '600'
+  },
+
+  versionFooter: {
+    paddingBottom: '20@ms',
+    alignItems: 'center'
+  },
+
+  versionFooterText: {
+    fontSize: '12@ms',
+    color: palette.grey[500],
   }
 })
 

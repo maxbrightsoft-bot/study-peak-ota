@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Modal, View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native'
+import { View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native'
 import { Formik } from 'formik'
 import * as Yup from 'yup'
 import { palette, TYPO } from '@/theme'

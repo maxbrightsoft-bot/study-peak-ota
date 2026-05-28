@@ -1,4 +1,3 @@
-import { decode as atob } from 'base-64';
 import { GoogleSignin, isErrorWithCode, isSuccessResponse, statusCodes } from '@react-native-google-signin/google-signin';
 import { LoginAccessTokenRequest, LoginRequest, LoginResponse } from '@/utils/types';
 import { Role } from '@/utils/enums';
@@ -11,7 +10,7 @@ import {
 } from '@/utils/constants';
 import { getDataStorage, removeDataStorage, setDataStorage } from '@/utils/storage';
 import useAuthStore from '@/store/useAuthStore';
-import { getAcademyDomain, getErrorMessage, toast } from '@/utils/helpers';
+import { decodeJwtPayload, getAcademyDomain, getErrorMessage, toast } from '@/utils/helpers';
 import {
   apiLoginApple,
   apiLoginGoogle,
@@ -132,20 +131,30 @@ const useLogin = () => {
           throw new Error('NO_ID_TOKEN');
         }
 
-        const base64Url = idToken.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const payload = JSON.parse(atob(base64));
+        const payload = decodeJwtPayload<{
+          name?: string
+          email?: string
+          picture?: string
+          sub?: string
+        }>(idToken);
         const keepLogin = await getDataStorage(KEEP_LOGIN);
+        const isKeepMeLoggedIn = keepLogin !== 'false';
+
+        const fullName =
+          userInfo.user?.name?.trim() ||
+          [userInfo.user?.givenName, userInfo.user?.familyName].filter(Boolean).join(' ').trim() ||
+          payload.name?.trim() ||
+          '';
 
         const infoLogin: LoginRequest = {
-          imageUrl: payload.picture,
-          fullName: payload.name,
-          email: payload.email,
+          imageUrl: userInfo.user?.photo || payload.picture,
+          fullName,
+          email: userInfo.user?.email || payload.email || '',
           token: idToken,
           googleId: payload.sub,
           role: Role.Student,
           isMobile: true,
-          isKeepMeLoggedIn: keepLogin === 'true'
+          isKeepMeLoggedIn,
         };
 
         await handleLogin(() => handleAuthGoogle(infoLogin));
@@ -185,9 +194,7 @@ const useLogin = () => {
         throw new Error('Apple Sign-In failed - no identity token returned');
       }
 
-      const base64Url = identityToken.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const decoded = JSON.parse(atob(base64));
+      const decoded = decodeJwtPayload<{ email?: string }>(identityToken);
 
       const finalEmail = email || decoded?.email || '';
 
@@ -198,6 +205,7 @@ const useLogin = () => {
 
       await setDataStorage(APPLE_USER_KEY, user);
       const keepLogin = await getDataStorage(KEEP_LOGIN);
+      const isKeepMeLoggedIn = keepLogin !== 'false';
 
       const infoLogin: LoginRequest = {
         fullName: nameFromResponse,
@@ -205,7 +213,7 @@ const useLogin = () => {
         token: identityToken,
         role: Role.Student,
         isMobile: true,
-        isKeepMeLoggedIn: keepLogin === 'true'
+        isKeepMeLoggedIn,
       };
 
       await handleLogin(() => handleAuthApple(infoLogin));

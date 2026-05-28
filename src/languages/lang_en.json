@@ -540,6 +540,7 @@
   "the_page_you_are_looking_for_was_not_found": "The page you are looking for was not found.",
   "oops": "Oops! You are lost.",
   "please_enter": "Please enter...",
+  "use_as_entered": "Use '{{text}}' as entered",
   "notifications": "Notifications",
   "exams": "Exams",
   "questions": "Questions",
@@ -2073,6 +2074,10 @@
   "demo_mode_confirm": "Enter demo mode with sample data? Your current session will switch to the demo account.",
   "demo_mode_login_required": "Please log in first to enter demo mode.",
   "demo_academy": "Demo Academy",
-  "demo_mode_session_not_found": "Could not restore previous login session."
+  "demo_mode_session_not_found": "Could not restore previous login session.",
+  "force_update_title": "Update Required",
+  "force_update_subtitle": "To continue using the application with all features and best security, please update to the latest version.",
+  "force_update_button": "UPDATE NOW",
+  "version_label": "New version"
 }
 

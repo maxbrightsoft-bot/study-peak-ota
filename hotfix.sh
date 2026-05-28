@@ -3,6 +3,7 @@ set -e
 
 VERSION=$1
 PLATFORM=$2 # android or ios (optional)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 if [ -z "$VERSION" ]; then
   echo "Usage: hotfix.sh <version> [android|ios]"
@@ -14,16 +15,17 @@ if [ -n "$PLATFORM" ] && [ "$PLATFORM" != "android" ] && [ "$PLATFORM" != "ios" 
   exit 1
 fi
 
-CURRENT_IN_CODE=$(grep -o '"[0-9]\+\.[0-9]\+\.[0-9]\+"' app/index.tsx | head -1 | tr -d '"')
+set -a
+source "$SCRIPT_DIR/.env"
+set +a
+
+CURRENT_IN_CODE=${EXPO_PUBLIC_CURRENT_BUNDLE_VERSION:-}
 
 if [ "$CURRENT_IN_CODE" != "$VERSION" ]; then
-  echo "❌ CURRENT_BUNDLE_VERSION trong app/index.tsx là '$CURRENT_IN_CODE', chưa cập nhật thành '$VERSION'"
-  echo "   Hãy sửa trước rồi chạy lại script"
+  echo "EXPO_PUBLIC_CURRENT_BUNDLE_VERSION is '$CURRENT_IN_CODE', expected '$VERSION'"
+  echo "Please update .env first, then rerun this script"
   exit 1
 fi
-
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-source "$SCRIPT_DIR/.env"
 
 TAG_VERSION=$(echo $VERSION | tr '.' '-')
 
@@ -45,6 +47,30 @@ if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "android" ]; then
       echo "❌ Android bundle failed"
       exit 1
   }
+
+  # Compile to Hermes bytecode (required because Android uses Hermes engine)
+  echo "=== Compiling Android bundle to Hermes bytecode ==="
+  HERMESC_PATH="node_modules/react-native/sdks/hermesc/osx-bin/hermesc"
+  if [ ! -f "$HERMESC_PATH" ]; then
+    HERMESC_PATH="node_modules/react-native/sdks/hermesc/linux64-bin/hermesc"
+  fi
+  if [ ! -f "$HERMESC_PATH" ]; then
+    HERMESC_PATH="node_modules/react-native/sdks/hermesc/win64-bin/hermesc.exe"
+  fi
+  if [ -f "$HERMESC_PATH" ]; then
+    mv ota/android_bundle/bundle/index.android.bundle ota/android_bundle/bundle/index.android.bundle.js
+    "$HERMESC_PATH" \
+      -emit-binary \
+      -out ota/android_bundle/bundle/index.android.bundle \
+      ota/android_bundle/bundle/index.android.bundle.js && \
+    rm ota/android_bundle/bundle/index.android.bundle.js || {
+      echo "⚠️  Hermes compile failed, using plain JS bundle"
+      mv ota/android_bundle/bundle/index.android.bundle.js ota/android_bundle/bundle/index.android.bundle
+    }
+    echo "✅ Hermes bytecode compiled"
+  else
+    echo "⚠️  hermesc not found, using plain JS bundle (may not work with Hermes)"
+  fi
 fi
 
 if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "ios" ]; then

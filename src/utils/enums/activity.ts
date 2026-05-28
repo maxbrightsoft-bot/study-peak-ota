@@ -1,16 +1,19 @@
 export enum ActivityAction {
     Start,
-    End,
     Submit,
+    End,
     Answer,
     StarAnswer,
+    View,
+    Restart,
     Pause,
     Resume,
-    Restart,
-    View,
-    Error,
-    Info,
-    Warning,
+    Stop,
+    Get,
+    Create,
+    Update,
+    Delete,
+    Error
 }
 
 export enum AppScreen {
@@ -29,10 +32,9 @@ export enum AppScreen {
     Login
 }
 
-export enum ActivityResource
-    {
-        Exam,
-        Textbook,
-        Question,
-        User
-    }
+export enum ActivityResource {
+    Exam,
+    Textbook,
+    Question,
+    User
+}

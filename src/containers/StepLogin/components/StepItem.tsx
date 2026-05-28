@@ -21,7 +21,7 @@ type Props = {
 }
 
 const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: Props) => {
-  const { t, step, formatPhone, stepCount, onNext, onPrev, subjectOptions, gradeOptions, isCheckPhoneNumber, handleCheckPhoneNumber } = useStepItem({
+  const { t, step, formatPhone, stepCount, onNext, onPrev, subjectOptions, gradeOptions, isCheckPhoneNumber, setIsCheckPhoneNumber, handleCheckPhoneNumber } = useStepItem({
     values,
     errors,
     setFieldTouched
@@ -58,6 +58,7 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
                   error={touched.phoneNumber && errors.phoneNumber && t('phone_number_is_required')}
                   onChangeText={(value: string) => {
                     const cleaned = value.replace(/\D/g, "");
+                    setIsCheckPhoneNumber(false)
                     setFieldValue("phoneNumber", cleaned);
                   }}
                 />
@@ -66,11 +67,11 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
             {isCheckPhoneNumber ? (
               <View style={styles.checkExistButton}>
                 <Verify color='#4CAF50' />
-                <Text style={{ color: '#222222', fontWeight: '700', marginLeft: 8 }}>{t('phone_number_is_available')}</Text>
+                <Text style={{ color: palette.sub[400], fontWeight: '700', marginLeft: 8 }}>{t('phone_number_is_available')}</Text>
               </View>
             ) : (
               <TouchableOpacity activeOpacity={0.7} style={styles.checkExistButton} onPress={handleCheckPhoneNumber}>
-                <Text style={{ color: '#FFF', fontWeight: '700' }}>{t('check_phone_number')}</Text>
+                <Text style={{ color: palette.sub[400], fontWeight: '700' }}>{t('check_phone_number')}</Text>
               </TouchableOpacity>
             )}
 
@@ -258,6 +259,11 @@ const styles = ScaledSheet.create({
     display: 'flex',
     flexDirection: "row",
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: palette.sub[400],
+    padding: '12@ms',
+    borderRadius: '8@ms',
+    alignSelf: 'flex-start'
   },
   containerSelect: {
     flex: 1,

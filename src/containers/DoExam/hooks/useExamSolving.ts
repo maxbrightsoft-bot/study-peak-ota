@@ -250,59 +250,61 @@ const useExamSolving = (props: Props) => {
   };
   const updateQuestionAnswer = ({ questionId, textualAnswers = [], answer }: ExamQuestion) => {
     const { now, nowTime } = getServerTimeFormatted();
+
+    if (!exam) return;
+    const examStatus = exam.isLate ? exam.lateStatus : exam.status
+    if (examStatus !== ExamStatus.InProgress) return
+
+    const totalRunningTime = moment(now).diff(moment.utc(!exam.isLate ? exam.startTime : exam.startTimeSession).local(), "milliseconds") - exam.totalPausedTime
+
+    const listQuestionNews = _.cloneDeep(questionList);
+    const arrQuestionNew = listQuestionNews.map((item: Question) => {
+      const isTextAnswerType = isTextType(item.questionAnswerType)
+      if (item.textualAnswers !== undefined && !isTextAnswerType) {
+        delete item.textualAnswers
+      }
+      if (item.selectedAnswers !== undefined && isTextAnswerType) {
+        delete item.selectedAnswers
+      }
+      if (item.id === questionId) {
+        switch (item.questionAnswerType) {
+          case QuestionAnswerType.SingleChoice:
+            if (answer === undefined) break;
+            item.selectedAnswers = item.selectedAnswers?.includes(answer)
+              ? item.selectedAnswers.filter((i: number) => i != answer)
+              : [answer];
+            break;
+          case QuestionAnswerType.MultipleChoice:
+            if (answer === undefined) break;
+            item.selectedAnswers = item.selectedAnswers?.includes(answer)
+              ? item.selectedAnswers.filter((i: number) => i != answer)
+              : [...(item.selectedAnswers ?? []), answer];
+            break;
+          default:
+            item.textualAnswers = textualAnswers
+            break;
+        }
+
+        const diff = getDiffTime(exam, now, totalRunningTime)
+        item.duration = (item.duration || 0) + diff;
+
+        item.answerTime =
+          item.answerTime && item.answerTime !== 0
+            ? item.answerTime
+            : nowTime;
+      }
+      return item;
+    });
+
     try {
-      if (!exam) return;
-      const examStatus = exam.isLate ? exam.lateStatus : exam.status
-      if (examStatus !== ExamStatus.InProgress) return
-
-      const totalRunningTime = moment(now).diff(moment.utc(!exam.isLate ? exam.startTime : exam.startTimeSession).local(), "milliseconds") - exam.totalPausedTime
-
-      const listQuestionNews = _.cloneDeep(questionList);
-      const arrQuestionNew = listQuestionNews.map((item: Question) => {
-        const isTextAnswerType = isTextType(item.questionAnswerType)
-        if (item.textualAnswers !== undefined && !isTextAnswerType) {
-          delete item.textualAnswers
-        }
-        if (item.selectedAnswers !== undefined && isTextAnswerType) {
-          delete item.selectedAnswers
-        }
-        if (item.id === questionId) {
-          switch (item.questionAnswerType) {
-            case QuestionAnswerType.SingleChoice:
-              if (answer === undefined) break;
-              item.selectedAnswers = item.selectedAnswers?.includes(answer)
-                ? item.selectedAnswers.filter((i: number) => i != answer)
-                : [answer];
-              break;
-            case QuestionAnswerType.MultipleChoice:
-              if (answer === undefined) break;
-              item.selectedAnswers = item.selectedAnswers?.includes(answer)
-                ? item.selectedAnswers.filter((i: number) => i != answer)
-                : [...(item.selectedAnswers ?? []), answer];
-              break;
-            default:
-              item.textualAnswers = textualAnswers
-              break;
-          }
-
-          const diff = getDiffTime(exam, now, totalRunningTime)
-          item.duration = (item.duration || 0) + diff;
-
-          item.answerTime =
-            item.answerTime && item.answerTime !== 0
-              ? item.answerTime
-              : nowTime;
-        }
-        return item;
-      });
-
       track({
         action: ActivityAction.Answer,
         resourceType: ActivityResource.Exam,
         resourceId: String(exam?.id),
         triggeredAt: now,
         metaData: {
-          examId: String(exam?.id),
+          examId: exam?.examId,
+          examSession: exam?.id,
           status: exam?.isLate ? exam?.lateStatus : exam?.status,
           examCode: exam?.code || '',
           studentExamSessionId: String(exam?.studentExamSessionId || ''),
@@ -319,13 +321,26 @@ const useExamSolving = (props: Props) => {
         status: exam?.isLate ? exam?.lateStatus : exam?.status,
         studentExamSessionId: String(exam?.studentExamSessionId || ''),
       })
+      const body: StudentAnswerRequest = {
+        lastAnswerTime: nowTime,
+        runningTime: totalRunningTime,
+        questions: arrQuestionNew.map((i) => ({
+          questionId: i.id,
+          selectedAnswers: i.selectedAnswers,
+          duration: i.duration,
+          isStar: i.isStar,
+          answerTime: i.answerTime,
+          textualAnswers: i.textualAnswers
+        }))
+      };
       trackError(error, {
         resourceType: ActivityResource.Question,
         resourceId: String(questionId),
         triggeredAt: now,
         metaData: {
-          action: ActivityAction.Answer,
+          action: Object.keys(ActivityAction.Answer),
           examId: String(exam?.id),
+          body,
           examCode: exam?.code || '',
           status: exam?.isLate ? exam?.lateStatus : exam?.status,
           studentExamSessionId: String(exam?.studentExamSessionId || ''),
@@ -339,33 +354,34 @@ const useExamSolving = (props: Props) => {
 
     const { now, nowTime } = getServerTimeFormatted();
 
+    const examStatus = exam.isLate ? exam.lateStatus : exam.status
+    if (examStatus !== ExamStatus.InProgress) return
+
+    const totalRunningTime = moment(now).diff(moment.utc(!exam.isLate ? exam.startTime : exam.startTimeSession).local(), "milliseconds") - exam.totalPausedTime
+
+    const listQuestionNews = _.cloneDeep(questionList);
+    const arrQuestionNew = listQuestionNews.map((item: Question) => {
+      if (item.id === questionId) {
+        item.isStar = isStar;
+        const diff = getDiffTime(exam, now, totalRunningTime)
+        item.duration = (item.duration || 0) + diff;
+        item.answerTime =
+          item.answerTime && item.answerTime !== 0
+            ? item.answerTime
+            : nowTime;
+      }
+      return item;
+    });
+
     try {
-      const examStatus = exam.isLate ? exam.lateStatus : exam.status
-      if (examStatus !== ExamStatus.InProgress) return
-
-      const totalRunningTime = moment(now).diff(moment.utc(!exam.isLate ? exam.startTime : exam.startTimeSession).local(), "milliseconds") - exam.totalPausedTime
-
-      const listQuestionNews = _.cloneDeep(questionList);
-      const arrQuestionNew = listQuestionNews.map((item: Question) => {
-        if (item.id === questionId) {
-          item.isStar = isStar;
-          const diff = getDiffTime(exam, now, totalRunningTime)
-          item.duration = (item.duration || 0) + diff;
-          item.answerTime =
-            item.answerTime && item.answerTime !== 0
-              ? item.answerTime
-              : nowTime;
-        }
-        return item;
-      });
-
       track({
         action: ActivityAction.StarAnswer,
         resourceType: ActivityResource.Question,
         resourceId: String(questionId),
         triggeredAt: now,
         metaData: {
-          examId: String(exam?.id),
+          examId: exam?.examId,
+          examSession: exam?.id,
           examCode: exam?.code || '',
           status: exam?.isLate ? exam?.lateStatus : exam?.status,
           studentExamSessionId: String(exam.studentExamSessionId || ''),
@@ -382,13 +398,27 @@ const useExamSolving = (props: Props) => {
         examCode: exam?.code || '',
         studentExamSessionId: String(exam?.studentExamSessionId || ''),
       })
+      const body: StudentAnswerRequest = {
+        lastAnswerTime: nowTime,
+        runningTime: totalRunningTime,
+        questions: arrQuestionNew.map((i) => ({
+          questionId: i.id,
+          selectedAnswers: i.selectedAnswers,
+          duration: i.duration,
+          isStar: i.isStar,
+          answerTime: i.answerTime,
+          textualAnswers: i.textualAnswers
+        }))
+      };
       trackError(error, {
         resourceType: ActivityResource.Question,
         resourceId: String(questionId),
         triggeredAt: now,
         metaData: {
-          action: ActivityAction.StarAnswer,
-          examId: String(exam?.id),
+          action: Object.keys(ActivityAction.StarAnswer),
+          examId: exam?.examId,
+          body,
+          examSession: exam?.id,
           status: exam?.isLate ? exam?.lateStatus : exam?.status,
           examCode: exam?.code || '',
           studentExamSessionId: String(exam?.studentExamSessionId || ''),
@@ -503,7 +533,7 @@ const useExamSolving = (props: Props) => {
     runningTimeRef.current = undefined
     totalAnsweredTimeRef.current = undefined
   }, [exam?.id])
-  
+
   return {
     recoverExamCode,
     recoverKey,

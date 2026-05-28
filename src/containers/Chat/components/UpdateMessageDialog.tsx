@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next'
 import { palette, TYPO } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
 import { Ionicons } from '@expo/vector-icons'
-import TextField from '@/components/Input/TextField'
 import { getSafeUrl } from '@/utils/helpers'
 import { Shadow } from 'react-native-shadow-2'
 import MathRichInput from '@/components/Input/MathRichInput'
@@ -71,7 +70,6 @@ const UpdateMessageDialog: React.FC<Props> = ({
                   <View style={styles.inputWrapper}>
                     <MathRichInput style={styles.input} initialValue={field.value} onChange={(text: string) => setFieldValue('content', text)} />
                   </View>
-                  // <TextField value={field.value} onChangeText={(text: string) => setFieldValue('content', text)} />
                 )}
               />
               <View style={styles.footer}>

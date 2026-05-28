@@ -60,6 +60,7 @@ const DoExam = ({ examCode }: Props) => {
     currentQuestionId,
     openResultDialog,
     liveResultDialog,
+    handleConfirmLeave,
     handleRestartExam,
     updateQuestionAnswer,
     updateQuestionStar,
@@ -71,7 +72,6 @@ const DoExam = ({ examCode }: Props) => {
     handleDetailExamResult,
     handleCloseLiveResultDialog,
     handleFinishExam,
-    isLoading
   } = useExam({ examCode })
 
   const currentQuestion = useMemo(
@@ -384,7 +384,7 @@ const DoExam = ({ examCode }: Props) => {
           open={openLeaveDialog}
           toggle={handleCloseLeaveDialog}
           text={t('are_you_sure_you_want_to_leave')}
-          onConfirm={() => navigate(Routes.Auth.Home)}
+          onConfirm={handleConfirmLeave}
         />
         <InfoExamCode open={openInfoExamDialog} onClose={handleCloseInfoExamDialog} examSession={examSession} />
         {currentQuestion && (
@@ -442,7 +442,7 @@ const styles = ScaledSheet.create({
     backgroundColor: '#FFF',
   },
   titleContainer: {
-    gap: '4@ms'
+    gap: '4@ms',
   },
   attemptBadge: {
     paddingHorizontal: '8@ms',

@@ -516,6 +516,7 @@
   "the_page_you_are_looking_for_was_not_found": "찾으시는 페이지를 찾을 수 없습니다.",
   "oops": "이런! 당신이졌다.",
   "please_enter": "입력...",
+  "use_as_entered": "'{{text}}' 입력한 내용으로 사용",
   "hint": "힌트",
   "save_and_add_next_question": "저장하고 다음 질문 추가",
   "question_text": "질문 텍스트",
@@ -2072,6 +2073,10 @@
   "demo_mode_confirm": "샘플 데이터로 데모 모드를 시작하시겠습니까? 현재 세션이 데모 계정으로 전환됩니다.",
   "demo_mode_login_required": "데모 모드를 열려면 먼저 로그인해주세요.",
   "demo_academy": "데모 학원",
-  "demo_mode_session_not_found": "이전 로그인 세션을 복원할 수 없습니다."
+  "demo_mode_session_not_found": "이전 로그인 세션을 복원할 수 없습니다.",
+  "force_update_title": "업데이트 필요",
+  "force_update_subtitle": "최신 기능과 안정적인 서비스를 계속해서 사용하시려면 최신 버전으로 업데이트해주시기 바랍니다.",
+  "force_update_button": "지금 업데이트",
+  "version_label": "새로운 버전"
 }
 

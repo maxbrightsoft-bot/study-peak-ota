@@ -12,7 +12,6 @@ import {
   ScrollView,
   StyleProp,
   ViewStyle,
-  TextInput,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useTranslation } from 'react-i18next';

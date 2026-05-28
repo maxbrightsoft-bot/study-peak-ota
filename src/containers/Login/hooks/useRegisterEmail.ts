@@ -29,7 +29,7 @@ type RegisterValues = {
 export const TOTAL_REGISTER_STEPS = 4
 
 const useRegisterEmail = ({ mode, setMode }: { mode: "login" | "register", setMode: React.Dispatch<React.SetStateAction<"login" | "register">> }) => {
-  const { setLoading } = useAuthStore()
+  const setLoading = useAuthStore(state => state.setLoading)
   const [registerStep, setRegisterStep] = useState(1)
   const { handleLogin } = useLogin();
   const { t } = useTranslation()
@@ -83,11 +83,12 @@ const useRegisterEmail = ({ mode, setMode }: { mode: "login" | "register", setMo
         setLoading(true)
         await registerAccountApi(data)
         const keepLogin = await getDataStorage(KEEP_LOGIN);
+        const isKeepMeLoggedIn = keepLogin !== 'false';
         const loginData: LoginEmailRequest = {
           email: values.email,
           password: values.password,
           role: Role.Student,
-          isKeepMeLoggedIn: keepLogin === 'true'
+          isKeepMeLoggedIn,
         };
         await handleLogin(async () => {
           const response = await apiLoginEmail(loginData);

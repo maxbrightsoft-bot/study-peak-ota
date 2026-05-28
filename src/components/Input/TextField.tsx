@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useMemo } from 'react'
-import { View, Text, TextInput, TouchableOpacity, Platform, KeyboardTypeOptions } from 'react-native'
+import React, { useCallback, useMemo } from 'react'
+import { View, Text, TextInput, TouchableOpacity, Platform, KeyboardTypeOptions, TextInputProps } from 'react-native'
 import styles from './styles'
 import { palette } from '@/theme'
 
@@ -45,6 +45,14 @@ type TextFieldProps = {
   maxLength?: number
   lineHeight?: number
   rightComponent?: React.ReactNode
+  autoFocus?: boolean
+  autoCorrect?: boolean
+  autoComplete?: TextInputProps['autoComplete']
+  spellCheck?: boolean
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
+  textContentType?: TextInputProps['textContentType']
+  importantForAutofill?: TextInputProps['importantForAutofill']
+  disableFullscreenUI?: boolean
 }
 
 const TextField = ({
@@ -70,23 +78,36 @@ const TextField = ({
   inputRef,
   onEndEditing,
   containerInputStyle,
+  placeholderTextColor,
   placeholder,
   secureTextEntry,
   value,
   maxLength,
   lineHeight = 20,
-  rightComponent
+  rightComponent,
+  autoFocus,
+  autoCorrect,
+  autoComplete,
+  spellCheck,
+  autoCapitalize,
+  textContentType,
+  importantForAutofill,
+  disableFullscreenUI,
 }: TextFieldProps) => {
-  const internalRef = React.useRef<any>(null)
+  const internalRef = React.useRef<TextInput>(null)
   const resolvedRef = inputRef || internalRef
   const nativeText = React.useRef(value ?? '')
+  const isFocused = React.useRef(false)
+  const shouldUseNativeText = Platform.OS === 'android'
 
   React.useEffect(() => {
-    if (value !== undefined && value !== nativeText.current) {
-      nativeText.current = value
-      resolvedRef.current?.setNativeProps({ text: value })
+    if (!shouldUseNativeText || value === undefined || isFocused.current || value === nativeText.current) {
+      return
     }
-  }, [value])
+
+    nativeText.current = value
+    resolvedRef.current?.setNativeProps({ text: value })
+  }, [resolvedRef, shouldUseNativeText, value])
 
   const _onChangeText = useCallback(
     (text: string) => {
@@ -98,6 +119,7 @@ const TextField = ({
 
   const onFocusClick = useCallback(
     (e: any) => {
+      isFocused.current = true
       onFocus && onFocus(e)
     },
     [onFocus]
@@ -105,6 +127,7 @@ const TextField = ({
 
   const onBlurClick = useCallback(
     (e: any) => {
+      isFocused.current = false
       onBlur && onBlur(e)
     },
     [onBlur]
@@ -171,9 +194,17 @@ const TextField = ({
           keyboardType={_keyboardType}
           placeholder={placeholder}
           secureTextEntry={secureTextEntry}
-          placeholderTextColor={palette.grey[400]}
-          defaultValue={value ?? ''}
+          placeholderTextColor={placeholderTextColor || palette.grey[400]}
+          {...(shouldUseNativeText ? { defaultValue: value ?? '' } : { value: value ?? '' })}
           maxLength={maxLength}
+          autoFocus={autoFocus}
+          autoCorrect={autoCorrect}
+          autoComplete={autoComplete}
+          spellCheck={spellCheck}
+          autoCapitalize={autoCapitalize}
+          textContentType={textContentType}
+          importantForAutofill={importantForAutofill}
+          disableFullscreenUI={disableFullscreenUI}
           underlineColorAndroid="transparent"
         />
         {rightComponent && (

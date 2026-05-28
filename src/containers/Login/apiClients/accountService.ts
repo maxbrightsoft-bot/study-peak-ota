@@ -56,7 +56,7 @@ export const apiLoginWithAccessToken = (
     },
   });
 
-export const apiLoginEmail = (body: LoginEmailRequest, isLearningSpace: boolean, domain?: string | null) =>
+export const apiLoginEmail = (body: LoginEmailRequest, isLearningSpace?: boolean, domain?: string | null) =>
   api.post(`${AUTH_URL}/login/demo`, body, {
     headers: {
       [AcademyHeaders]: domain,

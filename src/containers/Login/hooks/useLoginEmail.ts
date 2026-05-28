@@ -6,7 +6,6 @@ import { LoginEmailRequest } from '@/utils/types';
 import { apiLoginEmail } from '../apiClients/accountService';
 import useLogin from './useLogin';
 import { useEffect, useState } from 'react';
-import { getErrorMessage, toast } from '@/utils/helpers';
 import { KEEP_LOGIN, ACADEMY_DOMAIN } from '@/utils/constants';
 import { getDataStorage } from '@/utils/storage';
 
@@ -33,11 +32,12 @@ const useLoginEmail = () => {
     validationSchema,
     onSubmit: async (values) => {
       const keepLogin = await getDataStorage(KEEP_LOGIN);
+      const isKeepMeLoggedIn = keepLogin !== 'false';
       const loginData: LoginEmailRequest = {
         email: values.email,
         password: values.password,
         role: Role.Student,
-        isKeepMeLoggedIn: keepLogin === 'true'
+        isKeepMeLoggedIn,
       };
       await handleLogin(async () => {
         const academyDomain = await getDataStorage(ACADEMY_DOMAIN);

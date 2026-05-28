@@ -1,10 +1,11 @@
 import React, { FC, useEffect, useState } from 'react'
-import { Text, View, TextInput, TouchableOpacity } from 'react-native'
+import { Text, View, TouchableOpacity } from 'react-native'
 import ModalBase from './ModalBase'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { ScaledSheet } from 'react-native-size-matters'
 import { palette, TYPO } from '@/theme'
+import TextField from '../Input/TextField'
 
 export interface ConfirmDialogProps {
   text: string
@@ -55,11 +56,11 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
         {!!confirmText && (
           <>
             <Text style={styles.confirmHint}>{t('enter_text_to_confirm_delete', { text: confirmText })}</Text>
-            <TextInput
+            <TextField
               value={confirmTextValue}
               onChangeText={setConfirmTextValue}
               placeholder={t('please_enter')}
-              style={[styles.input, confirmTextValue && !isValid && styles.inputError]}
+              textInputStyle={[confirmTextValue && !isValid && styles.inputError]}
             />
           </>
         )}
@@ -69,7 +70,7 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
           <Text style={styles.cancelButtonText}>{cancelText || t('cancel')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.button, styles.confirmButton, { borderRadius: 12 }]}
+          style={[styles.button, styles.confirmButton, { borderRadius: 12 }, !!confirmTextValue && !isValid && styles.disabledButton]}
           disabled={isDisableDelete}
           onPress={onConfirm}
         >
@@ -122,7 +123,7 @@ const styles = ScaledSheet.create({
     color: '#222222'
   },
   inputError: {
-    borderColor: 'red'
+    color: 'red'
   },
   actions: {
     padding: '24@ms',
@@ -161,6 +162,6 @@ const styles = ScaledSheet.create({
     color: '#FFF'
   },
   disabledButton: {
-    backgroundColor: palette.red[500]
+    backgroundColor: palette.grey[300]
   }
 })

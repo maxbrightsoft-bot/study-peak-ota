@@ -31,7 +31,6 @@ const useStepItem = ({ values, errors, setFieldTouched }: Props) => {
   const setUser = useAuthStore(state => state.setUser)
   const setHasEnteredSelectAcademy = useAuthStore(state => state.setHasEnteredSelectAcademy)
   const { t } = useTranslation();
-  const textSearchRef = useRef()
   const [isCheckPhoneNumber, setIsCheckPhoneNumber] = useState<boolean>(false)
 
   const formatPhone = (text: string) => {
@@ -65,12 +64,14 @@ const useStepItem = ({ values, errors, setFieldTouched }: Props) => {
 
   const handleCheckPhoneNumber = async () => {
     try {
+      setLoading(true)
       await checkPhoneNumberApi({ phoneNumber: values.phoneNumber })
       toast.success(t('phone_number_is_available'))
       setIsCheckPhoneNumber(true)
     } catch (error: any) {
       toast.error(getErrorMessage(t, error))
     }
+    setLoading(false)
   }
 
   const onPrev = () => {
@@ -134,9 +135,9 @@ const useStepItem = ({ values, errors, setFieldTouched }: Props) => {
     onNext,
     onPrev,
     user,
+    setIsCheckPhoneNumber,
     isCheckPhoneNumber,
     handleCheckPhoneNumber,
-    textSearchRef,
     formatPhone,
     subjectOptions,
     gradeOptions,
