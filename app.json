@@ -9,7 +9,8 @@
     "scheme": "com.max.britghtsoft.touchstudymobile",
     "platforms": [
       "ios",
-      "android"
+      "android",
+      "web"
     ],
     "userInterfaceStyle": "automatic",
     "ios": {

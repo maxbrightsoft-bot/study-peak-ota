@@ -96,7 +96,9 @@ const useCountDownTimer = (props: Props) => {
             if (remain <= 0) {
                 isFinishedRef.current = true;
                 setRemainTime(0);
-                onFinish();
+                if (!isCheckStatusRef.current) {
+                    onFinish();
+                }
                 return;
             }
 

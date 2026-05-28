@@ -99,7 +99,6 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
-    "@react-native-community/cli": "^18.0.0",
     "@types/base-64": "^1.0.2",
     "@types/jest": "^29.5.12",
     "@types/lodash": "^4.17.16",

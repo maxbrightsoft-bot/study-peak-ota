@@ -57,8 +57,6 @@ const useLiveResult = ({ examCode }: Props) => {
     getData();
   }, [examCode]);
 
-
-
   const handleExit = () => {
     navigate(Routes.Auth.Home);
   };
@@ -76,7 +74,6 @@ const useLiveResult = ({ examCode }: Props) => {
         seconds: totalTime % 60
       });
   }, [JSON.stringify(resultData?.questions)]);
-
 
   return {
     t,

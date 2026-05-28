@@ -106,7 +106,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
     onStartAudio: handleStartSelectedSubjectAlarm,
     handleCloseDialog,
   })
-  const disabled = textbook?.status === ExamStatus.Completed || textbook?.status === ExamStatus.Paused
+  const disabled = textbook?.status === ExamStatus.Completed || textbook?.status === ExamStatus.Paused || (remainTime !== undefined && remainTime <= 0)
 
   const currentQuestion = useMemo(
     () => questionList.find((q) => q.id === currentQuestionId),

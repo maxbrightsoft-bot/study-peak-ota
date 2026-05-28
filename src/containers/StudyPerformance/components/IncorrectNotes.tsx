@@ -10,7 +10,7 @@ import GroupedNoteCard from './GroupedNoteCard'
 import FilterBottomSheet from './FilterBottomSheet'
 import { ScaledSheet } from 'react-native-size-matters'
 
-export default function IncorrectNotes({ contentRef }: { contentRef?: React.RefObject<FlatList> }) {
+export default function IncorrectNotes({ contentRef }: { contentRef?: React.RefObject<FlatList | null> }) {
   const {
     t,
     notes,

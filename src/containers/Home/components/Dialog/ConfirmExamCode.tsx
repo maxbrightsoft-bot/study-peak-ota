@@ -79,7 +79,8 @@ const styles = ScaledSheet.create({
   },
 
   value: {
-    fontSize: '16@ms',
+    width: '60%',
+    fontSize: '13@ms',
     fontWeight: '500',
     color: '#222222',
     textAlign: 'right'
