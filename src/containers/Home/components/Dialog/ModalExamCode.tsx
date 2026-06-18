@@ -31,7 +31,7 @@ const ModalExamCode = ({ codeExam, loading, setCodeExam, onClose, open, handleGe
       <View style={styles.container}>
         <View style={styles.inputWrapper}>
           <Text style={styles.label}>{t('code_exam')}</Text>
-          <TextField value={codeExam} onChangeText={setCodeExam} />
+          <TextField value={codeExam} onChangeText={setCodeExam} isExamCode />
         </View>
       </View>
     </CommonDialog>
