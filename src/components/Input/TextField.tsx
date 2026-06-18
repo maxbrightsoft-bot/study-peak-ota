@@ -53,6 +53,7 @@ type TextFieldProps = {
   textContentType?: TextInputProps['textContentType']
   importantForAutofill?: TextInputProps['importantForAutofill']
   disableFullscreenUI?: boolean
+  isExamCode?: boolean
 }
 
 const TextField = ({
@@ -93,6 +94,7 @@ const TextField = ({
   textContentType,
   importantForAutofill,
   disableFullscreenUI,
+  isExamCode,
 }: TextFieldProps) => {
   const internalRef = React.useRef<TextInput>(null)
   const resolvedRef = inputRef || internalRef
@@ -111,10 +113,20 @@ const TextField = ({
 
   const _onChangeText = useCallback(
     (text: string) => {
-      nativeText.current = text
-      onChangeText && onChangeText(text)
+      let cleanedText = text
+      if (isExamCode) {
+        cleanedText = text.replace(/[^a-zA-Z0-9]/g, "")
+      }
+
+      nativeText.current = cleanedText
+
+      if (isExamCode && text !== cleanedText) {
+        resolvedRef.current?.setNativeProps({ text: cleanedText })
+      }
+
+      onChangeText && onChangeText(cleanedText)
     },
-    [onChangeText]
+    [onChangeText, isExamCode, resolvedRef]
   )
 
   const onFocusClick = useCallback(
