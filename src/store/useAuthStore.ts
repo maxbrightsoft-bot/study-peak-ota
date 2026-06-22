@@ -114,7 +114,7 @@ const useAuthStore = create<AuthStore>()(
       isLoadingWithoutOverlay: false,
       user: null,
       academies: [],
-      hasConsented: true,
+      hasConsented: false,
       selectedAcademy: null,
       redirectUrl: null,
       redirectParams: null,
@@ -384,6 +384,7 @@ const useAuthStore = create<AuthStore>()(
           pusher: undefined,
           channel: undefined,
           isDemoMode: false,
+          hasConsented: false,
         }));
 
         const keysToRemove = [

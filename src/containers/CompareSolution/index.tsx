@@ -1,17 +1,204 @@
 import React, { FC, useMemo } from 'react'
-import { View, Text, ScrollView, StyleSheet } from 'react-native'
+import { View, Text, ScrollView } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { EffectSize, ExamResult, TextbookResult } from '@/utils/types'
+import { EffectSize } from '@/utils/types'
 import { QuestionAnswerType } from '@/utils/enums'
 import { palette } from '@/theme'
-import { Ionicons } from '@expo/vector-icons'
-import { ScaledSheet } from 'react-native-size-matters'
+import { ms } from 'react-native-size-matters'
 import MathRender from '@/components/MathRender'
+
+const C = {
+  correctBg:    palette.green_support[900],
+  correctLight: '#E6F9EC',
+  errorBg:      palette.red[900],
+  errorLight:   '#FEE9ED',
+  neutralBg:    '#F2F4F7',
+  neutralText:  '#5D5D5B',
+  border:       '#E4E7EC',
+  white:        '#FFFFFF',
+  labelText:    '#9A9A98',
+  bg:           '#F9FAFB',
+  problemText:  '#1A1A1A',
+}
+
+const PILL_H   = ms(32)
+const ICON_S   = ms(20)
 
 interface Props {
   effectSize: EffectSize[]
-  isPrint?: boolean
   isTextbook?: boolean
+}
+
+const ResultBadge: FC<{ isCorrect: boolean }> = ({ isCorrect }) => {
+  const { t } = useTranslation()
+  return (
+    <View style={{
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: isCorrect ? C.correctLight : C.errorLight,
+      borderRadius: ms(14),
+      paddingHorizontal: ms(10),
+      paddingVertical: ms(4),
+      gap: ms(4),
+    }}>
+      <View style={{
+        width: ICON_S, height: ICON_S,
+        borderRadius: ICON_S / 2,
+        backgroundColor: isCorrect ? C.correctBg : C.errorBg,
+        alignItems: 'center', justifyContent: 'center',
+      }}>
+        <Text style={{ color: C.white, fontSize: ms(11), fontWeight: '700' }}>
+          {isCorrect ? '✓' : '✕'}
+        </Text>
+      </View>
+      <Text style={{
+        fontSize: ms(12),
+        fontWeight: '600',
+        color: isCorrect ? C.correctBg : C.errorBg,
+      }}>
+        {isCorrect ? t('correct', '정답') : t('incorrect', '오답')}
+      </Text>
+    </View>
+  )
+}
+type PillVariant = 'correctSelected' | 'correctNotSelected' | 'incorrectSelected' | 'neutral'
+
+const ChoicePill: FC<{
+  optionNum: number | string
+  rate: number
+  variant: PillVariant
+  isNoResponse?: boolean
+}> = ({ optionNum, rate, variant, isNoResponse }) => {
+  const bg =
+    variant === 'correctSelected'    ? C.correctBg   :
+    variant === 'correctNotSelected' ? C.correctLight :
+    variant === 'incorrectSelected'  ? C.errorBg     : C.neutralBg
+
+  const fg =
+    variant === 'correctSelected'    ? C.white      :
+    variant === 'correctNotSelected' ? C.correctBg  :
+    variant === 'incorrectSelected'  ? C.white      : C.neutralText
+
+  const iconBg = C.white
+  const iconFg =
+    variant === 'correctSelected'    ? C.correctBg :
+    variant === 'correctNotSelected' ? C.correctBg :
+    variant === 'incorrectSelected'  ? C.errorBg   : '#171719'
+
+  const iconLabel =
+    variant === 'correctSelected'   ? '✓' :
+    variant === 'incorrectSelected' ? '✕' :
+    isNoResponse                    ? '-' : `${optionNum}`
+
+  return (
+    <View style={{
+      flex: 1,
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: ms(5),
+      paddingVertical: ms(10),
+    }}>
+      <View style={{
+        width: ms(34), height: ms(34),
+        borderRadius: ms(17),
+        backgroundColor: bg,
+        alignItems: 'center', justifyContent: 'center',
+        borderWidth: variant === 'correctNotSelected' ? 2 : 0,
+        borderColor: variant === 'correctNotSelected' ? C.correctBg : 'transparent',
+      }}>
+        <View style={{
+          width: ms(22), height: ms(22),
+          borderRadius: ms(11),
+          backgroundColor: iconBg,
+          alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Text style={{ color: iconFg, fontSize: ms(11), fontWeight: '700' }}>
+            {iconLabel}
+          </Text>
+        </View>
+      </View>
+      <Text style={{ color: C.neutralText, fontSize: ms(11), fontWeight: '600' }}>
+        {Math.round(rate)}%
+      </Text>
+    </View>
+  )
+}
+
+const TextPill: FC<{
+  label: string
+  answers: string[]
+  unit?: string
+  rate: number
+  isCorrect: boolean
+  isMyAnswer: boolean
+}> = ({ label, answers, unit, rate, isCorrect, isMyAnswer }) => {
+  const bg = isMyAnswer
+    ? (isCorrect ? C.correctBg : C.errorBg)
+    : (isCorrect ? C.correctBg : C.correctLight)
+
+  const fg = isMyAnswer ? C.white : (isCorrect ? C.white : C.correctBg)
+  const iconFg = isMyAnswer ? (isCorrect ? C.correctBg : C.errorBg) : C.correctBg
+
+  const answersText = answers.length ? answers : ['-']
+
+  return (
+    <View style={{ gap: ms(5) }}>
+      <Text style={{ fontSize: ms(11), color: C.labelText, fontWeight: '600' }}>
+        {label}
+      </Text>
+      <View style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: bg,
+        borderRadius: ms(24),
+        minHeight: PILL_H + ms(10),
+        paddingHorizontal: ms(8),
+        paddingVertical: ms(8),
+        gap: ms(8),
+      }}>
+        <View style={{
+          width: ICON_S, height: ICON_S,
+          borderRadius: ICON_S / 2,
+          backgroundColor: C.white,
+          alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0,
+        }}>
+          <Text style={{ color: iconFg, fontSize: ms(11), fontWeight: '700' }}>
+            {isMyAnswer ? (isCorrect ? '✓' : '✕') : '✓'}
+          </Text>
+        </View>
+        {/* Mỗi answer là 1 MathRender riêng, mỗi cái 1 dòng phân cách bằng divider View */}
+        <View style={{ flex: 1, flexDirection: 'column', gap: ms(6) }}>
+          {answersText.map((a, i) => {
+            const dividerColor = isMyAnswer
+              ? 'rgba(255, 255, 255, 0.25)'
+              : (isCorrect ? 'rgba(255, 255, 255, 0.25)' : 'rgba(43, 186, 132, 0.2)')
+            return (
+              <React.Fragment key={i}>
+                {i > 0 && (
+                  <View style={{ height: 1, backgroundColor: dividerColor, marginVertical: ms(2) }} />
+                )}
+                <MathRender content={a} fontSize={13} textColor={fg} isChat />
+              </React.Fragment>
+            )
+          })}
+          {unit ? (
+            <Text style={{ color: fg, fontSize: ms(12), fontWeight: '500', marginTop: ms(2) }}>
+              ({unit})
+            </Text>
+          ) : null}
+        </View>
+        <Text style={{
+          color: fg,
+          fontSize: ms(12),
+          fontWeight: '700',
+          flexShrink: 0,
+        }}>
+          {Math.round(rate)}%
+        </Text>
+      </View>
+    </View>
+  )
 }
 
 const CompareSolution: FC<Props> = ({ effectSize: originalEffectSize, isTextbook }) => {
@@ -19,357 +206,253 @@ const CompareSolution: FC<Props> = ({ effectSize: originalEffectSize, isTextbook
 
   const effectSize = useMemo(() => {
     if (!isTextbook) return originalEffectSize
-    return originalEffectSize.filter((item) => (item.selectedAnswers?.length || 0) > 0 || (item.textualAnswers?.length || 0) > 0)
+    return originalEffectSize.filter(
+      (i) => (i.selectedAnswers?.length || 0) > 0 || (i.textualAnswers?.length || 0) > 0
+    )
   }, [originalEffectSize, isTextbook])
 
   const statistics = useMemo(() => {
-    const correctCount = effectSize.filter((item) => item.isCorrect).length
-    const totalCount = effectSize.length
-    const rate = totalCount > 0 ? (correctCount / totalCount) * 100 : 0
+    const correctCount = effectSize.filter((i) => i.isCorrect).length
+    const total = effectSize.length
     return {
       correctCount,
-      totalCount,
-      rate: rate.toFixed(1)
+      total,
+      rate: total > 0 ? ((correctCount / total) * 100).toFixed(1) : '0.0',
     }
   }, [effectSize])
 
-  const renderOptionBlock = (item: EffectSize, optionIndex: number) => {
-    const optionNum = optionIndex + 1
-    const isCorrectAnswer = item.correctAnswers?.includes(optionNum)
-    const selectedAnswers = item.selectedAnswers
-    const isSelected = selectedAnswers?.includes(optionNum.toString()) || selectedAnswers?.includes(optionNum)
-    const rate = item.averageAnswers?.[optionIndex] || 0
+  const maxChoiceCount = useMemo(() =>
+    Math.max(
+      5,
+      ...effectSize
+        .filter((i) =>
+          i.questionAnswerType === QuestionAnswerType.SingleChoice ||
+          i.questionAnswerType === QuestionAnswerType.MultipleChoice
+        )
+        .map((i) => i.answersCount || 0)
+    ),
+    [effectSize]
+  )
 
-    let blockStyle: any = styles.defaultBlock
-    let textStyle: any = styles.defaultText
-    let showCheck = false
-
-    if (isCorrectAnswer) {
-      blockStyle = styles.correctBlock
-      textStyle = styles.whiteText
-      if (isSelected) {
-        showCheck = true
-      }
-    } else if (isSelected) {
-      blockStyle = styles.incorrectBlock
-      textStyle = styles.errorText
+  const renderTextType = (type?: QuestionAnswerType) => {
+    switch (type) {
+      case QuestionAnswerType.ShortAnswer:          return t('shortanswer')
+      case QuestionAnswerType.OrderMatters:         return t('order_matters')
+      case QuestionAnswerType.OrderDoesNotMatters:  return t('order_does_not_matter')
+      case QuestionAnswerType.SynonymProcessing:    return t('synonym_processing')
+      default:                                      return ''
     }
-
-    const circleNumbers = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩']
-    const circleNum = circleNumbers[optionIndex] || (optionIndex + 1).toString()
-
-    return (
-      <View key={optionIndex} style={[styles.optionBlock, blockStyle]}>
-        <Text style={[styles.optionNum, textStyle]}>{circleNum}</Text>
-        <Text style={[styles.optionRate, textStyle]}>{Math.round(rate)}%</Text>
-        {showCheck && (
-          <View style={styles.checkBadge}>
-            <Ionicons name="checkmark" size={10} color="#FFF" />
-          </View>
-        )}
-      </View>
-    )
   }
 
   return (
-    <ScrollView contentContainerStyle={{
-      paddingBottom: 200
-    }} style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.statsCard}>
-        <View style={styles.statsRow}>
-          <View>
-            <Text style={styles.statsLabel}>{t('compare_solution')}</Text>
-            <View style={styles.statsValueRow}>
-              <Text style={styles.statsValueMain}>{statistics.correctCount}</Text>
-              <Text style={styles.statsValueSub}> / {statistics.totalCount} {t('problem_unit')}</Text>
-            </View>
+    <ScrollView
+      contentContainerStyle={{ paddingBottom: 200, gap: ms(8) }}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={{
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: C.white,
+        borderWidth: 1,
+        borderColor: C.border,
+        borderRadius: ms(12),
+        padding: ms(16),
+      }}>
+        <View style={{ gap: ms(3) }}>
+          <Text style={{ fontSize: ms(12), color: C.labelText }}>
+            {t('compare_solution')}
+          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: ms(3) }}>
+            <Text style={{ fontSize: ms(32), fontWeight: '800', color: C.correctBg }}>
+              {statistics.correctCount}
+            </Text>
+            <Text style={{ fontSize: ms(14), color: C.neutralText }}>
+              / {statistics.total} {t('problem_unit')}
+            </Text>
           </View>
-          <View style={styles.rateBadge}>
-            <Text style={styles.rateText}>{statistics.rate}%</Text>
-          </View>
+        </View>
+        <View style={{
+          backgroundColor: C.correctLight,
+          paddingHorizontal: ms(18),
+          paddingVertical: ms(10),
+          borderRadius: ms(28),
+        }}>
+          <Text style={{ fontSize: ms(22), fontWeight: '800', color: C.correctBg }}>
+            {statistics.rate}%
+          </Text>
         </View>
       </View>
 
-      <View style={styles.legendContainer}>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendBox, { backgroundColor: palette.main[600] }]} />
-          <Text style={styles.legendText}>{t('correct_answer')}</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendBox, { borderColor: '#FF5252', borderWidth: 1 }]} />
-          <Text style={styles.legendText}>{t('my_answer_incorrect')}</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendBox, { backgroundColor: palette.main[600], alignItems: 'center', justifyContent: 'center' }]}>
-            <Ionicons name="checkmark" size={12} color="#FFF" />
-          </View>
-          <Text style={styles.legendText}>{t('my_answer_correct')}</Text>
-        </View>
-      </View>
+      {/* ── Section title ── */}
+      <Text style={{
+        fontSize: ms(14),
+        fontWeight: '700',
+        color: C.neutralText,
+        paddingHorizontal: ms(2),
+        marginTop: ms(4),
+      }}>
+        {t('compare_detail', '문항별 분석')}
+      </Text>
 
-      {effectSize.map((item, index) => {
-        const isChoice = item.questionAnswerType === QuestionAnswerType.SingleChoice || item.questionAnswerType === QuestionAnswerType.MultipleChoice;
-        const isCorrect = item.isCorrect;
+      {effectSize.map((item, idx) => {
+        const label = item.parentQuestionId
+          ? `${(item.parentQuestionOrder || 0) + 1}.${item.questionOrder + 1}`
+          : `${item.questionOrder + 1}`
+
+        const isChoice =
+          item.questionAnswerType === QuestionAnswerType.SingleChoice ||
+          item.questionAnswerType === QuestionAnswerType.MultipleChoice
+
+        const isCorrect = !!item.isCorrect
+
+        const totalAnswered = item.averageAnswers?.reduce((s, r) => s + r, 0) ?? 0
+        const noResponseRate = Math.max(0, 100 - totalAnswered)
+        const noAnswerSelected = !item.selectedAnswers || item.selectedAnswers.length === 0
 
         return (
-          <View key={item.id || index} style={styles.questionCard}>
-            <View style={styles.cardHeader}>
-              <View style={styles.headerLeft}>
-                <Text style={styles.questionTitle}>
-                  {t('problem')} {item.parentQuestionId ? `${(item?.parentQuestionOrder || 0) + 1}.${item.questionOrder + 1}` : item.questionOrder + 1}
-                </Text>
-                <View style={[styles.statusBadge, { backgroundColor: isCorrect ? '#F3E5F5' : '#FFEBEE' }]}>
-                  <Text style={[styles.statusText, { color: isCorrect ? palette.main[600] : '#D32F2F' }]}>
-                    {isCorrect ? t('correct') : t('incorrect')}
+          <View
+            key={item.id || idx}
+            style={{
+              backgroundColor: C.white,
+              borderWidth: 1,
+              borderColor: isCorrect ? C.correctBg : C.border,
+              borderRadius: ms(12),
+              overflow: 'hidden',
+            }}
+          >
+            {/* Card header */}
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              paddingHorizontal: ms(14),
+              paddingVertical: ms(12),
+              borderBottomWidth: 1,
+              borderBottomColor: C.border,
+              backgroundColor: isCorrect ? C.correctLight : C.errorLight,
+            }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: ms(8) }}>
+                <View style={{
+                  width: ms(32), height: ms(32),
+                  borderRadius: ms(16),
+                  backgroundColor: isCorrect ? C.correctBg : C.errorBg,
+                  alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Text style={{ color: C.white, fontSize: ms(13), fontWeight: '700' }}>
+                    {label}
                   </Text>
                 </View>
-              </View>
-              {isChoice && (
-                <Text style={styles.correctAnswerLabel}>
-                  {t('correct_answer')} {item.correctAnswers?.map(ans => {
-                    const circleNumbers = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩']
-                    return circleNumbers[ans - 1] || ans
-                  }).join(', ')}
+                <Text style={{ fontSize: ms(14), fontWeight: '700', color: C.problemText }}>
+                  {t('problem')} {label}
                 </Text>
-              )}
+                {!isChoice && renderTextType(item.questionAnswerType) ? (
+                  <View style={{
+                    backgroundColor: C.neutralBg,
+                    borderRadius: ms(10),
+                    paddingHorizontal: ms(8),
+                    paddingVertical: ms(3),
+                  }}>
+                    <Text style={{ fontSize: ms(11), color: C.neutralText }}>
+                      {renderTextType(item.questionAnswerType)}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+              <ResultBadge isCorrect={isCorrect} />
             </View>
 
-            {isChoice ? (
-              <View style={styles.optionsRow}>
-                {Array.from({ length: item.answersCount || 5 }).map((_, optIndex) => renderOptionBlock(item, optIndex))}
-              </View>
-            ) : (
-              <View style={styles.textAnswerContainer}>
-                <View style={styles.textAnswerRow}>
-                  <Text style={styles.textAnswerLabel}>{t('answer')}</Text>
-                  <View style={{ flexDirection: 'column', gap: 5, alignItems: 'center' }}>
-                    {item.correctTextualAnswers?.map((ans, idx) =>
-                      <View key={idx} style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
-                        <MathRender key={idx} isChat content={ans} fontSize={13} />
-                      </View>)}
-                    {item.unit && <Text style={styles.textAnswerValue}>({item.unit})</Text>}
-                  </View>
-                </View>
-                <View style={styles.textAnswerRow}>
-                  <Text style={styles.textAnswerLabel}>{t('my_solution')}</Text>
-                  <View style={{ flexDirection: 'column', gap: 5, alignItems: 'center' }}>
-                    {item.textualAnswers?.map((ans, idx) =>
-                      <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
-                        <MathRender key={idx} isChat content={ans} fontSize={13} />
+            <View style={{ padding: ms(12) }}>
+              {isChoice ? (
+                <View>
+                  <View style={{ flexDirection: 'row', marginBottom: ms(2) }}>
+                    {Array.from({ length: maxChoiceCount }, (_, i) => (
+                      <View key={i} style={{ flex: 1, alignItems: 'center' }}>
+                        <Text style={{ fontSize: ms(12), color: C.labelText, fontWeight: '600' }}>
+                          {t('number_question', { number: i + 1 })}
+                        </Text>
                       </View>
-                    )}
-                    {item.unit && <Text style={styles.textAnswerValue}>({item.unit})</Text>}
+                    ))}
+                    <View style={{ flex: 1, alignItems: 'center' }}>
+                      <Text style={{ fontSize: ms(12), color: C.labelText, fontWeight: '600' }}>
+                        {t('no_response')}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={{ flexDirection: 'row' }}>
+                    {Array.from({ length: maxChoiceCount }, (_, optIdx) => {
+                      const opt = optIdx + 1
+                      const isCorrectAnswer = item.correctAnswers?.includes(opt)
+                      const isSelected =
+                        item.selectedAnswers?.includes(opt.toString()) ||
+                        item.selectedAnswers?.includes(opt)
+                      const rate = item.averageAnswers?.[optIdx] ?? 0
+
+                      let variant: PillVariant = 'neutral'
+                      if (isCorrectAnswer && isSelected)        variant = 'correctSelected'
+                      else if (isCorrectAnswer && !isSelected)  variant = 'correctNotSelected'
+                      else if (!isCorrectAnswer && isSelected)  variant = 'incorrectSelected'
+
+                      return (
+                        <ChoicePill
+                          key={opt}
+                          optionNum={opt}
+                          rate={rate}
+                          variant={variant}
+                        />
+                      )
+                    })}
+
+                    <ChoicePill
+                      optionNum="-"
+                      rate={noResponseRate}
+                      variant={noAnswerSelected ? 'incorrectSelected' : 'neutral'}
+                      isNoResponse
+                    />
                   </View>
                 </View>
-                <View style={styles.textAnswerRow}>
-                  <Text style={styles.textAnswerLabel}>{t('correct_rate')}</Text>
-                  <Text style={styles.textAnswerValue}>{item.correctRate?.toFixed(2)}%</Text>
+              ) : (
+                <View style={{ gap: ms(12) }}>
+                  {isCorrect ? (
+                    <TextPill
+                      label={t('my_answer', '내 답안')}
+                      answers={item.textualAnswers?.length ? item.textualAnswers : ['-']}
+                      unit={item.unit}
+                      rate={item.correctRate ?? 0}
+                      isCorrect
+                      isMyAnswer
+                    />
+                  ) : (
+                    <>
+                      <TextPill
+                        label={t('my_answer', '내 답안')}
+                        answers={item.textualAnswers?.length ? item.textualAnswers : ['-']}
+                        unit={item.unit}
+                        rate={item.sameAnswerRate ?? 0}
+                        isCorrect={false}
+                        isMyAnswer
+                      />
+                      <TextPill
+                        label={t('correct_answer', '정답')}
+                        answers={item.correctTextualAnswers?.length ? item.correctTextualAnswers : ['-']}
+                        unit={item.unit}
+                        rate={item.correctRate ?? 0}
+                        isCorrect
+                        isMyAnswer={false}
+                      />
+                    </>
+                  )}
                 </View>
-              </View>
-            )}
+              )}
+            </View>
           </View>
-        );
+        )
       })}
+
       <View style={{ height: 40 }} />
     </ScrollView>
   )
 }
-
-const styles = ScaledSheet.create({
-  container: {
-  },
-  subjectHeader: {
-    paddingHorizontal: '20@ms',
-    paddingVertical: '12@ms',
-    backgroundColor: '#FFF',
-    marginBottom: '10@ms',
-  },
-  subjectText: {
-    fontSize: '14@ms',
-    fontWeight: '600',
-    color: '#333',
-  },
-  separator: {
-    color: '#DDD',
-    marginHorizontal: '4@ms',
-  },
-  statsCard: {
-    padding: '16@ms',
-    backgroundColor: '#FFF',
-    borderRadius: '16@ms',
-    marginBottom: '12@ms',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  statsLabel: {
-    fontSize: '12@ms',
-    color: '#999',
-    marginBottom: '4@ms',
-  },
-  statsValueRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  statsValueMain: {
-    fontSize: '24@ms',
-    fontWeight: '700',
-    color: palette.main[600],
-  },
-  statsValueSub: {
-    fontSize: '14@ms',
-    color: '#666',
-  },
-  rateBadge: {
-    backgroundColor: '#F3E5F5',
-    paddingHorizontal: '12@ms',
-    paddingVertical: '6@ms',
-    borderRadius: '20@ms',
-  },
-  rateText: {
-    fontSize: '16@ms',
-    fontWeight: '700',
-    color: palette.main[600],
-  },
-  legendContainer: {
-    flexDirection: 'row',
-    padding: '12@ms',
-    backgroundColor: '#FFF',
-    borderRadius: '12@ms',
-    marginBottom: '16@ms',
-    justifyContent: 'space-around',
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  legendBox: {
-    width: '16@ms',
-    height: '16@ms',
-    borderRadius: '4@ms',
-    marginRight: '6@ms',
-  },
-  legendText: {
-    fontSize: '11@ms',
-    color: '#666',
-  },
-  questionCard: {
-    padding: '16@ms',
-    backgroundColor: '#FFF',
-    borderRadius: '16@ms',
-    marginBottom: '12@ms',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: '2@ms',
-    elevation: '1@ms',
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '16@ms',
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  questionTitle: {
-    fontSize: '15@ms',
-    fontWeight: '700',
-    color: '#333',
-    marginRight: '8@ms',
-  },
-  statusBadge: {
-    paddingHorizontal: '8@ms',
-    paddingVertical: '2@ms',
-    borderRadius: '8@ms',
-  },
-  statusText: {
-    fontSize: '11@ms',
-    fontWeight: '600',
-  },
-  correctAnswerLabel: {
-    fontSize: '12@ms',
-    color: '#999',
-  },
-  optionsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: '-4@ms',
-  },
-  optionBlock: {
-    width: '18%',
-    aspectRatio: 1,
-    marginHorizontal: '1%',
-    marginVertical: '4@ms',
-    borderRadius: '12@ms',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  optionNum: {
-    fontSize: '14@ms',
-    marginBottom: '2@ms',
-  },
-  optionRate: {
-    fontSize: '12@ms',
-    fontWeight: '600',
-  },
-  defaultBlock: {
-    backgroundColor: '#F5F5F5',
-  },
-  defaultText: {
-    color: '#9E9E9E',
-  },
-  correctBlock: {
-    backgroundColor: palette.main[600],
-  },
-  incorrectBlock: {
-    backgroundColor: '#FFF',
-    borderWidth: '1.5@ms',
-    borderColor: '#FF5252',
-  },
-  whiteText: {
-    color: '#FFF',
-  },
-  errorText: {
-    color: '#FF5252',
-  },
-  checkBadge: {
-    position: 'absolute',
-    top: '4@ms',
-    right: '4@ms',
-    borderRadius: '6@ms',
-    width: '14@ms',
-    height: '14@ms',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  textAnswerContainer: {
-    backgroundColor: '#F9F9F9',
-    padding: '12@ms',
-    borderRadius: '8@ms',
-    gap: '8@ms',
-  },
-  textAnswerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  textAnswerLabel: {
-    fontSize: '13@ms',
-    color: '#666',
-    width: '100@ms',
-    marginRight: 20
-  },
-  textAnswerValue: {
-    fontSize: '14@ms',
-    fontWeight: '600',
-    color: '#333',
-    flex: 1,
-  },
-})
 
 export default CompareSolution

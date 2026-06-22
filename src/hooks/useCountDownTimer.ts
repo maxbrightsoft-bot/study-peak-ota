@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import moment from "moment";
 import { ExamStatus } from "@/utils/enums";
 import { isValidTime } from "@/utils/helpers";
-import { useFocusEffect } from "@react-navigation/native";
+import { useIsFocused } from "@react-navigation/native";
 import { AppState } from "react-native";
 import useServerTime from "./useServerTime";
 import useCheckExamStatus from "./useCheckExamStatus ";
@@ -49,10 +49,11 @@ const useCountDownTimer = (props: Props) => {
     const countdownTimeoutRef = useRef<number | null>(null);
     const isFinishedRef = useRef(false);
     const isTickingRef = useRef(false);
-    const isCheckStatusRef = useRef(isCheckStatus)
+    const isCheckStatusRef = useRef(isCheckStatus);
+    const isFocused = useIsFocused();
+    const [appState, setAppState] = useState(AppState.currentState);
 
     const { checkStatus } = useCheckExamStatus(onFinish, status === ExamStatus.Paused || (remainTime !== undefined && remainTime > 0));
-
 
     const diffFromNowMs = useCallback((time: string): number => {
         const input = moment.utc(time);
@@ -60,8 +61,22 @@ const useCountDownTimer = (props: Props) => {
         return getServerNow() - input.valueOf();
     }, [getServerNow]);
 
+    useEffect(() => {
+        const sub = AppState.addEventListener('change', (nextState) => {
+            setAppState(nextState);
+            if (nextState !== 'active') {
+                if (countdownTimeoutRef.current) {
+                    clearTimeout(countdownTimeoutRef.current);
+                }
+                isTickingRef.current = false;
+            }
+        });
+
+        return () => sub.remove();
+    }, []);
 
     useEffect(() => {
+        if (!isFocused || appState !== 'active') return;
         if (status !== ExamStatus.InProgress && status !== ExamStatus.Paused) return;
         if (!startTime || !duration || !isRunning) return;
         if (isTickingRef.current) return;
@@ -69,6 +84,7 @@ const useCountDownTimer = (props: Props) => {
         if (!synced) return;
 
         isTickingRef.current = true;
+        isFinishedRef.current = false;
 
         const pauseTime = lastPausedAt ?? lastPausedTime;
         const resumeTime = lastResumedAt ?? lastResumedTime;
@@ -110,7 +126,9 @@ const useCountDownTimer = (props: Props) => {
 
         return () => {
             isTickingRef.current = false;
-            if (countdownTimeoutRef.current) clearTimeout(countdownTimeoutRef.current);
+            if (countdownTimeoutRef.current) {
+                clearTimeout(countdownTimeoutRef.current);
+            }
         };
     }, [
         startTime,
@@ -125,6 +143,8 @@ const useCountDownTimer = (props: Props) => {
         lastResumedTime,
         totalPausedTime,
         onFinish,
+        isFocused,
+        appState,
     ]);
 
     useEffect(() => {
@@ -132,36 +152,13 @@ const useCountDownTimer = (props: Props) => {
             checkStatus({ code, textbookId, studentSessionId: studentExamSessionId, examStatus: status });
     }, [remainTime]);
 
-
     useEffect(() => {
         return () => {
             if (countdownTimeoutRef.current) clearTimeout(countdownTimeoutRef.current);
         };
     }, []);
 
-    useFocusEffect(
-        useCallback(() => {
-            isTickingRef.current = false;
-            isFinishedRef.current = false;
-
-            return () => {
-                if (countdownTimeoutRef.current) clearTimeout(countdownTimeoutRef.current);
-            };
-        }, [])
-    );
-
-    useEffect(() => {
-        const sub = AppState.addEventListener('change', (state) => {
-            if (state !== 'active') {
-                clearTimeout(countdownTimeoutRef.current!);
-                isTickingRef.current = false;
-            }
-        });
-
-        return () => sub.remove();
-    }, []);
-
-    return remainTime
+    return remainTime;
 };
 
 export default useCountDownTimer;

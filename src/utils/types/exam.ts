@@ -209,6 +209,7 @@ export type EffectSize = {
     questionOrder: number
     isCorrect: boolean
     correctRate: number
+    sameAnswerRate?: number
     selectedAnswers?: any[]
     correctAnswers?: any[]
     parentQuestionId?: number
