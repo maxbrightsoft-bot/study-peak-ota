@@ -297,6 +297,7 @@ const useExamSolving = (props: Props) => {
     });
 
     try {
+      const answeredQuestion = arrQuestionNew.find(q => q.id === questionId);
       track({
         action: ActivityAction.Answer,
         resourceType: ActivityResource.Exam,
@@ -308,6 +309,10 @@ const useExamSolving = (props: Props) => {
           status: exam?.isLate ? exam?.lateStatus : exam?.status,
           examCode: exam?.code || '',
           studentExamSessionId: String(exam?.studentExamSessionId || ''),
+          questionId,
+          selectedAnswers: answeredQuestion?.selectedAnswers,
+          textualAnswers: answeredQuestion?.textualAnswers,
+          answerTime: nowTime,
         }
       })
 
@@ -344,6 +349,10 @@ const useExamSolving = (props: Props) => {
           examCode: exam?.code || '',
           status: exam?.isLate ? exam?.lateStatus : exam?.status,
           studentExamSessionId: String(exam?.studentExamSessionId || ''),
+          questionId,
+          selectedAnswers: answer !== undefined ? [answer] : undefined,
+          textualAnswers,
+          answerTime: nowTime,
         }
       })
     }
@@ -385,6 +394,9 @@ const useExamSolving = (props: Props) => {
           examCode: exam?.code || '',
           status: exam?.isLate ? exam?.lateStatus : exam?.status,
           studentExamSessionId: String(exam.studentExamSessionId || ''),
+          questionId,
+          isStar,
+          answerTime: nowTime,
         }
       })
 
@@ -422,6 +434,9 @@ const useExamSolving = (props: Props) => {
           status: exam?.isLate ? exam?.lateStatus : exam?.status,
           examCode: exam?.code || '',
           studentExamSessionId: String(exam?.studentExamSessionId || ''),
+          questionId,
+          isStar,
+          answerTime: nowTime,
         }
       })
     }

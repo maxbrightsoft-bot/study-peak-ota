@@ -270,6 +270,7 @@ const useTextbookSolving = (props: Props) => {
       return item;
     });
     try {
+      const answeredQuestion = arrQuestionNew.find(q => q.id === questionId);
       track({
         action: ActivityAction.Answer,
         resourceId: String(questionId),
@@ -278,7 +279,11 @@ const useTextbookSolving = (props: Props) => {
         metaData: {
           textbookId: String(textbook?.id),
           status: textbook?.status,
-          studentTextbookId: textbook?.studentTextbookId
+          studentTextbookId: textbook?.studentTextbookId,
+          questionId,
+          selectedAnswers: answeredQuestion?.selectedAnswers,
+          textualAnswers: answeredQuestion?.textualAnswers,
+          answerTime: nowTime,
         }
       })
 
@@ -311,7 +316,11 @@ const useTextbookSolving = (props: Props) => {
           body,
           textbookId: String(textbook?.id),
           status: textbook?.status,
-          studentTextbookId: textbook?.studentTextbookId
+          studentTextbookId: textbook?.studentTextbookId,
+          questionId,
+          selectedAnswers: answer !== undefined ? [answer] : undefined,
+          textualAnswers,
+          answerTime: nowTime,
         }
       })
     }
@@ -350,7 +359,10 @@ const useTextbookSolving = (props: Props) => {
         metaData: {
           textbookId: String(textbook?.id),
           status: textbook?.status,
-          studentTextbookId: textbook?.studentTextbookId
+          studentTextbookId: textbook?.studentTextbookId,
+          questionId,
+          isStar,
+          answerTime: nowTime,
         }
       })
 
@@ -384,7 +396,10 @@ const useTextbookSolving = (props: Props) => {
           textbookId: String(textbook?.id),
           body,
           status: textbook?.status,
-          studentTextbookId: textbook?.studentTextbookId
+          studentTextbookId: textbook?.studentTextbookId,
+          questionId,
+          isStar,
+          answerTime: nowTime,
         }
       })
     }
