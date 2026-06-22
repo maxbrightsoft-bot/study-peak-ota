@@ -39,7 +39,7 @@ const StepLogin = () => {
   const { t, user, handleSubmit } = useStep();
   const initValues = {
     loginMethod: user?.loginMethod || "",
-    fullName: user?.fullName || "",
+    fullName: "",
     phoneNumber: user?.phoneNumber || "",
     parentName: user?.parentName || "",
     parentPhoneNumber: user?.parentPhoneNumber || "",

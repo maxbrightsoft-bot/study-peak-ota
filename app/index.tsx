@@ -2,7 +2,7 @@ import RootNavigation from '../src/navigators/RootNavigation'
 import { I18nextProvider } from 'react-i18next'
 import React, { useEffect, useState } from 'react'
 import { NavigationIndependentTree } from '@react-navigation/native'
-import { LogBox, Platform, View, ActivityIndicator, Text } from 'react-native'
+import { LogBox, Platform, View, ActivityIndicator, Text, Alert } from 'react-native'
 import i18n from '@/languages/i18n'
 import hotUpdate from 'react-native-ota-hot-update'
 import ReactNativeBlobUtil from 'react-native-blob-util'
@@ -244,7 +244,6 @@ async function checkOtaUpdate(
       return
     }
 
-    setIsUpdating(true)
     setIsUpdatingOta(true)
 
     const url = Platform.OS === 'ios' ? data.downloadIosUrl : data.downloadAndroidUrl
@@ -255,13 +254,31 @@ async function checkOtaUpdate(
       updateSuccess: () => {
         console.log('[OTA] Success')
         setBundleVersion(data.version)
+        setIsUpdatingOta(false)
+
+        Alert.alert(
+          i18n.t('ota_completed_title', { defaultValue: '업데이트 완료' }),
+          i18n.t('ota_completed_message', { defaultValue: '새로운 업데이트 다운로드가 완료되었습니다. 지금 앱을 재시작하여 적용하시겠습니까?' }),
+          [
+            {
+              text: i18n.t('ota_later', { defaultValue: '나중에' }),
+              style: 'cancel'
+            },
+            {
+              text: i18n.t('ota_update_now', { defaultValue: '업데이트' }),
+              onPress: () => {
+                hotUpdate.resetApp()
+              }
+            }
+          ],
+          { cancelable: false }
+        )
       },
       updateFail: (msg) => {
         console.log('[OTA] Failed:', msg)
-        setIsUpdating(false)
         setIsUpdatingOta(false)
       },
-      restartAfterInstall: true,
+      restartAfterInstall: false,
       maxBundleVersions: 3
     })
   } catch (e) {

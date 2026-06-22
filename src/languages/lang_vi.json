@@ -2096,6 +2096,10 @@
   "force_update_title": "Yêu Cầu Cập Nhật",
   "force_update_subtitle": "Để tiếp tục sử dụng ứng dụng với đầy đủ tính năng và bảo mật tốt nhất, vui lòng cập nhật lên phiên bản mới nhất.",
   "force_update_button": "CẬP NHẬT NGAY",
-  "version_label": "Phiên bản mới"
+  "version_label": "Phiên bản mới",
+  "ota_completed_title": "Cập nhật hoàn tất",
+  "ota_completed_message": "Đã tải xong bản cập nhật mới. Bạn có muốn khởi động lại ứng dụng để áp dụng ngay không?",
+  "ota_later": "Để sau",
+  "ota_update_now": "Cập nhật"
 }
 

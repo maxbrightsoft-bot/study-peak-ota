@@ -21,6 +21,7 @@ import { Platform } from 'react-native'
 import StudentExamHistoryScreen from '@/screens/StudentExamHistory'
 import ConsentScreen from '@/containers/Setting/components/ConsentScreen'
 import { getConsentStatusApi, agreeConsentApi } from '@/containers/Setting/apiClients'
+import Loading from '@/components/Loading'
 import { toast, getErrorMessage } from '@/utils/helpers'
 import { useTranslation } from 'react-i18next'
 import { CONSENT_POLICY_VERSION } from '@/utils/constants'
@@ -85,7 +86,11 @@ const Authorized = ({ route }: { route: any }) => {
   const isDemo = useAuthStore(state => state.isDemoMode)
   const languageKey = isDemo ? language?.code : undefined
 
-  if (!isCheckingConsent && hasConsented === false) {
+  if (isCheckingConsent) {
+    return <Loading isOverlay />
+  }
+
+  if (hasConsented === false) {
     return <ConsentScreen onAgree={handleConsentAgree} />
   }
 

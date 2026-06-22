@@ -166,7 +166,7 @@ const Vulnerable: FC<Props> = ({ data, isPrint }) => {
         <Text style={[styles.headerText]}>{t('issues_vulnerable')}</Text>
         {incorrectQuestions.length > 0 && (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Text style={{ fontSize: 11, color: palette.grey[500] }}>{t('scroll_horizontal', 'Vuốt ngang')}</Text>
+            <Text style={{ fontSize: 11, color: palette.grey[500] }}>{t('scroll_horizontal')}</Text>
             <Ionicons name="swap-horizontal" size={14} color={palette.grey[500]} />
           </View>
         )}

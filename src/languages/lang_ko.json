@@ -632,7 +632,7 @@
   "are_you_sure_to_delete_subchapter_from_chapter": "{{chapter}} 장에서 {{subchapter}} 하위 장을 삭제하시겠습니까?",
   "are_you_sure_to_delete_chapter_from_textbook": "교과서 {{chapter}}에서 {{textbook}}장을 삭제하시겠습니까?",
   "do_you_want_to_quit_your_exam": "당신의 시험을 종료하시겠습니까?",
-  "home": "집",
+  "home": "홈",
   "profile": "프로필",
   "settings": "설정",
   "sign_up_school_information": "회원가입 - 학교정보",
@@ -1436,11 +1436,11 @@
   "mock_question_count_must_be_greater_than": "모의 문제 수는 {{min}}보다 커야 합니다",
   "mock_time_must_be_greater_than": "모의 시간은 {{min}}보다 커야 합니다",
   "voice_guidance_settings": "음성 안내 설정",
-  "would_you_like_to_enable_voice_guidance": "음성 안내를 활성화하시겠습니까?",
-  "a_voice_guidance_will_be_played_just_like_in_the_actual_exam": "실제 시험처럼 안내 음성이 재생됩니다.",
+  "would_you_like_to_enable_voice_guidance": "음성 안내를\n활성화 하시겠습니까?",
+  "a_voice_guidance_will_be_played_just_like_in_the_actual_exam": "실제 시험처럼\n안내 음성이 재생됩니다.",
   "be_sure_to_turn_on_your_speakers": "꼭 스피커를 켜주세요.",
   "deactivate": "비활성화",
-  "activate": "활성화",
+  "activate": "확인",
   "completed_assignment": "완료된 과제",
   "restart_textbook": "교재를 다시 시작",
   "are_you_sure_you_want_to_restart_the_textbook": "교과서를 다시 시작하시겠습니까?",
@@ -2077,6 +2077,10 @@
   "force_update_title": "업데이트 필요",
   "force_update_subtitle": "최신 기능과 안정적인 서비스를 계속해서 사용하시려면 최신 버전으로 업데이트해주시기 바랍니다.",
   "force_update_button": "지금 업데이트",
-  "version_label": "새로운 버전"
+  "version_label": "새로운 버전",
+  "ota_completed_title": "업데이트 완료",
+  "ota_completed_message": "새로운 업데이트 다운로드가 완료되었습니다. 지금 앱을 재시작하여 적용하시겠습니까?",
+  "ota_later": "나중에",
+  "ota_update_now": "업데이트"
 }
 

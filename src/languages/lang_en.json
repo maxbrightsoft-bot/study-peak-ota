@@ -2078,6 +2078,10 @@
   "force_update_title": "Update Required",
   "force_update_subtitle": "To continue using the application with all features and best security, please update to the latest version.",
   "force_update_button": "UPDATE NOW",
-  "version_label": "New version"
+  "version_label": "New version",
+  "ota_completed_title": "Update Completed",
+  "ota_completed_message": "The new update has been downloaded. Do you want to restart the app to apply it now?",
+  "ota_later": "Later",
+  "ota_update_now": "Update"
 }
 
