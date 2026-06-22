@@ -1,6 +1,1 @@
-{
-  "version": "3.0.1",
-  "versionCode": 30001,
-  "downloadAndroidUrl": "https://github.com/maxbrightsoft-bot/study-peak-ota/releases/download/ota-v3-0-0/android.zip",
-  "downloadIosUrl": "https://github.com/maxbrightsoft-bot/study-peak-ota/releases/download/ota-v3-0-1/ios.zip"
-}
+{"versionCode":30002,"version":"3.0.2","downloadAndroidUrl":null,"downloadIosUrl":"https://github.com/maxbrightsoft-bot/study-peak-ota/releases/download/ota-v3-0-2/ios.zip"}
