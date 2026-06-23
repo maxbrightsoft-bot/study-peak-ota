@@ -28,16 +28,24 @@ export const MESSAGE_CONVERSATION_READ_EVENT = 'message-conversation-read-event'
 
 export const TabList = [
     {
-        label: "entire",
-        value: 0,
+        label: "tab_all",
+        value: "all",
+        countColor: "#94A3B8",
     },
     {
-        label: "consulting",
-        value: 1,
+        label: "tab_new",
+        value: "new",
+        countColor: "#B91C1C",
     },
     {
-        label: "consulting_completed",
-        value: 2,
+        label: "tab_unanswered",
+        value: "unanswered",
+        countColor: "#B45309",
+    },
+    {
+        label: "tab_completed",
+        value: "completed",
+        countColor: "#94A3B8",
     },
 ]
 

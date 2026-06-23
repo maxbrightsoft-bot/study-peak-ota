@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { getListConversation } from "../apiClient/studentStatusService";
-import { CONVERSATION_DEFAULT_FILTER } from "../configs/constants";
+import { CONVERSATION_DEFAULT_FILTER, TabList } from "../configs/constants";
 import _ from "lodash"
 import { getListCourseByStudentApi } from "../apiClient/examService";
 import { Course } from "../configs/types";
@@ -29,6 +29,14 @@ const useConversationList = () => {
   const { t } = useTranslation()
   const inputSearch = useRef<any>(null);
   const socket = getSocket()
+
+  const [selectedTab, setSelectedTab] = useState<string>(TabList[0].value)
+  const selectedTabRef = useRef<string>(TabList[0].value)
+
+  const handleChangeTab = useCallback((newValue: string) => {
+    setSelectedTab(newValue)
+    selectedTabRef.current = newValue
+  }, [])
 
   const onChangeSearch = useCallback((value: string) => {
     setSearch(value);
@@ -120,25 +128,45 @@ const useConversationList = () => {
     return false;
   }, []);
 
+  const checkTabMatch = useCallback((item: any, selectedTab: string) => {
+    if (selectedTab === 'all') return true;
+
+    const isCompleted = item.isCompleted;
+    const totalUnReadMessage = item.totalUnReadMessage || 0;
+
+    if (selectedTab === 'new') {
+      return !isCompleted && totalUnReadMessage > 0;
+    }
+    if (selectedTab === 'unanswered') {
+      return !isCompleted && totalUnReadMessage === 0;
+    }
+    if (selectedTab === 'completed') {
+      return isCompleted;
+    }
+    return true;
+  }, []);
+
   const handleNewMessageCount = useCallback((data: string) => {
     const conversationCount: any = JSON.parse(data)
     const searchText = searchRef.current?.trim() || "";
-    if (!checkSearchMatch(conversationCount, searchText)) return;
+    if (!checkSearchMatch(conversationCount, searchText) || !checkTabMatch(conversationCount, selectedTabRef.current)) return;
 
     setConversations((prev) => {
       const index = prev.findIndex((i) => i.id === conversationCount.conversationId)
       if (index < 0) return prev;
       
-      const updatedConversations = [...prev];
-      const [conversation] = updatedConversations.splice(index, 1);
-      
-      const updatedConversation = {
-        ...conversation,
-        lastMessage: conversationCount.lastMessage || conversation.lastMessage
-      }
-      return [updatedConversation, ...updatedConversations];
+        const updatedConversations = [...prev];
+        const [conversation] = updatedConversations.splice(index, 1);
+
+        const updatedConversation = {
+          ...conversation,
+          lastMessage: conversationCount.lastMessage || conversation.lastMessage,
+          totalUnReadMessage: conversationCount.totalUnReadMessage || 0,
+          isCompleted: conversationCount.isCompleted,
+        }
+        return [updatedConversation, ...updatedConversations];
     })
-  }, [checkSearchMatch, selectedConversation?.id])
+  }, [checkSearchMatch])
 
   const getListCourseByStudent = useCallback(async () => {
     setLoading(true)
@@ -156,7 +184,7 @@ const useConversationList = () => {
     if (!data) return
     const item = JSON.parse(data)
     setConversations((prev) => prev.map((conversation) => {
-      if (conversation.id === item.id) return item
+      if (conversation.id === item.id) return {...conversation, isCompleted: item.isCompleted, completedAt: item.completedAt}
       return conversation
     }))
   }, [])
@@ -221,12 +249,15 @@ const useConversationList = () => {
     isVisibleCreateConversationDialog,
     handleCloseCreateConversationDialog,
     handleVisibleCreateConversationDialog,
+    selectedTab,
+    handleChangeTab,
 
   }), [
     t, user, courses, conversationFilter, selectedConversation, conversations, search,
     onChangeSearch, handleCloseFilterModal, handleOpenFilterModal, handleChangeFilter,
     handleCompletedConversation, handleChangeSelectedConversation, getConversationList,
-    isVisibleCreateConversationDialog, handleCloseCreateConversationDialog, handleVisibleCreateConversationDialog
+    isVisibleCreateConversationDialog, handleCloseCreateConversationDialog, handleVisibleCreateConversationDialog,
+    selectedTab, handleChangeTab
   ])
 }
 

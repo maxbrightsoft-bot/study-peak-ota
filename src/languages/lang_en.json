@@ -892,7 +892,6 @@
   "month_format": "MMM",
   "year_format": "{{number}}",
   "subject_area": "Subject Area",
-  "entire": "Entire",
   "exam_period": "Exam period",
   "keyword": "Keyword",
   "placeholder_prepared_textbook": "Please separate keywords with commas (,).",
@@ -1768,8 +1767,6 @@
   "my_grades": "My grades",
   "ask_question": "Ask question",
   "chatbot": "Chatbot",
-  "consulting": "Consulting",
-  "consulting_completed": "Consulting completed",
   "question_selection": "Question selection",
   "register": "Register",
   "example_note": "(Example) I should save time on other questions and spend more time on modern literature, which I'm weak in.",
@@ -2082,6 +2079,10 @@
   "ota_completed_title": "Update Completed",
   "ota_completed_message": "The new update has been downloaded. Do you want to restart the app to apply it now?",
   "ota_later": "Later",
-  "ota_update_now": "Update"
+  "ota_update_now": "Update",
+  "tab_all": "All",
+  "tab_new": "New",
+  "tab_unanswered": "Unans",
+  "tab_completed": "Done"
 }
 

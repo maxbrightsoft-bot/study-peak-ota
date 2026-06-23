@@ -4,7 +4,6 @@ import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native'
 import useConversationList from './hooks/useConversationList'
 import useChatContainer from './hooks/useChatContainer'
 import { TabList } from './configs/constants'
-import useTab from '@/hooks/useTab'
 import { palette } from '@/theme'
 import { ConversationsResponse } from '@/utils/types'
 import BotIcon from '@/assets/iconJSX/bot'
@@ -85,7 +84,14 @@ const Card = React.memo(({
           <Text style={styles.teacherName} numberOfLines={1}>
             {conversation?.mainTeacherCourseName || conversation.teacherName || t('teacher')}
           </Text>
-          <Text style={styles.timeText}>{moment(conversation.createdAt).fromNow()}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            {!!conversation.totalUnReadMessage && !conversation.isCompleted && conversation.totalUnReadMessage > 0 && (
+              <View style={styles.unreadBadge}>
+                <Text style={styles.unreadBadgeText}>{conversation.totalUnReadMessage}</Text>
+              </View>
+            )}
+            <Text style={styles.timeText}>{moment(conversation.createdAt).fromNow()}</Text>
+          </View>
         </View>
         <Text style={styles.cardCategory} numberOfLines={1}>
           {conversation.examTitle || getConversationTitle(conversation, t)}
@@ -105,6 +111,27 @@ const Card = React.memo(({
         )}
       </View>
       <View style={styles.cardInfoRow}>
+        {/* Status Badge */}
+        {conversation.isCompleted ? (
+          <View style={[styles.statusBadge, { backgroundColor: '#F1F5F9' }]}>
+            <Text style={[styles.statusBadgeText, { color: '#94A3B8' }]}>
+              {t('tab_completed', 'Done')}
+            </Text>
+          </View>
+        ) : (conversation.totalUnReadMessage || 0) > 0 ? (
+          <View style={[styles.statusBadge, { backgroundColor: '#FEE2E2' }]}>
+            <Text style={[styles.statusBadgeText, { color: '#B91C1C' }]}>
+              {t('tab_new', 'New')}
+            </Text>
+          </View>
+        ) : (
+          <View style={[styles.statusBadge, { backgroundColor: '#FEF3C7' }]}>
+            <Text style={[styles.statusBadgeText, { color: '#B45309' }]}>
+              {t('tab_unanswered', 'Unans')}
+            </Text>
+          </View>
+        )}
+
         {conversation?.question && (
           <View style={styles.infoBadge}>
             <Text style={styles.infoBadgeText}>
@@ -147,6 +174,8 @@ export default function Question() {
     courses,
     handleChangeSelectedConversation,
     setSelectedConversation,
+    selectedTab,
+    handleChangeTab,
   } = useConversationList()
 
   const { isLoadingMessages, chatListProps, inputProps, chatHeaderProps, handleLoadMoreMessages } = useChatContainer({
@@ -172,8 +201,6 @@ export default function Question() {
     getConversationList
   })
 
-  const { selected, handleChangeTab } = useTab(TabList)
-
   useFocusEffect(
     useCallback(() => {
       handleChangeTab(TabList[0].value)
@@ -186,15 +213,18 @@ export default function Question() {
   }, [getConversationList, setSelectedConversation])
 
   const conversationFilters = useMemo(() => {
-    switch (selected) {
-      case TabList[1].value:
-        return conversations.filter((conversation) => !conversation.isCompleted)
-      case TabList[2].value:
+    switch (selectedTab) {
+      case 'new':
+        return conversations.filter((conversation) => !conversation.isCompleted && (conversation.totalUnReadMessage || 0) > 0)
+      case 'unanswered':
+        return conversations.filter((conversation) => !conversation.isCompleted && (conversation.totalUnReadMessage || 0) === 0)
+      case 'completed':
         return conversations.filter((conversation) => conversation.isCompleted)
+      case 'all':
       default:
         return conversations
     }
-  }, [conversations, selected])
+  }, [conversations, selectedTab])
 
   return (
     <View style={styles.container}>
@@ -219,12 +249,28 @@ export default function Question() {
             style={{ flexDirection: 'row' }}
             contentContainerStyle={{ gap: 8 }}
           >
-            {TabList.map(({ label, value }, index) => (
-              <TouchableOpacity key={index} style={[styles.tabs, value === selected && styles.activeTabWrapper]} onPress={() => handleChangeTab(value)} activeOpacity={0.7}>
-                <Text style={[styles.tab, value === selected && styles.activeTab]}>{t(label)}</Text>
-                {value === selected && <View style={styles.activeIndicator} />}
-              </TouchableOpacity>
-            ))}
+            {TabList.map(({ label, value, countColor }, index) => {
+              let count = 0;
+              if (value === 'all') {
+                count = conversations.length;
+              } else if (value === 'new') {
+                count = conversations.filter(c => !c.isCompleted && (c.totalUnReadMessage || 0) > 0).length;
+              } else if (value === 'unanswered') {
+                count = conversations.filter(c => !c.isCompleted && (c.totalUnReadMessage || 0) === 0).length;
+              } else if (value === 'completed') {
+                count = conversations.filter(c => c.isCompleted).length;
+              }
+
+              return (
+                <TouchableOpacity key={index} style={[styles.tabs, value === selectedTab && styles.activeTabWrapper]} onPress={() => handleChangeTab(value)} activeOpacity={0.7}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <Text style={[styles.tab, value === selectedTab && styles.activeTab]}>{t(label)}</Text>
+                    <Text style={[styles.tabCount, { color: countColor, opacity: value === selectedTab ? 1 : 0.7 }]}>{count}</Text>
+                  </View>
+                  {value === selectedTab && <View style={styles.activeIndicator} />}
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         </View>
 
@@ -357,6 +403,33 @@ const styles = ScaledSheet.create({
   activeTab: {
     color: palette.main[600],
     fontWeight: '700'
+  },
+  tabCount: {
+    fontSize: '14@ms',
+    fontWeight: '700'
+  },
+  statusBadge: {
+    paddingHorizontal: '8@ms',
+    paddingVertical: '4@ms',
+    borderRadius: '6@ms',
+  },
+  statusBadgeText: {
+    fontSize: '11@ms',
+    fontWeight: '600',
+  },
+  unreadBadge: {
+    backgroundColor: palette.red[900],
+    borderRadius: '10@ms',
+    paddingHorizontal: '6@ms',
+    paddingVertical: '2@ms',
+    minWidth: '20@ms',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  unreadBadgeText: {
+    color: '#FFFFFF',
+    fontSize: '11@ms',
+    fontWeight: 'bold',
   },
   searchRow: {
     flexDirection: 'row',
