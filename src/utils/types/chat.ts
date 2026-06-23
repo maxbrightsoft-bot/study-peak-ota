@@ -22,7 +22,7 @@ export type ConversationsResponse = {
   isCompleted: boolean;
   completedAt: string;
   totalUnReadMessage: number;
-  lastMessage: string | null;
+  lastMessage: MessageResponse;
   examTitle: string;
   examId: number;
   examSessionId?: number;
