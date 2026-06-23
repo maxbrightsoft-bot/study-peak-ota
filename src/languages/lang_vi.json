@@ -900,7 +900,6 @@
   "month_format": "MMM",
   "year_format": "{{number}}",
   "subject_area": "Lĩnh vực môn học",
-  "entire": "Toàn bộ",
   "exam_period": "Kỳ thi",
   "keyword": "Từ khóa",
   "placeholder_prepared_textbook": "Vui lòng phân tách từ khóa bằng dấu phẩy (,).",
@@ -1786,8 +1785,6 @@
   "my_grades": "Thành tích",
   "ask_question": "Hỏi bài",
   "chatbot": "Chatbot",
-  "consulting": "Tư vấn",
-  "consulting_completed": "Tư vấn hoàn thành",
   "question_selection": "Chọn câu hỏi",
   "register": "Đăng ký",
   "example_note": "(Ví dụ) Mình nên tiết kiệm thời gian ở các câu khác và dành nhiều thời gian hơn cho phần văn học hiện đại còn yếu.",
@@ -2100,6 +2097,10 @@
   "ota_completed_title": "Cập nhật hoàn tất",
   "ota_completed_message": "Đã tải xong bản cập nhật mới. Bạn có muốn khởi động lại ứng dụng để áp dụng ngay không?",
   "ota_later": "Để sau",
-  "ota_update_now": "Cập nhật"
+  "ota_update_now": "Cập nhật",
+  "tab_all": "Tất cả",
+  "tab_new": "Mới",
+  "tab_unanswered": "Chưa TL",
+  "tab_completed": "Xong"
 }
 

@@ -915,7 +915,6 @@
   "month_format": "M월",
   "year_format": "{{number}}년",
   "subject_area": "과목 영역",
-  "entire": "전체",
   "exam_period": "시험 시기",
   "keyword": "키워드",
   "placeholder_prepared_textbook": "키워드는 쉼표(,)로 구분해주세요.",
@@ -1871,8 +1870,6 @@
   "my_grades": "내 성적",
   "ask_question": "질문하기",
   "chatbot": "챗봇",
-  "consulting": "상담",
-  "consulting_completed": "상담 완료",
   "question_selection": "문제 선택",
   "register": "등록",
   "example_note": "(예시) 다른 문제에서 시간을 절약해서 부족한 현대문학에 시간을 좀 더 써야겠다.",
@@ -2081,6 +2078,10 @@
   "ota_completed_title": "업데이트 완료",
   "ota_completed_message": "새로운 업데이트 다운로드가 완료되었습니다. 지금 앱을 재시작하여 적용하시겠습니까?",
   "ota_later": "나중에",
-  "ota_update_now": "업데이트"
+  "ota_update_now": "업데이트",
+  "tab_all": "전체",
+  "tab_new": "새",
+  "tab_unanswered": "미답",
+  "tab_completed": "완료"
 }
 
