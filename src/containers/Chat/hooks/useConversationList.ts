@@ -19,6 +19,7 @@ const useConversationList = () => {
   const channel1 = useRef('')
   const channel2 = useRef('')
   const [search, setSearch] = useState<string>("");
+  const searchRef = useRef<string>("");
   const [selectedConversation, setSelectedConversation] = useState<ConversationsResponse>();
   const [conversations, setConversations] = useState<ConversationsResponse[]>([])
   const [openFilterModal, setOpenFilterModal] = useState(false)
@@ -31,12 +32,13 @@ const useConversationList = () => {
 
   const onChangeSearch = useCallback((value: string) => {
     setSearch(value);
+    searchRef.current = value;
   }, []);
 
   const getConversationList = useCallback(async (textSearch?: string) => {
     setLoading(true)
     try {
-      const res = await getListConversation({ ...conversationFilter, textSearch })
+      const res = await getListConversation({ ...conversationFilter, textSearch: textSearch || searchRef.current })
       setConversations(res.data.items || [])
 
     } catch (error) {
@@ -98,14 +100,45 @@ const useConversationList = () => {
     ))
   }, [])
 
+  const checkSearchMatch = useCallback((item: any, searchText: string) => {
+    if (!searchText) return true;
+    const searchLower = searchText.toLowerCase();
+
+    const matchTeacher = item.teacherName?.toLowerCase().includes(searchLower);
+    const matchTextbook = item.textbookName?.toLowerCase().includes(searchLower);
+    const matchExam = item.examTitle?.toLowerCase().includes(searchLower);
+
+    if (matchTeacher || matchTextbook || matchExam) return true;
+
+    const searchNum = parseInt(searchText, 10);
+    if (!isNaN(searchNum) && item.question?.questionOrder !== undefined) {
+      if (item.question.questionOrder + 1 === searchNum) {
+        return true;
+      }
+    }
+
+    return false;
+  }, []);
+
   const handleNewMessageCount = useCallback((data: string) => {
     const conversationCount: any = JSON.parse(data)
-    setConversations((prev) => prev.map(i => 
-      conversationCount.conversationId === i.id 
-        ? { ...i, totalUnReadMessage: conversationCount.totalUnReadMessage } 
-        : i
-    ))
-  }, [])
+    const searchText = searchRef.current?.trim() || "";
+    if (!checkSearchMatch(conversationCount, searchText)) return;
+
+    setConversations((prev) => {
+      const index = prev.findIndex((i) => i.id === conversationCount.conversationId)
+      if (index < 0) return prev;
+      
+      const updatedConversations = [...prev];
+      const [conversation] = updatedConversations.splice(index, 1);
+      
+      const updatedConversation = {
+        ...conversation,
+        lastMessage: conversationCount.lastMessage || conversation.lastMessage
+      }
+      return [updatedConversation, ...updatedConversations];
+    })
+  }, [checkSearchMatch, selectedConversation?.id])
 
   const getListCourseByStudent = useCallback(async () => {
     setLoading(true)
@@ -160,6 +193,7 @@ const useConversationList = () => {
       return () => {
         setSelectedConversation(undefined)
         setSearch('')
+        searchRef.current = ''
       };
     }, [getConversationList])
   );

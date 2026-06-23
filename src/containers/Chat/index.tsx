@@ -95,13 +95,13 @@ const Card = React.memo(({
 
     <View style={styles.cardBody}>
       <View style={styles.messagePreview}>
-        {isImagePath(conversation.lastMessage || '') ? (
+        {isImagePath(conversation.lastMessage?.content || '') ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Ionicons name="image-outline" size={16} color={palette.grey[500]} />
             <Text style={{ color: palette.grey[500], fontSize: 13 }}>{t('image')}</Text>
           </View>
         ) : (
-          <MathRender content={conversation.lastMessage || t('no_message')} isChat maxLines={2} />
+          <MathRender content={conversation.lastMessage?.content || t('no_message')} isChat maxLines={2} />
         )}
       </View>
       <View style={styles.cardInfoRow}>
