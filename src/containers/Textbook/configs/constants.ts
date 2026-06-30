@@ -38,6 +38,10 @@ export const TabList = [
         value: PreparedType.private_mock_exam
     },
     {
+        label: "pop_quiz",
+        value: "pop_quiz"
+    },
+    {
         label: "workbook",
         value: PreparedType.workbook
     },

@@ -22,7 +22,18 @@ export const getExamInfoMock = async (code: string) => {
     };
 };
 
-export const joinExamMock = async (_code: string) => {
+export const joinExamMock = async (code: string) => {
+    const database = await getDb();
+    const exam = await database.getFirstAsync('SELECT * FROM ExamSessions WHERE code = ?', [code]) as any;
+    if (exam) {
+        return {
+            success: true,
+            id: exam.id,
+            code: exam.code,
+            isPopQuiz: exam.isPopQuiz === 1,
+            studentExamSessionId: exam.studentExamSessionId || (9000 + exam.id),
+        };
+    }
     return { success: true };
 };
 

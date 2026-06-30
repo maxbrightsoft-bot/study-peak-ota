@@ -121,10 +121,10 @@ export type ScheduleRequest = {
 
 export enum PreparedType {
   csat_past_questions = 1,
-  official_mock_exam,
-  private_mock_exam,
-  workbook,
-  past_exam_questions
+  official_mock_exam = 2,
+  private_mock_exam = 3,
+  workbook = 4,
+  past_exam_questions = 5
 }
 
 export enum PreparedFilterType {

@@ -15,6 +15,11 @@ export const Routes = {
         Question: "QUESTION",
         StudentExamHistory: "STUDENT_EXAM_HISTORY",
         Tutorial: "TUTORIAL",
+        PopQuiz: "POP_QUIZ",
+        PopQuizCreate: "POP_QUIZ_CREATE",
+        PopQuizIntro: "POP_QUIZ_INTRO",
+        PopQuizTake: "POP_QUIZ_TAKE",
+        PopQuizResult: "POP_QUIZ_RESULT",
     },
     UnAuth: {
         Splash: 'SPLASH',
@@ -41,6 +46,10 @@ export const hiddenTabBar = [
     Routes.Auth.ExamResult,
     Routes.AcademyInvitation,
     Routes.AcademyRequest,
+    Routes.Auth.PopQuizCreate,
+    Routes.Auth.PopQuizIntro,
+    Routes.Auth.PopQuizTake,
+    Routes.Auth.PopQuizResult,
 ]
 
 export const noLayoutScreens = [
@@ -54,4 +63,8 @@ export const noLayoutScreens = [
     Routes.Auth.StudentExamHistory,
     Routes.AcademyInvitation,
     Routes.AcademyRequest,
+    Routes.Auth.PopQuizCreate,
+    Routes.Auth.PopQuizIntro,
+    Routes.Auth.PopQuizTake,
+    Routes.Auth.PopQuizResult,
 ];
