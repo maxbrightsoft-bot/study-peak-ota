@@ -47,6 +47,7 @@ const linking: any = {
       [MainRoutes.AuthStack]: {
         screens: {
           [Routes.Auth.ExamResultList]: 'student/exam-results/:domain',
+          [Routes.Auth.PopQuizIntro]: 'pop-quiz/:code',
         },
       },
       [MainRoutes.UnAuthStack]: {

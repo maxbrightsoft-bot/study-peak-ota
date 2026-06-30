@@ -29,8 +29,13 @@ export const ErrorMessages: any = {
     StoppedTimeMustBeGreaterThanStartTime: "stopped_time_must_be_greater_than_start_time",
     TotalTimeMustBePositive: "total_time_must_be_positive",
     TotalTimeOutOfRange: "total_time_out_of_range",
-    ScheduleCannotBeCompletedBeforeStartTime: "schedule_cannot_be_completed_before_start_time"
-
+    ScheduleCannotBeCompletedBeforeStartTime: "schedule_cannot_be_completed_before_start_time",
+    YouCanOnlyJoinPopQuizzesAssignedToYourClass: "you_can_only_join_pop_quizzes_assigned_to_your_class",
+    ExamSessionsDoNotMatch: "exam_sessions_do_not_match",
+    StudentExamSessionsDoNotMatch: "student_exam_sessions_do_not_match",
+    DuplicatedStudentExamSessions: "duplicated_student_exam_sessions",
+    InvalidPopQuizStatus: "invalid_pop_quiz_status",
+    PopQuizAlreadyUsed: "PopQuizAlreadyUsed"
 }
 export enum ErrorMessageCodes {
     SuperAdministratorsCannotCreateAcademyRequest = "SuperAdministratorsCannotCreateAcademyRequest",
@@ -63,7 +68,13 @@ export enum ErrorMessageCodes {
     StoppedTimeMustBeGreaterThanStartTime = "StoppedTimeMustBeGreaterThanStartTime",
     TotalTimeMustBePositive = "TotalTimeMustBePositive",
     TotalTimeOutOfRange = "TotalTimeOutOfRange",
-    ScheduleCannotBeCompletedBeforeStartTime = "ScheduleCannotBeCompletedBeforeStartTime"
+    ScheduleCannotBeCompletedBeforeStartTime = "ScheduleCannotBeCompletedBeforeStartTime",
+    YouCanOnlyJoinPopQuizzesAssignedToYourClass = "YouCanOnlyJoinPopQuizzesAssignedToYourClass",
+    ExamSessionsDoNotMatch = "ExamSessionsDoNotMatch",
+    StudentExamSessionsDoNotMatch = "StudentExamSessionsDoNotMatch",
+    DuplicatedStudentExamSessions = "DuplicatedStudentExamSessions",
+    InvalidPopQuizStatus = "InvalidPopQuizStatus",
+    PopQuizAlreadyUsed = "PopQuizAlreadyUsed"
 }
 
 export const INVALID_CODE_FORMAT = "INVALID_CODE_FORMAT";

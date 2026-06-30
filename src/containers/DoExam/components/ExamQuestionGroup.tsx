@@ -93,8 +93,8 @@ const ExamQuestionGroup = ({
   const questions = data.questions
   const disabled = disabledProp || isEnd || status === ExamStatus.Paused
   const questionContent = useMemo(() => {
-    const title = data.articles?.[0].title;
-    const author = data.articles?.[0].author;
+    const title = data.articles?.[0]?.title;
+    const author = data.articles?.[0]?.author;
     const category = data.articles?.[0]?.category?.name;
     const subCategory = data.articles?.[0]?.subcategory?.name;
     const titleAuthor = [title, author].filter((i) => !!i).join(", ");
@@ -105,8 +105,8 @@ const ExamQuestionGroup = ({
     return content;
   }, [
     type,
-    data.articles?.[0].title,
-    data.articles?.[0].author,
+    data.articles?.[0]?.title,
+    data.articles?.[0]?.author,
     data.articles?.[0]?.category?.name,
     data.articles?.[0]?.subcategory?.name
   ]);

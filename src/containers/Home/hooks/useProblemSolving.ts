@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { apiJoinExam, getCheckInLessonsApi, getExamInfoApi } from "../apiClients/index";
+import { getReceivedPopQuizzesApi } from "@/services/api/examService";
 import { EVENT_DELETED_MEMBER, ExamStatus } from "../configs/constants";
 import { InfoLesson, ScheduleResponse, ScheduleSortBy, ScheduleStatus, ScheduleStatusRequest, ScheduleType } from "../configs/type";
 import { getScheduleCountApi, getSchedulesApi, updateScheduleStatusApi } from "../apiClients/scheduleService";
@@ -73,6 +74,25 @@ const useProblemSolving = () => {
   const scrollRef = useRef<ScrollView>(null)
   const academyDomain = user?.academyDomain
 
+  const [receivedPopQuiz, setReceivedPopQuiz] = useState<any>(null);
+  const [receivedPopQuizzes, setReceivedPopQuizzes] = useState<any[]>([]);
+
+  const fetchReceivedPopQuiz = async () => {
+    try {
+      const res = await getReceivedPopQuizzesApi();
+      const items = Array.isArray(res.data) ? res.data : (res.data?.items || res.data || []);
+      setReceivedPopQuizzes(items.slice(0, 3));
+
+      const unfinishedItems = items.filter((i: any) => !i.isFinished);
+      if (unfinishedItems.length > 0) {
+        setReceivedPopQuiz(unfinishedItems[0]);
+      } else {
+        setReceivedPopQuiz(items.length > 0 ? items[0] : null);
+      }
+    } catch (err) {
+      console.error('[Home] fetchReceivedPopQuiz error:', err);
+    }
+  };
 
   const handleOpenExamHistoryDialog = () => {
     setOpenExamHistoryDialog(true);
@@ -97,6 +117,12 @@ const useProblemSolving = () => {
       const response = await getExamInfoApi(cleanCode);
       if (response.data?.code && response.data.code !== cleanCode) {
         throw new Error(INVALID_CODE_FORMAT);
+      }
+      const data = response.data?.data || response.data;
+      if (data?.isPopQuiz || data?.examType === 1) {
+        setOpen(false);
+        navigate(Routes.Auth.PopQuizIntro as any, { code: cleanCode });
+        return;
       }
       setExamSession(response.data);
       setOpen(false)
@@ -171,6 +197,13 @@ const useProblemSolving = () => {
       let status = res.data?.data?.status;
       const lateStatus = res.data?.data?.lateStatus;
       if (!status) status = lateStatus;
+
+      if (res.data?.data?.isPopQuiz || res.data?.data?.examType === 1) {
+        setOpen(false);
+        navigate(Routes.Auth.PopQuizIntro as any, { code });
+        return;
+      }
+
       if (status === ExamStatus.Pending) {
         setIsCheckTeacherStart(true);
       } else {
@@ -309,6 +342,7 @@ const useProblemSolving = () => {
     useCallback(() => {
       getScheduleList();
       scrollRef.current?.scrollTo({ y: 0, animated: true })
+      fetchReceivedPopQuiz()
       return () => {
         setSelectedTextbook(undefined)
         handleCloseTextbookResult()
@@ -500,7 +534,9 @@ const useProblemSolving = () => {
     isBelongAcademy,
     handleGetScheduleCount,
     handleUpdateAttendance,
-    handleStartTextbookFromGuideModal
+    handleStartTextbookFromGuideModal,
+    receivedPopQuiz,
+    receivedPopQuizzes
   };
 };
 

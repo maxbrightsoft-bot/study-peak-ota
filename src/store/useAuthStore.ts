@@ -59,6 +59,7 @@ interface StoreState {
   channel?: PusherChannel;
   hasSeenTutorial: boolean;
   isDemoMode: boolean;
+  activeEventHandlers: Record<string, EventHandler[]>;
 }
 
 interface StoreActions {
@@ -134,6 +135,7 @@ const useAuthStore = create<AuthStore>()(
       channel: undefined,
       hasSeenTutorial: false,
       isDemoMode: false,
+      activeEventHandlers: {},
 
       setUser: (user) => {
         set((state) => {
