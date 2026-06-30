@@ -115,7 +115,6 @@ const Card = React.memo(({
         )}
       </View>
       <View style={styles.cardInfoRow}>
-        {/* Status Badge */}
         {conversation.isCompleted ? (
           <View style={[styles.statusBadge, { backgroundColor: '#F1F5F9' }]}>
             <Text style={[styles.statusBadgeText, { color: '#94A3B8' }]}>

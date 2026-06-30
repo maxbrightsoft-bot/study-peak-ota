@@ -14,6 +14,9 @@ import { ScaledSheet } from 'react-native-size-matters'
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
 import StudyTimerCard from '../components/StudyTimerCard'
 import useAuthStore from '@/store/useAuthStore'
+import { Ionicons } from '@expo/vector-icons'
+import { navigate } from '@/navigators/NavigationHelpers'
+import { Routes } from '@/navigators/RouteName'
 
 const StudySpaceView = () => {
   const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
@@ -25,6 +28,7 @@ const StudySpaceView = () => {
     enableCheckSchedule,
     handleCheckSchedule,
     handleToggleSchedule,
+    receivedPopQuiz
   } = useProblemSolving()
 
   const {
@@ -53,7 +57,7 @@ const StudySpaceView = () => {
     handleDeleteSchedule,
     handleUpdateScheduleStatus
   } = useSchedule()
-
+  
   return (
     <View style={{ flex: 1 }}>
       <ScrollView
@@ -63,9 +67,39 @@ const StudySpaceView = () => {
       >
         <View style={{ position: 'absolute', top: -1000, left: 0, right: 0, height: 1200, backgroundColor: palette.main[600] }} />
         <View style={styles.container}>
-          <View style={{ marginBottom: 28 }}>
-            <StudyTimerCard />
-          </View>
+            <View style={{ marginBottom: 28 }}>
+              <StudyTimerCard />
+            </View>
+
+          {receivedPopQuiz && (
+            <TouchableOpacity
+              style={styles.popQuizReviewCard}
+              onPress={() => {
+                navigate(Routes.Auth.PopQuizIntro as any, { code: receivedPopQuiz.code });
+              }}
+              activeOpacity={0.8}
+            >
+              <View style={styles.popQuizReviewIconWrapper}>
+                <Ionicons name="bulb" size={18} color="#FFF" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.popQuizReviewTitle}>{t('pop_quiz_review')}</Text>
+                <Text style={styles.popQuizReviewDesc}>
+                  {receivedPopQuiz.solveTarget !== undefined && receivedPopQuiz.solveTarget !== null
+                    ? t(
+                        receivedPopQuiz.solveTarget === 0 ? 'pop_quiz_review_desc_child' :
+                        receivedPopQuiz.solveTarget === 1 ? 'pop_quiz_review_desc_friend' :
+                        receivedPopQuiz.solveTarget === 2 ? 'pop_quiz_review_desc_group' :
+                        'pop_quiz_review_desc_myself',
+                        { count: receivedPopQuiz.questionCount ?? receivedPopQuiz.totalQuestions ?? 0 }
+                      )
+                    : t('pop_quiz_review_desc', { author: receivedPopQuiz.authorName, count: receivedPopQuiz.questionCount ?? receivedPopQuiz.totalQuestions ?? 0 })
+                  }
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={palette.main[600]} />
+            </TouchableOpacity>
+          )}
           <View>
             <Text style={{ fontSize: 11, color: palette.main[600], fontWeight: 500, }}>{t('schedule_detail')}</Text>
           </View>
@@ -250,5 +284,37 @@ const styles = ScaledSheet.create({
     ...TYPO.button2,
     color: '#fff',
     fontSize: '13@ms',
+  },
+  popQuizReviewCard: {
+    backgroundColor: '#FFF',
+    borderRadius: '16@ms',
+    padding: '16@ms',
+    marginBottom: '28@ms',
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  popQuizReviewIconWrapper: {
+    backgroundColor: palette.main[600],
+    borderRadius: '12@ms',
+    width: '36@ms',
+    height: '36@ms',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: '12@ms',
+  },
+  popQuizReviewTitle: {
+    fontSize: '14@ms',
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: '4@ms',
+  },
+  popQuizReviewDesc: {
+    fontSize: '12@ms',
+    color: palette.grey[500],
   },
 })

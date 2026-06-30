@@ -29,6 +29,15 @@ export const getSubjectListApi = async (textSearch: string, isStarted?: boolean)
   });
 };
 
+export const getSubjectListBaseApi = async (textSearch: string = "") =>
+  api.get(`${SUBJECT_URL}`, {
+    params: {
+      textSearch,
+      pageSize: 100,
+      currentPage: 1
+    }
+  });
+
 
 export const getStudentSubjectListApi = async (pageSize: number = 100, currentPage: number = 1) => {
   const idLinkAccount = getIdLinkAccount();

@@ -15,13 +15,17 @@ import { palette } from '@/theme'
 import useProblemSolving from '../hooks/useProblemSolving'
 import StudyTimerCard from '../components/StudyTimerCard'
 import { ScaledSheet } from 'react-native-size-matters'
+import { Ionicons } from '@expo/vector-icons'
+import { navigate } from '@/navigators/NavigationHelpers'
+import { Routes } from '@/navigators/RouteName'
+import { useTranslation } from 'react-i18next'
 
 import useAuthStore from '@/store/useAuthStore'
 
 const AcademyView = () => {
   const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
+  const { t } = useTranslation()
   const {
-    t,
     open,
     user,
     schedules,
@@ -42,7 +46,8 @@ const AcademyView = () => {
     handleCloseConfirmDialog,
     handleToggleSchedule,
     handleCodeExam,
-    isCheckTeacherStart
+    isCheckTeacherStart,
+    receivedPopQuiz
   } = useProblemSolving()
 
   return (
@@ -54,9 +59,39 @@ const AcademyView = () => {
       >
         <View style={{ position: 'absolute', top: -1000, left: 0, right: 0, height: 1200, backgroundColor: palette.main[600] }} />
         <View style={styles.container}>
-          <View style={{ marginBottom: 28 }}>
-            <StudyTimerCard />
-          </View>
+            <View style={{ marginBottom: 28 }}>
+              <StudyTimerCard />
+            </View>
+
+          {receivedPopQuiz && (
+            <TouchableOpacity
+              style={styles.popQuizReviewCard}
+              onPress={() => {
+                navigate(Routes.Auth.PopQuizIntro as any, { code: receivedPopQuiz.code });
+              }}
+              activeOpacity={0.8}
+            >
+              <View style={styles.popQuizReviewIconWrapper}>
+                <Ionicons name="bulb" size={18} color="#FFF" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.popQuizReviewTitle}>{t('pop_quiz_review')}</Text>
+                <Text style={styles.popQuizReviewDesc}>
+                  {receivedPopQuiz.solveTarget !== undefined && receivedPopQuiz.solveTarget !== null
+                    ? t(
+                        receivedPopQuiz.solveTarget === 0 ? 'pop_quiz_review_desc_child' :
+                        receivedPopQuiz.solveTarget === 1 ? 'pop_quiz_review_desc_friend' :
+                        receivedPopQuiz.solveTarget === 2 ? 'pop_quiz_review_desc_group' :
+                        'pop_quiz_review_desc_myself',
+                        { count: receivedPopQuiz.questionCount ?? receivedPopQuiz.totalQuestions ?? 0 }
+                      )
+                    : t('pop_quiz_review_desc', { author: receivedPopQuiz.authorName, count: receivedPopQuiz.questionCount ?? 0 })
+                  }
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={palette.main[600]} />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             onPress={handleToggleSchedule}
             style={{
@@ -301,5 +336,37 @@ const styles = ScaledSheet.create({
     flex: 1,
     height: '6@ms',
     borderRadius: '4@ms'
-  }
+  },
+  popQuizReviewCard: {
+    backgroundColor: '#FFF',
+    borderRadius: '16@ms',
+    padding: '16@ms',
+    marginBottom: '16@ms',
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  popQuizReviewIconWrapper: {
+    backgroundColor: palette.main[600],
+    borderRadius: '12@ms',
+    width: '36@ms',
+    height: '36@ms',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: '12@ms',
+  },
+  popQuizReviewTitle: {
+    fontSize: '14@ms',
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: '4@ms',
+  },
+  popQuizReviewDesc: {
+    fontSize: '12@ms',
+    color: palette.grey[500],
+  },
 })

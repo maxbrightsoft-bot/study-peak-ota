@@ -161,7 +161,7 @@ export const getMessageFromError = (t: TFunction<"translation", undefined>, erro
     const errorStatus = error?.response?.status
     if(errorStatus === 420 && !!message) {
         const content = ErrorMessages[message]
-        if (!content) return getErrorMessage(t, error, defaultErrorMessage)
+        if (!content) return message
         const jsonData = error?.response?.data?.instance
         let data = {};
         try {

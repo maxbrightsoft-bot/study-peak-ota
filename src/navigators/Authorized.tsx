@@ -30,6 +30,7 @@ import ParentWaitingApprovalScreen from '@/screens/AccountLinking/ParentWaitingA
 import StudentLinkApprovalScreen from '@/screens/AccountLinking/StudentLinkApproval'
 import RoleSelectionScreen from '@/screens/AccountLinking/AccountLinkRoleSelection'
 import useAccountLinkingPusher from '@/containers/AccountLinking/hooks/useAccountLinkingPusher'
+import PopQuizScreen from '@/containers/PopQuiz'
 import ConsentScreen from '@/containers/Setting/components/ConsentScreen'
 import { getConsentStatusApi, agreeConsentApi } from '@/containers/Setting/apiClients'
 import Loading from '@/components/Loading'
@@ -39,6 +40,10 @@ import { CONSENT_POLICY_VERSION } from '@/utils/constants'
 import { startOfflineSyncListener } from '@/services/offlineSync'
 import ChangePasswordDialog from '@/containers/Setting/components/ChangePasswordDialog'
 import ResetPasswordWarningDialog from '@/containers/Setting/components/ResetPasswordWarningDialog'
+import PopQuizCreateScreen from '@/screens/PopQuiz/Create'
+import PopQuizIntroScreen from '@/screens/PopQuiz/Intro'
+import PopQuizTakeScreen from '@/screens/PopQuiz/Take'
+import PopQuizResultScreen from '@/screens/PopQuiz/Result'
 
 const Tab = createBottomTabNavigator()
 
@@ -109,6 +114,11 @@ const MainTabNavigator = () => {
       <Tab.Screen name={Routes.Auth.Profile} component={ProfileScreen} />
       <Tab.Screen name={Routes.Auth.Question} component={QuestionScreen} />
       <Tab.Screen name={Routes.Auth.StudentExamHistory} component={StudentExamHistoryScreen} />
+      <Tab.Screen name={Routes.Auth.PopQuiz} component={PopQuizScreen} />
+      <Tab.Screen name={Routes.Auth.PopQuizCreate} component={PopQuizCreateScreen} />
+      <Tab.Screen name={Routes.Auth.PopQuizIntro} component={PopQuizIntroScreen} />
+      <Tab.Screen name={Routes.Auth.PopQuizTake} component={PopQuizTakeScreen} />
+      <Tab.Screen name={Routes.Auth.PopQuizResult} component={PopQuizResultScreen} />
     </Tab.Navigator>
   )
 }

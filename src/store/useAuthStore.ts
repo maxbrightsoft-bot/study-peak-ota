@@ -76,6 +76,7 @@ interface StoreState {
   parentViewMode: ParentViewModeState | null;
   linkedStudents: AccountLinkResponse[];
   isUserCustomLoaded: boolean;
+  activeEventHandlers: Record<string, EventHandler[]>;
 }
 
 interface StoreActions {
@@ -189,6 +190,7 @@ const useAuthStore = create<AuthStore>()(
       parentViewMode: null,
       linkedStudents: [],
       isUserCustomLoaded: false,
+      activeEventHandlers: {},
 
       setUser: (user) => {
         set((state) => {

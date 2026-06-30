@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { apiJoinExam, getCheckInLessonsApi, getExamInfoApi } from "../apiClients/index";
+import { getReceivedPopQuizzesApi } from "@/services/api/examService";
 import { EVENT_DELETED_MEMBER, ExamStatus } from "../configs/constants";
 import { InfoLesson, ScheduleResponse, ScheduleSortBy, ScheduleStatus, ScheduleStatusRequest, ScheduleType } from "../configs/type";
 import { getScheduleCountApi, getSchedulesApi, updateScheduleStatusApi } from "../apiClients/scheduleService";
@@ -74,6 +75,23 @@ const useProblemSolving = () => {
   const scrollRef = useRef<ScrollView>(null)
   const academyDomain = user?.academyDomain
 
+  const [receivedPopQuiz, setReceivedPopQuiz] = useState<any>(null);
+
+  const fetchReceivedPopQuiz = async () => {
+    try {
+      const res = await getReceivedPopQuizzesApi();
+      console.log('[Home] receivedPopQuiz raw res:', JSON.stringify(res.data));
+      const items = Array.isArray(res.data) ? res.data : (res.data?.items || res.data || []);
+      const unfinishedItems = items.filter((i: any) => !i.isFinished);
+      if (unfinishedItems.length > 0) {
+        setReceivedPopQuiz(unfinishedItems[0]);
+      } else {
+        setReceivedPopQuiz(null);
+      }
+    } catch (err) {
+      console.error('[Home] fetchReceivedPopQuiz error:', err);
+    }
+  };
 
   const handleOpenExamHistoryDialog = () => {
     setOpenExamHistoryDialog(true);
@@ -172,6 +190,12 @@ const useProblemSolving = () => {
       let status = res.data?.data?.status;
       const lateStatus = res.data?.data?.lateStatus;
       if (!status) status = lateStatus;
+
+      if (res.data?.data?.isPopQuiz || res.data?.data?.examType === 1) {
+        toast.error(t('this_code_is_for_pop_quiz') || 'Mã này dành cho Pop Quiz, vui lòng vào mục Pop Quiz để tham gia');
+        return;
+      }
+
       if (status === ExamStatus.Pending) {
         setIsCheckTeacherStart(true);
       } else {
@@ -310,6 +334,7 @@ const useProblemSolving = () => {
     useCallback(() => {
       getScheduleList();
       scrollRef.current?.scrollTo({ y: 0, animated: true })
+      fetchReceivedPopQuiz()
       return () => {
         setSelectedTextbook(undefined)
         handleCloseTextbookResult()
@@ -501,7 +526,8 @@ const useProblemSolving = () => {
     isBelongAcademy,
     handleGetScheduleCount,
     handleUpdateAttendance,
-    handleStartTextbookFromGuideModal
+    handleStartTextbookFromGuideModal,
+    receivedPopQuiz
   };
 };
 

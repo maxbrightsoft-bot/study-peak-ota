@@ -187,7 +187,7 @@ const useLayoutApp = () => {
   };
 
   const handleExamReStart = async (data: any) => {
-    const item = JSON.parse(data);
+    const item = typeof data === 'string' ? JSON.parse(data) : data;
 
     const { code, academy } = item;
 

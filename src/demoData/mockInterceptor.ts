@@ -12,6 +12,7 @@ import { getStudyPerformanceDataMock, getSubjectDataMock, getRankingDataMock, ge
 import { studyTextbookMock, answerQuestionTextbookMock, getQuestionsTextbookMock, getPreparedTextbookMock, pauseOrFinishedTextbookMock, pauseAndResumeTextbookMock, restartTextbookMock } from './containers/Textbooks/textbookApi';
 import { getStudentHistoryMock, deleteStudentExamSessionMock, hideStudentExamSessionMock, selectStudentExamSessionMock } from './containers/StudentExamHistory/studentHistoryApi';
 import { getSubjectListMock as getSubjectTimerListMock, startSubjectTimerMock, pauseSubjectTimerMock, stopSubjectTimerMock, getTimersMock } from './containers/SubjectTimers/subjectTimerApi';
+import { getCategoryListMock, getQuestionTypeListMock, getRecentPopQuizzesMock, getReceivedPopQuizzesMock, getPopQuizLiveStatusMock, getMyPopQuizzesMock, getExamByIdMock, updatePopQuizStatusMock, createPopQuizMock } from './containers/PopQuiz/popQuizApi';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { toast } from '@/utils/helpers';
@@ -223,6 +224,11 @@ const routeToMock = async (config: any, lang: string = 'ko'): Promise<any> => {
             '/api/schedules',     // CRUD schedules được hỗ trợ
             '/api/file/images',   // upload ảnh được hỗ trợ
             '/api/conversation',  // Chat conversation
+            '/api/pop-quiz',      // Pop Quiz mutations
+            '/api/exam/pop-quiz/join',
+            '/api/examSession',   // Standard/Pop quiz exam session mutations
+            '/api/examsession',
+            '/api/exam',
         ];
         const isWhitelisted = MUTATION_WHITELIST.some(pattern => url.includes(pattern));
         if (!isWhitelisted) {
@@ -418,9 +424,43 @@ const routeToMock = async (config: any, lang: string = 'ko'): Promise<any> => {
         return await restartExamMock(code);
     }
     // Exam info
-    if (url.match(/\/api\/examsession\/(.+)\/info/)) {
-        const code = extractCode(/\/api\/examsession\/(.+)\/info/);
+    if (url.match(/\/api\/exam[Ss]ession\/(.+)\/info/)) {
+        const code = extractCode(/\/api\/exam[Ss]ession\/(.+)\/info/);
         return await getExamInfoMock(code);
+    }
+
+    // ===================================================================
+    // POP QUIZ
+    // ===================================================================
+    if (url.includes('/api/examcategory') && method === 'get') {
+        return await getCategoryListMock(params);
+    }
+    if (url.includes('/api/ExamQuestionType') && method === 'get') {
+        return await getQuestionTypeListMock(params);
+    }
+    if (url.includes('/api/pop-quiz/recent') && method === 'get') {
+        const pageSize = params?.pageSize ? Number(params.pageSize) : undefined;
+        return await getRecentPopQuizzesMock(lang, pageSize);
+    }
+    if (url.includes('/api/pop-quiz/received') && method === 'get') {
+        return await getReceivedPopQuizzesMock(lang);
+    }
+    if (url.includes('/api/pop-quiz/live-status') && method === 'get') {
+        return await getPopQuizLiveStatusMock(lang);
+    }
+    if (url.includes('/api/pop-quiz/my') && method === 'get') {
+        return await getMyPopQuizzesMock(lang);
+    }
+    if (url.match(/\/api\/pop-quiz\/\d+\/status/) && method === 'put') {
+        const id = extractId(/\/api\/pop-quiz\/(\d+)\/status/);
+        return await updatePopQuizStatusMock(id, body);
+    }
+    if (url.includes('/api/pop-quiz') && method === 'post') {
+        return await createPopQuizMock(body);
+    }
+    if (url.match(/\/api\/exam\/(\d+)\/?$/) && method === 'get') {
+        const id = extractId(/\/api\/exam\/(\d+)/);
+        return await getExamByIdMock(id);
     }
 
     // --- Exam Results (Charts) - Match cả examSession và textbooksession ---
