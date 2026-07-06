@@ -26,6 +26,10 @@ export const getQuestionSubjectDataApi = (id: number, data: SubjectRequest) => a
 export const getQuestionRankingDataApi = (data: RankingRequest) => api.get(`${SUBJECT_URL}/questions/ranking-data`, { params: data })
 export const getQuestionOverallDataApi = (data: RankingRequest) => api.get(`${SUBJECT_URL}/questions/overall`, { params: data })
 
+export const getPerformanceSummaryApi = (id: number, data: SubjectRequest) => api.get(`${SUBJECT_URL}/${id}/questions/performance/summary`, { params: data })
+export const getPerformanceAnalysisApi = (id: number, data: SubjectRequest) => api.get(`${SUBJECT_URL}/${id}/questions/performance/analysis`, { params: data })
+export const getPerformanceWeaknessApi = (id: number, data: SubjectRequest) => api.get(`${SUBJECT_URL}/${id}/questions/performance/weakness`, { params: data })
+
 export const updateNoteApi = (id: number, data: NoteRequest) =>
     api.put(`${NOTES_URL}/${id}`, data)
 

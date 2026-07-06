@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react'
-import { View, FlatList, StyleSheet, Text } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { View, FlatList, Text } from 'react-native'
 import TimePeriodSelector from './TimePeriodSelector'
 import StudyTimeChart from './StudyTimeChart'
 import SubjectDistribution from './SubjectDistribution'
@@ -16,7 +16,7 @@ import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
   studentId?: number
-  contentRef?: React.RefObject<FlatList>
+  contentRef?: React.RefObject<FlatList | null>
   studentInfo?: StudentInfo
   handleReadyPrint: () => void
 }
@@ -70,8 +70,6 @@ const TimeData = ({ studentId, contentRef, studentInfo, handleReadyPrint }: Prop
     loadingData,
     loadingSubjectCumulativeData
   ])
-
-
 
   const sections = [
     { key: SectionKey.StudyTimeChart },
@@ -129,7 +127,7 @@ const TimeData = ({ studentId, contentRef, studentInfo, handleReadyPrint }: Prop
   return (
     <View style={styles.container}>
       <TodayStudyTimeCard data={subjectCumulativeData} isTimerTab onOpen={() => handleToggle()} />
-      <View style={{ ...styles.section, padding: 24, backgroundColor: '#FFF', zIndex: 10 }}>
+      <View style={{ ...styles.section, backgroundColor: '#FFF', zIndex: 10 }}>
         <TimePeriodSelector
           timeType={timeType}
           handleChangeTimeType={handleChangeTimeType}
@@ -225,7 +223,7 @@ const TimeData = ({ studentId, contentRef, studentInfo, handleReadyPrint }: Prop
   )
 }
 
-const styles = ScaledSheet.create({
+const styles: any = ScaledSheet.create({
   container: {
     backgroundColor: palette.grey[50]
   },
@@ -247,7 +245,7 @@ const styles = ScaledSheet.create({
     backgroundColor: '#FFF',
     borderRadius: '4@ms',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: '1@ms' },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: '2@ms',
     elevation: '2@ms'

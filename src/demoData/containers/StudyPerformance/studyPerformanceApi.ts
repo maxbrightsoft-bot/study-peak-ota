@@ -206,3 +206,123 @@ export const getQuestionOverallDataMock = async (_data: any) => {
         avgData: { totalAnsweredQuestions: 130, totalCorrectQuestions: 91, correctRate: 70.0 },
     };
 };
+
+const getDemoCategoryLabels = async (subjectId: number) => {
+    const database = await getDb();
+    const rows = await database.getAllAsync(
+        `SELECT DISTINCT q.categoryName FROM ExamQuestions q
+         JOIN ExamSessions s ON q.examSessionCode = s.code
+         JOIN Subjects sub ON sub.name = s.subjectName
+         WHERE sub.id = ?
+         LIMIT 8`,
+        [subjectId]
+    ) as any[];
+
+    const names = rows.length > 0
+        ? rows.map((r) => r.categoryName)
+        : ['Core concept', 'Application', 'Calculation', 'Graph reading', 'Word problem'];
+
+    return names.map((name, idx) => ({
+        categoryId: idx + 1,
+        categoryName: name,
+        subCategoryName: `${name} ${idx + 1}`,
+        questionTypeName: `${name} type`,
+    }));
+};
+
+export const getPerformanceSummaryMock = async (subjectId: number, data: any) => {
+    const labels = await getDemoCategoryLabels(subjectId);
+    const todayAccuracy = hashToRange(subjectId * 101, 1, 62, 91);
+    const solved = hashToRange(subjectId * 101, 2, 8, 34);
+    const correct = Math.round(solved * todayAccuracy / 100);
+    const weekStart = Date.now() - 6 * 86400000;
+
+    return {
+        today: {
+            accuracy: todayAccuracy,
+            delta: hashToRange(subjectId * 101, 3, 1, 9),
+            isDeltaUp: subjectId % 2 === 0,
+            solved,
+            correct,
+            wrong: solved - correct,
+            streak: hashToRange(subjectId * 101, 4, 2, 11),
+        },
+        period: {
+            solvedCount: hashToRange(subjectId * 103, 1, 120, 320),
+            avgAccuracy: hashToRange(subjectId * 103, 2, 58, 86),
+            delta: hashToRange(subjectId * 105, 3, -15, 12),
+            goalAccuracy: 80,
+            weakestType: { ...labels[0], accuracy: hashToRange(subjectId, 3, 32, 55) },
+            strongestCategory: { ...labels[1], accuracy: hashToRange(subjectId, 4, 78, 96), sampleSizeWarning: false },
+        },
+        strengths: labels.slice(1, 4).map((label, idx) => ({ ...label, accuracy: 80 + idx * 4 })),
+        weekDaysActive: 5,
+        weekActivity: Array.from({ length: 7 }, (_, idx) => ({
+            timestamp: weekStart + idx * 86400000,
+            level: idx === 1 ? 0 : ((idx % 3) + 1),
+            today: idx === 6,
+        })),
+        weekTotalProblems: hashToRange(subjectId * 107, 1, 45, 120),
+        weekTotalTime: hashToRange(subjectId * 107, 2, 3600000, 10800000),
+    };
+};
+
+export const getPerformanceAnalysisMock = async (subjectId: number, data: any) => {
+    const labels = await getDemoCategoryLabels(subjectId);
+    const pTimes: number[] = data?.pTimes ?? [];
+    const buckets = pTimes.length > 1 ? pTimes.slice(0, -1) : Array.from({ length: 4 }, (_, i) => Date.now() - (3 - i) * 7 * 86400000);
+
+    return {
+        achievementChart: buckets.slice(0, 6).map((timestamp, idx) => ({
+            timestamp,
+            student: hashToRange(Math.floor(timestamp / 86400000), subjectId + idx, 12, 58),
+            classAvg: hashToRange(Math.floor(timestamp / 86400000), subjectId + idx + 20, 18, 52),
+        })),
+        mainCategoryDistribution: labels.slice(0, 5).map((label, idx) => ({
+            ...label,
+            percentage: [32, 24, 18, 15, 11][idx] || 10,
+            accuracy: hashToRange(subjectId * 113, idx, 48, 92),
+            solved: hashToRange(subjectId * 117, idx, 10, 50),
+        })),
+        subCategoryAccuracy: labels.slice(0, 6).map((label, idx) => {
+            const accuracy = hashToRange(subjectId * 127, idx, 35, 94);
+            return {
+                ...label,
+                accuracy,
+                solved: hashToRange(subjectId * 131, idx, 5, 28),
+                total: hashToRange(subjectId * 137, idx, 18, 46),
+                status: accuracy < 50 ? 'red' : accuracy < 70 ? 'orange' : 'green',
+                delta: hashToRange(subjectId * 139, idx, -8, 11),
+                sampleSizeWarning: idx === 4,
+            };
+        }),
+        tipText: labels[0]?.subCategoryName,
+        peer: {
+            studentAccuracy: hashToRange(subjectId * 149, 1, 55, 88),
+            totalAvgAccuracy: hashToRange(subjectId * 149, 2, 58, 82),
+        },
+    };
+};
+
+export const getPerformanceWeaknessMock = async (subjectId: number, _data: any) => {
+    const labels = await getDemoCategoryLabels(subjectId);
+    const rows = labels.map((label, idx) => {
+        const count = hashToRange(subjectId * 151, idx, 8, 36);
+        const accuracy = hashToRange(subjectId * 157, idx, 24, 72);
+        return {
+            ...label,
+            tags: [label.categoryName, label.subCategoryName].filter(Boolean),
+            correct: Math.round(count * accuracy / 100),
+            total: count,
+            count,
+            accuracy,
+            delta: hashToRange(subjectId * 163, idx, -12, 8),
+            timestamp: Date.now() - idx * 86400000,
+        };
+    }).sort((a, b) => a.accuracy - b.accuracy);
+
+    return {
+        topWeaknesses: rows.slice(0, 5),
+        allTypes: rows,
+    };
+};

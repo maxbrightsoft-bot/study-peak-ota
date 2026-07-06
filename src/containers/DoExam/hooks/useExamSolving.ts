@@ -213,7 +213,8 @@ const useExamSolving = (props: Props) => {
         isStar: i.isStar,
         answerTime: i.answerTime,
         textualAnswers: i.textualAnswers
-      }))
+      })),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
     };
     const prevApiCall = apiTimeouts.current[rollbackKey];
     if (prevApiCall) {

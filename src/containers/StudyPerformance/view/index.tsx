@@ -5,7 +5,7 @@ import { StudySpaceTabList, TabList } from '../configs/constants'
 import useMyData from '../hooks/useMyData'
 import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
-import PerformanceData from '../components/PerformanceDataTab'
+import PerformanceData from '../components/PerformanceData'
 import TabPanel from '@/components/Tab/TabPanel'
 import TimeData from '../components/TimeDataTab'
 import AddChatIcon from '@/assets/iconJSX/addChat'
@@ -76,7 +76,7 @@ const MyData = () => {
       </TabPanel>
 
       <TabPanel value={selected} index={1}>
-        {selected === 1 && <PerformanceData contentRef={contentRef} handleReadyPrint={handleReadyPrint} />}
+        {selected === 1 && <PerformanceData handleReadyPrint={handleReadyPrint} />}
       </TabPanel>
       <TabPanel value={selected} index={2}>
         {!openCreateNote && <IncorrectNotes contentRef={contentRef} />}

@@ -4,6 +4,8 @@ import { CreateActivityRequest } from "@/utils/types/activity";
 import DeviceInfo from 'react-native-device-info'
 import { useEffect, useCallback } from "react";
 import useServerTime from "./useServerTime";
+import useAuthStore from "@/store/useAuthStore";
+import useAppStore from "@/store/useAppStore";
 
 class TrackingManager {
   private queue: CreateActivityRequest[] = [];
@@ -90,6 +92,7 @@ const getDeviceInfo = async () => {
 export const useActivityTracking = (props?: Props) => {
   const screen = props?.screen;
   const { getServerNow } = useServerTime();
+  const bundleVersion = useAppStore((state) => state.bundleVersion)
 
   const track = useCallback(async ({
     action,
@@ -104,12 +107,17 @@ export const useActivityTracking = (props?: Props) => {
     resourceId?: string;
     triggeredAt?: string;
   }) => {
+    const user = useAuthStore.getState().user;
     const deviceInfo = await getDeviceInfo();
     const serverTime = new Date(getServerNow()).toISOString();
     const buildNumber = DeviceInfo?.getBuildNumber();
     const event: CreateActivityRequest = {
       action,
-      metaData: JSON.stringify({ ...metaData, buildNumber }),
+      metaData: JSON.stringify({
+        ...metaData,
+        buildNumber,
+        user: user ? { id: user.id, email: user.email, name: user.fullName } : null
+     , bundleVersion }),
       screen,
       resourceType,
       resourceId,
@@ -132,6 +140,7 @@ export const useActivityTracking = (props?: Props) => {
         ...context.metaData, 
         message: error?.message || String(error),
         buildNumber,
+        bundleVersion
       }),
 
     });
@@ -145,3 +154,37 @@ export const useActivityTracking = (props?: Props) => {
 
   return { track, trackError, flush: () => trackingManager.flush() };
 };
+
+export const trackErrorStandalone = async (error: any, context?: {
+  screen?: AppScreen
+  resourceType?: ActivityResource
+  resourceId?: string
+  metaData?: Record<string, any>
+}) => {
+  try {
+    const user = useAuthStore.getState().user;
+    const deviceInfo = await getDeviceInfo()
+    const buildNumber = DeviceInfo?.getBuildNumber()
+    const event: CreateActivityRequest = {
+      action: ActivityAction.Error,
+      screen: context?.screen,
+      resourceType: context?.resourceType,
+      resourceId: context?.resourceId,
+      triggeredAt: new Date().toISOString(),
+      metaData: JSON.stringify({
+        ...(context?.metaData ?? {}),
+        message: error?.message || String(error),
+        status: error?.response?.status,
+        url: error?.config?.url,
+        method: error?.config?.method,
+        buildNumber,
+        bundleVersion: useAppStore.getState().bundleVersion,
+        user: user ? { id: user.id, email: user.email, name: user.fullName } : null
+      }),
+      ...deviceInfo,
+    }
+    await trackingManager.add(event)
+  } catch {
+    // Silently ignore tracking failures
+  }
+}

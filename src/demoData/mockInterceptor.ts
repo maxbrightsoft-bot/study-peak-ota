@@ -8,7 +8,7 @@ import { getListExamMock, getExamInfoMock, joinExamMock, getLessonsMock, getList
 import { getQuestionExamMock, answerQuestionExamMock, finishExamMock, pauseAndResumeExamMock, restartExamMock, createConversationMock, getConversationMessagesMock } from './containers/DoExam/examApi';
 import { getExamResultMock, getExamResultPercentagesMock, getResultsLongTimeSpendMock, getResultsEffectSizeMock, getResultsTimeOrderQuestionMock, getResultsCategoriesMock, getOverallResultsMock, getOverallQuestionTypesResultsMock, getOverallCategoriesResultsMock, getQuestionTimeCategoriesResultsMock, getChapterResultsMock } from './containers/ExamResult/examResultApi';
 import { getListExamMock as getExamResultListMock, uploadImageFileMock } from './containers/ExamResultList/examResultListApi';
-import { getStudyPerformanceDataMock, getSubjectDataMock, getRankingDataMock, getSubjectListMock as getStudySubjectListMock, getQuestionDataMock, getQuestionSubjectDataMock, getQuestionRankingDataMock, getQuestionOverallDataMock } from './containers/StudyPerformance/studyPerformanceApi';
+import { getStudyPerformanceDataMock, getSubjectDataMock, getRankingDataMock, getSubjectListMock as getStudySubjectListMock, getQuestionDataMock, getQuestionSubjectDataMock, getQuestionRankingDataMock, getQuestionOverallDataMock, getPerformanceSummaryMock, getPerformanceAnalysisMock, getPerformanceWeaknessMock } from './containers/StudyPerformance/studyPerformanceApi';
 import { studyTextbookMock, answerQuestionTextbookMock, getQuestionsTextbookMock, getPreparedTextbookMock, pauseOrFinishedTextbookMock, pauseAndResumeTextbookMock, restartTextbookMock } from './containers/Textbooks/textbookApi';
 import { getStudentHistoryMock, deleteStudentExamSessionMock, hideStudentExamSessionMock, selectStudentExamSessionMock } from './containers/StudentExamHistory/studentHistoryApi';
 import { getSubjectListMock as getSubjectTimerListMock, startSubjectTimerMock, pauseSubjectTimerMock, stopSubjectTimerMock, getTimersMock } from './containers/SubjectTimers/subjectTimerApi';
@@ -584,6 +584,18 @@ const routeToMock = async (config: any, lang: string = 'ko'): Promise<any> => {
     }
     if (url.includes('/questions/ranking-data')) {
         return await getQuestionRankingDataMock(params);
+    }
+    if (url.includes('/questions/performance/summary')) {
+        const id = extractId(/\/api\/subject\/(\d+)\/questions\/performance\/summary/);
+        return await getPerformanceSummaryMock(id, params);
+    }
+    if (url.includes('/questions/performance/analysis')) {
+        const id = extractId(/\/api\/subject\/(\d+)\/questions\/performance\/analysis/);
+        return await getPerformanceAnalysisMock(id, params);
+    }
+    if (url.includes('/questions/performance/weakness')) {
+        const id = extractId(/\/api\/subject\/(\d+)\/questions\/performance\/weakness/);
+        return await getPerformanceWeaknessMock(id, params);
     }
     if (url.includes('/questions/subject-data')) {
         const id = extractId(/\/api\/subject\/(\d+)\/questions\/subject-data/);

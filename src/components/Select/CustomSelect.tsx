@@ -18,12 +18,14 @@ type Props = {
   onChangeText?: (keyword: string) => void
   searchPlaceholder?: string
   searchQuery?: ((keyword: string, labelValue: string) => boolean)
+  selectedTextStyle?: any
+  placeholderStyle?: any
 }
 
 const DefaultIcon = ({ disabled }: { disabled?: boolean }) => (
   <Ionicons
     name="caret-down-outline"
-    size={20}
+    size={14}
     color={disabled ? palette.grey[300] : '#222222'}
   />
 )
@@ -41,7 +43,9 @@ const CustomSelect = forwardRef<IDropdownRef, Props>(
       search,
       onChangeText,
       searchPlaceholder,
-      searchQuery
+      searchQuery,
+      selectedTextStyle,
+      placeholderStyle
     },
     ref
   ) => {
@@ -72,8 +76,8 @@ const CustomSelect = forwardRef<IDropdownRef, Props>(
         }}
         placeholder={translatedPlaceholder}
         style={[styles.dropdown, style, disabled && styles.disabledDropdown]}
-        selectedTextStyle={styles.selectedTextStyle}
-        placeholderStyle={styles.placeholderStyle}
+        selectedTextStyle={[styles.selectedTextStyle, selectedTextStyle]}
+        placeholderStyle={[styles.placeholderStyle, placeholderStyle]}
         itemTextStyle={styles.itemTextStyle}
         iconStyle={styles.iconStyle}
         containerStyle={styles.dropdownContainer}

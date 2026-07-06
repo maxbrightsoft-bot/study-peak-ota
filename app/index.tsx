@@ -1,8 +1,8 @@
 import RootNavigation from '../src/navigators/RootNavigation'
 import { I18nextProvider } from 'react-i18next'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { NavigationIndependentTree } from '@react-navigation/native'
-import { LogBox, Platform, View, ActivityIndicator, Text, Alert } from 'react-native'
+import { AppState, LogBox, Platform, View, ActivityIndicator, Text } from 'react-native'
 import i18n from '@/languages/i18n'
 import hotUpdate from 'react-native-ota-hot-update'
 import ReactNativeBlobUtil from 'react-native-blob-util'
@@ -22,9 +22,21 @@ import {
   Feather
 } from '@expo/vector-icons'
 import useAppStore from '../src/store/useAppStore'
+import { ActivityResource } from '@/utils/enums'
+import { useActivityTracking } from '@/hooks/useActivityTracking'
 
 export const CURRENT_BUNDLE_VERSION = process.env.EXPO_PUBLIC_CURRENT_BUNDLE_VERSION || '1.0.0'
 const NativeFontLoader = requireNativeModule('ExpoFontLoader')
+
+const OTA_MAX_RETRY = 3
+const OTA_RETRY_DELAY = 3000
+const OTA_MIN_CHECK_INTERVAL = 60 * 1000
+const OTA_FETCH_TIMEOUT = 8000
+const OTA_DOWNLOAD_TIMEOUT = 60000
+const PERSIST_FLUSH_DELAY = 300
+const OTA_RESET_APP_TIMEOUT = 5000
+
+let otaAttemptCounter = 0
 
 function normalizeVersion(version: string | number): number[] {
   const versionStr = String(version || '').trim()
@@ -50,6 +62,20 @@ function isNewerVersion(server: string | number, current: string | number): bool
   return false
 }
 
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number): Promise<Response> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    return await fetch(url, { ...options, signal: controller.signal })
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 if (!Array.prototype.findLastIndex) {
   Array.prototype.findLastIndex = function (callback, thisArg) {
     for (let i = this.length - 1; i >= 0; i--) {
@@ -71,10 +97,212 @@ if (!Array.prototype.findLast) {
   }
 }
 
+async function checkOtaUpdate(
+  setIsUpdating: (val: boolean) => void,
+  setBundleVersion: (version: string) => void,
+  setIsUpdatingOta: (isUpdating: boolean) => void,
+  trackError: (error: any, context?: any) => void,
+  retryCount = 0
+) {
+  otaAttemptCounter += 1
+  const myAttemptId = otaAttemptCounter
+
+  const isStaleAttempt = () => myAttemptId !== otaAttemptCounter
+
+  let serverVersion: string | undefined
+  let downloadUrl: string | undefined
+
+  try {
+    const timestamp = new Date().getTime()
+    const res = await fetchWithTimeout(
+      `${OTA_URL}?t=${timestamp}`,
+      {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0'
+        }
+      },
+      OTA_FETCH_TIMEOUT
+    )
+
+    if (!res.ok) {
+      throw new Error(`OTA manifest fetch failed with status ${res.status}`)
+    }
+
+    const data = await res.json()
+    serverVersion = data.version
+
+    console.log('[OTA] server:', data.version, '| local:', CURRENT_BUNDLE_VERSION, '| enabled:', data.otaEnabled)
+
+    if (data.otaEnabled === false) {
+      console.warn('[OTA] Disabled remotely via kill switch')
+      return
+    }
+
+    if (!data.version) {
+      console.warn('[OTA] Invalid manifest, missing version field')
+      trackError(new Error('OTA manifest missing version field'), {
+        resourceType: ActivityResource.User,
+        metaData: { retryCount, rawManifest: JSON.stringify(data) }
+      })
+      return
+    }
+
+    if (!isNewerVersion(data.version, CURRENT_BUNDLE_VERSION)) {
+      console.log('[OTA] Up to date')
+      return
+    }
+
+    downloadUrl = Platform.OS === 'ios' ? data.downloadIosUrl : data.downloadAndroidUrl
+
+    if (!downloadUrl) {
+      console.warn('[OTA] Missing download URL for platform', Platform.OS)
+      trackError(new Error('OTA manifest missing download URL'), {
+        resourceType: ActivityResource.User,
+        metaData: { stage: 'validate_manifest', serverVersion, platform: Platform.OS, retryCount }
+      })
+      return
+    }
+
+    setIsUpdating(true)
+    setIsUpdatingOta(true)
+
+    const versionCode = data.versionCode ?? 1
+
+    const downloadTimeout = setTimeout(() => {
+      if (isStaleAttempt()) return
+
+      console.log('[OTA] Download timed out')
+      setIsUpdatingOta(false)
+
+      trackError(new Error('OTA download timed out'), {
+        resourceType: ActivityResource.User,
+        metaData: {
+          stage: 'download_timeout',
+          serverVersion,
+          currentVersion: CURRENT_BUNDLE_VERSION,
+          url: downloadUrl,
+          retryCount
+        }
+      })
+
+      if (retryCount < OTA_MAX_RETRY) {
+        setTimeout(() => {
+          if (isStaleAttempt()) return
+          checkOtaUpdate(setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, retryCount + 1)
+        }, OTA_RETRY_DELAY)
+      } else {
+        setIsUpdating(false)
+      }
+    }, OTA_DOWNLOAD_TIMEOUT)
+
+    hotUpdate.downloadBundleUri(ReactNativeBlobUtil, downloadUrl, versionCode, {
+      updateSuccess: async () => {
+        clearTimeout(downloadTimeout)
+
+        if (isStaleAttempt()) {
+          console.log('[OTA] Ignoring stale updateSuccess from attempt', myAttemptId)
+          return
+        }
+
+        console.log('[OTA] Success, flushing state before restart')
+        setBundleVersion(data.version)
+        setIsUpdatingOta(false)
+
+        await delay(PERSIST_FLUSH_DELAY)
+
+        if (isStaleAttempt()) return
+
+        console.log('[OTA] Restarting silently')
+
+        const resetTimeout = setTimeout(() => {
+          console.warn('[OTA] resetApp did not complete in time, falling back to old bundle')
+          trackError(new Error('OTA resetApp timeout'), {
+            resourceType: ActivityResource.User,
+            metaData: { stage: 'reset_app_timeout', bundleVersion: data.version }
+          })
+          setIsUpdating(false)
+        }, OTA_RESET_APP_TIMEOUT)
+
+        try {
+          hotUpdate.resetApp()
+          clearTimeout(resetTimeout)
+        } catch (resetError: any) {
+          clearTimeout(resetTimeout)
+          console.error('[OTA] resetApp threw synchronously:', resetError)
+          trackError(resetError, {
+            resourceType: ActivityResource.User,
+            metaData: { stage: 'reset_app_error', bundleVersion: data.version }
+          })
+          setIsUpdating(false)
+        }
+      },
+      updateFail: (msg) => {
+        clearTimeout(downloadTimeout)
+
+        if (isStaleAttempt()) {
+          console.log('[OTA] Ignoring stale updateFail from attempt', myAttemptId)
+          return
+        }
+
+        console.log('[OTA] Failed:', msg, '| retry:', retryCount)
+        setIsUpdatingOta(false)
+
+        trackError(new Error(String(msg)), {
+          resourceType: ActivityResource.User,
+          metaData: {
+            stage: 'download',
+            serverVersion,
+            currentVersion: CURRENT_BUNDLE_VERSION,
+            url: downloadUrl,
+            retryCount
+          }
+        })
+
+        if (retryCount < OTA_MAX_RETRY) {
+          setTimeout(() => {
+            if (isStaleAttempt()) return
+            checkOtaUpdate(setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, retryCount + 1)
+          }, OTA_RETRY_DELAY)
+        } else {
+          console.log('[OTA] Max retry reached, giving up this session')
+          setIsUpdating(false)
+        }
+      },
+      restartAfterInstall: false,
+      maxBundleVersions: 3
+    })
+  } catch (e: any) {
+    if (isStaleAttempt()) return
+
+    console.log('[OTA] Error:', e, '| retry:', retryCount)
+
+    trackError(e, {
+      resourceType: ActivityResource.User,
+      metaData: {
+        stage: e?.name === 'AbortError' ? 'fetch_timeout' : 'fetch_manifest',
+        serverVersion,
+        currentVersion: CURRENT_BUNDLE_VERSION,
+        retryCount
+      }
+    })
+
+    if (retryCount < OTA_MAX_RETRY) {
+      setTimeout(() => {
+        if (isStaleAttempt()) return
+        checkOtaUpdate(setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, retryCount + 1)
+      }, OTA_RETRY_DELAY)
+    } else {
+      setIsUpdating(false)
+    }
+  }
+}
+
 export default function App() {
   const [isUpdating, setIsUpdating] = useState(false)
   const [fontWaitTimedOut, setFontWaitTimedOut] = useState(false)
-
+  const { trackError } = useActivityTracking()
   const [needsForceUpdate, setNeedsForceUpdate] = useState(false)
   const [latestVersionName, setLatestVersionName] = useState('')
 
@@ -184,11 +412,37 @@ export default function App() {
   const setBundleVersion = useAppStore((state) => state.setBundleVersion)
   const setIsUpdatingOta = useAppStore((state) => state.setIsUpdatingOta)
 
-  useEffect(() => {
-    if (!__DEV__) {
-      checkOtaUpdate(setIsUpdating, setBundleVersion, setIsUpdatingOta)
+  const lastCheckRef = useRef(0)
+  const isCheckingRef = useRef(false)
+
+  const runOtaCheck = useCallback(async () => {
+    if (__DEV__) return
+    if (isCheckingRef.current) return
+
+    const now = Date.now()
+    if (now - lastCheckRef.current < OTA_MIN_CHECK_INTERVAL) return
+    lastCheckRef.current = now
+    isCheckingRef.current = true
+
+    try {
+      await checkOtaUpdate(setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError)
+    } finally {
+      isCheckingRef.current = false
     }
-  }, [setBundleVersion, setIsUpdatingOta])
+  }, [setBundleVersion, setIsUpdatingOta, trackError])
+
+  useEffect(() => {
+    runOtaCheck()
+  }, [runOtaCheck])
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') {
+        runOtaCheck()
+      }
+    })
+    return () => sub.remove()
+  }, [runOtaCheck])
 
   if (needsForceUpdate) {
     return <ForceUpdateScreen latestVersion={latestVersionName} />
@@ -207,7 +461,7 @@ export default function App() {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
         <ActivityIndicator size="large" color="#0000ff" />
-        <Text style={{ marginTop: 10, fontSize: 12, color: '#999' }}>Loading fonts...</Text>
+        <Text style={{ marginTop: 10, fontSize: 12, color: '#999' }}>{i18n.t('loading_font')}</Text>
       </View>
     )
   }
@@ -219,69 +473,4 @@ export default function App() {
       </NavigationIndependentTree>
     </I18nextProvider>
   )
-}
-
-async function checkOtaUpdate(
-  setIsUpdating: (val: boolean) => void,
-  setBundleVersion: (version: string) => void,
-  setIsUpdatingOta: (isUpdating: boolean) => void
-) {
-  try {
-    const timestamp = new Date().getTime()
-    const res = await fetch(`${OTA_URL}?t=${timestamp}`, {
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        Pragma: 'no-cache',
-        Expires: '0'
-      }
-    })
-    const data = await res.json()
-
-    console.log('[OTA] server:', data.version, '| local:', CURRENT_BUNDLE_VERSION)
-
-    if (!isNewerVersion(data.version, CURRENT_BUNDLE_VERSION)) {
-      console.log('[OTA] Up to date')
-      return
-    }
-
-    setIsUpdatingOta(true)
-
-    const url = Platform.OS === 'ios' ? data.downloadIosUrl : data.downloadAndroidUrl
-
-    const versionCode = data.versionCode ?? 1
-
-    hotUpdate.downloadBundleUri(ReactNativeBlobUtil, url, versionCode, {
-      updateSuccess: () => {
-        console.log('[OTA] Success')
-        setBundleVersion(data.version)
-        setIsUpdatingOta(false)
-
-        Alert.alert(
-          i18n.t('ota_completed_title', { defaultValue: '업데이트 완료' }),
-          i18n.t('ota_completed_message', { defaultValue: '새로운 업데이트 다운로드가 완료되었습니다. 지금 앱을 재시작하여 적용하시겠습니까?' }),
-          [
-            {
-              text: i18n.t('ota_later', { defaultValue: '나중에' }),
-              style: 'cancel'
-            },
-            {
-              text: i18n.t('ota_update_now', { defaultValue: '업데이트' }),
-              onPress: () => {
-                hotUpdate.resetApp()
-              }
-            }
-          ],
-          { cancelable: false }
-        )
-      },
-      updateFail: (msg) => {
-        console.log('[OTA] Failed:', msg)
-        setIsUpdatingOta(false)
-      },
-      restartAfterInstall: false,
-      maxBundleVersions: 3
-    })
-  } catch (e) {
-    console.log('[OTA] Error:', e)
-  }
 }

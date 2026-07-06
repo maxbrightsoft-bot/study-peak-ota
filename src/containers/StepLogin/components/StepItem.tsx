@@ -7,10 +7,11 @@ import GridContainer from '@/components/Grid/GridContainer'
 import GridItem from '@/components/Grid/GridItem'
 import Select from '@/components/Select/CustomSelect'
 import useStepItem from '../hooks/useStepItem'
-import { Ionicons } from '@expo/vector-icons'
+import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import Verify from '@/assets/iconJSX/verify'
 import SchoolSearchSelect from '@/components/Select/SchoolSearchSelect'
 import { ScaledSheet } from 'react-native-size-matters'
+import useAuthStore from '@/store/useAuthStore'
 
 type Props = {
   values: any
@@ -26,6 +27,7 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
     errors,
     setFieldTouched
   })
+  const logout = useAuthStore(state => state.logout)
 
   const renderStep = () => {
     switch (step) {
@@ -171,22 +173,43 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        {step !== 0 && (
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              paddingHorizontal: 20,
-              paddingVertical: 16,
-              backgroundColor: "#FFF"
-            }}
-          >
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingHorizontal: 20,
+            paddingVertical: 16,
+            backgroundColor: "#FFF"
+          }}
+        >
+          {step !== 0 ? (
             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={onPrev}>
               <Ionicons name="chevron-back-outline" size={24} color={palette.grey[600]} />
             </TouchableOpacity>
-          </View>
-        )}
+          ) : (<View></View>)}
+          <TouchableOpacity
+            onPress={logout}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              alignSelf: 'center',
+              gap: 6,
+              paddingVertical: 10,
+              paddingHorizontal: 20,
+              borderRadius: 24,
+              backgroundColor: palette.main[50],
+            }}
+          >
+            <MaterialIcons name="logout" size={18} color={palette.main[600]} />
+            <Text style={{ color: palette.main[600], fontWeight: '700', fontSize: 15 }}>
+              {t('login')}
+            </Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.container}>
           <View style={styles.content}>{renderStep()}</View>
           <View

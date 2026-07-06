@@ -1,7 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { NavigationContainer, getStateFromPath as defaultGetStateFromPath } from '@react-navigation/native'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import NavigationHelpers from './NavigationHelpers'
 import Authorized from './Authorized'
 import UnAuthorized from './UnAuthorized'
@@ -89,6 +89,17 @@ const RootNavigation: React.FC = () => {
   useLanguage()
   useSocketInit()
 
+  const [hydrated, setHydrated] = useState(() => useAuthStore.persist.hasHydrated())
+
+  useEffect(() => {
+    if (useAuthStore.persist.hasHydrated()) {
+      setHydrated(true)
+      return
+    }
+    const unsub = useAuthStore.persist.onFinishHydration(() => setHydrated(true))
+    return unsub
+  }, [])
+
   useEffect(() => {
     setLoading(false)
     isDemoMode().then(setIsDemoMode)
@@ -101,6 +112,10 @@ const RootNavigation: React.FC = () => {
   }, [user?.id])
 
 
+
+  if (!hydrated) {
+    return null
+  }
 
   return (
     <SafeAreaProvider>

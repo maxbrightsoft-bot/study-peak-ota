@@ -56,6 +56,7 @@ export enum TypeText { 'study', 'average', 'compare' }
 export enum Mode { Timer, Question }
 
 export const MILLISECONDS_PER_HOUR = 60 * 60 * 1000
+export const TOP_WEAKNESS_LIMIT = 5
 
 export const DEFAULT_NOTE_FILTER: NoteSearchQuery = {
   sortColumnDirection: OrderBy.DESC,

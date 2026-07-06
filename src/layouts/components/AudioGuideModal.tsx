@@ -16,6 +16,7 @@ import {
   stopAndReleaseAppAudioPlayer,
   stopAppAudioPlayer
 } from '@/utils/audio'
+import { Ionicons } from '@expo/vector-icons'
 
 export type AudioGuideModalProps = {
   open: boolean
@@ -72,9 +73,9 @@ const AudioGuideModal: React.FC<AudioGuideModalProps> = ({ open, audioUrls, onCl
 
         const sound = await createAppAudioPlayer(
           { uri: audioUrl.replace('http://', 'https://') },
-          { 
-            shouldPlay: false, 
-            volume: 1.0, 
+          {
+            shouldPlay: false,
+            volume: 1.0,
             isMuted: false
           }
         )
@@ -134,17 +135,15 @@ const AudioGuideModal: React.FC<AudioGuideModalProps> = ({ open, audioUrls, onCl
   const playSound = async () => {
     try {
       if (soundRef.current && isSoundLoaded && isPlayAudio && !isLoading) {
-        // Ensure audio mode is active right before playing on iOS
         await configureAudioMode({
           playsInSilentMode: true,
           interruptionModeAndroid: 'duckOthers',
           allowsRecording: false,
-        }).catch(() => {})
+        }).catch(() => { })
 
         const status = getAppAudioStatus(soundRef.current)
         if (status.isLoaded) {
           await soundRef.current.seekTo(0)
-          // Adding a very small delay for iOS to be ready
           if (Platform.OS === 'ios') {
             await new Promise(resolve => setTimeout(resolve, 100))
           }
@@ -216,7 +215,11 @@ const AudioGuideModal: React.FC<AudioGuideModalProps> = ({ open, audioUrls, onCl
         {isLoading && <Loading isOverlay={true} />}
         <View style={styles.container}>
           <View style={styles.header}>
+            <View />
             <Text style={styles.title}>{t('voice_guidance_settings')}</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Ionicons name="close" size={20} color={palette.grey[900]} />
+            </TouchableOpacity>
           </View>
           <View style={styles.content}>
             <View style={styles.contentInner}>
@@ -282,6 +285,9 @@ const styles = ScaledSheet.create({
     paddingVertical: '16@ms',
     paddingHorizontal: '24@ms',
     borderBottomWidth: '1@ms',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderBottomColor: '#E5E7EB'
   },
   title: {
@@ -296,6 +302,9 @@ const styles = ScaledSheet.create({
   },
   contentInner: {
     paddingHorizontal: '52@ms'
+  },
+  closeButton: {
+    padding: '4@ms'
   },
   textContainer: {
     alignItems: 'center',
