@@ -192,7 +192,8 @@ const useTextbookSolving = (props: Props) => {
         duration: i.duration,
         isStar: i.isStar,
         answerTime: i.answerTime
-      }))
+      })),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
     };
     const prevApiCall = apiTimeouts.current[rollbackKey];
     if (prevApiCall) {

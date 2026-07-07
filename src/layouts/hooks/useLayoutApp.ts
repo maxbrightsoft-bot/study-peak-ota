@@ -10,9 +10,6 @@ import useLogin from '@/containers/Login/hooks/useLogin'
 import { getDataStorage, removeDataStorage, setDataStorage } from '@/utils/storage'
 import { ACADEMY_DOMAIN, ACCESS_TOKEN, LEARNING_SPACE } from '@/utils/constants'
 import { useFocusEffect, useNavigation } from '@react-navigation/native'
-import useTimers from './useTimer'
-import useAlarm from './useAlarm'
-
 import { AppState } from 'react-native'
 import { currentScreen, navigate } from '@/navigators/NavigationHelpers'
 import { Routes } from '@/navigators/RouteName'
@@ -157,7 +154,7 @@ const useLayoutApp = () => {
     setLoadingWithoutOverlay(true)
     try {
       if (user?.academyDomain !== academy.domain)
-        await handleSwitchAcademy(academy);
+        await handleSwitchAcademy(false, academy);
       await apiJoinExam(code, true);
       navigate(Routes.Auth.DoExam, { examCode: code });
     } catch (error: any) {
@@ -175,7 +172,7 @@ const useLayoutApp = () => {
     setLoadingWithoutOverlay(true)
     try {
       if (user?.academyDomain !== academy.domain)
-        await handleSwitchAcademy(academy);
+        await handleSwitchAcademy(false, academy);
       await apiJoinExam(code, true);
       navigate(Routes.Auth.DoExam, { examCode: code });
     } catch (error: any) {

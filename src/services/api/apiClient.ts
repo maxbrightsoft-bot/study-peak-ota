@@ -13,6 +13,7 @@ import {
 import { getDataStorage } from '@/utils/storage';
 import useAuthStore from '@/store/useAuthStore';
 import { applyMockAdapter } from '@/demoData/mockInterceptor';
+import { trackErrorStandalone } from '@/hooks/useActivityTracking';
 
 export const api: AxiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -69,12 +70,26 @@ export const apiUpload: AxiosInstance = axios.create({
         return response
       },
       async (error: any) => {
-        if (error.response?.status === 401 || error.response?.status == 403) {
+        const status = error?.response?.status
+
+        if (status === 401 || status === 403) {
           const logout = useAuthStore.getState().logout;
           await logout();
+        }
+
+        const skipStatuses = [401, 403, 404, 400, 422]
+        if (!skipStatuses.includes(status)) {
+          trackErrorStandalone(error, {
+            metaData: {
+              status,
+              url: error?.config?.url,
+              method: error?.config?.method,
+            },
+          })
         }
 
         return Promise.reject(error)
       }
     )
   )
+

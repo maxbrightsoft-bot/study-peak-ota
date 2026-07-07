@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { View, Text, TouchableOpacity, Modal, Platform } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { Audio, InterruptionModeIOS, InterruptionModeAndroid } from 'expo-av'
+import { Ionicons } from '@expo/vector-icons'
 import { DEFAULT_AUDIO_URL } from '../../layouts/configs/constants'
 import useAudioTimer from '../hooks/useAudioTimer'
 import { palette } from '@/theme'
@@ -62,9 +63,9 @@ const AudioGuideModal: React.FC<AudioGuideModalProps> = ({ open, audioUrls, onCl
 
         const { sound } = await Audio.Sound.createAsync(
           { uri: audioUrl.replace('http://', 'https://') },
-          { 
-            shouldPlay: false, 
-            volume: 1.0, 
+          {
+            shouldPlay: false,
+            volume: 1.0,
             isMuted: false
           }
         )
@@ -206,7 +207,11 @@ const AudioGuideModal: React.FC<AudioGuideModalProps> = ({ open, audioUrls, onCl
         {isLoading && <Loading isOverlay={true} />}
         <View style={styles.container}>
           <View style={styles.header}>
+            <View />
             <Text style={styles.title}>{t('voice_guidance_settings')}</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Ionicons name="close" size={20} color={palette.grey[900]} />
+            </TouchableOpacity>
           </View>
           <View style={styles.content}>
             <View style={styles.contentInner}>
@@ -272,6 +277,9 @@ const styles = ScaledSheet.create({
     paddingVertical: '16@ms',
     paddingHorizontal: '24@ms',
     borderBottomWidth: '1@ms',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderBottomColor: '#E5E7EB'
   },
   title: {
@@ -286,6 +294,9 @@ const styles = ScaledSheet.create({
   },
   contentInner: {
     paddingHorizontal: '52@ms'
+  },
+  closeButton: {
+    padding: '4@ms'
   },
   textContainer: {
     alignItems: 'center',

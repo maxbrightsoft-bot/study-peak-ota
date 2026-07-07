@@ -35,7 +35,7 @@ const useAppStore = create<AppStore>()(
       },
     })),
     {
-      name: "app-storage",
+      name: "app-storage-settings",
       storage: createJSONStorage(() => AsyncStorage),
     }
   )

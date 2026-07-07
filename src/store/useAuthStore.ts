@@ -409,7 +409,6 @@ const useAuthStore = create<AuthStore>()(
         user: state.user,
         academies: state.academies,
         selectedAcademy: state.selectedAcademy,
-        isLoading: state.isLoading,
         language: state.language,
         hasConsented: state.hasConsented,
         hasSeenTutorial: state.hasSeenTutorial,

@@ -10,9 +10,10 @@ import {
   getSubjectListApi,
   getPerformanceSummaryApi,
   getPerformanceAnalysisApi,
-  getPerformanceWeaknessApi
+  getPerformanceWeaknessApi,
+  getPerformanceDailyApi
 } from '../apiClients'
-import { MILLISECONDS_PER_HOUR, Mode, timeTypeOptions } from '../configs/constants'
+import { MILLISECONDS_PER_HOUR, Mode, timeTypeOptions, TOP_WEAKNESS_LIMIT } from '../../../configs/constants'
 import {
   getCurrentTimeOptions,
   getDefaultCurrentTimeOption,
@@ -27,11 +28,10 @@ import {
   getDayTimestampArray,
   rgbToHex,
   roundTo
-} from '../configs/helper'
+} from '../../../configs/helper'
 import {
   Category,
   DataResponse,
-  Option,
   QuestionAnswerOverallResponse,
   RankingDataResponse,
   StudyTimeDistribution,
@@ -42,7 +42,7 @@ import {
   PerformanceSummaryResponse,
   PerformanceAnalysisResponse,
   PerformanceWeaknessResponse
-} from '../configs/types'
+} from '../../../configs/types'
 import { useTranslation } from 'react-i18next'
 import moment from 'moment'
 import _ from 'lodash'
@@ -91,6 +91,15 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
   const [summaryData, setSummaryData] = useState<PerformanceSummaryResponse>()
   const [performanceData, setPerformanceData] = useState<PerformanceAnalysisResponse>()
   const [weaknessData, setWeaknessData] = useState<PerformanceWeaknessResponse>()
+  const [todayData, setTodayData] = useState<any>(null)
+  // Fixed daily data: today stats + week activity + peer comparison (all subjects, not subject-filtered)
+  const [dailyData, setDailyData] = useState<any>(null)
+  const [loadingDaily, setLoadingDaily] = useState(false)
+
+  const [loadingSummary, setLoadingSummary] = useState(false)
+  const [loadingAnalysis, setLoadingAnalysis] = useState(false)
+  const [loadingWeakness, setLoadingWeakness] = useState(false)
+  const [loadingToday, setLoadingToday] = useState(false)
 
   const [subjectData, setSubjectData] = useState<any>()
   const [subjectCumulativeData, setSubjectCumulativeData] = useState<any>()
@@ -268,29 +277,92 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
 
   const handleGetPerformanceData = async () => {
     if (mode !== Mode.Question || !selectedSubject) return
-    setLoadingData(true)
+    setLoadingSummary(true)
+    setLoadingAnalysis(true)
+    setLoadingWeakness(true)
+
     try {
-      const summaryRes = await getPerformanceSummaryApi(selectedSubject, subjectDataRequest as any)
-      const analysisRes = await getPerformanceAnalysisApi(selectedSubject, subjectDataRequest as any)
-      const weaknessRes = await getPerformanceWeaknessApi(selectedSubject, subjectDataRequest as any)
+      const [summaryRes, analysisRes, weaknessRes] = await Promise.all([
+        getPerformanceSummaryApi(selectedSubject, subjectDataRequest as any),
+        getPerformanceAnalysisApi(selectedSubject, subjectDataRequest as any),
+        getPerformanceWeaknessApi(selectedSubject, { ...subjectDataRequest, topLimit: TOP_WEAKNESS_LIMIT } as any)
+      ])
       setSummaryData(summaryRes.data)
       setPerformanceData(analysisRes.data)
       setWeaknessData(weaknessRes.data)
     } catch (error) {
       toast.error(getErrorMessage(t, error))
+    } finally {
+      setLoadingSummary(false)
+      setLoadingAnalysis(false)
+      setLoadingWeakness(false)
     }
-    setLoadingData(false)
+  }
+
+  /**
+   * Fetches fixed daily data (today stats + week activity + peer comparison).
+   * Uses all subjects — does NOT depend on selectedSubject.
+   * Called once on load/focus, NOT when subject changes.
+   */
+  const handleGetDailyData = async () => {
+    if (mode !== Mode.Question) return
+    setLoadingDaily(true)
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+      const res = await getPerformanceDailyApi({ timezone: tz, studentId })
+      setDailyData(res.data)
+    } catch (error) {
+      toast.error(getErrorMessage(t, error))
+    } finally {
+      setLoadingDaily(false)
+    }
+  }
+
+  const handleGetTodayData = async () => {
+    if (mode !== Mode.Question || !selectedSubject) return
+    setLoadingToday(true)
+    const now = moment().valueOf()
+    const todayReq = {
+      studentId,
+      pTimes: getDayTimestampArray(now),
+      sTimes: getDayTimestampArray(moment(now).subtract(1, 'day').valueOf())
+    }
+    try {
+      const res = await getPerformanceSummaryApi(selectedSubject, todayReq as any)
+      setTodayData(res.data?.today)
+    } catch (error) {
+      toast.error(getErrorMessage(t, error))
+    } finally {
+      setLoadingToday(false)
+    }
   }
 
   useEffect(() => {
     if (!selectedSubject && mode === Mode.Question) return
+    handleGetTodayData()
+  }, [selectedSubject, load])
+
+  useEffect(() => {
+    if (!selectedSubject && mode === Mode.Question) return
     
-    const fetchSequentially = async () => {
-      await Promise.all([handleGetData(), handleGetSubjectData()])
-      await handleGetPerformanceData()
+    const fetchAll = async () => {
+      setLoadingData(true)
+      setLoadingSummary(true)
+      setLoadingAnalysis(true)
+      setLoadingWeakness(true)
+      setLoadingToday(true)
+      try {
+        await Promise.all([
+          handleGetData(),
+          handleGetSubjectData(),
+          handleGetPerformanceData()
+        ])
+      } finally {
+        setLoadingData(false)
+      }
     }
     
-    fetchSequentially()
+    fetchAll()
   }, [timeType, currentTime, selectedSubject, load])
 
   useEffect(() => {
@@ -301,6 +373,8 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
     handleGetRankingData()
     getSubjectList()
     handleGetOverallData()
+    // Fixed daily data: fetch once on focus/load, independent of subject
+    handleGetDailyData()
   }, [load])
 
   useEffect(() => {
@@ -366,14 +440,13 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
   }, [JSON.stringify(subjectData), mode])
 
   const categoryStudyTimeCharts = useMemo(() => {
-    const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
     switch (timeType) {
       case 0:
         return [t('mon'), t('tue'), t('wed'), t('thu'), t('fri'), t('sat'), t('sun')]
       case 1:
         return Array.from({ length: getWeekCountOfMonth(currentTime) }, (_, i) => t('week_number', { week: i + 1 }))
       case 2:
-        return Array.from({ length: 12 }, (_, i) => t(months[i]) || moment().month(i).format('MMM'))
+        return Array.from({ length: 12 }, (_, i) => moment().month(i).format('MMM'))
       case 3:
         return Array.from({ length: 8 }, (_, i) => `${(i * 3).toString().padStart(2, '0')}:00`)
       default:
@@ -384,26 +457,29 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
   const currentTimeOptions = useMemo(() => getCurrentTimeOptions(t, timeType), [timeType, t])
 
   const labelStudyTimeChart = useMemo(() => {
-    const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
     switch (timeType) {
       case 0:
         return `${t('day_of_month', {
           day: moment().isoWeek(currentTime).startOf('week').format('DD'),
-          monthName: t(months[moment().isoWeek(currentTime).startOf('week').month()]),
-          month: moment().isoWeek(currentTime).startOf('week').month() + 1
+          monthName: moment().format('MMM'),
+          month: moment().month() + 1
         })} ~ ${t('day_of_month', {
           day: moment().isoWeek(currentTime).endOf('week').format('DD'),
-          monthName: t(months[moment().isoWeek(currentTime).endOf('week').month()]),
-          month: moment().isoWeek(currentTime).endOf('week').month() + 1
+          monthName: moment().format('MMM'),
+          month: moment().month() + 1
         })}`
       case 1:
         return `${t('week_of_month', {
           week: getWeekOfMonth(moment().month(currentTime).startOf('month')),
-          monthName: t(months[currentTime]),
+          monthName: moment()
+            .month(currentTime)
+            .format('MMM'),
           month: currentTime + 1
         })} ~${t('week_of_month', {
-          week: getWeekOfMonth(moment().month(currentTime).endOf('month')),
-          monthName: t(months[currentTime]),
+          week:getWeekOfMonth(moment().month(currentTime).endOf('month')),
+          monthName: moment()
+            .month(currentTime)
+            .format('MMM'),
           month: currentTime + 1
         })}`
       case 2:
@@ -413,10 +489,9 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
       default:
         return ''
     }
-  }, [timeType, currentTime, currentTimeOptions, t])
+  }, [timeType, currentTime, currentTimeOptions])
 
   const titleTooltipChart = useMemo(() => {
-    const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
     switch (timeType) {
       case 0:
         const month = moment().month()
@@ -426,16 +501,16 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
           pTitle: labelStudyTimeChart,
           sTitle: t('week_of_month', {
             week: isSameMonth ? 1 : getWeekOfMonthFromISOWeek(currentTime - 1),
-            monthName: t(months[month]) || moment().month(month).format('MMM'),
+            monthName: moment().month(month).format('MMM'),
             month
           })
         }
 
       case 1:
         return {
-          pTitle: t(months[currentTime]) || moment().month(currentTime).format('MMM'),
-          sTitle: t(months[currentTime > 0 ? currentTime - 1 : 11]) || moment()
-            .month(currentTime > 0 ? currentTime - 1 : 11)
+          pTitle: moment().month(currentTime).format('MMM'),
+          sTitle: moment()
+            .month(currentTime - 1)
             .format('MMM')
         }
       case 2:
@@ -510,15 +585,15 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
   }, [JSON.stringify(subjectCumulativeData), mode])
 
   const isDisableNavigation = useCallback(
-  (time: number, type: 'PREVIOUS' | 'NEXT' = 'PREVIOUS') => {
-    if (type === 'PREVIOUS') {
-      return time === currentTimeOptions[0]?.value
-    }
+    (time: number, type: 'PREVIOUS' | 'NEXT' = 'PREVIOUS') => {
+      if (type === 'PREVIOUS') {
+        return time === currentTimeOptions[0]?.value
+      }
 
-    return time === currentTimeOptions[currentTimeOptions.length - 1]?.value
-  },
-  [currentTimeOptions]
-)
+      return time === currentTimeOptions[currentTimeOptions.length - 1]?.value
+    },
+    [currentTimeOptions]
+  )
 
   const handlePrevious = () => {
     if (isDisableNavigation(currentTime, 'PREVIOUS')) return
@@ -576,7 +651,14 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
       summaryData,
       performanceData,
       weaknessData,
-      subjectDataRequest
+      todayData,
+      subjectDataRequest,
+      loadingSummary,
+      loadingAnalysis,
+      loadingWeakness,
+      loadingToday,
+      dailyData,
+      loadingDaily
     })
   }
 }

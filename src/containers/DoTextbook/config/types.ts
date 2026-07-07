@@ -33,6 +33,7 @@ export enum ScrollType {
 export type StudentTextbookAnswerRequest = {
   lastAnswerTime: number
   questions: AnswerRequest[]
+  timezone?: string
 }
 
 export interface PreparedTextbookResponse {

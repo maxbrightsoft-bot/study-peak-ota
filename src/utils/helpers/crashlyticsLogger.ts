@@ -1,4 +1,5 @@
 import crashlytics from '@react-native-firebase/crashlytics'
+import { trackErrorStandalone } from '@/hooks/useActivityTracking'
 
 export const logError = (
   error: any,
@@ -31,4 +32,13 @@ export const logError = (
     error instanceof Error ? error : new Error(finalMessage)
 
   instance.recordError(err)
+
+  // Also track to our student activity log service
+  trackErrorStandalone(error, {
+    metaData: {
+      crashlyticsLog: true,
+      finalMessage,
+      ...(context || {}),
+    }
+  }).catch(() => {})
 }

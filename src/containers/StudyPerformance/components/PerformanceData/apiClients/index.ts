@@ -1,13 +1,11 @@
 import { BASE_URL, SUPER_ADMIN_BASE_URL } from "@/utils/constants";
-import { RankingRequest, SubjectRequest } from "../configs/types";
+import { RankingRequest, SubjectRequest } from "../../../configs/types";
 import { api } from "@/services";
-import { NoteRequest } from "@/utils/types";
 
 const SUBJECT_TIMER_URL = `${BASE_URL}/api/subject/timers`;
 const SUBJECT_TIMER_ADMIN_URL = `${SUPER_ADMIN_BASE_URL}/api/subject/timers`;
 const SUBJECT_URL = `${BASE_URL}/api/subject`;
 const SUBJECT_ADMIN_URL = `${SUPER_ADMIN_BASE_URL}/api/subject`;
-const NOTES_URL = `${BASE_URL}/api/notes`
 
 export const getDataApi = (isSuperAdmin: boolean, data: SubjectRequest) => api.get(`${isSuperAdmin ? SUBJECT_TIMER_ADMIN_URL : SUBJECT_TIMER_URL}/data`, { params: data })
 export const getSubjectDataApi = (isSuperAdmin: boolean, data: SubjectRequest) => api.get(`${isSuperAdmin ? SUBJECT_TIMER_ADMIN_URL : SUBJECT_TIMER_URL}/subject-data`, { params: data })
@@ -29,8 +27,5 @@ export const getQuestionOverallDataApi = (data: RankingRequest) => api.get(`${SU
 export const getPerformanceSummaryApi = (id: number, data: SubjectRequest) => api.get(`${SUBJECT_URL}/${id}/questions/performance/summary`, { params: data })
 export const getPerformanceAnalysisApi = (id: number, data: SubjectRequest) => api.get(`${SUBJECT_URL}/${id}/questions/performance/analysis`, { params: data })
 export const getPerformanceWeaknessApi = (id: number, data: SubjectRequest) => api.get(`${SUBJECT_URL}/${id}/questions/performance/weakness`, { params: data })
-
-export const updateNoteApi = (id: number, data: NoteRequest) =>
-    api.put(`${NOTES_URL}/${id}`, data)
-
-export const deleteNoteApi = (id: number) => api.delete(`${NOTES_URL}/${id}`)
+// Fixed daily summary: today stats + this-week activity + peer comparison — all subjects, not subject-filtered
+export const getPerformanceDailyApi = (data: { timezone?: string; studentId?: number }) => api.get(`${SUBJECT_URL}/questions/performance/daily`, { params: data })

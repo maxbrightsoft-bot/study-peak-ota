@@ -1,9 +1,9 @@
 import React from 'react';
-import { View } from 'react-native';
+import { ScrollView } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Option } from '../configs/types';
 import CustomSelect from '@/components/Select/CustomSelect';
-import { palette } from '@/theme';
-import { ScaledSheet } from 'react-native-size-matters'
+import { ScaledSheet } from 'react-native-size-matters';
 
 type Props = {
   timeType: number;
@@ -28,24 +28,32 @@ const TimePeriodSelector = ({
   handleChangeSubject,
   handleChangeCurrentTime,
 }: Props) => {
-  const style = {
-    borderWidth: 0.5,
-    borderColor: palette.grey[100],
-    backgroundColor: "#FFF",
-    borderRadius: 8,
-    height: 40
-  }
+  const renderChevron = () => (
+    <Ionicons name="chevron-down" size={11} color="#6F48E9" style={{ marginLeft: 4 }} />
+  );
+
   return (
-    <View style={styles.container}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.scrollView}
+      contentContainerStyle={styles.scrollContent}
+    >
       <CustomSelect
-        style={style}
+        style={[styles.chipSelect, { minWidth: 100 }]}
+        selectedTextStyle={styles.selectedText}
+        placeholderStyle={styles.placeholderText}
+        icon={renderChevron}
         value={timeType}
         options={timeTypeOptions}
         onValueChange={handleChangeTimeType}
       />
 
       <CustomSelect
-        style={style}
+        style={[styles.chipSelect, { minWidth: 110 }]}
+        selectedTextStyle={styles.selectedText}
+        placeholderStyle={styles.placeholderText}
+        icon={renderChevron}
         value={currentTime}
         options={currentTimeOptions}
         onValueChange={handleChangeCurrentTime}
@@ -53,21 +61,51 @@ const TimePeriodSelector = ({
 
       {!!subjectOptions?.length && (
         <CustomSelect
-          style={style}
+          style={[styles.chipSelect, { minWidth: 90 }]}
+          selectedTextStyle={styles.selectedText}
+          placeholderStyle={styles.placeholderText}
+          icon={renderChevron}
           value={selectedSubject}
           options={subjectOptions}
           onValueChange={handleChangeSubject}
         />
       )}
-    </View>
+    </ScrollView>
   );
 };
 
 export default TimePeriodSelector;
 
 const styles = ScaledSheet.create({
-  container: {
+  scrollView: {
     backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderColor: '#ECECEF',
+  },
+  scrollContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: '8@ms',
+    paddingHorizontal: '16@ms',
+    paddingVertical: '12@ms',
+  },
+  chipSelect: {
+    height: '36@ms',
+    borderRadius: '18@ms',
+    backgroundColor: '#F3F0FE',
+    borderWidth: 1,
+    borderColor: '#E5DFFC',
+    paddingHorizontal: '12@ms',
+    justifyContent: 'center',
+  },
+  selectedText: {
+    color: '#6F48E9',
+    fontSize: '12.5@ms',
+    fontWeight: '700',
+  },
+  placeholderText: {
+    color: '#6F48E9',
+    fontSize: '12.5@ms',
+    fontWeight: '700',
   },
 });

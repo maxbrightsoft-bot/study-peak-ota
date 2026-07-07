@@ -240,7 +240,7 @@ const useTextbook = ({
     if (!selectedTextbook) return
     if (!selectedTextbook.isMock) {
       handleCloseAudioGuide()
-      handleOpenTimeSelectModal()
+      enable ? handleOpenTimeSelectModal() : handleStartTextbook(false, selectedTextbook, undefined, true)
     } else {
       handleStartTextbook(enable, selectedTextbook)
     }

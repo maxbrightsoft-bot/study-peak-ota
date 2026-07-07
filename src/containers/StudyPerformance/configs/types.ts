@@ -1,8 +1,12 @@
+export const ACTION_PLAN_TOP_LIMIT = 3;
+
 export type SubjectRequest = {
   pTimes : number[]
   sTimes: number[]
   retrieveCumulative: boolean
   studentId?: number
+  topLimit?: number
+  topWeaknesses?: any[]
 }
 
 export type RankingRequest = {
@@ -112,3 +116,72 @@ export type Option = {
   label: string
   value: number
 }
+
+export enum SubTab {
+  SUMMARY,
+  PERFORMANCE,
+  WEAKNESS,
+  PLAN,
+}
+
+// ────────────────────────────────────────────────────────────
+// PERFORMANCE DATA TAB TYPES
+// ────────────────────────────────────────────────────────────
+
+export type PerformanceSummaryResponse = {
+  today: {
+    accuracy: number;
+    delta: number;
+    isDeltaUp: boolean;
+    solved: number;
+    correct: number;
+    wrong: number;
+    streak: number;
+  };
+  period: {
+    solvedCount: number;
+    avgAccuracy: number;
+    delta?: number;
+    goalAccuracy: number;
+    weakestType: PerformanceCategoryLabel & { accuracy: number };
+    strongestCategory: PerformanceCategoryLabel & { accuracy: number; sampleSizeWarning: boolean };
+  };
+  strengths: Array<string | (PerformanceCategoryLabel & { accuracy: number })>;
+  weekDaysActive: number;
+  weekActivity: { timestamp: number; level: number; today: boolean }[];
+  weekTotalProblems: number;
+  weekTotalTime: number;
+  strengthMessage?: string | null;
+};
+
+export type PerformanceCategoryLabel = {
+  categoryId?: number;
+  parentCategoryId?: number;
+  name?: string;
+  categoryName?: string;
+  subCategoryName?: string;
+  questionTypeName?: string;
+};
+
+export type PerformanceAnalysisResponse = {
+  achievementChart: { timestamp: number; student: number; classAvg: number }[];
+  mainCategoryDistribution: Array<PerformanceCategoryLabel & {
+    percentage: number;
+    accuracy: number;
+    solved: number;
+  }>;
+  subCategoryAccuracy: Array<PerformanceCategoryLabel & {
+    accuracy: number;
+    solved: number;
+    total: number;
+    delta: number;
+    sampleSizeWarning: boolean;
+  }>;
+  tipText: string | null;
+  peer: { studentAccuracy: number; totalAvgAccuracy: number } | null;
+};
+
+export type PerformanceWeaknessResponse = {
+  topWeaknesses: Array<PerformanceCategoryLabel & { tags?: string[]; correct: number; total: number; delta: number; accuracy: number }>;
+  allTypes: Array<PerformanceCategoryLabel & { tags?: string[]; correct: number; count: number; accuracy: number; timestamp: number }>;
+};

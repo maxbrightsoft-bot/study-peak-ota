@@ -10,6 +10,7 @@ import { getDataStorage } from '@/utils/storage'
 import { Platform, Text } from 'react-native'
 import { palette } from '@/theme'
 import { Language, Role } from '../enums'
+import { trackErrorStandalone } from '@/hooks/useActivityTracking'
 
 export const toast = {
   success: (message: string) =>
@@ -120,6 +121,10 @@ export const formatGrade = (grade: number, t: any, language?: string) => {
 }
 
 export const getErrorMessage = (t: TFunction<"translation", undefined>, error: any, defaultErrorMessage?: string): string => {
+    if (error) {
+      trackErrorStandalone(error).catch(() => {})
+    }
+
     let errorMessage = error?.response?.data?.title
     const errorStatus = error?.response?.status
     if (errorStatus === 401)
@@ -133,8 +138,13 @@ export const getErrorMessage = (t: TFunction<"translation", undefined>, error: a
         return defaultErrorMessage || t("an_unexpected_error_has_occurred")
     }
     if (typeof errorMessage === "string") return decodeURIComponent(errorMessage);
-    errorMessage = error?.message || error?.response?.data?.message
-    if (typeof errorMessage === "string") return errorMessage;
+    errorMessage = error?.response?.data?.message || error?.message
+    if (typeof errorMessage === "string") {
+      if (errorMessage.includes("status code")) {
+        return defaultErrorMessage || t("an_unexpected_error_has_occurred")
+      }
+      return errorMessage
+    }
     return defaultErrorMessage || t("an_unexpected_error_has_occurred");
 }
 export const getMessageFromError = (t: TFunction<"translation", undefined>, error: any, defaultErrorMessage?: string): string => {

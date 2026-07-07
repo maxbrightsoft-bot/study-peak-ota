@@ -144,7 +144,7 @@ const TextbookQuestionGroup = ({
 
   return (
     <View>
-      <View style={{ flexDirection: 'row', marginBottom: 8, gap: 4 }}>
+      <View style={{ flexDirection: 'row', marginBottom: 8, gap: 4, flexWrap: 'wrap' }}>
         {questionContent && (
           <Text style={{ fontSize: 14, fontWeight: 500, color: palette.grey[500] }}>{questionContent}</Text>
         )}

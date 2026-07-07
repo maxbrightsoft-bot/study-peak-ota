@@ -1,4 +1,4 @@
-import { FlatList, Text, TouchableOpacity, View } from 'react-native'
+import { Text, TouchableOpacity, View } from 'react-native'
 import { palette } from '@/theme'
 import { ExamStatus, QuestionAnswerType, SubjectType } from '@/utils/enums'
 import { QuestionGroupResponse, QuestionResponse } from '../config/types'
@@ -109,8 +109,6 @@ const ExamQuestionGroup = ({
 
   const renderAnswer = useCallback((question: QuestionResponse) => {
 
-    console.log({ question1: question.unit });
-
     switch (question.questionAnswerType) {
       case QuestionAnswerType.ShortAnswer:
       case QuestionAnswerType.OrderMatters:
@@ -142,7 +140,7 @@ const ExamQuestionGroup = ({
 
   return (
     <View>
-      <View style={{ flexDirection: 'row', marginBottom: 8, gap: 4 }}>
+      <View style={{ flexDirection: 'row', marginBottom: 8, gap: 4, flexWrap: 'wrap' }}>
         {questionContent && (
           <Text style={{ fontSize: 14, fontWeight: 500, color: palette.grey[500] }}>{questionContent}</Text>
         )}
