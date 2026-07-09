@@ -50,13 +50,28 @@ if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "android" ]; then
 
   # Compile to Hermes bytecode (required because Android uses Hermes engine)
   echo "=== Compiling Android bundle to Hermes bytecode ==="
-  HERMESC_PATH="node_modules/react-native/sdks/hermesc/osx-bin/hermesc"
-  if [ ! -f "$HERMESC_PATH" ]; then
+  OS_TYPE=$(uname -s | tr '[:upper:]' '[:lower:]')
+  if [[ "$OS_TYPE" == *"darwin"* ]]; then
+    HERMESC_PATH="node_modules/react-native/sdks/hermesc/osx-bin/hermesc"
+  elif [[ "$OS_TYPE" == *"linux"* ]]; then
     HERMESC_PATH="node_modules/react-native/sdks/hermesc/linux64-bin/hermesc"
-  fi
-  if [ ! -f "$HERMESC_PATH" ]; then
+    # Ensure it's executable in WSL/Linux
+    [ -f "$HERMESC_PATH" ] && chmod +x "$HERMESC_PATH"
+  else
     HERMESC_PATH="node_modules/react-native/sdks/hermesc/win64-bin/hermesc.exe"
   fi
+
+  if [ ! -f "$HERMESC_PATH" ]; then
+    if [ -f "node_modules/react-native/sdks/hermesc/linux64-bin/hermesc" ]; then
+      HERMESC_PATH="node_modules/react-native/sdks/hermesc/linux64-bin/hermesc"
+      chmod +x "$HERMESC_PATH"
+    elif [ -f "node_modules/react-native/sdks/hermesc/win64-bin/hermesc.exe" ]; then
+      HERMESC_PATH="node_modules/react-native/sdks/hermesc/win64-bin/hermesc.exe"
+    elif [ -f "node_modules/react-native/sdks/hermesc/osx-bin/hermesc" ]; then
+      HERMESC_PATH="node_modules/react-native/sdks/hermesc/osx-bin/hermesc"
+    fi
+  fi
+
   if [ -f "$HERMESC_PATH" ]; then
     mv ota/android_bundle/bundle/index.android.bundle ota/android_bundle/bundle/index.android.bundle.js
     "$HERMESC_PATH" \
@@ -112,7 +127,7 @@ if command -v zip >/dev/null 2>&1; then
   fi
 else
   if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "android" ]; then
-    powershell -Command "
+    powershell.exe -Command "
       Add-Type -AssemblyName System.IO.Compression;
       Add-Type -AssemblyName System.IO.Compression.FileSystem;
       \$archivePath = Join-Path (Get-Location).Path 'ota/android.zip';
@@ -138,7 +153,7 @@ else
     "
   fi
   if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "ios" ]; then
-    powershell -Command "
+    powershell.exe -Command "
       Add-Type -AssemblyName System.IO.Compression;
       Add-Type -AssemblyName System.IO.Compression.FileSystem;
       \$archivePath = Join-Path (Get-Location).Path 'ota/ios.zip';
@@ -180,7 +195,7 @@ if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "ios" ]; then
   FILES_TO_UPLOAD="$FILES_TO_UPLOAD ota/ios.zip"
 fi
 
-if gh release create ota-v$TAG_VERSION \
+if gh.exe release create ota-v$TAG_VERSION \
   $FILES_TO_UPLOAD \
   --repo $GITHUB_REPO \
   --title "OTA v$VERSION" \
@@ -188,7 +203,7 @@ if gh release create ota-v$TAG_VERSION \
   echo "Release created successfully."
 else
   echo "⚠️ Release already exists, uploading files to existing release..."
-  gh release upload ota-v$TAG_VERSION $FILES_TO_UPLOAD --repo $GITHUB_REPO --clobber
+  gh.exe release upload ota-v$TAG_VERSION $FILES_TO_UPLOAD --repo $GITHUB_REPO --clobber
 fi
 
 # --- Update update.json ---
@@ -201,18 +216,18 @@ SHA_RESPONSE=$(curl -s \
   -H "Authorization: token $GITHUB_TOKEN" \
   "https://api.github.com/repos/$GITHUB_REPO/contents/update.json")
 
-SHA=$(echo $SHA_RESPONSE | node -pe "try { JSON.parse(require('fs').readFileSync(0)).sha } catch(e) { '' }" 2>/dev/null || echo "")
+SHA=$(echo $SHA_RESPONSE | node.exe -pe "try { JSON.parse(require('fs').readFileSync(0)).sha } catch(e) { '' }" 2>/dev/null || echo "")
 
 # Fetch current JSON to keep URLs if platform skipped
-CURRENT_DATA_BASE64=$(echo $SHA_RESPONSE | node -pe "try { JSON.parse(require('fs').readFileSync(0)).content } catch(e) { '' }")
+CURRENT_DATA_BASE64=$(echo $SHA_RESPONSE | node.exe -pe "try { JSON.parse(require('fs').readFileSync(0)).content } catch(e) { '' }")
 if [ -n "$CURRENT_DATA_BASE64" ]; then
   CURRENT_JSON=$(echo "$CURRENT_DATA_BASE64" | base64 -d)
 else
   CURRENT_JSON="{}"
 fi
 
-PREV_ANDROID_URL=$(echo "$CURRENT_JSON" | node -pe "try { JSON.parse(require('fs').readFileSync(0)).downloadAndroidUrl } catch(e) { '' }")
-PREV_IOS_URL=$(echo "$CURRENT_JSON" | node -pe "try { JSON.parse(require('fs').readFileSync(0)).downloadIosUrl } catch(e) { '' }")
+PREV_ANDROID_URL=$(echo "$CURRENT_JSON" | node.exe -pe "try { JSON.parse(require('fs').readFileSync(0)).downloadAndroidUrl } catch(e) { '' }")
+PREV_IOS_URL=$(echo "$CURRENT_JSON" | node.exe -pe "try { JSON.parse(require('fs').readFileSync(0)).downloadIosUrl } catch(e) { '' }")
 
 NEW_ANDROID_URL="https://github.com/$GITHUB_REPO/releases/download/ota-v$TAG_VERSION/android.zip"
 NEW_IOS_URL="https://github.com/$GITHUB_REPO/releases/download/ota-v$TAG_VERSION/ios.zip"
