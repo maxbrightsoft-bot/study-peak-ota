@@ -43,6 +43,8 @@ const useTextbook = ({
   const isDemoMode = useAuthStore(state => state.isDemoMode)
   const { t } = useTranslation();
   const [textbookList, setTextbookList] = useState<Textbook[]>([]);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const inputSearch = useRef<any>(null);
   const [selectedTextbook, setSelectedTextbook] = useState<Textbook>()
   const [openFilterModal, setOpenFilterModal] = useState(false)
@@ -92,7 +94,11 @@ const useTextbook = ({
     }
 
     inputSearch.current = setTimeout(() => {
-      getTextbookList(search);
+      if (textbookFilter.currentPage === 1) {
+        getTextbookList(search);
+      } else {
+        setTextbookFilter(prev => ({ ...prev, currentPage: 1 }));
+      }
     }, 500);
 
     return () => {
@@ -124,7 +130,11 @@ const useTextbook = ({
   }
 
   const getTextbookList = async (textSearch?: string) => {
-    setLoading(true)
+    if (textbookFilter.currentPage === 1) {
+      setLoading(true)
+    } else {
+      setLoadingMore(true)
+    }
     try {
       const { data } = await getTextbookListApi({
         ...textbookFilter,
@@ -133,19 +143,28 @@ const useTextbook = ({
         textSearch
       });
 
-      const { items = [] } = data;
-      setTextbookList(items);
-      if (items.length === 0 && textbookFilter.currentPage > 1) {
-        setTextbookFilter((prev) => ({
-          ...prev,
-          currentPage: prev.currentPage - 1
-        }));
-      }
+      const { items = [], totalPages = 1 } = data;
+      setTotalPages(totalPages);
+      setTextbookList((prev) =>
+        textbookFilter.currentPage === 1 ? items : [...prev, ...items]
+      );
     } catch (error: any) {
-      setTextbookList([]);
+      if (textbookFilter.currentPage === 1) {
+        setTextbookList([]);
+      }
       toast.error(getErrorMessage(t, error));
+    } finally {
+      setLoading(false)
+      setLoadingMore(false)
     }
-    setLoading(false)
+  };
+
+  const handleLoadMore = () => {
+    if (loadingMore || textbookFilter.currentPage >= totalPages) return;
+    setTextbookFilter((prev) => ({
+      ...prev,
+      currentPage: prev.currentPage + 1
+    }));
   };
 
   const handleStartAudio = async (textbook: Textbook, minutes?: number, startTime?: number, skipPreAlarm?: boolean) => {
@@ -272,7 +291,9 @@ const useTextbook = ({
     useCallback(() => {
       getTextbookList(search);
 
-      scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true })
+      if (textbookFilter.currentPage === 1) {
+        scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true })
+      }
 
       return () => {
         setSelectedTextbook(undefined);
@@ -308,7 +329,9 @@ const useTextbook = ({
     handleDoTextbook,
     handleStartTextbookFromGuideModal,
     isOpenTimeSelectModal,
-    handleCloseTimeSelectModal
+    handleCloseTimeSelectModal,
+    handleLoadMore,
+    loadingMore
   };
 };
 

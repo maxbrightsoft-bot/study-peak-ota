@@ -160,7 +160,7 @@ const FilterForm: React.FC<FilterFormProps> = ({
 
                 <View style={styles.divider} />
 
-                <Text style={styles.sectionTitle}>{t('year')}</Text>
+                <Text style={styles.sectionTitle}>{t('publication_year')}</Text>
 
                 <View style={{ gap: 12 }}>
                   <View style={styles.yearRow}>
@@ -189,7 +189,7 @@ const FilterForm: React.FC<FilterFormProps> = ({
                       />
                     </View>
 
-                    <Text style={styles.yearSuffix}>{t('from')}</Text>
+                    <Text style={styles.yearSuffix}>{t('year_from')}</Text>
                   </View>
 
                   <View style={styles.yearRow}>
@@ -218,7 +218,7 @@ const FilterForm: React.FC<FilterFormProps> = ({
                       />
                     </View>
 
-                    <Text style={styles.yearSuffix}>{t('to')}</Text>
+                    <Text style={styles.yearSuffix}>{t('year_to')}</Text>
                   </View>
                 </View>
                 <View style={styles.divider} />

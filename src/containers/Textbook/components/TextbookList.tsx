@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { FlatList, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native'
 import { PreparedFilterType, PreparedType, TextbookQuery } from '../configs/type'
 import useTextbook from '../hooks/useTextbook'
 import TextbookItem from '../components/TextbookItem'
@@ -48,7 +48,9 @@ const TextbookList = ({
     handleOpenDialog,
     isOpenTimeSelectModal,
     handleCloseTimeSelectModal,
-    handleStartTextbook
+    handleStartTextbook,
+    handleLoadMore,
+    loadingMore
   } = useTextbook({
     preparedType,
     preparedFilterType,
@@ -74,7 +76,7 @@ const TextbookList = ({
   }
 
   return (
-    <View>
+    <View style={styles.container}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 37, marginBottom: 9, paddingHorizontal: 20 }}>
         <View style={{ flex: 1 }}>
           <SearchInput value={search} onChangeText={onChangeSearch} placeholder={t('search_for')} />
@@ -89,16 +91,24 @@ const TextbookList = ({
 
       <FlatList
         ref={scrollViewRef}
+        style={{ flex: 1 }}
         data={textbookList}
         contentContainerStyle={{
           paddingTop: 16,
-          paddingBottom: 350,
+          paddingBottom: 80,
           paddingHorizontal: 20
         }}
         renderItem={({ item }) => <TextbookItem textbook={item} t={t} handleOpenDialog={handleOpenDialog} />}
         keyExtractor={(item) => item.id.toString()}
         ListEmptyComponent={<Text style={styles.emptyText}>{t('no_data')}</Text>}
         showsVerticalScrollIndicator={false}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          loadingMore ? (
+            <ActivityIndicator size="small" color={palette.main[600]} style={{ marginVertical: 16 }} />
+          ) : null
+        }
       />
       {isOpenDialog && (
         <TextbookDrawer

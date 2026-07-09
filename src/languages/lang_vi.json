@@ -946,6 +946,9 @@
     "smallSample": "Dữ liệu ít"
   },
   "search": "Tìm kiếm",
+  "publication_year": "Năm xuất bản",
+  "year_from": "Từ",
+  "year_to": "Đến",
   "reset": "Đặt lại",
   "total_student": "Tổng số học sinh",
   "total_teacher": "Tổng số giáo viên",
