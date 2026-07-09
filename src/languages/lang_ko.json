@@ -2270,5 +2270,8 @@
   "weak.emptyDesc": "문제를 더 풀면 약점 분석 데이터가 여기에 표시됩니다.",
   "weak.emptyTypesDesc": "표시할 문제 유형 데이터가 없습니다.",
   "n_problems_solved": "{{n}}문제 풀이",
-  "grade_average_format": "{{grade}} 평균"
+  "grade_average_format": "{{grade}} 평균",
+  "store_update_required_android": "스토어에 새로운 버전이 출시되었습니다. 구글 플레이 스토어에서 앱을 업데이트해 주세요.",
+  "store_update_required_ios": "스토어에 새로운 버전이 출시되었습니다. 앱스토어에서 앱을 업데이트해 주세요.",
+  "ota_update_required": "새로운 앱 업데이트 버전이 출시되었습니다. 업데이트를 다운로드 중입니다..."
 }

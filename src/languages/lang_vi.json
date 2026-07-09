@@ -2293,5 +2293,8 @@
   "weak.emptyDesc": "Dữ liệu phân tích điểm yếu sẽ hiển thị sau khi bạn giải thêm bài tập.",
   "weak.emptyTypesDesc": "Không có dữ liệu về các dạng bài tập.",
   "n_problems_solved": "{{n}} bài đã giải",
-  "grade_average_format": "Trung bình {{grade}}"
+  "grade_average_format": "Trung bình {{grade}}",
+  "store_update_required_android": "Đã có phiên bản mới trên cửa hàng. Vui lòng cập nhật ứng dụng từ Google Play Store để tiếp tục.",
+  "store_update_required_ios": "Đã có phiên bản mới trên cửa hàng. Vui lòng cập nhật ứng dụng từ App Store để tiếp tục.",
+  "ota_update_required": "Đang có bản cập nhật mới. Đang tiến hành cập nhật ứng dụng..."
 }

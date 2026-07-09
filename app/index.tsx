@@ -32,7 +32,7 @@ const NativeFontLoader = requireNativeModule('ExpoFontLoader')
 const OTA_MAX_RETRY = 3
 const OTA_RETRY_DELAY = 3000
 const OTA_MIN_CHECK_INTERVAL = 60 * 1000
-const OTA_FETCH_TIMEOUT = 8000
+const OTA_FETCH_TIMEOUT = 30000
 const OTA_DOWNLOAD_TIMEOUT = 60000
 const PERSIST_FLUSH_DELAY = 300
 const OTA_RESET_APP_TIMEOUT = 5000
@@ -99,6 +99,7 @@ if (!Array.prototype.findLast) {
 }
 
 async function checkOtaUpdate(
+  currentBundleVersion: string,
   setIsUpdating: (val: boolean) => void,
   setBundleVersion: (version: string) => void,
   setIsUpdatingOta: (isUpdating: boolean) => void,
@@ -135,7 +136,7 @@ async function checkOtaUpdate(
     const data = await res.json()
     serverVersion = data.version
 
-    console.log('[OTA] server:', data.version, '| effective local:', effectiveBundleVersion, '| compiled:', CURRENT_BUNDLE_VERSION, '| enabled:', data.otaEnabled)
+    console.log('[OTA] server:', data.version, '| local:', currentBundleVersion, '| enabled:', data.otaEnabled)
 
     if (data.otaEnabled === false) {
       console.warn('[OTA] Disabled remotely via kill switch')
@@ -151,8 +152,8 @@ async function checkOtaUpdate(
       return
     }
 
-    if (!isNewerVersion(data.version, effectiveBundleVersion)) {
-      console.log('[OTA] Up to date (effective version:', effectiveBundleVersion, ')')
+    if (!isNewerVersion(data.version, currentBundleVersion)) {
+      console.log('[OTA] Up to date')
       return
     }
 
@@ -183,7 +184,7 @@ async function checkOtaUpdate(
         metaData: {
           stage: 'download_timeout',
           serverVersion,
-          currentVersion: effectiveBundleVersion,
+          currentVersion: currentBundleVersion,
           url: downloadUrl,
           retryCount
         }
@@ -192,7 +193,7 @@ async function checkOtaUpdate(
       if (retryCount < OTA_MAX_RETRY) {
         setTimeout(() => {
           if (isStaleAttempt()) return
-          checkOtaUpdate(setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, retryCount + 1, effectiveBundleVersion)
+          checkOtaUpdate(currentBundleVersion, setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, retryCount + 1)
         }, OTA_RETRY_DELAY)
       } else {
         setIsUpdating(false)
@@ -256,7 +257,7 @@ async function checkOtaUpdate(
           metaData: {
             stage: 'download',
             serverVersion,
-            currentVersion: effectiveBundleVersion,
+            currentVersion: currentBundleVersion,
             url: downloadUrl,
             retryCount
           }
@@ -265,7 +266,7 @@ async function checkOtaUpdate(
         if (retryCount < OTA_MAX_RETRY) {
           setTimeout(() => {
             if (isStaleAttempt()) return
-            checkOtaUpdate(setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, retryCount + 1, effectiveBundleVersion)
+            checkOtaUpdate(currentBundleVersion, setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, retryCount + 1)
           }, OTA_RETRY_DELAY)
         } else {
           console.log('[OTA] Max retry reached, giving up this session')
@@ -285,7 +286,7 @@ async function checkOtaUpdate(
       metaData: {
         stage: e?.name === 'AbortError' ? 'fetch_timeout' : 'fetch_manifest',
         serverVersion,
-        currentVersion: effectiveBundleVersion,
+        currentVersion: currentBundleVersion,
         retryCount
       }
     })
@@ -293,7 +294,7 @@ async function checkOtaUpdate(
     if (retryCount < OTA_MAX_RETRY) {
       setTimeout(() => {
         if (isStaleAttempt()) return
-        checkOtaUpdate(setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, retryCount + 1, effectiveBundleVersion)
+        checkOtaUpdate(currentBundleVersion, setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, retryCount + 1)
       }, OTA_RETRY_DELAY)
     } else {
       setIsUpdating(false)
@@ -305,8 +306,15 @@ export default function App() {
   const [isUpdating, setIsUpdating] = useState(false)
   const [fontWaitTimedOut, setFontWaitTimedOut] = useState(false)
   const { trackError } = useActivityTracking()
-  const [needsForceUpdate, setNeedsForceUpdate] = useState(false)
-  const [latestVersionName, setLatestVersionName] = useState('')
+
+  const bundleVersion = useAppStore((state) => state.bundleVersion)
+  const setBundleVersion = useAppStore((state) => state.setBundleVersion)
+  const setIsUpdatingOta = useAppStore((state) => state.setIsUpdatingOta)
+  const needsForceUpdate = useAppStore((state) => state.needsForceUpdate)
+  const latestVersionName = useAppStore((state) => state.latestVersionName)
+  const setNeedsForceUpdate = useAppStore((state) => state.setNeedsForceUpdate)
+  const setLatestVersionName = useAppStore((state) => state.setLatestVersionName)
+  const otaCheckTriggerCount = useAppStore((state) => state.otaCheckTriggerCount)
 
   useEffect(() => {
     const checkAppVersion = () => {
@@ -411,38 +419,46 @@ export default function App() {
     }
   }, [isUpdating, fontsLoaded, fontError, fontWaitTimedOut])
 
-  const setBundleVersion = useAppStore((state) => state.setBundleVersion)
-  const setIsUpdatingOta = useAppStore((state) => state.setIsUpdatingOta)
-
   const lastCheckRef = useRef(0)
   const isCheckingRef = useRef(false)
 
-  const runOtaCheck = useCallback(async () => {
+  useEffect(() => {
+    if (isNewerVersion(CURRENT_BUNDLE_VERSION, bundleVersion)) {
+      setBundleVersion(CURRENT_BUNDLE_VERSION)
+    }
+  }, [bundleVersion, setBundleVersion])
+
+  const runOtaCheck = useCallback(async (force = false) => {
     if (__DEV__) return
     if (isCheckingRef.current) return
 
     const now = Date.now()
-    if (now - lastCheckRef.current < OTA_MIN_CHECK_INTERVAL) return
+    if (!force && now - lastCheckRef.current < OTA_MIN_CHECK_INTERVAL) return
     lastCheckRef.current = now
     isCheckingRef.current = true
 
     await waitForAppStoreHydration()
 
-    const storedVersion = useAppStore.getState().bundleVersion
-    const effectiveBundleVersion = isNewerVersion(storedVersion, CURRENT_BUNDLE_VERSION)
-      ? storedVersion
+    const currentVersionToCheck = isNewerVersion(bundleVersion, CURRENT_BUNDLE_VERSION)
+      ? bundleVersion
       : CURRENT_BUNDLE_VERSION
 
     try {
-      await checkOtaUpdate(setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, 0, effectiveBundleVersion)
+      await checkOtaUpdate(currentVersionToCheck, setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError)
     } finally {
       isCheckingRef.current = false
     }
-  }, [setBundleVersion, setIsUpdatingOta, trackError])
+  }, [bundleVersion, setBundleVersion, setIsUpdatingOta, trackError])
 
   useEffect(() => {
     runOtaCheck()
   }, [runOtaCheck])
+
+  useEffect(() => {
+    if (otaCheckTriggerCount > 0) {
+      runOtaCheck(true)
+    }
+  }, [otaCheckTriggerCount, runOtaCheck])
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', (nextState) => {

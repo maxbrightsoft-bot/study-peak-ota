@@ -7,11 +7,17 @@ import { CURRENT_BUNDLE_VERSION } from "@/utils/constants";
 interface AppStoreState {
   bundleVersion: string;
   isUpdatingOta: boolean;
+  needsForceUpdate: boolean;
+  latestVersionName: string;
+  otaCheckTriggerCount: number;
 }
 
 interface AppStoreActions {
   setBundleVersion: (version: string) => void;
   setIsUpdatingOta: (isUpdating: boolean) => void;
+  setNeedsForceUpdate: (val: boolean) => void;
+  setLatestVersionName: (version: string) => void;
+  triggerOtaCheck: () => void;
 }
 
 type AppStore = AppStoreState & AppStoreActions;
@@ -21,6 +27,9 @@ const useAppStore = create<AppStore>()(
     immer((set) => ({
       bundleVersion: CURRENT_BUNDLE_VERSION,
       isUpdatingOta: false,
+      needsForceUpdate: false,
+      latestVersionName: "",
+      otaCheckTriggerCount: 0,
 
       setBundleVersion: (version) => {
         set((state) => {
@@ -33,10 +42,31 @@ const useAppStore = create<AppStore>()(
           state.isUpdatingOta = isUpdating;
         });
       },
+
+      setNeedsForceUpdate: (val) => {
+        set((state) => {
+          state.needsForceUpdate = val;
+        });
+      },
+
+      setLatestVersionName: (version) => {
+        set((state) => {
+          state.latestVersionName = version;
+        });
+      },
+
+      triggerOtaCheck: () => {
+        set((state) => {
+          state.otaCheckTriggerCount += 1;
+        });
+      },
     })),
     {
       name: "app-storage-settings",
       storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({
+        bundleVersion: state.bundleVersion,
+      }),
     }
   )
 );
