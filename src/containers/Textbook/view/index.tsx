@@ -77,7 +77,7 @@ const Textbook = () => {
           setTextbookFilter={setTextbookFilter}
         />
       </TabPanel>
-      <TabPanel value={selected} index={TabList[2].value}>
+      <TabPanel value={selected} index={TabList[2].value} style={{ flex: 1 }}>
         <TextbookList
           preparedType={PreparedType.private_mock_exam}
           search={search}
