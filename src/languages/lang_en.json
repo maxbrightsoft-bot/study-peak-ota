@@ -2275,5 +2275,8 @@
   "weak.emptyDesc": "Weaknesses will appear after more answered questions.",
   "weak.emptyTypesDesc": "There is no question type data available.",
   "n_problems_solved": "{{n}} problems solved",
-  "grade_average_format": "{{grade}} Average"
+  "grade_average_format": "{{grade}} Average",
+  "store_update_required_android": "A newer store version is required. Please update the app from the Play Store.",
+  "store_update_required_ios": "A newer store version is required. Please update the app from the App Store.",
+  "ota_update_required": "A newer bundle version is available. Downloading update..."
 }

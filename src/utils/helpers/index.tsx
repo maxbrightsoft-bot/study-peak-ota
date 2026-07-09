@@ -1,6 +1,6 @@
 import { decode as base64Decode } from 'base-64'
 import { AxiosResponse } from 'axios'
-import { ACCESS_TOKEN, DATE_MIN_VALUE, DATE_TIME_MIN_VALUE, DefaultErrorMessage, ErrorMessages } from '../constants'
+import { ACCESS_TOKEN, DATE_MIN_VALUE, DATE_TIME_MIN_VALUE, DefaultErrorMessage, ErrorMessages, UPDATE_REQUIRED } from '../constants'
 import { TFunction } from 'i18next'
 import i18n from '@/languages/i18n'
 import moment from 'moment'
@@ -19,7 +19,7 @@ export const toast = {
       text1: message
     }),
   error: (message: string) => {
-    if (message === 'DEMO_BLOCKED') return;
+    if (message === 'DEMO_BLOCKED' || message === UPDATE_REQUIRED) return;
     Toast.show({
       type: 'error',
       text1: message

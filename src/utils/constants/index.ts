@@ -27,6 +27,10 @@ export const TAB_BAR_HEIGHT = 104;
 export const APPLE_USER_KEY = `apple_user_id`;
 export const DATE_MIN_VALUE = '0001-01-01T00:00:00+00:00'
 export const DATE_TIME_MIN_VALUE = '0001-01-01T00:00:00'
+export const STORE_UPDATE_REQUIRED = "STORE_UPDATE_REQUIRED"
+export const OTA_UPDATE_REQUIRED = "OTA_UPDATE_REQUIRED"
+export const UPDATE_REQUIRED = "UPDATE_REQUIRED"
+
 
 export const PUSHER_CONFIG = {
   cluster: process.env.EXPO_PUBLIC_PUSHER_CONFIG_CLUSTER || "",
