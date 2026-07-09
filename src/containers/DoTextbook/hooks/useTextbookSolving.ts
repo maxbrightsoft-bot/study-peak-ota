@@ -62,15 +62,19 @@ const useTextbookSolving = (props: Props) => {
   const ltAnswerTime = useRef<string>();
   const totalAnsweredTimeRef = useRef<number>();
 
+  const studentTextbookId = textbook?.studentTextbookId;
+
   const recoverKey = useMemo(() => {
-    if (!userId || !textbookId || !academyId) return undefined;
-    return `${recoverQuestionList}.${academyId}.${textbookId}.${userId}`;
-  }, [academyDomain, academyId, textbookId, userId]);
+    if (!userId || !textbookId || !studentTextbookId) return undefined;
+    const scope = academyId ? `${academyId}` : 'local';
+    return `${recoverQuestionList}.${scope}.${textbookId}.${studentTextbookId}.${userId}`;
+  }, [academyId, textbookId, userId, studentTextbookId]);
 
   const rollbackKey = useMemo(() => {
-    if (!userId || !textbookId || !academyId) return undefined;
-    return `${rollBackQuestionList}.${academyId}.${textbookId}.${userId}`;
-  }, [academyDomain, academyId, textbookId, userId]);
+    if (!userId || !textbookId || !studentTextbookId) return undefined;
+    const scope = academyId ? `${academyId}` : 'local';
+    return `${rollBackQuestionList}.${scope}.${textbookId}.${studentTextbookId}.${userId}`;
+  }, [academyId, textbookId, userId, studentTextbookId]);
 
   const getDiffTime = (now: string, nowTime: number) => {
     if (!textbook) return 0;
@@ -191,7 +195,8 @@ const useTextbookSolving = (props: Props) => {
         textualAnswers: i.textualAnswers,
         duration: i.duration,
         isStar: i.isStar,
-        answerTime: i.answerTime
+        answerTime: i.answerTime,
+        unit: i.unit
       })),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
     };
@@ -305,7 +310,8 @@ const useTextbookSolving = (props: Props) => {
           textualAnswers: i.textualAnswers,
           duration: i.duration,
           isStar: i.isStar,
-          answerTime: i.answerTime
+          answerTime: i.answerTime,
+          unit: i.unit
         }))
       };
       trackError(error, {
@@ -385,7 +391,8 @@ const useTextbookSolving = (props: Props) => {
           textualAnswers: i.textualAnswers,
           duration: i.duration,
           isStar: i.isStar,
-          answerTime: i.answerTime
+          answerTime: i.answerTime,
+          unit: i.unit
         }))
       };
       trackError(error, {

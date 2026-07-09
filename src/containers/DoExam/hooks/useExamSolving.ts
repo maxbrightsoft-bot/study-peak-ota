@@ -212,7 +212,8 @@ const useExamSolving = (props: Props) => {
         duration: i.duration,
         isStar: i.isStar,
         answerTime: i.answerTime,
-        textualAnswers: i.textualAnswers
+        textualAnswers: i.textualAnswers,
+        unit: i.unit
       })),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
     };
@@ -336,7 +337,8 @@ const useExamSolving = (props: Props) => {
           duration: i.duration,
           isStar: i.isStar,
           answerTime: i.answerTime,
-          textualAnswers: i.textualAnswers
+          textualAnswers: i.textualAnswers,
+          unit: i.unit
         }))
       };
       trackError(error, {
@@ -420,7 +422,8 @@ const useExamSolving = (props: Props) => {
           duration: i.duration,
           isStar: i.isStar,
           answerTime: i.answerTime,
-          textualAnswers: i.textualAnswers
+          textualAnswers: i.textualAnswers,
+          unit: i.unit
         }))
       };
       trackError(error, {

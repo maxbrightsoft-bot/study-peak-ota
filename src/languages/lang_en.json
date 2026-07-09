@@ -938,6 +938,9 @@
     "smallSample": "Small sample"
   },
   "search": "Search",
+  "publication_year": "Publication Year",
+  "year_from": "From",
+  "year_to": "To",
   "reset": "Reset",
   "total_student": "Total Student",
   "total_teacher": "Total Teacher",

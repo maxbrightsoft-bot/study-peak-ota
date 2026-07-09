@@ -23,6 +23,7 @@ export type AnswerRequest = {
   isStar: boolean
   answerTime: number
   textualAnswers?: string[]
+  unit?: string
 }
 
 export type StudentAnswerRequest = {
