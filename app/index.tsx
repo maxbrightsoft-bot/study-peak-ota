@@ -2,11 +2,11 @@ import RootNavigation from '../src/navigators/RootNavigation'
 import { I18nextProvider } from 'react-i18next'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { NavigationIndependentTree } from '@react-navigation/native'
-import { AppState, LogBox, Platform, View, ActivityIndicator, Text } from 'react-native'
+import { AppState, LogBox, Platform, View, ActivityIndicator, Text, Linking, TouchableOpacity } from 'react-native'
 import i18n from '@/languages/i18n'
 import hotUpdate from 'react-native-ota-hot-update'
 import ReactNativeBlobUtil from 'react-native-blob-util'
-import { OTA_URL, STORE_VERSION_ANDROID, STORE_VERSION_IOS } from '@/utils/constants'
+import { OTA_URL, STORE_VERSION_ANDROID, STORE_VERSION_IOS, STUDENT_URL } from '@/utils/constants'
 import DeviceInfo from 'react-native-device-info'
 import ForceUpdateScreen from '@/components/ForceUpdateScreen'
 import ForceWebScreen from '@/components/ForceWebScreen'
@@ -492,6 +492,14 @@ export default function App() {
     return () => sub.remove()
   }, [runOtaCheck])
 
+  const handleOpenWeb = () => {
+    if (STUDENT_URL) {
+      Linking.openURL(STUDENT_URL).catch((err) => {
+        console.log("Could not open web link:", err);
+      });
+    }
+  }
+
   if (needsForceUpdate) {
     return <ForceUpdateScreen latestVersion={latestVersionName} />
   }
@@ -523,6 +531,29 @@ export default function App() {
           <Text style={{ marginTop: 8, fontSize: 14, color: '#666', textAlign: 'center', paddingHorizontal: 32 }}>
             {i18n.t('ota_update_suggestion_web')}
           </Text>
+          <TouchableOpacity
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: '#5F30AA',
+              paddingVertical: 12,
+              paddingHorizontal: 24,
+              borderRadius: 24,
+              marginTop: 20,
+              shadowColor: '#5F30AA',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.2,
+              shadowRadius: 6,
+              elevation: 4
+            }}
+            activeOpacity={0.8}
+            onPress={handleOpenWeb}
+          >
+            <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600', marginRight: 8 }}>
+              {i18n.t('force_web_button')}
+            </Text>
+            <Feather name="external-link" size={16} color="#fff" />
+          </TouchableOpacity>
         </View>
       )}
     </I18nextProvider>
