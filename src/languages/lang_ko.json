@@ -2273,5 +2273,6 @@
   "grade_average_format": "{{grade}} 평균",
   "store_update_required_android": "스토어에 새로운 버전이 출시되었습니다. 구글 플레이 스토어에서 앱을 업데이트해 주세요.",
   "store_update_required_ios": "스토어에 새로운 버전이 출시되었습니다. 앱스토어에서 앱을 업데이트해 주세요.",
-  "ota_update_required": "새로운 앱 업데이트 버전이 출시되었습니다. 업데이트를 다운로드 중입니다..."
+  "ota_update_required": "새로운 앱 업데이트 버전이 출시되었습니다. 업데이트를 다운로드 중입니다...",
+  "invalid_code_format": "잘못된 코드 형식입니다"
 }

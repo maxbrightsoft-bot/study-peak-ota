@@ -19,7 +19,7 @@ import PlusIcon from '@/assets/iconJSX/plus'
 
 type Props = {
   t: (key: string, params?: any) => string
-  questionNumber: number
+  questionNumber: number | string
   question: Question
   errors: any
   values: any

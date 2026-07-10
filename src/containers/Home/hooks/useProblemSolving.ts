@@ -13,6 +13,7 @@ import { PusherChannel } from "@pusher/pusher-websocket-react-native";
 import { EXAM_CHANNEL, EXAM_STUDENT_CHANNEL } from "@/utils/constants";
 import { Routes } from "@/navigators/RouteName";
 import { InfoExamSessionByCode, Textbook } from "@/utils/types";
+import { INVALID_CODE_FORMAT } from "@/utils/constants";
 import { useFocusEffect } from "@react-navigation/native";
 import { startTextbook } from "@/containers/Textbook/apiClients/textbookService";
 import { AlarmType, OrderBy } from "@/utils/enums";
@@ -92,12 +93,20 @@ const useProblemSolving = () => {
   const handleGetInfoExam = async (code: string) => {
     try {
       setLoadingWithoutOverlay(true);
-      const response = await getExamInfoApi(code);
+      const cleanCode = code.trim();
+      const response = await getExamInfoApi(cleanCode);
+      if (response.data?.code && response.data.code !== cleanCode) {
+        throw new Error(INVALID_CODE_FORMAT);
+      }
       setExamSession(response.data);
       setOpen(false)
       handleOpenConfirmDialog();
-    } catch (error) {
-      toast.error(getErrorMessage(t, error));
+    } catch (error: any) {
+      if (error?.message === INVALID_CODE_FORMAT) {
+        toast.error(t("invalid_code_format"));
+      } else {
+        toast.error(getErrorMessage(t, error));
+      }
     } finally {
       setLoadingWithoutOverlay(false);
     }

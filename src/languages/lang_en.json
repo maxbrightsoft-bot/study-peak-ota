@@ -2278,5 +2278,6 @@
   "grade_average_format": "{{grade}} Average",
   "store_update_required_android": "A newer store version is required. Please update the app from the Play Store.",
   "store_update_required_ios": "A newer store version is required. Please update the app from the App Store.",
-  "ota_update_required": "A newer bundle version is available. Downloading update..."
+  "ota_update_required": "A newer bundle version is available. Downloading update...",
+  "invalid_code_format": "Invalid code format"
 }

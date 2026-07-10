@@ -125,6 +125,8 @@ export interface PreparedQuestionResponse {
   questionIndex?: number
   questionAnswerType: QuestionAnswerType
   unit?: string
+  parentQuestionId?: number
+  parentQuestionOrder?: number
 }
 
 export type StoredStudentTextbookAnswer = {

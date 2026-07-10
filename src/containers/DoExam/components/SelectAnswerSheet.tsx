@@ -75,7 +75,11 @@ const SelectAnswerSheet = ({
         </TouchableOpacity>
         <Text
           style={{ fontSize: 16, fontWeight: '600', color: '#222222' }}
-        >{t('question_number', { number: (currentQuestion?.questionOrder || 0) + 1 })}</Text>
+        >{t('question_number', {
+          number: currentQuestion?.parentQuestionId
+            ? `${(currentQuestion.parentQuestionOrder || 0) + 1}-(${currentQuestion.questionOrder + 1})`
+            : (currentQuestion?.questionOrder || 0) + 1
+        })}</Text>
       </View>
     ),
     [currentQuestion, updateQuestionStar]
