@@ -64,7 +64,11 @@ const QuestionRow = React.memo(({
         ]}
       >
         <Text style={[styles.questionText, currentQuestionId === item.id && styles.activeQuestionText]}>
-          {t('number_question', { number: item.questionOrder + 1 })}
+          {t('number_question', {
+            number: item.parentQuestionId
+              ? `${(item.parentQuestionOrder || 0) + 1}-(${item.questionOrder + 1})`
+              : item.questionOrder + 1
+          })}
         </Text>
       </View>
 

@@ -101,8 +101,8 @@ body{font-family:sans-serif;font-size:15px;color:#212529;background:#fff}
 .fmt-underline{text-decoration:underline;min-width:28px;height:28px;border:1px solid #ced4da;border-radius:6px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
 .fmt-btn-active{background:#212529!important;color:#fff!important;border-color:#212529!important}
 #sigmaBtn{min-width:28px;height:28px;border:1px solid #ced4da;border-radius:6px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px}
-#editor{min-height:60px;padding:8px 10px;outline:none;line-height:1.8;word-break:break-word}
-.math-chip{display:inline-block;background:#f0f4ff;border:1px solid #c7d2fe;border-radius:6px;padding:1px 6px;margin:0 2px;cursor:default;user-select:none;vertical-align:middle}
+#editor{min-height:60px;padding:8px 10px;outline:none;line-height:1.8;word-break:break-word;-webkit-user-select:text;user-select:text;-webkit-tap-highlight-color:transparent;}
+.math-chip{display:inline-block;background:#f0f4ff;border:1px solid #c7d2fe;border-radius:6px;padding:1px 6px;margin:0 2px;cursor:default;-webkit-user-select:none;user-select:none;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -236,9 +236,119 @@ window.setEditorValue=function(val){
   });
   editor.innerHTML=tmp.innerHTML;
 };
+// ---- iOS 18+/26 hidden-input relay trick ----
+// WebKit on iOS 18+ (named iOS 26) has a confirmed bug:
+// after the first input, the keyboard's UIKeyInput connection detaches from
+// the contenteditable element. JS-level blur/focus can't fix this because
+// the element still appears focused in JS but is dead at the native layer.
+//
+// Fix (used by ProseMirror, CodeMirror, Quill, JetBrains):
+// Relay focus through a hidden <input> first. iOS creates a fresh
+// UIResponder/UIKeyInput channel on every focus transition TO a real input,
+// so we use that fresh channel and immediately transfer it to the editor.
+var hiddenInput = document.createElement('input');
+hiddenInput.setAttribute('type','text');
+hiddenInput.setAttribute('autocomplete','off');
+hiddenInput.setAttribute('autocorrect','off');
+hiddenInput.setAttribute('autocapitalize','off');
+hiddenInput.setAttribute('spellcheck','false');
+hiddenInput.style.cssText='position:fixed;opacity:0.01;width:1px;height:1px;top:0;left:0;z-index:-1;pointer-events:none;';
+document.body.appendChild(hiddenInput);
+
+var _savedRange=null;
+function saveSelection(){
+  var sel=window.getSelection();
+  if(sel&&sel.rangeCount){
+    try{var r=sel.getRangeAt(0);
+      // Only save if selection is inside editor
+      if(editor.contains(r.commonAncestorContainer)||r.commonAncestorContainer===editor)
+        _savedRange=r.cloneRange();
+    }catch(e){}
+  }
+}
+document.addEventListener('selectionchange',function(){
+  if(document.activeElement===editor)saveSelection();
+});
+
+function relayFocusToEditor(){
+  // Step 1: focus the hidden input (creates fresh iOS UIKeyInput channel)
+  hiddenInput.focus();
+  // Step 2: on next frame, move focus to editor (re-uses the fresh channel)
+  requestAnimationFrame(function(){
+    editor.focus();
+    // Step 3: restore cursor position
+    if(_savedRange){
+      try{
+        var sel=window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(_savedRange);
+      }catch(e){}
+    }
+  });
+}
+
+// Fire relay on every tap into the editor area
+editor.addEventListener('touchend',function(e){
+  e.stopPropagation();
+  // Capture where user just tapped BEFORE hiddenInput.focus() clears selection
+  var tapRange=null;
+  var sel=window.getSelection();
+  if(sel&&sel.rangeCount){
+    try{
+      var r=sel.getRangeAt(0);
+      if(editor.contains(r.commonAncestorContainer)||r.commonAncestorContainer===editor)
+        tapRange=r.cloneRange();
+    }catch(ex){}
+  }
+  // Step 1: relay through hidden input to refresh iOS UIKeyInput channel
+  hiddenInput.focus();
+  // Step 2: return focus to editor, restore the tap cursor position
+  requestAnimationFrame(function(){
+    editor.focus();
+    if(tapRange){
+      try{
+        var s=window.getSelection();
+        s.removeAllRanges();
+        s.addRange(tapRange);
+      }catch(ex){}
+    }
+  });
+},true);
+
+// ---- Chip deletion: beforeinput (iOS 15+) + keydown fallback ----
+function getChipBeforeCursor(){
+  var sel=window.getSelection();
+  if(!sel||!sel.rangeCount)return null;
+  var range=sel.getRangeAt(0);
+  if(!range.collapsed)return null;
+  var node=range.startContainer;
+  var offset=range.startOffset;
+  if(node===editor&&offset>0){
+    var prev=editor.childNodes[offset-1];
+    if(prev&&prev.classList&&prev.classList.contains('math-chip'))return prev;
+  }
+  if(node.nodeType===Node.TEXT_NODE&&offset===0&&node.previousSibling){
+    var ps=node.previousSibling;
+    if(ps.classList&&ps.classList.contains('math-chip'))return ps;
+  }
+  return null;
+}
+editor.addEventListener('beforeinput',function(e){
+  if(e.inputType==='deleteContentBackward'){
+    var chip=getChipBeforeCursor();
+    if(chip){e.preventDefault();chip.parentNode.removeChild(chip);notifyChange();}
+  }
+});
+editor.addEventListener('keydown',function(e){
+  if(e.key==='Backspace'){
+    var chip=getChipBeforeCursor();
+    if(chip){e.preventDefault();chip.parentNode.removeChild(chip);notifyChange();}
+  }
+});
 editor.addEventListener('input',notifyChange);
 editor.addEventListener('keyup',updateToolbar);
 editor.addEventListener('mouseup',updateToolbar);
+editor.addEventListener('selectionchange',saveSelection);
 <\/script>
 </body></html>`;
 
@@ -332,15 +442,38 @@ const MATHLIVE_HTML = `<!DOCTYPE html>
       mf.menuItems = [];
       mf.showMenu = function() { return false; }; // Overwrite internal method
       
+      // Use MathLive's built-in virtual keyboard and prevent iOS native keyboard
+      mf.virtualKeyboardMode = 'manual';
+      mf.setAttribute('inputmode', 'none');
+      
       mf.addEventListener('input', (ev) => {
         window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'change', value: mf.value }));
       });
 
-      mf.addEventListener('focusout', () => {
-        setTimeout(() => window.mathVirtualKeyboard.show(), 10);
+      // iOS 18+/26: relay focus through hidden textarea to refresh UIKeyInput channel
+      var mfHidden = document.createElement('textarea');
+      mfHidden.setAttribute('autocomplete','off');
+      mfHidden.setAttribute('autocorrect','off');
+      mfHidden.setAttribute('autocapitalize','off');
+      mfHidden.setAttribute('spellcheck','false');
+      mfHidden.setAttribute('inputmode', 'none'); // Prevent iOS native keyboard on focus
+      mfHidden.style.cssText = 'position:fixed;opacity:0.01;width:1px;height:1px;top:0;left:0;z-index:-1;pointer-events:none;';
+      document.body.appendChild(mfHidden);
+
+      function relayToMf() {
+        mfHidden.focus();
+        requestAnimationFrame(function() {
+          mf.focus();
+          window.mathVirtualKeyboard.show();
+        });
+      }
+
+      mf.addEventListener('focusout', function() {
+        // Brief delay to let MathLive finish processing the touch that caused focusout
+        setTimeout(relayToMf, 50);
       });
 
-      // Always show keyboard and prevent closing
+      // Always show MathLive virtual keyboard
       window.mathVirtualKeyboard.show();
     });
 
@@ -359,6 +492,7 @@ const MATHLIVE_HTML = `<!DOCTYPE html>
     window.insertLatex = function(latex) {
       mf.insert(latex);
       mf.focus();
+      window.mathVirtualKeyboard.show();
       window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'change', value: mf.value }));
     };
     
@@ -368,10 +502,10 @@ const MATHLIVE_HTML = `<!DOCTYPE html>
         window.mathVirtualKeyboard.show();
       }, 150);
     });
+
   </script>
 </body>
 </html>`;
-
 
 function FormulaBottomSheet({
   visible, onClose, onSelect, initialLatex = '',
@@ -503,6 +637,7 @@ function FormulaBottomSheet({
             scrollEnabled={false}
             originWhitelist={['*']}
             javaScriptEnabled
+            hideKeyboardAccessoryView={true}
             onMessage={(e: any) => {
               try {
                 const data = JSON.parse(e.nativeEvent.data);
@@ -589,6 +724,8 @@ const MathRichInput = forwardRef<MathRichInputRef, {
           style={{ flex: 1, backgroundColor: 'transparent' }}
           originWhitelist={['*']}
           javaScriptEnabled
+          keyboardDisplayRequiresUserAction={false}
+          hideKeyboardAccessoryView={true}
           onLoadEnd={() => {
             if (initialValue) {
               webviewRef.current?.injectJavaScript(

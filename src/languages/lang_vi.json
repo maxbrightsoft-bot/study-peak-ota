@@ -2296,5 +2296,6 @@
   "grade_average_format": "Trung bình {{grade}}",
   "store_update_required_android": "Đã có phiên bản mới trên cửa hàng. Vui lòng cập nhật ứng dụng từ Google Play Store để tiếp tục.",
   "store_update_required_ios": "Đã có phiên bản mới trên cửa hàng. Vui lòng cập nhật ứng dụng từ App Store để tiếp tục.",
-  "ota_update_required": "Đang có bản cập nhật mới. Đang tiến hành cập nhật ứng dụng..."
+  "ota_update_required": "Đang có bản cập nhật mới. Đang tiến hành cập nhật ứng dụng...",
+  "invalid_code_format": "Mã Code không đúng định dạng"
 }

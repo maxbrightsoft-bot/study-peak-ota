@@ -81,7 +81,11 @@ const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer
                 <AnswerContent
                   t={t}
                   question={question}
-                  questionNumber={question.questionOrder + 1}
+                  questionNumber={
+                    question.parentQuestionId
+                      ? `${(question.parentQuestionOrder || 0) + 1}-(${question.questionOrder + 1})`
+                      : question.questionOrder + 1
+                  }
                   errors={errors}
                   values={values}
                 />

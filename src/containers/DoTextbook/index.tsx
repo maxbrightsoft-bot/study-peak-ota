@@ -279,7 +279,13 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
               style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={styles.timeLeft}>{t('number_question', { number: (currentQuestion?.questionOrder || 0) + 1 })} </Text>
+                <Text style={styles.timeLeft}>
+                  {t('number_question', {
+                    number: currentQuestion?.parentQuestionId
+                      ? `${(currentQuestion.parentQuestionOrder || 0) + 1}-(${currentQuestion.questionOrder + 1})`
+                      : (currentQuestion?.questionOrder || 0) + 1
+                  })}{' '}
+                </Text>
                 <Text style={styles.totalTime}>{t('return_to_question')}</Text>
               </View>
               <View style={{ transform: 'rotate(180deg)' }}>

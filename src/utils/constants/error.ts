@@ -65,3 +65,5 @@ export enum ErrorMessageCodes {
     TotalTimeOutOfRange = "TotalTimeOutOfRange",
     ScheduleCannotBeCompletedBeforeStartTime = "ScheduleCannotBeCompletedBeforeStartTime"
 }
+
+export const INVALID_CODE_FORMAT = "INVALID_CODE_FORMAT";

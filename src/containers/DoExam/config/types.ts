@@ -73,6 +73,8 @@ export type QuestionResponse = {
     questionAnswerType: QuestionAnswerType
     questionGroupId: number
     unit?: string
+    parentQuestionId?: number
+    parentQuestionOrder?: number
 }
 
 export type StoredStudentAnswer = {
@@ -99,6 +101,8 @@ export type Question = {
     questionAnswerType: QuestionAnswerType
     questionGroupId: number
     unit?: string
+    parentQuestionId?: number
+    parentQuestionOrder?: number
 }
 
 export enum ResolveType {
