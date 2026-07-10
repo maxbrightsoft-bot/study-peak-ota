@@ -167,6 +167,7 @@ const ChatContainer = ({
                     handleUpdateMessage={handleUpdateMessage}
                     handleDeleteMessage={handleDeleteMessage}
                     item={item}
+                    isCompleted={isCompleted}
                   />
                 )}
                 removeClippedSubviews={false}

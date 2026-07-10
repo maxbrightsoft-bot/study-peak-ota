@@ -173,6 +173,21 @@ const useNotice = (setNew: any) => {
     handleGetListNotification(typeSelected)
   }, [JSON.stringify(typeSelected), selectedAcademy?.id])
 
+  const noteHandlersRef = useRef<{ [event: string]: (data: any) => void }>({})
+  const notificationHandlersRef = useRef<{ [event: string]: (data: any) => void }>({})
+
+  noteHandlersRef.current = {
+    [EVENT_NEW_STUDENT_NOTE]: handleNoteReceived,
+    [EVENT_UPDATED_STUDENT_NOTE]: handleNoteUpdated,
+    [EVENT_DELETED_STUDENT_NOTE]: handleNoteDeleted,
+  }
+
+  notificationHandlersRef.current = {
+    [EVENT_NEW_STUDENT_NOTIFICATION]: handleNotificationReceived,
+    [EVENT_UPDATED_STUDENT_NOTIFICATION]: handleNotificationUpdated,
+    [EVENT_DELETED_STUDENT_NOTIFICATION]: handleNotificationDeleted,
+  }
+
   const handleListenerEvent = async () => {
     try {
       if (!selectedAcademy?.domain || !userId || !pusher) return
@@ -181,23 +196,23 @@ const useNotice = (setNew: any) => {
       notificationChannelName.current = `NOTIFICATIONS-${selectedAcademy.domain.trim().toUpperCase()}-${userId}-CHANNEL`
       generalNotificationChannelName.current = `NOTIFICATIONS-${selectedAcademy.domain.trim().toUpperCase()}-GENERAL-CHANNEL`
 
-      const noteHandlers = {
-        [EVENT_NEW_STUDENT_NOTE]: handleNoteReceived,
-        [EVENT_UPDATED_STUDENT_NOTE]: handleNoteUpdated,
-        [EVENT_DELETED_STUDENT_NOTE]: handleNoteDeleted,
-      };
+      channel.current = await subscribeChannel(
+        pusher,
+        channelName.current,
+        () => Object.entries(noteHandlersRef.current).map(([eventName, handler]) => ({ eventName, handler }))
+      );
 
-      const notificationHandlers = {
-        [EVENT_NEW_STUDENT_NOTIFICATION]: handleNotificationReceived,
-        [EVENT_UPDATED_STUDENT_NOTIFICATION]: handleNotificationUpdated,
-        [EVENT_DELETED_STUDENT_NOTIFICATION]: handleNotificationDeleted,
-      };
+      notiChannel.current = await subscribeChannel(
+        pusher,
+        notificationChannelName.current,
+        () => Object.entries(notificationHandlersRef.current).map(([eventName, handler]) => ({ eventName, handler }))
+      );
 
-      channel.current = await subscribeChannel(pusher, channelName.current, Object.entries(noteHandlers).map(([eventName, handler]) => ({ eventName, handler })));
-
-      notiChannel.current = await subscribeChannel(pusher, notificationChannelName.current, Object.entries(notificationHandlers).map(([eventName, handler]) => ({ eventName, handler })));
-
-      generalNotiChannel.current = await subscribeChannel(pusher, generalNotificationChannelName.current, Object.entries(notificationHandlers).map(([eventName, handler]) => ({ eventName, handler })));
+      generalNotiChannel.current = await subscribeChannel(
+        pusher,
+        generalNotificationChannelName.current,
+        () => Object.entries(notificationHandlersRef.current).map(([eventName, handler]) => ({ eventName, handler }))
+      );
     } catch (err) {
       console.error("Pusher subscription failed", err);
     }
@@ -232,8 +247,6 @@ const useNotice = (setNew: any) => {
     }, [
       userId,
       selectedAcademy?.domain,
-      typeSelected,
-      selected,
       pusher,
     ])
   );

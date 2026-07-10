@@ -237,29 +237,27 @@ const useLayoutApp = () => {
     closeAcademyMenu()
   }
 
+  const generalHandlersRef = useRef<{ [event: string]: (data: any) => void }>({})
+
+  generalHandlersRef.current = {
+    "LOGOUT": logout,
+    "start-exam": handleExamStart,
+    "restart-exam": handleExamReStart,
+  }
+
   const handleGeneralListener = async () => {
     try {
       if (!pusher || !superId) return;
 
       const channelName = `GENERAL-${superId}-CHANNEL`;
 
-      const generalHandlers = {
-        "LOGOUT": logout,
-        "start-exam": handleExamStart,
-        "restart-exam": handleExamReStart,
-      };
-
-      const handlers = Object.entries(generalHandlers).map(
-        ([eventName, handler]) => ({
-          eventName,
-          handler,
-        })
-      );
-
       generalChannel.current = await subscribeChannel(
         pusher,
         channelName,
-        handlers
+        () => Object.entries(generalHandlersRef.current).map(([eventName, handler]) => ({
+          eventName,
+          handler,
+        }))
       );
     } catch (err) {
       console.error("General subscription failed", err);

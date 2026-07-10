@@ -192,22 +192,10 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
                     setActiveTimerId(isStarted && isActive ? undefined : data.id)
                 }
             } else {
-                let timerSelected = data
-                
-                if(isTimerRunning ||  data.status == null || data.status === TimerStatus.Stopped || data.status === TimerStatus.NotStarted) {
-                    const start = onAcademy ? startStudentSubjectTimerApi : startSuperStudentSubjectTimerApi
-                    const res = await start(data.id)
-                    timerSelected = res.data
-                }
+                const start = onAcademy ? startStudentSubjectTimerApi : startSuperStudentSubjectTimerApi
+                const res = await start(data.id)
+                const timerSelected = res.data
 
-                if(data.status === TimerStatus.Paused) {
-                    const stop = onAcademy ? stopStudentSubjectApi : stopSuperStudentSubjectApi
-                    const res = await stop(data.id, data.timerId, {
-                        stopTime: moment(nowTime).utc().valueOf(),
-                        rowVersion: data.rowVersion
-                    })
-                    timerSelected = res.data
-                }
                 const exists = mergedTimers.some(t => t.id === data.id)
                 if (exists) {
                     setTimers(sortTimersBySubject(mergedTimers.map(timer => timer.id === data.id ? timerSelected : timer)))

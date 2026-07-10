@@ -684,23 +684,25 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     handleNextQuestion
   });
 
+  const examHandlersRef = useRef<{ [event: string]: (data: any) => void }>({})
+
+  examHandlersRef.current = {
+    [ExamEvent.AddExtraDuration]: handleTeacherAddDurationExam,
+    [ExamEvent.TerminateExam]: handleTeacherFinishExam,
+    [ExamEvent.PauseResumeExam]: handleTeacherPauseResumeExam,
+    [ExamEvent.RestartExam]: handleTeacherRestartExam
+  }
+
   const handleListenerEvent = async () => {
     try {
       if (!pusher || !exam?.code || !academyDomain) return;
 
       channelName.current = `${EXAM_CHANNEL}-${exam.code}-${academyDomain.trim().toUpperCase()}`;
 
-      const examHandlers = {
-        [ExamEvent.AddExtraDuration]: handleTeacherAddDurationExam,
-        [ExamEvent.TerminateExam]: handleTeacherFinishExam,
-        [ExamEvent.PauseResumeExam]: handleTeacherPauseResumeExam,
-        [ExamEvent.RestartExam]: handleTeacherRestartExam
-      };
-
       channel.current = await subscribeChannel(
         pusher,
         channelName.current,
-        Object.entries(examHandlers).map(([eventName, handler]) => ({ eventName, handler }))
+        () => Object.entries(examHandlersRef.current).map(([eventName, handler]) => ({ eventName, handler }))
       );
 
     } catch (err) {

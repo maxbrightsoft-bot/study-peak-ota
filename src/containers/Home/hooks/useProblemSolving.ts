@@ -235,37 +235,39 @@ const useProblemSolving = () => {
     handleGetScheduleCount();
   }, [user?.id, user?.academyDomain, user?.isLearningSpace]);
 
+  const examHandlersRef = useRef<{ [event: string]: (data: any) => void }>({})
+  const studentHandlersRef = useRef<{ [event: string]: (data: any) => void }>({})
+
+  examHandlersRef.current = {
+    [ExamEvent.StartExam]: handleTeacherStartExam,
+    [EVENT_DELETED_MEMBER]: handleMemberRemoved,
+  }
+  studentHandlersRef.current = {
+    [ExamEvent.TeacherKickOutStudent]: handleTeacherKickStudent,
+  }
+
   const handleListenerEvent = async () => {
     try {
-      if (
-        !codeExam ||
-        !isCheckTeacherStart ||
-        !academyDomain ||
-        !userId ||
-        !pusher
-      ) return
+      if (!codeExam || !isCheckTeacherStart || !academyDomain || !userId || !pusher) return
 
-      const examHandlers = {
-        [ExamEvent.StartExam]: handleTeacherStartExam,
-        [EVENT_DELETED_MEMBER]: handleMemberRemoved,
-      };
+      channelName.current = `${EXAM_CHANNEL}-${codeExam}-${academyDomain.trim().toUpperCase()}`
+      studentChannelName.current = EXAM_STUDENT_CHANNEL
+        .replace('{examCode}', `${codeExam}-${academyDomain.trim().toUpperCase()}`)
+        .replace('{studentId}', userId.toString())
 
-      const studentExamHandlers = {
-        [ExamEvent.TeacherKickOutStudent]: handleTeacherKickStudent,
-      };
-      channelName.current = `${EXAM_CHANNEL}-${codeExam}-${academyDomain
-        .trim()
-        .toUpperCase()}`;
-      studentChannelName.current = EXAM_STUDENT_CHANNEL.replace(
-        "{examCode}",
-        `${codeExam}-${academyDomain.trim().toUpperCase()}`
-      ).replace("{studentId}", userId.toString());
+      channel.current = await subscribeChannel(
+        pusher,
+        channelName.current,
+        () => Object.entries(examHandlersRef.current).map(([eventName, handler]) => ({ eventName, handler }))
+      )
 
-      channel.current = await subscribeChannel(pusher, channelName.current, Object.entries(examHandlers).map(([eventName, handler]) => ({ eventName, handler })))
-
-      studentChannel.current = await subscribeChannel(pusher, studentChannelName.current, Object.entries(studentExamHandlers).map(([eventName, handler]) => ({ eventName, handler })))
+      studentChannel.current = await subscribeChannel(
+        pusher,
+        studentChannelName.current,
+        () => Object.entries(studentHandlersRef.current).map(([eventName, handler]) => ({ eventName, handler }))
+      )
     } catch (err) {
-      console.error("Pusher subscription failed", err);
+      console.error('Pusher subscription failed', err)
     }
   }
 

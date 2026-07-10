@@ -88,7 +88,7 @@ interface StoreActions {
   subscribeChannel: (
     pusher: Pusher,
     channelName: string,
-    eventHandlers: EventHandler[]
+    getEventHandlers: EventHandler[] | (() => EventHandler[])
   ) => Promise<PusherChannel>;
 
   unsubscribeChannelSafe: (
@@ -254,26 +254,34 @@ const useAuthStore = create<AuthStore>()(
           useTLS: true,
 
           onAuthorizer: async (channelName, socketId) => {
-            const formData = new FormData();
-            formData.append("socket_id", socketId);
-            formData.append("channel_name", channelName);
+            try {
+              const formData = new FormData();
+              formData.append("socket_id", socketId);
+              formData.append("channel_name", channelName);
 
-            const res = await api.post(
-              `${BASE_URL}/api/auth/pusher`,
-              formData,
-              {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                  [AcademyHeaders]: academyDomain,
-                  [NoAcademyHeaders]: isLearningSpace,
-                },
-              }
-            );
+              const res = await api.post(
+                `${BASE_URL}/api/auth/pusher`,
+                formData,
+                {
+                  headers: {
+                    "Content-Type": "multipart/form-data",
+                    [AcademyHeaders]: academyDomain,
+                    [NoAcademyHeaders]: isLearningSpace,
+                  },
+                }
+              );
 
-            return {
-              auth: res.data.auth,
-              channel_data: res.data.channel_data,
-            };
+              return {
+                auth: res?.data?.auth || "",
+                channel_data: res?.data?.channel_data || "",
+              };
+            } catch (err) {
+              console.error("[Pusher] Authorizer failed:", err);
+              return {
+                auth: "",
+                channel_data: "",
+              };
+            }
           },
 
           onConnectionStateChange: (state) => {
@@ -297,18 +305,19 @@ const useAuthStore = create<AuthStore>()(
         return instance;
       },
 
-      subscribeChannel: async (pusher, channelName, eventHandlers) => {
+      subscribeChannel: async (pusher, channelName, getEventHandlers) => {
         const channel = await pusher.subscribe({
           channelName,
           onEvent: (event: PusherEvent) => {
             try {
-              console.log({ channelName, eventHandlers });
+              const eventHandlers = typeof getEventHandlers === 'function'
+                ? getEventHandlers()
+                : getEventHandlers;
 
-              console.log("[Pusher] Event:", event.eventName);
+              console.log("[Pusher] Event:", event.eventName, '| channel:', channelName);
               const matched = eventHandlers.find(
                 (e) => e.eventName === event.eventName
               );
-
 
               if (!matched) {
                 if (__DEV__) {
@@ -318,7 +327,6 @@ const useAuthStore = create<AuthStore>()(
               }
 
               const data = event.data ? JSON.parse(event.data) : null;
-
               matched.handler(data);
             } catch (err) {
               console.error("[Pusher] Event error:", err);
@@ -354,7 +362,9 @@ const useAuthStore = create<AuthStore>()(
 
       disconnectPusher: async (pusher, channel) => {
         try {
-          if (channel) await channel.unsubscribe();
+          if (pusher && channel?.channelName) {
+            await pusher.unsubscribe({ channelName: channel.channelName });
+          }
           if (pusher) await pusher.disconnect();
         } finally {
           set((state) => {
