@@ -172,6 +172,21 @@ const useNotice = (setNew: any) => {
     }, [selectedAcademy?.id, userId, academyDomain])
   );
 
+  const noteHandlersRef = useRef<{ [event: string]: (data: any) => void }>({})
+  const notificationHandlersRef = useRef<{ [event: string]: (data: any) => void }>({})
+
+  noteHandlersRef.current = {
+    [StudentNoteEvent.New]: handleNoteReceived,
+    [StudentNoteEvent.Updated]: handleNoteUpdated,
+    [StudentNoteEvent.Deleted]: handleNoteDeleted
+  }
+
+  notificationHandlersRef.current = {
+    [StudentNotificationEvent.New]: handleNotificationReceived,
+    [StudentNotificationEvent.Updated]: handleNotificationUpdated,
+    [StudentNotificationEvent.Deleted]: handleNotificationDeleted
+  }
+
   const handleListenerEvent = async () => {
     try {
       if (!pusher || !userId || !academyDomain) return;
@@ -179,22 +194,10 @@ const useNotice = (setNew: any) => {
       notifyChannelName.current = `NOTIFICATIONS-${academyDomain}-${userId}-CHANNEL`
       generalNotifyChannelName.current = `NOTIFICATIONS-${academyDomain}-GENERAL-CHANNEL`
 
-      const studentNoteHandlers = {
-        [StudentNoteEvent.New]: handleNoteReceived,
-        [StudentNoteEvent.Updated]: handleNoteUpdated,
-        [StudentNoteEvent.Deleted]: handleNoteDeleted
-      }
-
-      const notificationHandlers = {
-        [StudentNotificationEvent.New]: handleNotificationReceived,
-        [StudentNotificationEvent.Updated]: handleNotificationUpdated,
-        [StudentNotificationEvent.Deleted]: handleNotificationDeleted
-      }
-
       channel.current = await subscribeChannel(
         pusher,
         channelName.current,
-        Object.entries(studentNoteHandlers).map(([eventName, handler]) => ({
+        () => Object.entries(noteHandlersRef.current).map(([eventName, handler]) => ({
           eventName,
           handler
         }))
@@ -203,7 +206,7 @@ const useNotice = (setNew: any) => {
       notifyChannel.current = await subscribeChannel(
         pusher,
         notifyChannelName.current,
-        Object.entries(notificationHandlers).map(([eventName, handler]) => ({
+        () => Object.entries(notificationHandlersRef.current).map(([eventName, handler]) => ({
           eventName,
           handler
         }))
@@ -212,7 +215,7 @@ const useNotice = (setNew: any) => {
       generalNotifyChannel.current = await subscribeChannel(
         pusher,
         generalNotifyChannelName.current,
-        Object.entries(notificationHandlers).map(([eventName, handler]) => ({
+        () => Object.entries(notificationHandlersRef.current).map(([eventName, handler]) => ({
           eventName,
           handler
         }))

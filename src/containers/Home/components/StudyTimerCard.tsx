@@ -29,9 +29,10 @@ const StudyTimerCard = () => {
   }, [])
 
   useEffect(() => {
-    if (subjects.length > 0 && selectedId === null) {
-      const active = subjects.find(s => s.id === activeTimerId)
-      setSelectedId(active ? active.id : subjects[0].id)
+    if (activeTimerId) {
+      setSelectedId(activeTimerId)
+    } else if (subjects.length > 0 && selectedId === null) {
+      setSelectedId(subjects[0].id)
     }
   }, [subjects, activeTimerId])
 
@@ -82,8 +83,6 @@ const StudyTimerCard = () => {
           const elapsedMs = isNaN(start) ? 0 : nowTime - start
           return duration + Math.floor(Math.max(0, elapsedMs) / 1000)
         }
-      case TimerStatus.Stopped:
-        return 0
       default:
         return duration
     }

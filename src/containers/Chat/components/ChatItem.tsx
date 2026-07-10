@@ -16,9 +16,10 @@ type Props = {
   handleUpdateMessage: (conversationId: number, id: number, message: string, callback: any) => Promise<void>
   handleDeleteMessage: (conversationId: number, id: number, callback: any) => Promise<void>
   item: any
+  isCompleted?: boolean
 }
 
-const ChatItem = ({ t, item, toggleUpdateDialog, toggleConfirmDialog }: Props) => {
+const ChatItem = ({ t, item, toggleUpdateDialog, toggleConfirmDialog, isCompleted }: Props) => {
   const [openActionSheet, setOpenActionSheet] = useState(false)
   const [showViewer, setShowViewer] = useState(false)
 
@@ -32,9 +33,11 @@ const ChatItem = ({ t, item, toggleUpdateDialog, toggleConfirmDialog }: Props) =
 
       {item.isMe ? (
         <View style={{ alignSelf: 'flex-end', flexDirection: 'row', alignItems: 'center' }}>
-          <TouchableOpacity onPress={() => setOpenActionSheet(true)} hitSlop={8}>
-            <Ionicons name="ellipsis-vertical-sharp" size={18} color={palette.grey[500]} />
-          </TouchableOpacity>
+          {!isCompleted && (
+            <TouchableOpacity onPress={() => setOpenActionSheet(true)} hitSlop={8}>
+              <Ionicons name="ellipsis-vertical-sharp" size={18} color={palette.grey[500]} />
+            </TouchableOpacity>
+          )}
 
           <View style={[styles.messageContainer, styles.myMessage, contentType ? styles.imageMessage : null]}>
             {contentType ? (

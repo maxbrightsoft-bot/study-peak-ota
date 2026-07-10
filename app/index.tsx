@@ -22,6 +22,7 @@ import {
   Feather
 } from '@expo/vector-icons'
 import useAppStore from '../src/store/useAppStore'
+import { waitForAppStoreHydration } from '../src/store/useAppStore'
 import { ActivityResource } from '@/utils/enums'
 import { useActivityTracking } from '@/hooks/useActivityTracking'
 
@@ -102,7 +103,8 @@ async function checkOtaUpdate(
   setBundleVersion: (version: string) => void,
   setIsUpdatingOta: (isUpdating: boolean) => void,
   trackError: (error: any, context?: any) => void,
-  retryCount = 0
+  retryCount = 0,
+  effectiveBundleVersion: string = CURRENT_BUNDLE_VERSION
 ) {
   otaAttemptCounter += 1
   const myAttemptId = otaAttemptCounter
@@ -133,7 +135,7 @@ async function checkOtaUpdate(
     const data = await res.json()
     serverVersion = data.version
 
-    console.log('[OTA] server:', data.version, '| local:', CURRENT_BUNDLE_VERSION, '| enabled:', data.otaEnabled)
+    console.log('[OTA] server:', data.version, '| effective local:', effectiveBundleVersion, '| compiled:', CURRENT_BUNDLE_VERSION, '| enabled:', data.otaEnabled)
 
     if (data.otaEnabled === false) {
       console.warn('[OTA] Disabled remotely via kill switch')
@@ -149,8 +151,8 @@ async function checkOtaUpdate(
       return
     }
 
-    if (!isNewerVersion(data.version, CURRENT_BUNDLE_VERSION)) {
-      console.log('[OTA] Up to date')
+    if (!isNewerVersion(data.version, effectiveBundleVersion)) {
+      console.log('[OTA] Up to date (effective version:', effectiveBundleVersion, ')')
       return
     }
 
@@ -181,7 +183,7 @@ async function checkOtaUpdate(
         metaData: {
           stage: 'download_timeout',
           serverVersion,
-          currentVersion: CURRENT_BUNDLE_VERSION,
+          currentVersion: effectiveBundleVersion,
           url: downloadUrl,
           retryCount
         }
@@ -190,7 +192,7 @@ async function checkOtaUpdate(
       if (retryCount < OTA_MAX_RETRY) {
         setTimeout(() => {
           if (isStaleAttempt()) return
-          checkOtaUpdate(setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, retryCount + 1)
+          checkOtaUpdate(setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, retryCount + 1, effectiveBundleVersion)
         }, OTA_RETRY_DELAY)
       } else {
         setIsUpdating(false)
@@ -254,7 +256,7 @@ async function checkOtaUpdate(
           metaData: {
             stage: 'download',
             serverVersion,
-            currentVersion: CURRENT_BUNDLE_VERSION,
+            currentVersion: effectiveBundleVersion,
             url: downloadUrl,
             retryCount
           }
@@ -263,7 +265,7 @@ async function checkOtaUpdate(
         if (retryCount < OTA_MAX_RETRY) {
           setTimeout(() => {
             if (isStaleAttempt()) return
-            checkOtaUpdate(setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, retryCount + 1)
+            checkOtaUpdate(setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, retryCount + 1, effectiveBundleVersion)
           }, OTA_RETRY_DELAY)
         } else {
           console.log('[OTA] Max retry reached, giving up this session')
@@ -283,7 +285,7 @@ async function checkOtaUpdate(
       metaData: {
         stage: e?.name === 'AbortError' ? 'fetch_timeout' : 'fetch_manifest',
         serverVersion,
-        currentVersion: CURRENT_BUNDLE_VERSION,
+        currentVersion: effectiveBundleVersion,
         retryCount
       }
     })
@@ -291,7 +293,7 @@ async function checkOtaUpdate(
     if (retryCount < OTA_MAX_RETRY) {
       setTimeout(() => {
         if (isStaleAttempt()) return
-        checkOtaUpdate(setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, retryCount + 1)
+        checkOtaUpdate(setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, retryCount + 1, effectiveBundleVersion)
       }, OTA_RETRY_DELAY)
     } else {
       setIsUpdating(false)
@@ -424,8 +426,15 @@ export default function App() {
     lastCheckRef.current = now
     isCheckingRef.current = true
 
+    await waitForAppStoreHydration()
+
+    const storedVersion = useAppStore.getState().bundleVersion
+    const effectiveBundleVersion = isNewerVersion(storedVersion, CURRENT_BUNDLE_VERSION)
+      ? storedVersion
+      : CURRENT_BUNDLE_VERSION
+
     try {
-      await checkOtaUpdate(setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError)
+      await checkOtaUpdate(setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, 0, effectiveBundleVersion)
     } finally {
       isCheckingRef.current = false
     }

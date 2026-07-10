@@ -2110,6 +2110,7 @@
   "new_update_available": "Đã có phiên bản mới, bạn có muốn cập nhật không?",
   "update_now": "Cập nhật",
   "updating_app": "Đang cập nhật ứng dụng...",
+  "loading_app": "Đang kiểm tra cập nhật...",
   "scroll_horizontal": "Vuốt ngang",
   "feature_not_available_in_demo_mode": "Chức năng này không khả dụng trong chế độ demo.",
   "demo_mode": "Chế độ demo",

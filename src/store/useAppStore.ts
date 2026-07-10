@@ -41,4 +41,16 @@ const useAppStore = create<AppStore>()(
   )
 );
 
+export async function waitForAppStoreHydration(): Promise<void> {
+  if (useAppStore.persist.hasHydrated()) return;
+
+  return new Promise<void>((resolve) => {
+    const unsub = useAppStore.persist.onFinishHydration(() => {
+      unsub();
+      resolve();
+    });
+  });
+}
+
 export default useAppStore;
+
