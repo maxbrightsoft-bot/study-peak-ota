@@ -2225,7 +2225,7 @@
   },
   "correct_out_of_total_problems": "{{total}}문제 중 {{correct}}문제 정답",
   "vs_last_month": "vs 지난 달",
-  "loading": "AI 분석 중...",
+  "loading": "...중",
   "action_plan": "실천 계획",
   "recommended_learning_plan": "학생 추천 학습 플랜",
   "based_on_top_weaknesses": "약점 Top  + 추이 분석 기반",

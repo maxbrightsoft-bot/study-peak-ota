@@ -5,7 +5,7 @@ import { View,
   TextInput } from "react-native";
 import { useTranslation } from "react-i18next";
 import moment from "moment";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { Timer } from "@/layouts/configs/types";
 import { TimerStatus } from "@/utils/enums";
 import { DATE_TIME_MIN_VALUE, MS_IN_MINUTE, MS_IN_SECOND } from "@/utils/constants";
@@ -376,20 +376,19 @@ const TimerUpdateItem: FC<Props> = ({
         </View>
       </View>
 
-      {showPicker && (
-        <DateTimePicker
-          value={
-            showPicker === "duration"
-              ? moment().startOf("day").add(duration, "ms").toDate()
-              : showPicker === "start"
-                ? startTimeValue.toDate()
-                : stoppedTimeValue?.toDate() ?? new Date()
-          }
-          mode="time"
-          is24Hour={true}
-          onChange={onDateChange}
-        />
-      )}
+      <DateTimePickerModal
+        isVisible={!!showPicker}
+        mode="time"
+        date={
+          showPicker === "duration"
+            ? moment().startOf("day").add(duration, "ms").toDate()
+            : showPicker === "start"
+              ? startTimeValue.toDate()
+              : stoppedTimeValue?.toDate() ?? new Date()
+        }
+        onConfirm={(date) => onDateChange({ type: "set" }, date)}
+        onCancel={() => setShowPicker(null)}
+      />
 
       {openDeleteConfirm && (
         <ConfirmDialog

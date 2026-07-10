@@ -637,7 +637,7 @@ function FormulaBottomSheet({
             scrollEnabled={false}
             originWhitelist={['*']}
             javaScriptEnabled
-            hideKeyboardAccessoryView={true}
+            hideKeyboardAccessoryView={false}
             onMessage={(e: any) => {
               try {
                 const data = JSON.parse(e.nativeEvent.data);
@@ -725,7 +725,7 @@ const MathRichInput = forwardRef<MathRichInputRef, {
           originWhitelist={['*']}
           javaScriptEnabled
           keyboardDisplayRequiresUserAction={false}
-          hideKeyboardAccessoryView={true}
+          hideKeyboardAccessoryView={false}
           onLoadEnd={() => {
             if (initialValue) {
               webviewRef.current?.injectJavaScript(

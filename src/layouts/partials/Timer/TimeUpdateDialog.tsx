@@ -1,5 +1,5 @@
 import React, { FC, useState } from "react";
-import { Modal,
+import {
   View,
   Text,
   TouchableOpacity,
@@ -9,7 +9,7 @@ import { Modal,
   Platform } from "react-native";
 import { useTranslation } from "react-i18next";
 import moment from "moment";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { Ionicons } from "@expo/vector-icons";
 
 import TimeLineTabs from "./TimeLineTabs";
@@ -261,17 +261,17 @@ const TimeUpdateDialog: FC<TimeUpdateDialogProps> = ({
           </TouchableOpacity>
         </View>
 
-        {showDatePicker && (
-          <DateTimePicker
-            value={new Date(selectedDate)}
-            maximumDate={new Date()}
-            mode="date"
-            onChange={(event, date) => {
-              setShowDatePicker(false);
-              if (date) handleChangeDate(moment(date));
-            }}
-          />
-        )}
+        <DateTimePickerModal
+          isVisible={showDatePicker}
+          date={new Date(selectedDate)}
+          maximumDate={new Date()}
+          mode="date"
+          onConfirm={(date) => {
+            setShowDatePicker(false);
+            handleChangeDate(moment(date));
+          }}
+          onCancel={() => setShowDatePicker(false)}
+        />
 
         {addTimerState && (
           <AddTimerDialog

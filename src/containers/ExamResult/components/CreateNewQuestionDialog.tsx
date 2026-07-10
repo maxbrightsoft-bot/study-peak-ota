@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, View } from 'react-native'
+import { ScrollView, TouchableOpacity, View } from 'react-native'
 import { HelperText, Text } from 'react-native-paper'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
@@ -54,39 +54,37 @@ const CreateNewQuestionDialog: React.FC<Props> = ({
 
   return (
     <CommonDialog isVisible={openCreateQuestionDialog} onClose={onCloseCreateQuestion} title={t('ask_a_question')}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView>
-          <View style={{ marginBottom: 16 }}>
-            <Text variant="labelLarge" style={{ color: palette.grey[700] }}>
-              {' '}
-              {t('questions_to_ask')}
-            </Text>
-            <CustomSelect
-              value={questionOptions.find((q) => q.value === formik.values.questionId) || ''}
-              onValueChange={(value) => formik.setFieldValue('questionId', value)}
-              options={questionOptions}
-            />
-          </View>
-          <View style={{ marginBottom: 16 }}>
-            <Text variant="labelLarge" style={{ color: palette.grey[700] }}>
-              {t('question_content')}
-            </Text>
-            <TextField
-              multiline
-              numberOfLines={3}
-              placeholder={t('the_problem_is_difficult')}
-              value={formik.values.content}
-              onChangeText={formik.handleChange('content')}
-              onBlur={formik.handleBlur('content')}
-            />
-            <HelperText type={formik.errors.content ? 'error' : 'info'}>
-              {formik.errors.content
-                ? t('your_questions_will_be_sent_to_the_counselor')
-                : t('please_enter_your_question')}
-            </HelperText>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <View style={{ marginBottom: 16 }}>
+          <Text variant="labelLarge" style={{ color: palette.grey[700] }}>
+            {' '}
+            {t('questions_to_ask')}
+          </Text>
+          <CustomSelect
+            value={formik.values.questionId || ''}
+            onValueChange={(value) => formik.setFieldValue('questionId', value)}
+            options={questionOptions}
+          />
+        </View>
+        <View style={{ marginBottom: 16 }}>
+          <Text variant="labelLarge" style={{ color: palette.grey[700] }}>
+            {t('question_content')}
+          </Text>
+          <TextField
+            multiline
+            numberOfLines={3}
+            placeholder={t('the_problem_is_difficult')}
+            value={formik.values.content}
+            onChangeText={formik.handleChange('content')}
+            onBlur={formik.handleBlur('content')}
+          />
+          <HelperText type={formik.errors.content ? 'error' : 'info'}>
+            {formik.errors.content
+              ? t('please_enter_your_question')
+              : t('your_questions_will_be_sent_to_the_counselor')}
+          </HelperText>
+        </View>
+      </ScrollView>
       <View style={styles.footer}>
         <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onCloseCreateQuestion}>
           <Text style={styles.cancelButtonText}>{t('cancel')}</Text>

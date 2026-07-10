@@ -1,7 +1,7 @@
 import React, { FC, useMemo, useState } from 'react'
 import { View, Text, StyleSheet, Pressable } from 'react-native'
 import { IconButton, Chip, Button } from 'react-native-paper'
-import DateTimePicker from '@react-native-community/datetimepicker'
+import DateTimePickerModal from 'react-native-modal-datetime-picker'
 import moment, { Moment } from 'moment'
 import { useTranslation } from 'react-i18next'
 
@@ -207,7 +207,13 @@ const TimerLineItem: FC<Props> = ({
         </View>
       </View>
 
-      {showPicker && <DateTimePicker mode="time" value={timeValue.toDate()} onChange={handleUpdateTime} is24Hour />}
+      <DateTimePickerModal
+        isVisible={showPicker}
+        mode="time"
+        date={timeValue.toDate()}
+        onConfirm={(date) => handleUpdateTime(null, date)}
+        onCancel={() => setShowPicker(false)}
+      />
     </View>
   )
 }

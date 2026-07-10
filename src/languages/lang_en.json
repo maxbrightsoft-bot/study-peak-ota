@@ -2230,7 +2230,7 @@
   },
   "correct_out_of_total_problems": "{{correct}} correct out of {{total}} problems",
   "vs_last_month": "vs last month",
-  "loading": "Loading AI insights...",
+  "loading": "Loading ...",
   "action_plan": "Action Plan",
   "recommended_learning_plan": "Recommended Study Plan",
   "based_on_top_weaknesses": "Based on Top  weaknesses",
