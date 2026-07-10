@@ -2279,5 +2279,9 @@
   "store_update_required_android": "A newer store version is required. Please update the app from the Play Store.",
   "store_update_required_ios": "A newer store version is required. Please update the app from the App Store.",
   "ota_update_required": "A newer bundle version is available. Downloading update...",
+  "ota_update_suggestion_web": "You can use the Web version instead while waiting for the update to complete.",
+  "force_web_title": "Update Failed",
+  "force_web_subtitle": "Unable to automatically update to the new version. Please use the Web version instead to continue your studies.",
+  "force_web_button": "Open Web App",
   "invalid_code_format": "Invalid code format"
 }

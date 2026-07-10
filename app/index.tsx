@@ -9,6 +9,7 @@ import ReactNativeBlobUtil from 'react-native-blob-util'
 import { OTA_URL, STORE_VERSION_ANDROID, STORE_VERSION_IOS } from '@/utils/constants'
 import DeviceInfo from 'react-native-device-info'
 import ForceUpdateScreen from '@/components/ForceUpdateScreen'
+import ForceWebScreen from '@/components/ForceWebScreen'
 import { useFonts } from 'expo-font'
 import RNBootSplash from 'react-native-bootsplash'
 import { requireNativeModule } from 'expo-modules-core'
@@ -105,7 +106,8 @@ async function checkOtaUpdate(
   setIsUpdatingOta: (isUpdating: boolean) => void,
   trackError: (error: any, context?: any) => void,
   retryCount = 0,
-  effectiveBundleVersion: string = CURRENT_BUNDLE_VERSION
+  effectiveBundleVersion: string = CURRENT_BUNDLE_VERSION,
+  onFailCompletely?: () => void
 ) {
   otaAttemptCounter += 1
   const myAttemptId = otaAttemptCounter
@@ -154,6 +156,7 @@ async function checkOtaUpdate(
 
     if (!isNewerVersion(data.version, currentBundleVersion)) {
       console.log('[OTA] Up to date')
+      if (onFailCompletely) onFailCompletely();
       return
     }
 
@@ -193,10 +196,11 @@ async function checkOtaUpdate(
       if (retryCount < OTA_MAX_RETRY) {
         setTimeout(() => {
           if (isStaleAttempt()) return
-          checkOtaUpdate(currentBundleVersion, setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, retryCount + 1)
+          checkOtaUpdate(currentBundleVersion, setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, retryCount + 1, effectiveBundleVersion, onFailCompletely)
         }, OTA_RETRY_DELAY)
       } else {
         setIsUpdating(false)
+        if (onFailCompletely) onFailCompletely();
       }
     }, OTA_DOWNLOAD_TIMEOUT)
 
@@ -266,11 +270,12 @@ async function checkOtaUpdate(
         if (retryCount < OTA_MAX_RETRY) {
           setTimeout(() => {
             if (isStaleAttempt()) return
-            checkOtaUpdate(currentBundleVersion, setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, retryCount + 1)
+            checkOtaUpdate(currentBundleVersion, setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, retryCount + 1, effectiveBundleVersion, onFailCompletely)
           }, OTA_RETRY_DELAY)
         } else {
           console.log('[OTA] Max retry reached, giving up this session')
           setIsUpdating(false)
+          if (onFailCompletely) onFailCompletely();
         }
       },
       restartAfterInstall: false,
@@ -294,10 +299,11 @@ async function checkOtaUpdate(
     if (retryCount < OTA_MAX_RETRY) {
       setTimeout(() => {
         if (isStaleAttempt()) return
-        checkOtaUpdate(currentBundleVersion, setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, retryCount + 1)
+        checkOtaUpdate(currentBundleVersion, setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError, retryCount + 1, effectiveBundleVersion, onFailCompletely)
       }, OTA_RETRY_DELAY)
     } else {
       setIsUpdating(false)
+      if (onFailCompletely) onFailCompletely();
     }
   }
 }
@@ -311,6 +317,8 @@ export default function App() {
   const setBundleVersion = useAppStore((state) => state.setBundleVersion)
   const setIsUpdatingOta = useAppStore((state) => state.setIsUpdatingOta)
   const needsForceUpdate = useAppStore((state) => state.needsForceUpdate)
+  const forceWebVersion = useAppStore((state) => state.forceWebVersion)
+  const setForceWebVersion = useAppStore((state) => state.setForceWebVersion)
   const latestVersionName = useAppStore((state) => state.latestVersionName)
   const setNeedsForceUpdate = useAppStore((state) => state.setNeedsForceUpdate)
   const setLatestVersionName = useAppStore((state) => state.setLatestVersionName)
@@ -443,8 +451,23 @@ export default function App() {
       ? bundleVersion
       : CURRENT_BUNDLE_VERSION
 
+    const handleFailCompletely = () => {
+      if (force) {
+        setForceWebVersion(true)
+      }
+    }
+
     try {
-      await checkOtaUpdate(currentVersionToCheck, setIsUpdating, setBundleVersion, setIsUpdatingOta, trackError)
+      await checkOtaUpdate(
+        currentVersionToCheck, 
+        setIsUpdating, 
+        setBundleVersion, 
+        setIsUpdatingOta, 
+        trackError, 
+        0, 
+        CURRENT_BUNDLE_VERSION, 
+        handleFailCompletely
+      )
     } finally {
       isCheckingRef.current = false
     }
@@ -473,14 +496,11 @@ export default function App() {
     return <ForceUpdateScreen latestVersion={latestVersionName} />
   }
 
-  if (isUpdating) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text style={{ marginTop: 16, fontSize: 16, fontWeight: '500', color: '#333' }}>{i18n.t('updating_app')}</Text>
-      </View>
-    )
+  if (forceWebVersion) {
+    return <ForceWebScreen />
   }
+
+
 
   if (!fontsLoaded && !fontError && !fontWaitTimedOut) {
     return (
@@ -496,6 +516,15 @@ export default function App() {
       <NavigationIndependentTree>
         <RootNavigation />
       </NavigationIndependentTree>
+      {isUpdating && (
+        <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255, 255, 255, 0.95)', zIndex: 9999 }}>
+          <ActivityIndicator size="large" color="#0000ff" />
+          <Text style={{ marginTop: 16, fontSize: 16, fontWeight: '600', color: '#333' }}>{i18n.t('updating_app')}</Text>
+          <Text style={{ marginTop: 8, fontSize: 14, color: '#666', textAlign: 'center', paddingHorizontal: 32 }}>
+            {i18n.t('ota_update_suggestion_web')}
+          </Text>
+        </View>
+      )}
     </I18nextProvider>
   )
 }

@@ -2274,5 +2274,9 @@
   "store_update_required_android": "스토어에 새로운 버전이 출시되었습니다. 구글 플레이 스토어에서 앱을 업데이트해 주세요.",
   "store_update_required_ios": "스토어에 새로운 버전이 출시되었습니다. 앱스토어에서 앱을 업데이트해 주세요.",
   "ota_update_required": "새로운 앱 업데이트 버전이 출시되었습니다. 업데이트를 다운로드 중입니다...",
+  "ota_update_suggestion_web": "업데이트가 완료될 때까지 웹 버전을 대신 사용할 수 있습니다.",
+  "force_web_title": "업데이트 실패",
+  "force_web_subtitle": "새 버전으로 자동 업데이트할 수 없습니다. 대신 웹 버전을 사용하여 학습을 계속하십시오.",
+  "force_web_button": "웹 앱 열기",
   "invalid_code_format": "잘못된 코드 형식입니다"
 }
