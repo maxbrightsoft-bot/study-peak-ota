@@ -10,6 +10,7 @@ interface AppStoreState {
   needsForceUpdate: boolean;
   latestVersionName: string;
   otaCheckTriggerCount: number;
+  forceWebVersion: boolean;
 }
 
 interface AppStoreActions {
@@ -18,6 +19,7 @@ interface AppStoreActions {
   setNeedsForceUpdate: (val: boolean) => void;
   setLatestVersionName: (version: string) => void;
   triggerOtaCheck: () => void;
+  setForceWebVersion: (val: boolean) => void;
 }
 
 type AppStore = AppStoreState & AppStoreActions;
@@ -30,6 +32,7 @@ const useAppStore = create<AppStore>()(
       needsForceUpdate: false,
       latestVersionName: "",
       otaCheckTriggerCount: 0,
+      forceWebVersion: false,
 
       setBundleVersion: (version) => {
         set((state) => {
@@ -58,6 +61,12 @@ const useAppStore = create<AppStore>()(
       triggerOtaCheck: () => {
         set((state) => {
           state.otaCheckTriggerCount += 1;
+        });
+      },
+
+      setForceWebVersion: (val) => {
+        set((state) => {
+          state.forceWebVersion = val;
         });
       },
     })),

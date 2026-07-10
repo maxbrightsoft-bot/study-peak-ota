@@ -2297,5 +2297,9 @@
   "store_update_required_android": "Đã có phiên bản mới trên cửa hàng. Vui lòng cập nhật ứng dụng từ Google Play Store để tiếp tục.",
   "store_update_required_ios": "Đã có phiên bản mới trên cửa hàng. Vui lòng cập nhật ứng dụng từ App Store để tiếp tục.",
   "ota_update_required": "Đang có bản cập nhật mới. Đang tiến hành cập nhật ứng dụng...",
+  "ota_update_suggestion_web": "Bạn có thể sử dụng phiên bản Web thay thế trong lúc chờ cập nhật hoàn tất.",
+  "force_web_title": "Cập nhật bị lỗi",
+  "force_web_subtitle": "Không thể tự động cập nhật phiên bản mới. Vui lòng sử dụng phiên bản Web thay thế để tiếp tục học tập.",
+  "force_web_button": "Mở ứng dụng Web",
   "invalid_code_format": "Mã Code không đúng định dạng"
 }
