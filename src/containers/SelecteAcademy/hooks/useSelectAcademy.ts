@@ -34,7 +34,6 @@ const useSelectAcademy = () => {
   }
 
   useEffect(() => {
-    if (academies.length) return
     getAcademies()
   }, [user?.academyDomain, user?.email])
 
@@ -101,7 +100,8 @@ const useSelectAcademy = () => {
     academy,
     handleSwitchAcademy,
     academyOptions,
-    handleSelectedAcademy
+    handleSelectedAcademy,
+    getAcademies
   }
 }
 

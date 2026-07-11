@@ -109,11 +109,14 @@ const StudySpaceView = () => {
 
           {user?.academyDomain && (
             <View style={[styles.row, { marginBottom: 28, gap: 14 }]}>
-              <CustomCard style={[styles.card, styles.half, { flex: 1 }]}>
-                <View style={{ paddingHorizontal: 15, paddingVertical: 16, height: '100%', justifyContent: 'space-between' }}>
+              <CustomCard
+                containerStyle={[styles.half, { flex: 1 }]}
+                style={[styles.card, styles.half, { flex: 1 }]}
+              >
+                <View style={{ paddingHorizontal: 15, paddingVertical: 16, flex: 1, justifyContent: 'space-between' }}>
                   <View>
                     <Text style={{ fontSize: 12, fontWeight: 400, marginBottom: 19 }}>{t('today_attendance')}</Text>
-                    <Text style={[styles.bold, { fontSize: 16 }]}>{selectedSchedule ? selectedSchedule.title : t('no_class_today')}</Text>
+                    <Text style={{ fontWeight: '600', fontSize: 16, color: '#222222', lineHeight: 22 }}>{selectedSchedule ? selectedSchedule.title : t('no_class_today')}</Text>
                     {selectedSchedule && (
                       <Text style={styles.time}>
                         {timeSpanToLocalMoment(selectedSchedule.startTime, selectedSchedule.date)?.format('HH:mm')} ~{' '}

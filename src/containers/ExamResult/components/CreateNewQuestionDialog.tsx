@@ -76,7 +76,6 @@ const CreateNewQuestionDialog: React.FC<Props> = ({
             placeholder={t('the_problem_is_difficult')}
             value={formik.values.content}
             onChangeText={formik.handleChange('content')}
-            onBlur={formik.handleBlur('content')}
           />
           <HelperText type={formik.errors.content ? 'error' : 'info'}>
             {formik.errors.content

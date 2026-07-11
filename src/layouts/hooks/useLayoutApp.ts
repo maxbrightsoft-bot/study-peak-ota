@@ -322,10 +322,11 @@ const useLayoutApp = () => {
   useFocusEffect(
     useCallback(() => {
       handleGetAcademyDetail()
+      getAcademies(false)
       return () => {
         cleanupPusherChannels()
       }
-    }, [user?.academyDomain])
+    }, [user?.academyDomain, user?.email])
   )
 
 

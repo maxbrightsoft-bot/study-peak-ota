@@ -72,7 +72,7 @@ const AcademyView = () => {
               <View key={index} style={styles.scheduleRow}>
                 <View style={styles.dot}></View>
                 <Text style={styles.bold}>{schedule.title}</Text>
-                <Text style={styles.time}>
+                <Text style={[styles.time, { flexShrink: 0 }]}>
                   {timeSpanToLocalMoment(schedule.startTime, schedule.date)?.format('HH:mm')} ~{' '}
                   {timeSpanToLocalMoment(schedule.endTime, schedule.date)?.format('HH:mm')}
                 </Text>
@@ -82,6 +82,12 @@ const AcademyView = () => {
 
           {user?.academyDomain && <View style={{ ...styles.row, marginBottom: 28, gap: 14 }}>
             <CustomCard
+              containerStyle={[
+                styles.half,
+                {
+                  flex: 1
+                }
+              ]}
               style={[
                 styles.card,
                 styles.half,
@@ -94,13 +100,13 @@ const AcademyView = () => {
                 style={{
                   paddingHorizontal: 15,
                   paddingVertical: 16,
-                  height: '100%',
+                  flex: 1,
                   justifyContent: 'space-between'
                 }}
               >
                 <View style={{}}>
                   <Text style={{ fontSize: 12, fontWeight: 400, marginBottom: 19, color: palette.grey[500] }}>{t('today_attendance')}</Text>
-                  <Text style={{ ...styles.bold, fontSize: 16, color: palette.grey[500] }}>{selectedSchedule ? selectedSchedule.title : t('no_class_today')}</Text>
+                  <Text style={{ fontWeight: '600', fontSize: 16, color: palette.grey[500], lineHeight: 22 }}>{selectedSchedule ? selectedSchedule.title : t('no_class_today')}</Text>
                   {selectedSchedule && (
                     <Text style={styles.time}>
                       {timeSpanToLocalMoment(selectedSchedule.startTime, selectedSchedule.date)?.format('HH:mm')} ~{' '}
@@ -219,7 +225,7 @@ const styles = ScaledSheet.create({
   },
   scheduleRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginTop: '6@ms'
   },
   dot: {

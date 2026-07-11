@@ -20,15 +20,15 @@ const ChapterDetail = ({ t, isEnglish, isMock, chapter, isStudying, handleOpenCh
   return (
     <View style={styles.chapterCard}>
       <View style={{ flex: 1 }}>
-        {!isCompleted && <Text style={styles.chapterTitle}>{chapter.name}</Text>}
+        {!isCompleted && <Text style={styles.chapterTitle} numberOfLines={2}>{chapter.name}</Text>}
         {isCompleted && (
           <View style={styles.chapterTop}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1, marginRight: 8 }}>
               <View style={styles.doneBadge}>
                 <Text style={styles.doneText}>{t('complete')}</Text>
               </View>
 
-              <Text style={styles.chapterTitle}>{chapter.name}</Text>
+              <Text style={[styles.chapterTitle, { flex: 1 }]} numberOfLines={2}>{chapter.name}</Text>
             </View>
 
             <TouchableOpacity

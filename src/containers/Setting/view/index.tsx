@@ -89,7 +89,7 @@ const Setting = ({ open, onClose }: Props) => {
         <ScrollView showsVerticalScrollIndicator={false}>
           <View style={styles.accountInfoCard}>
             <Text style={styles.accountInfoLabel}>{t('account_info')}</Text>
-            <Text style={styles.accountInfoEmail}>{user?.email}</Text>
+            <Text numberOfLines={1} ellipsizeMode="tail" style={styles.accountInfoEmail}>{user?.email}</Text>
           </View>
 
           {!isDemoActive && (

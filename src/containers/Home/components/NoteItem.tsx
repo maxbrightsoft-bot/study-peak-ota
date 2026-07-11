@@ -107,15 +107,15 @@ const NoteItem = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
-        <View style={{ gap: 12 }}>
-          <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
+      <View style={[styles.content, { flex: 1 }]}>
+        <View style={{ gap: 12, flex: 1 }}>
+          <View style={{ flexDirection: 'row', gap: 6, alignItems: 'flex-start' }}>
             {!isFuture && (
-              <TouchableOpacity style={{ padding: 4 }} onPress={handleCheckSchedule} disabled={!enableCheckSchedule}>
+              <TouchableOpacity style={{ padding: 4, marginTop: -2 }} onPress={handleCheckSchedule} disabled={!enableCheckSchedule}>
                 {renderStatus(schedule)}
               </TouchableOpacity>
             )}
-            <Text style={[styles.title, { textDecorationLine: schedule.status === ScheduleStatus.Completed ? 'line-through' : 'none' }]}>{schedule.title}</Text>
+            <Text style={[styles.title, { flex: 1, textDecorationLine: schedule.status === ScheduleStatus.Completed ? 'line-through' : 'none' }]}>{schedule.title}</Text>
           </View>
           <View style={{ flexDirection: 'row', gap: 4 }}>
             <Text style={{ fontSize: 13, color: palette.grey[400] }}>

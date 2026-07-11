@@ -343,7 +343,8 @@ const styles = ScaledSheet.create({
   checkLabel: {
     marginLeft: '8@ms',
     fontSize: '14@ms',
-    color: '#222'
+    color: '#222',
+    flexShrink: 1
   },
 
   chipRow: {

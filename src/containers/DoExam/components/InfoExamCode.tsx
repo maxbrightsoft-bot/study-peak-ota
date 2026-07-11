@@ -19,16 +19,16 @@ const InfoExamCode = ({ onClose, open, examSession }: Props) => {
       <View style={styles.container}>
         <View style={styles.row}>
           <Text style={styles.label}>{t('exam_name')}</Text>
-          <Text style={styles.value}>{examSession?.title}</Text>
+          <Text style={styles.value} numberOfLines={2} ellipsizeMode="tail">{examSession?.title}</Text>
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>{t('exam_code')}</Text>
-          <Text style={styles.value}>{examSession?.code}</Text>
+          <Text style={styles.value} numberOfLines={1} ellipsizeMode="tail">{examSession?.code}</Text>
         </View>
 
         <View style={styles.row}>
           <Text style={styles.label}>{t('exam_subject')}</Text>
-          <Text style={styles.value}>{examSession?.subject}</Text>
+          <Text style={styles.value} numberOfLines={2} ellipsizeMode="tail">{examSession?.subject}</Text>
         </View>
 
         <View style={styles.row}>
@@ -40,7 +40,7 @@ const InfoExamCode = ({ onClose, open, examSession }: Props) => {
 
         <View style={styles.row}>
           <Text style={styles.label}>{t('teacher_name')}</Text>
-          <Text style={styles.value}>{examSession?.teacherName}</Text>
+          <Text style={styles.value} numberOfLines={2} ellipsizeMode="tail">{examSession?.teacherName}</Text>
         </View>
 
       </View>
