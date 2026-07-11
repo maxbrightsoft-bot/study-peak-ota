@@ -94,17 +94,17 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props
 
               <View style={styles.metaRow}>
                 <Text style={{ color: '#222222' }}>{t('publication_date')}</Text>
-                <Text style={styles.meta}>{utcToLocalTime(textbook?.publicationDate, 'YYYY.MM.DD')}</Text>
+                <Text style={[styles.meta, { flex: 1, textAlign: 'right' }]}>{utcToLocalTime(textbook?.publicationDate, 'YYYY.MM.DD')}</Text>
               </View>
 
               <View style={styles.metaRow}>
                 <Text style={{ color: '#222222' }}>{t('publisher')}</Text>
-                <Text style={styles.meta}>{textbook?.publisher}</Text>
+                <Text style={[styles.meta, { flex: 1, textAlign: 'right' }]} numberOfLines={1}>{textbook?.publisher}</Text>
               </View>
 
               <View style={styles.metaRow}>
                 <Text style={{ color: '#222222' }}>{t('number_of_questions')}</Text>
-                <Text style={styles.meta}>{textbook?.totalQuestions ?? 0} {t('questions')}</Text>
+                <Text style={[styles.meta, { flex: 1, textAlign: 'right' }]}>{textbook?.totalQuestions ?? 0} {t('questions')}</Text>
               </View>
             </View>
           </View>

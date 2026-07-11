@@ -197,7 +197,7 @@ const DoExam = ({ examCode }: Props) => {
               }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1, marginRight: 8 }}>
-                <Text style={{ fontSize: 14, fontWeight: '600', color: '#171719' }} numberOfLines={1}>{examSession?.subject}</Text>
+                <Text style={{ fontSize: 14, fontWeight: '600', color: '#171719', flexShrink: 1 }} numberOfLines={1}>{examSession?.subject}</Text>
                 <View style={{ backgroundColor: palette.grey[300], paddingVertical: 7, width: 2 }} />
                 <Text style={{ fontSize: 12, fontWeight: '500', color: '#222222', flexShrink: 1 }} numberOfLines={1}>{exam?.title}</Text>
                 {(exam?.totalStudentAttemptNumber || 0) >= 1 && (

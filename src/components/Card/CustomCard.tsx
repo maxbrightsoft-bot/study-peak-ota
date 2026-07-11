@@ -6,13 +6,14 @@ import { ScaledSheet } from 'react-native-size-matters'
 interface CustomCardProps {
   children: React.ReactNode
   style?: any
+  containerStyle?: any
   onPress?: (e: GestureResponderEvent) => void
   radius?: number
 }
 
-const CustomCard = ({ children, style, onPress, radius = 20 }: CustomCardProps) => {
+const CustomCard = ({ children, style, containerStyle, onPress, radius = 20 }: CustomCardProps) => {
   return (
-    <Pressable onPress={onPress}>
+    <Pressable onPress={onPress} style={containerStyle}>
       <Shadow
         stretch
         startColor="rgba(0,0,0,0.035)"

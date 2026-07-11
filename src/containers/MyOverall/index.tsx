@@ -107,6 +107,7 @@ const MyOverall: FC<OverallTabProps> = React.memo(({
     return `${utcToLocalTime(resultData?.startTime, 'HH:mm')} ~ ${utcToLocalTime(resultData?.finishTime, 'HH:mm')}`
   }, [resultData?.startTime, resultData?.finishTime])
 
+
   return (
     <ScrollView
       nestedScrollEnabled
@@ -206,6 +207,30 @@ const MyOverall: FC<OverallTabProps> = React.memo(({
 
             <View style={{ gap: 8 }}>
               <View style={styles.columnItem}>
+                <Text style={styles.overviewLabel}>{t('percentage_among_students')}</Text>
+                <Text style={styles.overviewValue}>
+                  {(resultData?.totalCorrectRate || 0).toFixed(2)}%
+                </Text>
+              </View>
+              <View style={styles.columnItem}>
+                <Text style={styles.overviewLabel}>{t('problem_solving_efficiency')}</Text>
+                <Text style={styles.overviewValue}>
+                  {(
+                    ((resultData?.score || 0) / (resultData?.totalScore || 1)) *
+                    100
+                  ).toFixed(2)}
+                  %
+                </Text>
+              </View>
+              <View style={styles.columnItem}>
+                <Text style={styles.overviewLabel}>{t('average')}</Text>
+                <Text style={styles.overviewValue}>
+                  {t("score_format", {
+                    score: formatNumber(resultData?.averageScores || 0, 2)
+                  })}
+                </Text>
+              </View>
+              <View style={styles.columnItem}>
                 <Text style={styles.overviewLabel}>{t('exam_code')}</Text>
                 <Text style={styles.overviewValue}>{examCode}</Text>
               </View>
@@ -227,30 +252,7 @@ const MyOverall: FC<OverallTabProps> = React.memo(({
                   {t('question_count_format', { number: resultData?.questions.length || 0 })}
                 </Text>
               </View>
-              <View style={styles.columnItem}>
-                <Text style={styles.overviewLabel}>{t('percentage')}</Text>
-                <Text style={styles.overviewValue}>
-                  {resultData?.totalCorrectRate.toFixed(2)}%
-                </Text>
-              </View>
-              <View style={styles.columnItem}>
-                <Text style={styles.overviewLabel}>{t('problem_solving_efficiency')}</Text>
-                <Text style={styles.overviewValue}>
-                  {(
-                    ((resultData?.score || 0) / (resultData?.totalScore || 1)) *
-                    100
-                  ).toFixed(2)}
-                  %
-                </Text>
-              </View>
-              <View style={styles.columnItem}>
-                <Text style={styles.overviewLabel}>{t('average')}</Text>
-                <Text style={styles.overviewValue}>
-                  {t("score_format", {
-                    score: formatNumber(resultData?.averageScores || 0, 2)
-                  })}
-                </Text>
-              </View>
+
             </View>
           </View>
         </View>

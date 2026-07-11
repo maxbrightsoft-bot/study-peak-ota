@@ -158,7 +158,7 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
                           onBlur={() => setEditingField(null)}
                         />
                       ) : (
-                        <Text style={[styles.name, { fontSize: values.fullName ? 20 : 16 }]} onPress={() => setEditingField(editingField === 'fullName' ? null : 'fullName')}>{values.fullName || t('no_name')}</Text>
+                        <Text numberOfLines={2} ellipsizeMode="tail" style={[styles.name, { fontSize: values.fullName ? 20 : 16, maxWidth: '60%' }]} onPress={() => setEditingField(editingField === 'fullName' ? null : 'fullName')}>{values.fullName || t('no_name')}</Text>
                       )}
 
                       <TouchableOpacity

@@ -25,8 +25,8 @@ const Profile = () => {
           source={{ uri: user?.avatar }}
         />
         <View style={styles.profileInfo}>
-          <Text style={styles.nameText}>{user?.fullName}</Text>
-          <Text style={styles.emailText}>{user?.email}</Text>
+          <Text numberOfLines={1} ellipsizeMode="tail" style={styles.nameText}>{user?.fullName}</Text>
+          <Text numberOfLines={1} ellipsizeMode="tail" style={styles.emailText}>{user?.email}</Text>
         </View>
       </View>
 
