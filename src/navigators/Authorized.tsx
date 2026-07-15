@@ -25,6 +25,7 @@ import Loading from '@/components/Loading'
 import { toast, getErrorMessage } from '@/utils/helpers'
 import { useTranslation } from 'react-i18next'
 import { CONSENT_POLICY_VERSION } from '@/utils/constants'
+import { startOfflineSyncListener } from '@/services/offlineSync'
 
 const Tab = createBottomTabNavigator()
 const Authorized = ({ route }: { route: any }) => {
@@ -41,6 +42,13 @@ const Authorized = ({ route }: { route: any }) => {
     () => user?.email && user?.isNotEnoughStatements,
     [user?.email, user?.isNotEnoughStatements]
   )
+
+  useEffect(() => {
+    const unsubscribeSync = startOfflineSyncListener()
+    return () => {
+      unsubscribeSync()
+    }
+  }, [])
 
   useEffect(() => {
     let isMounted = true

@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   ScheduleFormData,
   ScheduleQuery,
@@ -309,26 +310,30 @@ const useSchedule = () => {
     clearData()
   };
 
-  useEffect(() => {
-    getScheduleList();
-  }, [
-    JSON.stringify(filter),
-    selectedDate?.currentDate,
-    user?.id,
-    user?.academyDomain,
-    user?.isLearningSpace
-  ]);
+  useFocusEffect(
+    useCallback(() => {
+      getScheduleList();
+    }, [
+      JSON.stringify(filter),
+      selectedDate?.currentDate,
+      user?.id,
+      user?.academyDomain,
+      user?.isLearningSpace
+    ])
+  );
 
-  useEffect(() => {
-    getScheduleListForNoteEvent();
-  }, [
-    JSON.stringify(filter),
-    selectedDate?.startDate,
-    selectedDate?.endDate,
-    user?.id,
-    user?.academyDomain,
-    user?.isLearningSpace
-  ]);
+  useFocusEffect(
+    useCallback(() => {
+      getScheduleListForNoteEvent();
+    }, [
+      JSON.stringify(filter),
+      selectedDate?.startDate,
+      selectedDate?.endDate,
+      user?.id,
+      user?.academyDomain,
+      user?.isLearningSpace
+    ])
+  );
 
   const highlightedDays = useMemo(() => {
     return (

@@ -327,6 +327,9 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
     if (!currentAlarm?.id) return
     const next = !speaker
     setSpeaker(next)
+    if (soundRef.current) {
+      soundRef.current.muted = !next
+    }
 
     try {
       const toggle = onAcademy ? toggleAlarmSpeakerApi : toggleSuperAlarmSpeakerApi
@@ -340,6 +343,9 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
       handleUpdateAlarm(res.data)
     } catch {
       setSpeaker(!next)
+      if (soundRef.current) {
+        soundRef.current.muted = next
+      }
     }
   }
 

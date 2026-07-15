@@ -5,6 +5,7 @@ import {
   pauseAndResumeTextbookApi,
   pauseOrFinished,
   restartTextbookApi,
+  getTextbookByIdApi,
 } from "../apiClients";
 import {
   ChangeAnswerTimeRequest,
@@ -32,6 +33,7 @@ import useAlarm from "@/layouts/hooks/useAlarm";
 import useServerTime from "@/hooks/useServerTime";
 import { useKeepAwake } from 'expo-keep-awake';
 import { useActivityTracking } from "@/hooks/useActivityTracking";
+import { triggerOfflineSync } from '@/services/offlineSync';
 
 type Props = {
   handleOpenDrawer?: () => void;
@@ -366,7 +368,7 @@ const useTextbook = ({
     status: textbook?.status
   });
 
-  const { updateQuestionAnswer, updateQuestionStar, recoverAnswers, handleResetTextbookSolving } =
+  const { updateQuestionAnswer, updateQuestionStar, recoverAnswers, handleResetTextbookSolving, handleClearStorage } =
     useTextbookSolving({
       startTime,
       textbook: textbook,
@@ -535,14 +537,15 @@ const useTextbook = ({
     setLoadingWithoutOverlay(true);
     const nowTime = getServerNow();
     try {
+      const latestRes = await getTextbookByIdApi(Number(textbookId));
+      const latestData = latestRes?.data?.data;
+      const freshRowVersion = latestData?.rowVersion || textbook.rowVersion;
+
       const req: RestartTextbookRequest = {
-        rowVersion: textbook.rowVersion,
+        rowVersion: freshRowVersion,
         startPage: restartTextbookData?.startPage,
         endPage: restartTextbookData?.endPage
       };
-
-      console.log({ req });
-      
 
       track({
         action: ActivityAction.Restart,
@@ -555,6 +558,7 @@ const useTextbook = ({
         }
       })
 
+      await handleClearStorage();
       handleResetTextbookSolving();
       await restartTextbookApi(Number(textbook.id), req);
       getQuestionsTextbook();
@@ -578,6 +582,7 @@ const useTextbook = ({
 
   const clearData = () => {
     handleResetTextbookSolving();
+    triggerOfflineSync();
     setTextbook(undefined);
     setQuestionList([]);
     handleCloseExpiredQuestionDialog()

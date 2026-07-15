@@ -13,7 +13,7 @@ type Props = {
 
 const Statistic = ({ t, isEnglish, chapter }: Props) => {
   const accuracyRate = chapter.accuracyRate || 0
-  const isCompleted = chapter.completedChapterQuestions === chapter.totalChapterQuestions
+  const isCompleted = chapter.completedChapterQuestions === chapter.totalChapterQuestions && chapter.totalChapterQuestions > 0
   const total = chapter.totalChapterQuestions || 0
   const completed = chapter.completedChapterQuestions || 0
   const progress = total !== 0 ? (completed / total) * 100 : 0

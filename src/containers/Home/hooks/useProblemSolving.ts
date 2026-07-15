@@ -307,6 +307,7 @@ const useProblemSolving = () => {
 
   useFocusEffect(
     useCallback(() => {
+      getScheduleList();
       scrollRef.current?.scrollTo({ y: 0, animated: true })
       return () => {
         setSelectedTextbook(undefined)
@@ -314,7 +315,7 @@ const useProblemSolving = () => {
         setOpen(false)
         handleCloseExamHistoryDialog()
       };
-    }, [])
+    }, [user?.academyDomain, user?.isLearningSpace])
   );
 
   useEffect(() => {
@@ -460,9 +461,7 @@ const useProblemSolving = () => {
     }
   }
 
-  useEffect(() => {
-    getScheduleList();
-  }, [user?.academyDomain, user?.isLearningSpace]);
+
 
   return {
     t,

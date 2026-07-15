@@ -50,9 +50,10 @@ export const apiUpload: AxiosInstance = axios.create({
           config.headers.Authorization = `Bearer ${token}`
         }
 
-        const academyDomainStorage = await getDataStorage(ACADEMY_DOMAIN)
-        const academyDomain = academyDomainStorage
-        const isLearningSpace = !!(await getDataStorage(LEARNING_SPACE)) === true
+        const authState = useAuthStore.getState()
+        const currentUser = authState.user
+        const academyDomain = currentUser ? currentUser.academyDomain : await getDataStorage(ACADEMY_DOMAIN)
+        const isLearningSpace = currentUser ? !!currentUser.isLearningSpace : !!(await getDataStorage(LEARNING_SPACE)) === true
 
         if ((academyDomain && !isLearningSpace) && config.headers[AcademyHeaders] == undefined) config.headers[AcademyHeaders] = `${academyDomain}`
         if (isLearningSpace && config.headers[NoAcademyHeaders] == undefined) config.headers[NoAcademyHeaders] = `${isLearningSpace}`
