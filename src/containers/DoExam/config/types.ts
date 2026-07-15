@@ -84,6 +84,7 @@ export type StoredStudentAnswer = {
 }
 export type QuestionGroupResponse = {
     id: number
+    page?: number
     articles: any
     questions: QuestionResponse[]
 }

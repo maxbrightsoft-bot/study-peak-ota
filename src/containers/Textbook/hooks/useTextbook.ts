@@ -289,11 +289,11 @@ const useTextbook = ({
 
   useFocusEffect(
     useCallback(() => {
-      getTextbookList(search);
-
       if (textbookFilter.currentPage === 1) {
         scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true })
       }
+      
+      getTextbookList(search);
 
       return () => {
         setSelectedTextbook(undefined);

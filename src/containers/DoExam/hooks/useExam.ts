@@ -35,6 +35,7 @@ import crashlytics from '@react-native-firebase/crashlytics'
 import { useActivityTracking } from '@/hooks/useActivityTracking';
 import { useKeepAwake } from 'expo-keep-awake';
 import useAlarm from '@/layouts/hooks/useAlarm';
+import { triggerOfflineSync } from '@/services/offlineSync';
 
 type Props = {
   examCode: string;
@@ -562,6 +563,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
       })
 
       await restartExamApi(exam?.code || '');
+      await handleClearStorage();
       handleClear()
       getQuestionExams();
       toast.info(t("exam_has_been_restarted"));
@@ -595,6 +597,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
 
     const item = JSON.parse(data);
     await apiJoinExam(item?.code, true);
+    await handleClearStorage();
     handleClear()
     await getQuestionExams();
     toast.info(t("exam_has_been_restarted"));
@@ -672,7 +675,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     });
   };
 
-  const { updateQuestionAnswer, updateQuestionStar, handleResetExamSolving } = useExamSolving({
+  const { updateQuestionAnswer, updateQuestionStar, handleResetExamSolving, handleClearStorage } = useExamSolving({
     examId: exam?.id,
     exam,
     examCode: examCode,
@@ -718,6 +721,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     handleCloseConfirmDialog()
     handleCloseAnswerSheet()
     handleResetExamSolving()
+    triggerOfflineSync()
     setQuestionList([])
     setQuestionListMapped([])
     handleCloseInfoExamDialog()

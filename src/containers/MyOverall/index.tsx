@@ -207,7 +207,7 @@ const MyOverall: FC<OverallTabProps> = React.memo(({
 
             <View style={{ gap: 8 }}>
               <View style={styles.columnItem}>
-                <Text style={styles.overviewLabel}>{t('percentage_among_students')}</Text>
+                <Text style={styles.overviewLabel}>{t('percentage')}</Text>
                 <Text style={styles.overviewValue}>
                   {(resultData?.totalCorrectRate || 0).toFixed(2)}%
                 </Text>

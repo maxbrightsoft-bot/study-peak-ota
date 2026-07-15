@@ -136,11 +136,9 @@ const ExamQuestionGroup = ({
     }
   }, [])
 
-  const totalScore = useMemo(() => {
-    return questions.reduce((sum, question) => {
-      return sum + (question.score || 0)
-    }, 0)
-  }, [questions])
+  const page = t("page_number", {
+    number: data.page ?? "_"
+  });
 
   return (
     <View>
@@ -149,7 +147,7 @@ const ExamQuestionGroup = ({
           <Text style={{ fontSize: 14, fontWeight: 500, color: palette.grey[500] }}>{questionContent}</Text>
         )}
         {questionContent && <View style={{ backgroundColor: palette.grey[300], paddingVertical: 7, width: 2 }} />}
-        <Text style={{ fontSize: 14, fontWeight: 500, color: palette.grey[500] }}>{totalScore}p</Text>
+        <Text style={{ fontSize: 14, fontWeight: 500, color: palette.grey[500] }}>{page}</Text>
       </View>
 
       <View style={styles.container}>

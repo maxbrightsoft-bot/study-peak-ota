@@ -71,10 +71,14 @@ const useExamSolving = (props: Props) => {
   const { t } = useTranslation();
   const apiTimeouts = useRef<any>({});
 
-  const ltAnswerTime = useRef<string>();
-  const runningTimeRef = useRef<number>();
-  const totalAnsweredTimeRef = useRef<number>();
+  const ltAnswerTime = useRef<string | undefined>(undefined);
+  const runningTimeRef = useRef<number | undefined>(undefined);
+  const totalAnsweredTimeRef = useRef<number | undefined>(undefined);
   const [recoverExamCode, setRecoveredExamCode] = useState<string>();
+  const examRef = useRef(exam);
+  useEffect(() => {
+    examRef.current = exam;
+  }, [exam]);
 
   const recoverKey = useMemo(() => {
     if (!academyDomain || !userId || !examCode || !academyId) return undefined;
@@ -129,13 +133,12 @@ const useExamSolving = (props: Props) => {
         time: nowTime
       })
       error = err;
-      handleNextQuestion(true)
     } finally {
       if (res && res?.status === 1) {
         updateExamLastTimeAnswer?.(lastAnswerTime);
       }
       if (
-        (error && error.code !== "ERR_NETWORK") ||
+        (error && error.code !== "ERR_NETWORK" && error.message !== "Network Error") ||
         (res && res?.status === 0)
       ) {
         const rollBackQuestions = await getRollBackQuestionList();
@@ -144,6 +147,7 @@ const useExamSolving = (props: Props) => {
           if (ltAnswerTime.current && (diffFromNow(rollBackQuestions.lastAnswerTime, serverNow, ltAnswerTime.current) || 0) > 0)
             ltAnswerTime.current = rollBackQuestions.lastAnswerTime;
         }
+        handleNextQuestion(true);
 
         const errorMessage = error?.response?.data?.title || res?.message;
         if (errorMessage && typeof errorMessage === "string" && !callback && error?.response?.status !== 409)
@@ -169,6 +173,7 @@ const useExamSolving = (props: Props) => {
       recoverKey,
       JSON.stringify({
         lastAnswerTime: lastAnswerTimeNum,
+        runningTime,
         questions
       })
     );
@@ -450,7 +455,8 @@ const useExamSolving = (props: Props) => {
     recoverKey: string,
     callback?: Function
   ) => {
-    if (!exam) return
+    const currentExam = examRef.current;
+    if (!currentExam) return
     let data: StoredStudentAnswer | null = null;
     try {
       const recoverJsonQuestions = await getDataStorage(recoverKey);
@@ -458,16 +464,18 @@ const useExamSolving = (props: Props) => {
     } catch (error) {
       await removeDataStorage(recoverKey);
     }
-    const currentLastAnswerTime = exam.lastAnswerTime
-      ? moment.utc(exam.lastAnswerTime).valueOf()
+    const currentLastAnswerTime = currentExam.lastAnswerTime
+      ? moment.utc(currentExam.lastAnswerTime).valueOf()
       : 0;
+
+    const examRunningTime = currentExam.runningTime || 0;
 
     if (
       !!data &&
       data.questions.length &&
       data.lastAnswerTime &&
       currentLastAnswerTime < data.lastAnswerTime &&
-      exam.runningTime <= data.runningTime
+      examRunningTime <= data.runningTime
     ) {
       const lastAnswerTime = moment(data.lastAnswerTime)
         .toDate()

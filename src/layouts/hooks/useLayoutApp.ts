@@ -39,7 +39,7 @@ const useLayoutApp = () => {
   const [userMenuVisible, setUserMenuVisible] = useState(false)
   const [openNoticeDialog, setOpenNoticeDialog] = useState<boolean>(false)
   const appState = useRef(AppState.currentState)
-  const generalChannel = useRef<PusherChannel>();
+  const generalChannel = useRef<PusherChannel | undefined>(undefined);
 
   const handleOpenNoticeDialog = () => setOpenNoticeDialog(true)
   const handleCloseNoticeDialog = () => setOpenNoticeDialog(false)
@@ -284,7 +284,7 @@ const useLayoutApp = () => {
 
       await handleLoginAccessToken(
         requestBody,
-        undefined,
+        true,
         undefined,
         false
       )

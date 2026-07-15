@@ -206,8 +206,12 @@ const useTextbookDrawer = ({
 
     setLoading(true);
     try {
+      const latestRes = await getTextbookByIdApi(textbookId);
+      const latestData = latestRes?.data?.data;
+      const freshRowVersion = latestData?.rowVersion || textbook.rowVersion;
+
       const req: RestartTextbookRequest = {
-        rowVersion: textbook.rowVersion,
+        rowVersion: freshRowVersion,
         startPage: restartTextbookData?.startPage,
         endPage: restartTextbookData?.endPage
       };

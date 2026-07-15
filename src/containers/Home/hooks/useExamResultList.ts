@@ -1,5 +1,6 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import _ from "lodash";
+import moment from "moment";
 import { useTranslation } from "react-i18next";
 import useAuthStore from "@/store/useAuthStore";
 import { getListExamApi, joinExamApi } from "../apiClients";
@@ -41,14 +42,19 @@ const useExamResultList = ({ onClose, open }: { onClose: () => void, open: boole
         offset: 0,
         animated: true
       })
-      getListExam()
+      getListExam(search)
       return () => {
         setSelectedExam(undefined);
-        setExpandedId(null)
-        setSearch("")
+        setExpandedId(null);
       };
-    }, [filter, open])
+    }, [open])
   );
+
+  useEffect(() => {
+    if (open) {
+      getListExam(search);
+    }
+  }, [filter]);
 
   const handleSort = () => {
     const sortColumnName = ExamSessionSortBy.StartTime;
@@ -81,7 +87,14 @@ const useExamResultList = ({ onClose, open }: { onClose: () => void, open: boole
           courseName: item.name
         }))
       )
-      setListExam(result);
+
+      const sortedResult = _.orderBy(
+        result,
+        [(session) => session.startTime ? moment(session.startTime).valueOf() : 0],
+        [(filter.sortColumnDirection || OrderBy.DESC).toLowerCase() as "asc" | "desc"]
+      );
+
+      setListExam(sortedResult);
     } catch (error) {
       console.log({ error });
     }

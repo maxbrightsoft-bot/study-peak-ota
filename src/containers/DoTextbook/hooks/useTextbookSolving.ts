@@ -119,10 +119,9 @@ const useTextbookSolving = (props: Props) => {
       }
     } catch (err: any) {
       error = err;
-      handleNextQuestion(true)
     } finally {
       if (
-        (error && error.code !== "ERR_NETWORK") ||
+        (error && error.code !== "ERR_NETWORK" && error.message !== "Network Error") ||
         (res && res?.status === 0)
       ) {
         const rollBackQuestions = await getRollBackQuestionList();
@@ -134,6 +133,7 @@ const useTextbookSolving = (props: Props) => {
           if (ltAnswerTime.current && isValid && moment(rollBackLastAnswerTime).isAfter(startTime) && moment(rollBackLastAnswerTime).isAfter(ltAnswerTime.current))
             ltAnswerTime.current = rollBackLastAnswerTime
         }
+        handleNextQuestion(true);
 
         const errorMessage = error?.response?.data?.title || res?.message;
         if (errorMessage && typeof errorMessage === "string" && !callback)
@@ -497,6 +497,7 @@ const useTextbookSolving = (props: Props) => {
     updateQuestionAnswer,
     updateQuestionStar,
     recoverAnswers,
+    handleClearStorage,
     handleResetTextbookSolving
   };
 };
