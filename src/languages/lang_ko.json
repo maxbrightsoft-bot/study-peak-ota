@@ -2332,6 +2332,6 @@
   "camera_permission_required": "카메라 권한이 필요합니다.",
   "select_image_source": "사진 선택",
   "incorrect_answer_note_detail": "오답노트 상세",
+  "multiplecorrectanswers": "복수 정답 처리",
   "do_you_want_to_continue_the_exam": "시험을 계속 진행하시겠습니까?"
 }
-
