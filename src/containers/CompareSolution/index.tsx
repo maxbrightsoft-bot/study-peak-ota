@@ -227,7 +227,8 @@ const CompareSolution: FC<Props> = ({ effectSize: originalEffectSize, isTextbook
       ...effectSize
         .filter((i) =>
           i.questionAnswerType === QuestionAnswerType.SingleChoice ||
-          i.questionAnswerType === QuestionAnswerType.MultipleChoice
+          i.questionAnswerType === QuestionAnswerType.MultipleChoice ||
+          i.questionAnswerType === QuestionAnswerType.MultipleCorrectAnswers
         )
         .map((i) => i.answersCount || 0)
     ),
@@ -302,7 +303,8 @@ const CompareSolution: FC<Props> = ({ effectSize: originalEffectSize, isTextbook
 
         const isChoice =
           item.questionAnswerType === QuestionAnswerType.SingleChoice ||
-          item.questionAnswerType === QuestionAnswerType.MultipleChoice
+          item.questionAnswerType === QuestionAnswerType.MultipleChoice ||
+          item.questionAnswerType === QuestionAnswerType.MultipleCorrectAnswers
 
         const isCorrect = !!item.isCorrect
 
