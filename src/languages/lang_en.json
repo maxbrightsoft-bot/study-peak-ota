@@ -2337,6 +2337,6 @@
   "camera_permission_required": "Camera permission is required.",
   "select_image_source": "Select Photo Source",
   "incorrect_answer_note_detail": "Incorrect Answer Note Details",
+  "multiplecorrectanswers": "Multiple Correct Answers",
   "do_you_want_to_continue_the_exam": "Do you want to continue the exam?"
 }
-

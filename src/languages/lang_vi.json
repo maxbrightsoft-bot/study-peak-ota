@@ -2354,5 +2354,6 @@
   "camera_permission_required": "Cần cấp quyền truy cập máy ảnh.",
   "select_image_source": "Chọn nguồn ảnh",
   "incorrect_answer_note_detail": "Chi tiết ghi chú câu sai",
+  "multiplecorrectanswers": "Nhiều đáp án đúng",
   "do_you_want_to_continue_the_exam": "Bạn có muốn tiếp tục bài kiểm tra không?"
 }
