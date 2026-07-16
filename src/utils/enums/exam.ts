@@ -18,7 +18,8 @@ export enum QuestionAnswerType {
   ShortAnswer,
   OrderMatters,
   OrderDoesNotMatters,
-  SynonymProcessing
+  SynonymProcessing,
+  MultipleCorrectAnswers
 }
 
 export enum ExamStatus {

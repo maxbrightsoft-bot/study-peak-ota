@@ -264,6 +264,7 @@ const useTextbookSolving = (props: Props) => {
               : [answer];
             break;
           case QuestionAnswerType.MultipleChoice:
+          case QuestionAnswerType.MultipleCorrectAnswers:
             if (answer === undefined) break;
             item.selectedAnswers = item.selectedAnswers?.includes(answer)
               ? item.selectedAnswers.filter((i: number) => i != answer)

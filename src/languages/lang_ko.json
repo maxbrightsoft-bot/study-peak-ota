@@ -2331,6 +2331,6 @@
   "choose_from_gallery": "앨범에서 선택",
   "camera_permission_required": "카메라 권한이 필요합니다.",
   "select_image_source": "사진 선택",
-  "incorrect_answer_note_detail": "오답노트 상세"
+  "incorrect_answer_note_detail": "오답노트 상세",
+  "multiplecorrectanswers": "복수 정답 처리"
 }
-

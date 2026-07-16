@@ -53,6 +53,7 @@ const Vulnerable: FC<Props> = ({ data, isPrint }) => {
         return isCorrect ? textualAnswers?.join(' | ') : (textualAnswers?.[0] ?? '')
       case QuestionAnswerType.SingleChoice:
       case QuestionAnswerType.MultipleChoice:
+      case QuestionAnswerType.MultipleCorrectAnswers:
         if (!answers?.length) return ''
         return answers.map((i) => t('number_question', { number: i })).join(',')
       default:

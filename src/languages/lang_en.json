@@ -2336,6 +2336,6 @@
   "choose_from_gallery": "Choose from Gallery",
   "camera_permission_required": "Camera permission is required.",
   "select_image_source": "Select Photo Source",
-  "incorrect_answer_note_detail": "Incorrect Answer Note Details"
+  "incorrect_answer_note_detail": "Incorrect Answer Note Details",
+  "multiplecorrectanswers": "Multiple Correct Answers"
 }
-

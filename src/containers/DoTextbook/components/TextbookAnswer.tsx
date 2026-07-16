@@ -41,7 +41,7 @@ const TextbookAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAn
     if (disabled) return
     let nextSelected: number[]
 
-    if (type === QuestionAnswerType.MultipleChoice) {
+    if (type === QuestionAnswerType.MultipleChoice || type === QuestionAnswerType.MultipleCorrectAnswers) {
       if (selectedAnswers.includes(num)) {
         nextSelected = selectedAnswers.filter((a) => a !== num)
       } else {
@@ -114,6 +114,7 @@ const TextbookAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAn
         )
 
       case QuestionAnswerType.MultipleChoice:
+      case QuestionAnswerType.MultipleCorrectAnswers:
       case QuestionAnswerType.SingleChoice: {
         const isManyAnswers = (question?.answerCount || 0) > 5
         return (
