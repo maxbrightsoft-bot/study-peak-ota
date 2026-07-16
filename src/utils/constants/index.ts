@@ -67,6 +67,10 @@ export const answerTypeOptions = (t: any) => ([
     value: QuestionAnswerType.MultipleChoice
   },
   {
+    label: t("multiplecorrectanswers"),
+    value: QuestionAnswerType.MultipleCorrectAnswers
+  },
+  {
     label: t("shortanswer"),
     value: QuestionAnswerType.ShortAnswer
   },

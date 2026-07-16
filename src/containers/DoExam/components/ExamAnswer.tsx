@@ -40,7 +40,7 @@ const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer
     if (disabled) return
     let nextSelected: number[]
 
-    if (type === QuestionAnswerType.MultipleChoice) {
+    if (type === QuestionAnswerType.MultipleChoice || type === QuestionAnswerType.MultipleCorrectAnswers) {
       if (selectedAnswers.includes(num)) {
         nextSelected = selectedAnswers.filter((a) => a !== num)
       } else {
@@ -109,6 +109,7 @@ const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer
         )
 
       case QuestionAnswerType.MultipleChoice:
+      case QuestionAnswerType.MultipleCorrectAnswers:
       case QuestionAnswerType.SingleChoice:
         return (
           <View style={styles.answerRow}>
