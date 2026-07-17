@@ -28,7 +28,7 @@ const ConfirmExamCode = ({ codeExam, onClose, open, examSession, handleCodeExam 
       <View style={styles.container}>
         <View style={styles.row}>
           <Text style={styles.label}>{t('exam_name')}</Text>
-          <Text style={styles.value}>{examSession?.title}</Text>
+          <Text style={styles.value} numberOfLines={2} ellipsizeMode="tail">{examSession?.title}</Text>
         </View>
 
         <View style={styles.row}>

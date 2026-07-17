@@ -419,7 +419,7 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
         >
           <Text style={{ color: '#222222', fontSize: 12, fontWeight: 600 }}>{resultData?.subjectName}</Text>
           <View style={{ height: 12, width: 2, backgroundColor: palette.grey[300] }} />
-          <Text style={{ color: '#222222', fontSize: 12, fontWeight: 400 }}>{resultData?.title}</Text>
+          <Text numberOfLines={1} style={{ color: '#222222', fontSize: 12, fontWeight: 400, flexShrink: 1 }}>{resultData?.title}</Text>
         </View>}
         <View style={styles.contentContainer}>{renderBody()}</View>
       </View>

@@ -85,9 +85,9 @@ const NoteItem: FC<NoteItemProps> = ({
     <Pressable style={({ pressed }) => [styles.container, pressed && styles.pressed]} onPress={handleItemClick}>
       {(examResultData?.title || data?.title) && (
         <View style={styles.headerRow}>
-          <Text style={styles.headerText}>{examResultData?.title || data?.title}</Text>
+          <Text style={styles.headerText} numberOfLines={1} ellipsizeMode="tail">{examResultData?.title || data?.title}</Text>
           {(examResultData?.subjectName || data?.subjectName) && <View style={styles.separator} />}
-          <Text style={styles.headerText}>{examResultData?.subjectName || data?.subjectName}</Text>
+          <Text style={styles.headerText} numberOfLines={1} ellipsizeMode="tail">{examResultData?.subjectName || data?.subjectName}</Text>
         </View>
       )}
       <View style={styles.metaRow}>
@@ -141,7 +141,8 @@ const styles = ScaledSheet.create({
     fontSize: '12@ms',
     lineHeight: '20@ms',
     color: palette.grey[400],
-    fontWeight: 500
+    fontWeight: 500,
+    flexShrink: 1
   },
   separator: {
     width: '1@ms',
