@@ -83,24 +83,21 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
           )}
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' }}>
-          <Text numberOfLines={1} style={styles.examTitle}>
+          <Text numberOfLines={1} style={[styles.examTitle, { flexShrink: 1 }]}>
             {dateStr || ''}
           </Text>
           <View style={styles.divider} />
-          <Text numberOfLines={1} style={styles.examTitle}>
+          <Text numberOfLines={1} style={[styles.examTitle, { flexShrink: 1 }]}>
             {item?.courseName || ''}
           </Text>
           <View style={styles.divider} />
-          <Text numberOfLines={1} style={styles.examTitle}>
+          <Text numberOfLines={1} style={[styles.examTitle, { flexShrink: 1 }]}>
             {item?.subjectName || ''}
           </Text>
           <View style={styles.divider} />
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text numberOfLines={1} style={styles.examTitle}>
-              {item?.title || ''}
-            </Text>
-          </View>
-
+          <Text numberOfLines={1} style={[styles.examTitle, { flexShrink: 1 }]}>
+            {item?.title || ''}
+          </Text>
         </View>
         <Text style={styles.examMeta}>{item?.teacherName || ''}</Text>
 
