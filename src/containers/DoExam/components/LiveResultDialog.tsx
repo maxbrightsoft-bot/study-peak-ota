@@ -1,9 +1,8 @@
-import { Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
 import { Button } from 'react-native-paper'
 import useLiveResult from '../hooks/useLiveResult'
 import { utcToLocalTime } from '@/utils/helpers'
 import { palette, TYPO } from '@/theme'
-import Loading from '@/components/Loading'
 import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 import { Ionicons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -30,36 +29,43 @@ const LiveResultDialog = ({ open, onClose = () => {}, examCode, handleExamEnd, h
         </View>
         <View></View>
       </View>
-      {isLoading && <Loading isOverlay={false} />}
 
-      <View style={styles.container}>
-        <Text style={styles.examTitle}>{examResult?.title || ''}</Text>
-
-        <Text style={styles.score}>{t('score_format', { score: examResult?.score || 0 })}</Text>
-
-        <Text style={styles.percentage}>{t('percentage_among_students')}: {examResult?.percentageAmongStudents?.toFixed(2) || 0}%</Text>
-
-        <View style={styles.infoBlock}>
-          <InfoRow label={t('exam_date')} value={utcToLocalTime(examResult?.startTime, t('full_date_time_format'))} />
-          <InfoRow label={t('exam_duration')} value={totalTime} />
-          <InfoRow label={t('number_of_questions')} value={`${resultData?.questions?.length || 0} ${t('questions')}`} />
+      {isLoading || !examResult ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={palette.main[600]} />
+          <Text style={styles.loadingTitle}>{t('calculating_exam_score')}</Text>
+          <Text style={styles.loadingSub}>{t('please_wait_a_moment')}</Text>
         </View>
+      ) : (
+        <View style={styles.container}>
+          <Text style={styles.examTitle}>{examResult?.title || ''}</Text>
 
-        <View style={styles.buttonContainer}>
-          <Button
-            mode="outlined"
-            style={styles.outlineButton}
-            labelStyle={styles.outlineText}
-            onPress={handleDetailExamResult}
-          >
-            {t('view_details')}
-          </Button>
+          <Text style={styles.score}>{t('score_format', { score: examResult?.score || 0 })}</Text>
 
-          <Button mode="contained" style={styles.filledButton} labelStyle={styles.filledText} onPress={handleExamEnd}>
-            {t('exam_end')}
-          </Button>
+          <Text style={styles.percentage}>{t('percentage_among_students')}: {examResult?.percentageAmongStudents?.toFixed(2) || 0}%</Text>
+
+          <View style={styles.infoBlock}>
+            <InfoRow label={t('exam_date')} value={utcToLocalTime(examResult?.startTime, t('full_date_time_format'))} />
+            <InfoRow label={t('exam_duration')} value={totalTime} />
+            <InfoRow label={t('number_of_questions')} value={`${resultData?.questions?.length || 0} ${t('questions')}`} />
+          </View>
+
+          <View style={styles.buttonContainer}>
+            <Button
+              mode="outlined"
+              style={styles.outlineButton}
+              labelStyle={styles.outlineText}
+              onPress={handleDetailExamResult}
+            >
+              {t('view_details')}
+            </Button>
+
+            <Button mode="contained" style={styles.filledButton} labelStyle={styles.filledText} onPress={handleExamEnd}>
+              {t('exam_end')}
+            </Button>
+          </View>
         </View>
-      </View>
+      )}
     </SlideDrawerRoot>
   )
 }
@@ -76,6 +82,25 @@ const styles = ScaledSheet.create({
     paddingHorizontal: '24@ms',
     paddingTop: '24@ms',
     paddingBottom: '16@ms'
+  },
+  loadingContainer: {
+    paddingHorizontal: '24@ms',
+    paddingVertical: '48@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingTitle: {
+    fontSize: '17@ms',
+    fontWeight: '700',
+    color: palette.grey[900],
+    marginTop: '16@ms',
+    marginBottom: '6@ms',
+    textAlign: 'center',
+  },
+  loadingSub: {
+    fontSize: '13@ms',
+    color: palette.grey[500],
+    textAlign: 'center',
   },
   examTitle: {
     ...TYPO.heading3,

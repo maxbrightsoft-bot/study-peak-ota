@@ -1,5 +1,6 @@
 {
   "select_timer_limit": "시험 시간 선택",
+  "result_will_be_displayed_after_doing_exam": "문제 풀이를 진행해야 결과를 볼 수 있습니다.",
   "please_enter_timer_limit": "시험 시간을 입력해 주세요",
   "skip_pre_alarm": "예비종 건너뛰기",
   "filter_subcategory": "{{parent}} 하위 유형",
@@ -306,7 +307,7 @@
   "academy_admin": "아카데미 관리자",
   "super_admin": "최고 관리자",
   "switch_academy_admin": "스위치 아카데미 관리자",
-  "switch_academy": "스위치 아카데미",
+  "switch_academy": "학원 변경하기",
   "there_are_no_lessons_this_week": "이번주는 수업이 없습니다",
   "update_message": "업데이트 메시지",
   "attachment": "첨부 파일",
@@ -755,6 +756,7 @@
   "verifying": "확인 중...",
   "login": "로그인",
   "please_wait_a_moment": "잠시만 기다려주세요",
+  "calculating_exam_score": "시험 점수 계산 중...",
   "oops_sorry": "이런, 미안해요!",
   "invitation_token_not_provided": "초대 토큰이 제공되지 않았습니다",
   "academy_invitation": "아카데미 초대",

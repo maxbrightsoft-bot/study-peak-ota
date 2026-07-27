@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useRef, useState, useCallback } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef, useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   ScrollView,
   StyleProp,
   ViewStyle,
+  Keyboard,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useTranslation } from 'react-i18next';
@@ -94,25 +95,30 @@ const EDITOR_HTML = `<!DOCTYPE html><html>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"><\/script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:sans-serif;font-size:15px;color:#212529;background:#fff}
-#toolbar{display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid #dee2e6;flex-wrap:wrap}
-.fmt-bold{font-weight:700;min-width:28px;height:28px;border:1px solid #ced4da;border-radius:6px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
-.fmt-italic{font-style:italic;min-width:28px;height:28px;border:1px solid #ced4da;border-radius:6px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
-.fmt-underline{text-decoration:underline;min-width:28px;height:28px;border:1px solid #ced4da;border-radius:6px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
-.fmt-btn-active{background:#212529!important;color:#fff!important;border-color:#212529!important}
-#sigmaBtn{min-width:28px;height:28px;border:1px solid #ced4da;border-radius:6px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px}
-#editor{min-height:60px;padding:8px 10px;outline:none;line-height:1.8;word-break:break-word;-webkit-user-select:text;user-select:text;-webkit-tap-highlight-color:transparent;}
-.math-chip{display:inline-block;background:#f0f4ff;border:1px solid #c7d2fe;border-radius:6px;padding:1px 6px;margin:0 2px;cursor:default;-webkit-user-select:none;user-select:none;vertical-align:middle}
+html,body{height:100%;background:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+body{display:flex;flex-direction:column}
+#toolbar{display:flex;align-items:center;padding:6px 10px;background:#f8fafc;border-bottom:1px solid #e2e8f0;flex-shrink:0}
+#sigmaBtn{-webkit-appearance:none;appearance:none;width:34px;height:34px;min-width:34px;min-height:34px;padding:0;margin:0;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#334155;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent}
+#sigmaBtn:active{background:#e2e8f0;color:#0f172a}
+#editor{flex:1;min-height:100px;padding:10px 12px;outline:none;font-size:16px;line-height:1.6;color:#1e293b;word-break:break-word;-webkit-user-select:text;user-select:text;-webkit-tap-highlight-color:transparent}
+.math-chip{display:inline-block;background:#eef2ff;border:1.5px solid #a5b4fc;border-radius:8px;padding:4px 10px;margin:3px 4px;cursor:pointer;-webkit-user-select:none;user-select:none;vertical-align:middle;font-size:16px;line-height:normal}
 </style>
 </head>
 <body>
 <div id="toolbar">
-  <button id="sigmaBtn" onclick="openPicker()">∑</button>
+  <button id="sigmaBtn" type="button" onclick="openPicker()">∑</button>
 </div>
 <div id="editor" contenteditable="true" spellcheck="false"></div>
 <script>
 var editor=document.getElementById('editor');
 var chipCounter=0;
+
+editor.addEventListener('focus',function(){
+  window.ReactNativeWebView.postMessage(JSON.stringify({type:'focus'}));
+});
+editor.addEventListener('blur',function(){
+  window.ReactNativeWebView.postMessage(JSON.stringify({type:'blur'}));
+});
 function fmt(cmd){document.execCommand(cmd,false,null);updateToolbar();}
 function updateToolbar(){
   document.getElementById('btnB').classList.toggle('fmt-btn-active',document.queryCommandState('bold'));
@@ -180,7 +186,7 @@ window.receiveLatex=function(latex, idToEdit){
   }
   
   chip.setAttribute('data-latex',latex);
-  try{katex.render(latex,chip,{throwOnError:false,displayMode:false,output:'mathml'});}
+  try{katex.render(latex,chip,{throwOnError:false,displayMode:false,output:'htmlAndMathml'});}
   catch(e){chip.textContent=latex;}
 
   if(!idToEdit){
@@ -208,7 +214,7 @@ window.setEditorValue=function(val){
     editor.innerHTML=html;
     editor.querySelectorAll('.math-chip').forEach(function(chip){
       var ltx=chip.getAttribute('data-latex');
-      try{katex.render(ltx,chip,{throwOnError:false,displayMode:false,output:'mathml'});}
+      try{katex.render(ltx,chip,{throwOnError:false,displayMode:false,output:'htmlAndMathml'});}
       catch(e){chip.textContent=ltx;}
     });
     return;
@@ -270,6 +276,22 @@ document.addEventListener('selectionchange',function(){
   if(document.activeElement===editor)saveSelection();
 });
 
+window.blurEditor = function() {
+  if (document.activeElement) {
+    try { document.activeElement.blur(); } catch(e){}
+  }
+  if (editor) {
+    try { editor.blur(); } catch(e){}
+  }
+  if (hiddenInput) {
+    try { hiddenInput.blur(); } catch(e){}
+  }
+  var sel = window.getSelection();
+  if (sel) {
+    try { sel.removeAllRanges(); } catch(e){}
+  }
+};
+
 function relayFocusToEditor(){
   // Step 1: focus the hidden input (creates fresh iOS UIKeyInput channel)
   hiddenInput.focus();
@@ -314,6 +336,13 @@ editor.addEventListener('touchend',function(e){
     }
   });
 },true);
+
+document.addEventListener('touchend', function(e) {
+  var target = e.target;
+  if (target !== hiddenInput && target !== editor && (!editor.contains || !editor.contains(target))) {
+    relayFocusToEditor();
+  }
+});
 
 // ---- Chip deletion: beforeinput (iOS 15+) + keydown fallback ----
 function getChipBeforeCursor(){
@@ -675,14 +704,28 @@ const MathRichInput = forwardRef<MathRichInputRef, {
   style?: StyleProp<ViewStyle>;
 }>(({ initialValue, onChange, disabled, style }, ref) => {
   const webviewRef = useRef<WebView>(null);
+  const initialValueRef = useRef(initialValue);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [editingLatex, setEditingLatex] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
   const editingChipIdRef = useRef<string | null>(null);
+
+  const handleDismissKeyboard = useCallback(() => {
+    webviewRef.current?.injectJavaScript(`if(window.blurEditor) window.blurEditor(); true;`);
+    Keyboard.dismiss();
+    setIsFocused(false);
+  }, []);
 
   const handleMessage = (e: any) => {
     try {
       const data = JSON.parse(e.nativeEvent.data);
-      if (data.type === 'openPicker') {
+      if (data.type === 'focus') {
+        setIsFocused(true);
+      }
+      else if (data.type === 'blur') {
+        setIsFocused(false);
+      }
+      else if (data.type === 'openPicker') {
         setEditingLatex('');
         editingChipIdRef.current = null;
         setPickerOpen(true);
@@ -705,16 +748,29 @@ const MathRichInput = forwardRef<MathRichInputRef, {
     editingChipIdRef.current = null;
   };
 
+  useEffect(() => {
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setIsFocused(false);
+        webviewRef.current?.injectJavaScript(`if(window.blurEditor) window.blurEditor(); true;`);
+      }
+    );
+    return () => hideSub.remove();
+  }, []);
+
   useImperativeHandle(ref, () => ({
     clear: () => {
       webviewRef.current?.injectJavaScript(
         `document.getElementById('editor').innerHTML=''; notifyChange(); true;`
       );
     },
+    blur: handleDismissKeyboard,
   }));
 
   return (
     <>
+
       <View pointerEvents={disabled ? 'none' : 'auto'} style={[s.container, style]}>
         <WebView
           ref={webviewRef}
@@ -726,10 +782,12 @@ const MathRichInput = forwardRef<MathRichInputRef, {
           javaScriptEnabled
           keyboardDisplayRequiresUserAction={false}
           hideKeyboardAccessoryView={false}
+          androidLayerType="software"
+          nestedScrollEnabled
           onLoadEnd={() => {
-            if (initialValue) {
+            if (initialValueRef.current) {
               webviewRef.current?.injectJavaScript(
-                `if(window.setEditorValue) window.setEditorValue(${JSON.stringify(initialValue)}); true;`
+                `if(window.setEditorValue) window.setEditorValue(${JSON.stringify(initialValueRef.current)}); true;`
               );
             }
           }}
@@ -757,7 +815,11 @@ const s = ScaledSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'transparent',
+  },
+  fullscreenBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.01)',
   },
   sheet: {
     position: 'absolute',

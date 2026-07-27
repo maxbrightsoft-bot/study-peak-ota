@@ -1,6 +1,7 @@
 {
   "select_timer_limit": "Chọn thời gian làm bài",
   "please_enter_timer_limit": "Vui lòng nhập thời gian làm bài",
+  "result_will_be_displayed_after_doing_exam": "Cần tiến hành giải bài tập mới có thể xem kết quả.",
   "skip_pre_alarm": "Bỏ qua tiếng chuông báo hiệu chuẩn bị",
   "filter_subcategory": "Danh mục con {{parent}}",
   "problem_solving": "Giải quyết vấn đề",
@@ -763,6 +764,7 @@
   "verifying": "Đang xác minh...",
   "login": "Đăng nhập",
   "please_wait_a_moment": "Vui lòng chờ một chút",
+  "calculating_exam_score": "Đang chấm điểm bài thi...",
   "oops_sorry": "Ôi, xin lỗi!",
   "invitation_token_not_provided": "Mã mời không được cung cấp",
   "academy_invitation": "Lời mời học viện",

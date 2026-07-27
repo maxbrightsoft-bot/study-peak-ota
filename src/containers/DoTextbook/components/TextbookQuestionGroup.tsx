@@ -46,15 +46,22 @@ const QuestionRow = React.memo(({
   renderAnswer: (q: PreparedQuestionResponse) => React.ReactNode
 }) => {
   return (
-    <TouchableOpacity
-      ref={(ref) => (questionRefs.current[item.questionIndex || 0] = ref)}
-      onPress={() => (disabled ? isEnd ? handleOpenExpiredQuestionDialog() : undefined : onOpenAnswerSheet(item.id))}
-      style={[
-        styles.row,
-        currentQuestionId === item.id && styles.activeRow,
-        { borderBottomWidth: item.questionOrder === lastIndex - 1 ? 0 : 1 }
-      ]}
+    <View
+      ref={(ref) => {
+        if (ref && questionRefs && questionRefs.current && item.questionIndex !== undefined) {
+          questionRefs.current[item.questionIndex] = ref
+        }
+      }}
+      collapsable={false}
     >
+      <TouchableOpacity
+        onPress={() => (disabled ? isEnd ? handleOpenExpiredQuestionDialog() : undefined : onOpenAnswerSheet(item.id))}
+        style={[
+          styles.row,
+          currentQuestionId === item.id && styles.activeRow,
+          { borderBottomWidth: item.questionOrder === lastIndex - 1 ? 0 : 1 }
+        ]}
+      >
       {item.isStar && (
         <View style={{ position: 'absolute', top: 0, right: 0, zIndex: 1 }}>
           <StarRating />
@@ -82,6 +89,7 @@ const QuestionRow = React.memo(({
         <View style={styles.answerCol}>{renderAnswer(item)}</View>
       </View>
     </TouchableOpacity>
+    </View>
   )
 })
 

@@ -1,6 +1,7 @@
 {
   "select_timer_limit": "Select timer limit",
   "please_enter_timer_limit": "Please enter timer limit",
+  "result_will_be_displayed_after_doing_exam": "Result will be displayed after doing the exam.",
   "skip_pre_alarm": "Skip pre-alarm",
   "filter_subcategory": "{{parent}} Subcategory",
   "problem_solving": "Problem Solving",
@@ -755,6 +756,7 @@
   "verifying": "Verifying...",
   "login": "Login",
   "please_wait_a_moment": "Please wait a moment",
+  "calculating_exam_score": "Calculating exam score...",
   "oops_sorry": "Oops, sorry!",
   "invitation_token_not_provided": "Invitation token not provided",
   "academy_invitation": "Academy invitation",
