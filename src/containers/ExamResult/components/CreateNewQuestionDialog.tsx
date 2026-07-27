@@ -37,9 +37,8 @@ const CreateNewQuestionDialog: React.FC<Props> = ({
   const formik = useFormik({
     initialValues: {
       content: '',
-      questionId: selectedQuestion?.id || 0
+      questionId: selectedQuestion?.id || questionOptions[0]?.value || 0
     },
-    enableReinitialize: true,
     validationSchema: schema,
     onSubmit: (values) => {
       handleCreateQuestion({ ...values, examSessionId, studentTextbookId })
@@ -47,10 +46,15 @@ const CreateNewQuestionDialog: React.FC<Props> = ({
   })
 
   useEffect(() => {
-    if (!openCreateQuestionDialog) {
+    if (openCreateQuestionDialog) {
+      formik.setValues({
+        content: '',
+        questionId: selectedQuestion?.id || questionOptions[0]?.value || 0
+      })
+    } else {
       formik.resetForm()
     }
-  }, [openCreateQuestionDialog])
+  }, [openCreateQuestionDialog, selectedQuestion?.id])
 
   return (
     <CommonDialog isVisible={openCreateQuestionDialog} onClose={onCloseCreateQuestion} title={t('ask_a_question')}>

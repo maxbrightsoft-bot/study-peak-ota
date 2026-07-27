@@ -128,7 +128,52 @@ const TextbookAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAn
         )
 
       default:
-        return null
+        return (
+          <Formik
+            initialValues={{
+              textualAnswers: answers
+            }}
+            validationSchema={schema(t)}
+            onSubmit={(values: any) => {
+              updateQuestionAnswer({
+                questionId: question.id,
+                textualAnswers: values.textualAnswers
+              })
+              isLastQuestion && onClose()
+            }}
+            enableReinitialize
+          >
+            {({ values, errors, handleSubmit }) => (
+              <>
+                <AnswerContent
+                  t={t}
+                  question={question}
+                  questionNumber={
+                    question.parentQuestionId
+                      ? `${(question.parentQuestionOrder || 0) + 1}-(${question.questionOrder + 1})`
+                      : question.questionOrder + 1
+                  }
+                  errors={errors}
+                  values={values}
+                />
+                <TouchableOpacity
+                  style={[
+                    styles.button,
+                    styles.confirmButton,
+                    !values.textualAnswers?.length ||
+                    (values.textualAnswers.some((i: string) => !i?.trim()?.length) && { opacity: 0.5 })
+                  ]}
+                  disabled={
+                    !values.textualAnswers?.length || values.textualAnswers.some((i: string) => !i?.trim()?.length)
+                  }
+                  onPress={() => handleSubmit(values)}
+                >
+                  <Text style={styles.confirmButtonText}>{t('registration')}</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </Formik>
+        )
     }
   }
 

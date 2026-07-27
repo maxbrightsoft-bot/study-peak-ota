@@ -92,6 +92,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
     handleOpenConfirmDialog,
     openRestartTextbookDialog,
     handleCloseRestartTextbookDialog,
+    navigateToPageRange,
     handleOpenRestartTextbookDialog,
     handlePauseAndResumeTextbook
   } = useTextbook({
@@ -257,11 +258,28 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
           data={groupedQuestions}
           keyExtractor={(item) => `group-${item.id}`}
           ref={scrollViewRef}
-          initialNumToRender={5}
-          maxToRenderPerBatch={5}
-          windowSize={5}
-          removeClippedSubviews={Platform.OS === 'android'}
+          initialNumToRender={groupedQuestions.length || 20}
+          maxToRenderPerBatch={20}
+          windowSize={10}
           renderItem={renderQuestionGroup}
+          onScrollToIndexFailed={(info) => {
+            setTimeout(() => {
+              try {
+                scrollViewRef.current?.scrollToIndex({
+                  index: info.index,
+                  animated: true,
+                  viewPosition: 0
+                })
+              } catch (e) {
+                if (info.averageItemLength > 0) {
+                  scrollViewRef.current?.scrollToOffset({
+                    offset: info.averageItemLength * info.index,
+                    animated: true
+                  })
+                }
+              }
+            }, 100)
+          }}
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
         />
@@ -423,7 +441,14 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
         {openTextbookResultDialog && (
           <TextbookDrawer
             isOpen={openTextbookResultDialog}
-            onOpenAudioGuide={() => audioGuideModalProps.onStart(true)}
+            onOpenAudioGuide={(startPage) => {
+              if (startPage) {
+                navigateToPageRange(startPage);
+                handleCloseTextbookResultDialog();
+              } else {
+                audioGuideModalProps.onStart(true);
+              }
+            }}
             onClose={() => {
               navigate(Routes.Auth.Textbook)
               handleCloseTextbookResultDialog()

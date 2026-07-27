@@ -40,7 +40,7 @@ if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "android" ]; then
   echo "=== Building Android bundle ==="
   mkdir -p ota/android_bundle/bundle
   npx expo export:embed \
-    --platform android --dev false \
+    --platform android --dev false --reset-cache \
     --entry-file $ENTRY_FILE \
     --bundle-output ota/android_bundle/bundle/index.android.bundle \
     --assets-dest ota/android_bundle/bundle || {
@@ -77,7 +77,7 @@ if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "ios" ]; then
   echo "=== Building iOS bundle ==="
   mkdir -p ota/ios_bundle/bundle
   npx expo export:embed \
-    --platform ios --dev false \
+    --platform ios --dev false --reset-cache \
     --entry-file $ENTRY_FILE \
     --bundle-output ota/ios_bundle/bundle/main.jsbundle \
     --assets-dest ota/ios_bundle/bundle || {

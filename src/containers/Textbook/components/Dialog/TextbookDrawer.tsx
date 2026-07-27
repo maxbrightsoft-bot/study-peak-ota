@@ -1,10 +1,10 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native'
+import { View, Text, TouchableOpacity, Image, ScrollView, Alert } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { palette } from '@/theme'
 import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 import useTextbookDrawer from '../../hooks/useTextbookDrawer'
-import { getSafeUrl, utcToLocalTime } from '@/utils/helpers'
+import { getSafeUrl, toast, utcToLocalTime } from '@/utils/helpers'
 import { ScaledSheet } from 'react-native-size-matters'
 import { formatTime } from '../../configs/helpers'
 import { TextbookTabList } from '../../configs/constants'
@@ -151,11 +151,20 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props
             )}
 
             {selected === 1 && (
-              <View style={styles.chapterList}>
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() => {
+                  const hasCompleted = textbook?.chapters?.some((c) => c.completedChapterQuestions && c.completedChapterQuestions > 0)
+                  if (!hasCompleted || !textbook?.isStudying) {
+                    toast.info(t('result_will_be_displayed_after_doing_exam'))
+                  }
+                }}
+                style={styles.chapterList}
+              >
                 {textbook?.chapters?.map((chapter, index) => (
                   <Statistic key={index} t={t} isEnglish={isEnglish} chapter={chapter} />
                 ))}
-              </View>
+              </TouchableOpacity>
             )}
           </View>
         </ScrollView>

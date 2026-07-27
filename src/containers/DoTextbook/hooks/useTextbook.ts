@@ -43,9 +43,105 @@ type Props = {
   restart?: boolean;
 };
 
+const isQuestionAnswered = (q: any) => {
+  if (!q) return false;
+  const hasSelected = Boolean(q.selectedAnswers && Array.isArray(q.selectedAnswers) && q.selectedAnswers.length > 0);
+  const hasTextual = Boolean(q.textualAnswers && Array.isArray(q.textualAnswers) && q.textualAnswers.length > 0 && !isNull(q.textualAnswers));
+  return hasSelected || hasTextual;
+};
+
+const findTargetQuestionForPageRange = (
+  pageNum: number,
+  questions: PreparedQuestionResponse[],
+  groupList: PreparedQuestionGroupResponse[],
+  textbook?: SimplePreparedTextbookResponse
+): number | undefined => {
+  if (!pageNum || pageNum <= 0 || !questions.length) return undefined;
+
+  let rangeFrom = pageNum;
+  let rangeTo = pageNum;
+
+  // 1. Collect all chapter, subchapter, and group page range candidates
+  const candidates: { pageFrom: number; pageTo: number }[] = [];
+
+  textbook?.chapters?.forEach((ch) => {
+    if (ch.pageFrom) {
+      candidates.push({ pageFrom: ch.pageFrom, pageTo: ch.pageTo || ch.pageFrom });
+    }
+    ch.subChapters?.forEach((sub) => {
+      if (sub.pageFrom) {
+        candidates.push({ pageFrom: sub.pageFrom, pageTo: sub.pageTo || sub.pageFrom });
+      }
+    });
+  });
+
+  groupList.forEach((g) => {
+    const pFrom = g.parentChapterPageFrom || g.chapterPageFrom || g.pageFrom;
+    const pTo = g.parentChapterPageTo || g.chapterPageTo || g.pageTo || pFrom;
+    if (pFrom) {
+      candidates.push({ pageFrom: pFrom, pageTo: pTo || pFrom });
+    }
+  });
+
+  // 2. Find matching candidate: prioritize exact pageFrom === pageNum FIRST
+  let match = candidates.find((c) => c.pageFrom === pageNum);
+
+  // If not matched by exact pageFrom, search for range where pageFrom <= pageNum && pageNum < pageTo (strict < pageTo)
+  if (!match) {
+    match = candidates.find((c) => c.pageFrom <= pageNum && pageNum < c.pageTo);
+  }
+
+  // Final fallback
+  if (!match) {
+    match = candidates.find((c) => c.pageFrom <= pageNum && pageNum <= c.pageTo);
+  }
+
+  if (match) {
+    rangeFrom = match.pageFrom;
+    rangeTo = match.pageTo;
+  }
+
+  // 3. Filter questions strictly falling within [rangeFrom, rangeTo]
+  const rangeQuestions = questions.filter((q: any) => {
+    const qPage = q.pageFrom || q.chapterPageFrom || q.parentChapterPageFrom || 0;
+    return qPage >= rangeFrom && qPage <= rangeTo;
+  });
+
+  if (rangeQuestions.length > 0) {
+    const answeredPages = rangeQuestions
+      .filter(isQuestionAnswered)
+      .map((q: any) => q.pageFrom || q.chapterPageFrom || q.parentChapterPageFrom || 0);
+
+    if (answeredPages.length > 0) {
+      const maxAnsweredPage = Math.max(...answeredPages);
+      const forwardUnanswered = rangeQuestions.find((q: any) => {
+        const qPage = q.pageFrom || q.chapterPageFrom || q.parentChapterPageFrom || 0;
+        return qPage >= maxAnsweredPage && !isQuestionAnswered(q);
+      });
+
+      if (forwardUnanswered) {
+        return forwardUnanswered.id;
+      }
+
+      const anyUnanswered = rangeQuestions.find((q: any) => !isQuestionAnswered(q));
+      if (anyUnanswered) {
+        return anyUnanswered.id;
+      }
+
+      return rangeQuestions[rangeQuestions.length - 1].id;
+    } else {
+      return rangeQuestions[0].id;
+    }
+  }
+
+  const fallbackQ = questions.find((q: any) => (q.pageFrom || q.chapterPageFrom || q.parentChapterPageFrom) === pageNum);
+  return fallbackQ ? fallbackQ.id : questions[0]?.id;
+};
+
 const useTextbook = ({
   handleOpenDrawer,
   textbookId,
+  page,
   reqTime,
   restart
 }: Props = {}) => {
@@ -222,42 +318,78 @@ const useTextbook = ({
     [questionList, currentQuestionId]
   )
 
-  const onScrollToIndex = (index: number) => {
-    const ref = questionRefs.current[index];
-    const scrollViewNode = scrollViewRef.current
-      ? findNodeHandle(scrollViewRef.current)
-      : null;
+  const onScrollToIndex = useCallback((index: number, retries = 5) => {
+    if (!questionList || !questionList[index]) return;
+    const targetQ = questionList[index];
+    const groupIndex = questionGroupList.findIndex(g => g.id === targetQ.questionGroupId);
 
-    if (!ref || !scrollViewNode) return;
-
-    const node = findNodeHandle(ref);
-    if (!node) return;
-
-    UIManager.measureLayout(
-      node,
-      scrollViewNode,
-      () => { },
-      (_left, top) => {
-        scrollViewRef.current?.scrollToOffset({
-          offset: top - 50,
-          animated: true
-        })
+    if (groupIndex !== -1 && scrollViewRef.current) {
+      try {
+        scrollViewRef.current.scrollToIndex({
+          index: groupIndex,
+          animated: false,
+          viewPosition: 0
+        });
+      } catch (e) {
+        // scrollToIndex fallback
       }
-    );
-  };
+    }
 
+    const tryMeasure = () => {
+      const ref = questionRefs.current[index];
+      const scrollResponder = (scrollViewRef.current as any)?.getScrollResponder
+        ? (scrollViewRef.current as any).getScrollResponder()
+        : scrollViewRef.current;
+      const scrollViewNode = scrollResponder ? findNodeHandle(scrollResponder) : null;
+
+      if (ref && scrollViewNode) {
+        const node = findNodeHandle(ref);
+        if (node) {
+          UIManager.measureLayout(
+            node,
+            scrollViewNode,
+            () => {},
+            (_left, top) => {
+              if (top >= 0) {
+                scrollViewRef.current?.scrollToOffset({
+                  offset: Math.max(0, top - 20),
+                  animated: true
+                });
+              }
+            }
+          );
+          return true;
+        }
+      }
+      return false;
+    };
+
+    const tryMeasureProgressive = (attemptsLeft: number) => {
+      if (tryMeasure()) return;
+      if (attemptsLeft > 0) {
+        setTimeout(() => {
+          tryMeasureProgressive(attemptsLeft - 1);
+        }, 150);
+      }
+    };
+
+    tryMeasureProgressive(retries);
+  }, [questionList, questionGroupList]);
 
   useEffect(() => {
-    if (!currentQuestionId) return
+    if (!currentQuestionId || !questionList.length) return;
 
-    const index = questionList.findIndex(
-      q => q.id === currentQuestionId
-    )
+    const index = questionList.findIndex(q => q.id === currentQuestionId);
+    if (index === -1) return;
 
-    if (index === -1) return
+    const timer1 = setTimeout(() => onScrollToIndex(index, 5), 100);
+    const timer2 = setTimeout(() => onScrollToIndex(index, 3), 400);
 
-    requestAnimationFrame(() => onScrollToIndex(index))
-  }, [currentQuestionId])
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, [currentQuestionId, questionList, questionGroupList, onScrollToIndex]);
 
   const getQuestionsTextbook = async (showErrorMessage: boolean = false) => {
     if (!textbookId) return;
@@ -296,9 +428,32 @@ const useTextbook = ({
       setTextbook(responseTextbook);
       setStartTime(moment(getServerNow()));
 
-      const questions = _.flatMap(data?.questionGroups || [], "questions").map((i, index) => ({ ...i, questionIndex: index }));
+      const questions = (data?.questionGroups || []).flatMap((group: any) =>
+        (group.questions || []).map((q: any) => ({
+          ...q,
+          pageFrom: group.pageFrom || group.chapterPageFrom || group.parentChapterPageFrom,
+          pageTo: group.pageTo || group.chapterPageTo || group.parentChapterPageTo,
+          chapterPageFrom: group.chapterPageFrom,
+          chapterPageTo: group.chapterPageTo,
+          parentChapterPageFrom: group.parentChapterPageFrom,
+          parentChapterPageTo: group.parentChapterPageTo
+        }))
+      ).map((i: any, index: number) => ({ ...i, questionIndex: index }));
+
       setQuestionGroupList(data?.questionGroups || []);
       setQuestionList(questions);
+
+      if (page) {
+        const pageNum = Number(page);
+        if (pageNum > 0) {
+          const targetId = findTargetQuestionForPageRange(pageNum, questions, data?.questionGroups || []);
+          if (targetId) {
+            setCurrentQuestionId(targetId);
+          }
+        }
+      } else if (questions.length > 0) {
+        setCurrentQuestionId(questions[0].id);
+      }
     } catch (err) {
       (firstLoadRef.current || showErrorMessage) &&
         toast.error(getErrorMessage(t, err));
@@ -315,10 +470,12 @@ const useTextbook = ({
     }
 
     setLoadingWithoutOverlay(false);
-    scrollViewRef.current?.scrollToOffset({
-      offset: 0,
-      animated: true
-    })
+    if (!page) {
+      scrollViewRef.current?.scrollToOffset({
+        offset: 0,
+        animated: true
+      });
+    }
     if (firstLoadRef.current) firstLoadRef.current = false;
   };
 
@@ -394,22 +551,17 @@ const useTextbook = ({
     const obj: any = {};
 
     questionGroupList.forEach((group) => {
-      if (group.pageFrom) {
+      const pageFrom = group.parentChapterPageFrom || group.chapterPageFrom || group.pageFrom;
+      const pageTo = group.parentChapterPageTo || group.chapterPageTo || group.pageTo;
+
+      if (pageFrom) {
+        const label = pageTo && pageTo > pageFrom
+          ? `${pageFrom}~${pageTo}`
+          : `${pageFrom}`;
+
         arrOptions.push({
-          label: t("page_number", { number: group.pageFrom }),
-          value: group.pageFrom
-        });
-      }
-      if (group.chapterPageFrom) {
-        arrOptions.push({
-          label: t("page_number", { number: group.chapterPageFrom }),
-          value: group.chapterPageFrom
-        });
-      }
-      if (group.parentChapterPageFrom) {
-        arrOptions.push({
-          label: t("page_number", { number: group.parentChapterPageFrom }),
-          value: group.parentChapterPageFrom
+          label,
+          value: pageFrom
         });
       }
     });
@@ -423,7 +575,7 @@ const useTextbook = ({
         return false;
       })
       .sort((a, b) => a.value - b.value);
-  }, [questionGroupList, t]);
+  }, [questionGroupList]);
 
   const onFinishedTextbook = async () => {
     if (!textbook || !textbookId) return;
@@ -467,11 +619,11 @@ const useTextbook = ({
 
 
   useEffect(() => {
-    if (questionList.length > 0) {
+    if (questionList.length > 0 && !page) {
       const noAnswer = questionList.find(i => i.questionAnswerType < 2 ? !i.selectedAnswers?.length : !i.textualAnswers?.length)
       setCurrentQuestionId(noAnswer?.id || questionList[0].id);
     }
-  }, [questionList.length]);
+  }, [questionList.length, page]);
 
   const handlePauseAndResumeTextbook = async (status: ExamStatus) => {
     if (!textbook || !textbookId) return;
@@ -622,42 +774,74 @@ const useTextbook = ({
       return () => {
         clearData()
       }
-    }, [textbookId, restart, reqTime])
+    }, [textbookId, restart, reqTime, page])
   );
 
-  // useEffect(() => {
-  //   if (!page || questionGroupList.length === 0) return;
+  useEffect(() => {
+    if (!page || questionGroupList.length === 0) return;
+    const pageNumber = +page;
+    if (Number.isNaN(pageNumber) || pageNumber <= 0) return;
 
-  //   const pageNumber = +page;
-  //   if (Number.isNaN(pageNumber)) return;
+    let groupIndex = questionGroupList.findIndex(
+      (i) =>
+        i.parentChapterPageFrom === pageNumber ||
+        i.chapterPageFrom === pageNumber ||
+        i.pageFrom === pageNumber
+    );
 
-  //   let index = questionGroupList.findIndex(
-  //     (i) =>
-  //       (i.pageFrom ? i.pageFrom <= pageNumber : i.chapterPageFrom <= pageNumber) &&
-  //       (i.pageTo ? i.pageTo >= pageNumber : i.chapterPageTo >= pageNumber)
-  //   );
+    if (groupIndex === -1) {
+      groupIndex = questionGroupList.findIndex(
+        (i) =>
+          (i.pageFrom ? i.pageFrom <= pageNumber : i.chapterPageFrom <= pageNumber) &&
+          (i.pageTo ? i.pageTo > pageNumber : i.chapterPageTo > pageNumber)
+      );
+    }
 
-  //   if (index === -1) {
-  //     index = questionGroupList.findIndex(
-  //       (i) =>
-  //         i.parentChapterPageFrom &&
-  //         i.parentChapterPageTo &&
-  //         i.parentChapterPageFrom <= pageNumber &&
-  //         i.parentChapterPageTo >= pageNumber
-  //     );
-  //   }
+    if (groupIndex === -1) {
+      groupIndex = questionGroupList.findIndex(
+        (i) =>
+          i.parentChapterPageFrom &&
+          i.parentChapterPageTo &&
+          i.parentChapterPageFrom <= pageNumber &&
+          i.parentChapterPageTo >= pageNumber
+      );
+    }
 
-  //   if (index === -1) {
-  //     index = questionGroupList.findIndex(
-  //       (i) => i.chapterPageFrom <= pageNumber && i.chapterPageTo >= pageNumber
-  //     );
-  //   }
+    if (groupIndex === -1) {
+      groupIndex = questionGroupList.findIndex(
+        (i) => i.chapterPageFrom <= pageNumber && i.chapterPageTo >= pageNumber
+      );
+    }
 
-  //   const slideIndex = index === -1 ? 0 : index;
-  //   nav2.current?.slickGoTo?.(slideIndex);
-  //   nav1.current?.slickGoTo?.(slideIndex);
-  //   setCurrentSlide(slideIndex);
-  // }, [page, questionGroupList]);
+    if (groupIndex === -1) {
+      const validGroupIndices = questionGroupList
+        .map((g, idx) => ({ g, idx }))
+        .filter(({ g }) => (g.pageFrom && g.pageFrom <= pageNumber) || (g.chapterPageFrom && g.chapterPageFrom <= pageNumber));
+      if (validGroupIndices.length > 0) {
+        groupIndex = validGroupIndices.reduce((prev, curr) => {
+          const prevPage = prev.g.pageFrom || prev.g.chapterPageFrom || 0;
+          const currPage = curr.g.pageFrom || curr.g.chapterPageFrom || 0;
+          return currPage > prevPage ? curr : prev;
+        }).idx;
+      } else {
+        groupIndex = 0;
+      }
+    }
+
+    const targetQId = findTargetQuestionForPageRange(pageNumber, questionList, questionGroupList, textbook);
+    if (targetQId) {
+      setCurrentQuestionId(targetQId);
+      const targetIndex = questionList.findIndex(q => q.id === targetQId);
+      if (targetIndex !== -1) {
+        onScrollToIndex(targetIndex);
+      }
+    } else if (groupIndex !== -1) {
+      const targetGroup = questionGroupList[groupIndex];
+      if (targetGroup && targetGroup.questions && targetGroup.questions.length > 0) {
+        setCurrentQuestionId(targetGroup.questions[0].id);
+      }
+    }
+  }, [page, questionGroupList, questionList, onScrollToIndex, textbook]);
 
   const questionStarList = useMemo(() => {
     return questionList.filter(q => q.isStar).map(q => q.id)
@@ -707,6 +891,21 @@ const useTextbook = ({
 
     return unsubscribe;
   }, [navigation, textbook?.status, t]);
+
+  const navigateToPageRange = useCallback(
+    (pageNum: number) => {
+      if (!pageNum || pageNum <= 0 || !questionList.length) return;
+      const targetId = findTargetQuestionForPageRange(pageNum, questionList, questionGroupList, textbook);
+      if (targetId) {
+        setCurrentQuestionId(targetId);
+        const targetIndex = questionList.findIndex((q) => q.id === targetId);
+        if (targetIndex !== -1) {
+          onScrollToIndex(targetIndex);
+        }
+      }
+    },
+    [questionList, questionGroupList, onScrollToIndex, textbook]
+  );
 
   return {
     t,
@@ -759,15 +958,17 @@ const useTextbook = ({
     timeUpdateDialogProps,
     handleToggleSpeaker,
     handleStartSelectedSubjectAlarm,
+    handleStopAlarm,
+    onFinishedTextbook,
+    completedTasks,
     openAnswerSheet,
     handleOpenAnswerSheet,
     handleCloseAnswerSheet,
-    completedTasks,
-    onFinishedTextbook,
     handleRestartTextbook,
     openRestartTextbookDialog,
     handleCloseRestartTextbookDialog,
     handleOpenRestartTextbookDialog,
+    navigateToPageRange,
     getQuestionsTextbook,
     textbookId: textbookId,
     remainTime,

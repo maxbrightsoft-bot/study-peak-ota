@@ -1,4 +1,3 @@
-import React from 'react'
 import {
   View,
   Text,
@@ -6,7 +5,9 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Dimensions
+  Dimensions,
+  Pressable,
+  Keyboard
 } from 'react-native'
 import { FieldArray, Field } from 'formik'
 import { palette } from '@/theme'
@@ -28,8 +29,13 @@ type Props = {
 const { height: SCREEN_H } = Dimensions.get('window')
 
 const AnswerContent = ({ t, question, errors, values }: Props) => {
-  const addable = values.textualAnswers.some((i: string) => !i.trim().length)
-  const deletable = values.textualAnswers?.length <= 1
+  const textualAnswersList =
+    values?.textualAnswers && Array.isArray(values.textualAnswers) && values.textualAnswers.length > 0
+      ? values.textualAnswers
+      : ['']
+
+  const addable = textualAnswersList.some((i: string) => !i?.trim()?.length)
+  const deletable = textualAnswersList.length <= 1
   const isMultipleAnswer =
     question.questionAnswerType === QuestionAnswerType.OrderMatters ||
     question.questionAnswerType === QuestionAnswerType.OrderDoesNotMatters
@@ -38,53 +44,60 @@ const AnswerContent = ({ t, question, errors, values }: Props) => {
     <FieldArray name="textualAnswers">
       {({ push, remove }) => (
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={80}>
-          <ScrollView style={styles.container}>
-            <View style={styles.answersContainer}>
-              {values.textualAnswers?.map((_: string, index: number) => (
-                <View key={index} style={styles.answerItem}>
-                  <Text style={styles.correctAnswerText}>{t('correct_answer')}</Text>
+          <ScrollView
+            style={styles.container}
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+          >
+            <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+              <View style={styles.answersContainer}>
+                {textualAnswersList.map((_: string, index: number) => (
+                  <View key={index} style={styles.answerItem}>
+                    <Text style={styles.correctAnswerText}>{t('correct_answer')}</Text>
 
-                  <View style={styles.answerInputContainer}>
-                    <Field name={`textualAnswers[${index}]`}>
-                      {({ field }: any) => (
-                        <MathRichInput
-                          key={`math-input-${question.id}-${index}`}
-                          style={styles.mathInput}
-                          initialValue={field.value}
-                          onChange={field.onChange(`textualAnswers[${index}]`)}
-                        />
+                    <View style={styles.answerInputContainer}>
+                      <Field name={`textualAnswers[${index}]`}>
+                        {({ field, form }: any) => (
+                          <MathRichInput
+                            key={`math-input-${index}`}
+                            style={styles.mathInput}
+                            initialValue={field?.value || ''}
+                            onChange={(text: string) => form.setFieldValue(`textualAnswers[${index}]`, text)}
+                          />
+                        )}
+                      </Field>
+
+                      {!!question.unit && (
+                        <Text style={styles.textAnswerValue}>({question.unit})</Text>
                       )}
-                    </Field>
 
-                    {!!question.unit && (
-                      <Text style={styles.textAnswerValue}>({question.unit})</Text>
+                      <TouchableOpacity
+                        style={[styles.deleteButton, deletable && styles.disabledButton]}
+                        disabled={deletable}
+                        onPress={() => remove(index)}
+                      >
+                        <TrashIcon width={12} height={14} color="#FFF" />
+                      </TouchableOpacity>
+                    </View>
+
+                    {errors.textualAnswers?.[index] && (
+                      <Text style={styles.errorText}>{errors.textualAnswers?.[index]}</Text>
                     )}
-
-                    <TouchableOpacity
-                      style={[styles.deleteButton, deletable && styles.disabledButton]}
-                      disabled={deletable}
-                      onPress={() => remove(index)}
-                    >
-                      <TrashIcon width={12} height={14} color="#FFF" />
-                    </TouchableOpacity>
                   </View>
+                ))}
+              </View>
 
-                  {errors.textualAnswers?.[index] && (
-                    <Text style={styles.errorText}>{errors.textualAnswers?.[index]}</Text>
-                  )}
-                </View>
-              ))}
-            </View>
-
-            {isMultipleAnswer && (
-              <TouchableOpacity
-                style={[styles.addButton, addable && styles.disabledButton]}
-                disabled={addable}
-                onPress={() => push('')}
-              >
-                <PlusIcon width={24} height={24} color={palette.main[500]} />
-              </TouchableOpacity>
-            )}
+              {isMultipleAnswer && (
+                <TouchableOpacity
+                  style={[styles.addButton, addable && styles.disabledButton]}
+                  disabled={addable}
+                  onPress={() => push('')}
+                >
+                  <PlusIcon width={24} height={24} color={palette.main[500]} />
+                </TouchableOpacity>
+              )}
+            </Pressable>
           </ScrollView>
         </KeyboardAvoidingView>
       )}
@@ -124,21 +137,25 @@ const styles = ScaledSheet.create({
   answerInputContainer: {
     flexDirection: 'row',
     flex: 1,
-    alignItems: 'center',
+    alignItems: 'stretch',
     gap: '8@ms'
   },
   mathInput: {
     borderWidth: '1@ms',
     borderColor: '#e0e0e0',
-    borderRadius: '4@ms',
+    borderRadius: '8@ms',
     flex: 1,
     backgroundColor: '#fff',
-    minHeight: '100@ms'
+    minHeight: '135@ms',
+    height: '135@ms'
   },
   deleteButton: {
     backgroundColor: '#dc3545',
     padding: '8@ms',
-    borderRadius: '255@ms'
+    borderRadius: '255@ms',
+    alignSelf: 'center',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   addButton: {
     alignItems: 'center',

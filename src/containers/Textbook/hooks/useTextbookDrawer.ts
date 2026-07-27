@@ -117,46 +117,29 @@ const useTextbookDrawer = ({
     const arrOptions: { label: string; value: number }[] = [];
     const obj: any = {};
 
-    textbook?.chapters?.map((chapter) => {
-      arrOptions.push({
-        label: t("page_number", { number: chapter.pageFrom }),
-        value: chapter.pageFrom
-      });
+    textbook?.chapters?.forEach((chapter) => {
+      if (chapter.pageFrom) {
+        const label = chapter.pageTo && chapter.pageTo > chapter.pageFrom
+          ? `${chapter.pageFrom}~${chapter.pageTo}`
+          : `${chapter.pageFrom}`;
 
-      if (chapter.subChapters?.length) {
-        chapter.subChapters.map((subChapter) => {
-          arrOptions.push({
-            label: t("page_number", { number: subChapter.pageFrom }),
-            value: subChapter.pageFrom
-          });
-
-          if (subChapter?.questionGroups?.length) {
-            subChapter.questionGroups.map((questionGroup) => {
-              questionGroup.pageFrom && arrOptions.push({
-                label: t("page_number", { number: questionGroup.pageFrom }),
-                value: questionGroup.pageFrom
-              });
-            });
-          }
-        });
-      } else if (chapter.questionGroups?.length) {
-        chapter.questionGroups.map((questionGroup) => {
-          questionGroup.pageFrom && arrOptions.push({
-            label: t("page_number", { number: questionGroup.pageFrom }),
-            value: questionGroup.pageFrom
-          });
+        arrOptions.push({
+          label,
+          value: chapter.pageFrom
         });
       }
     });
 
-    return arrOptions.filter((option) => {
-      if (!obj[option.label]) {
-        obj[option.label] = 1;
-        return true;
-      }
-      return false;
-    });
-  }, [textbook?.chapters, t]);
+    return arrOptions
+      .filter((option) => {
+        if (!obj[option.label]) {
+          obj[option.label] = 1;
+          return true;
+        }
+        return false;
+      })
+      .sort((a, b) => a.value - b.value);
+  }, [textbook]);
 
   const handleDoTextbook = async () => {
     if (!textbook || !textbookId) return;

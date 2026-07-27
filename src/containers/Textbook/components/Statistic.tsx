@@ -1,8 +1,9 @@
 import DonutProgress from '@/components/Progress/DonutProgress'
 import { palette } from '@/theme'
 import { ChapterResponse } from '@/utils/types'
+import { toast } from '@/utils/helpers'
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
@@ -18,8 +19,18 @@ const Statistic = ({ t, isEnglish, chapter }: Props) => {
   const completed = chapter.completedChapterQuestions || 0
   const progress = total !== 0 ? (completed / total) * 100 : 0
 
+  const handleCardPress = () => {
+    if (!isCompleted) {
+      toast.info(t('result_will_be_displayed_after_doing_exam'))
+    }
+  }
+
   return (
-    <View style={styles.card}>
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={handleCardPress}
+      style={styles.card}
+    >
       <View style={styles.header}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           {isCompleted && (
@@ -48,7 +59,7 @@ const Statistic = ({ t, isEnglish, chapter }: Props) => {
           </View>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   )
 }
 

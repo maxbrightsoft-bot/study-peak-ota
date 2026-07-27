@@ -52,9 +52,10 @@ function ModalBase(props: PropsModalClose) {
         </TouchableWithoutFeedback>
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? (position === 'bottom' ? 'padding' : 'padding') : undefined}
           style={position === 'bottom' ? styles.bottomView : styles.centeredView}
           pointerEvents="box-none"
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         >
           <View
             style={[

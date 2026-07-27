@@ -18,43 +18,71 @@ const useLiveResult = ({ examCode }: Props) => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    const getData = async () => {
-      if (examCode) {
-        setIsLoading(true);
-        try {
-          const result = await getStudentExamResultPercentages(examCode);
-          setExamResult({
-            ...result.data,
-            code: examCode
-          });
-        } catch (error) {
-          toast.error(getErrorMessage(t, error));
-        }
-        setIsLoading(false);
-      } else {
-        setExamResult(undefined);
-      }
-    };
-    getData();
-  }, [examCode]);
+    let isMounted = true;
 
-  useEffect(() => {
-    const getData = async () => {
-      if (examCode) {
-        try {
-          const result = await getResults(examCode)
-          setResultData({
-            ...result?.data?.data,
+    const fetchResultData = async () => {
+      if (!examCode) {
+        setExamResult(undefined);
+        setResultData(undefined);
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+
+      try {
+        const [percentRes, resultRes] = await Promise.all([
+          getStudentExamResultPercentages(examCode),
+          getResults(examCode)
+        ]);
+
+        let resData = percentRes.data;
+        let retriesLeft = 5;
+
+        const isScorePending = (data: any) => {
+          if (!data) return true;
+          if (data.score === undefined || data.score === null) return true;
+          if (data.score === 0 && (!data.percentageAmongStudents || data.percentageAmongStudents === 0)) return true;
+          return false;
+        };
+
+        while (isScorePending(resData) && retriesLeft > 0 && isMounted) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          if (!isMounted) return;
+          const retryRes = await getStudentExamResultPercentages(examCode);
+          if (retryRes?.data) {
+            resData = retryRes.data;
+            if (!isScorePending(resData)) break;
+          }
+          retriesLeft--;
+        }
+
+        if (isMounted) {
+          setExamResult({
+            ...resData,
             code: examCode
           });
-        } catch (error) {
+          setResultData({
+            ...resultRes?.data?.data,
+            code: examCode
+          });
+        }
+      } catch (error) {
+        if (isMounted) {
           toast.error(getErrorMessage(t, error));
         }
-      } else {
-        setResultData(undefined);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
-    getData();
+
+    fetchResultData();
+
+    return () => {
+      isMounted = false;
+    };
   }, [examCode]);
 
   const handleExit = () => {
