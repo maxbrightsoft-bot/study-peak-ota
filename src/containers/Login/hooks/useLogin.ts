@@ -44,7 +44,8 @@ const useLogin = () => {
   const handleRedirectAfterSuccess = async (
     data: any,
     token: string,
-    redirectUrl: string
+    redirectUrl: string,
+    redirectParams?: any
   ) => {
     await setDataStorage(ACCESS_TOKEN, token);
 
@@ -56,7 +57,7 @@ const useLogin = () => {
       ? await setDataStorage(LEARNING_SPACE, 'true')
       : await removeDataStorage(LEARNING_SPACE);
 
-    setRedirectUrl(redirectUrl);
+    setRedirectUrl(redirectUrl, redirectParams);
     setUser(data);
   };
   const handleLogin = async (
@@ -71,8 +72,16 @@ const useLogin = () => {
       const { isFirstLogin, token, user, loginMethod } = await apiLogin();
       const isAcademy = !!user?.academyDomain || !!user?.isLearningSpace;
 
+      const pendingRedirectUrl = useAuthStore.getState().pendingRedirectUrl;
+      const pendingRedirectParams = useAuthStore.getState().pendingRedirectParams;
+
       let redirectUrl: string;
-      if (isFirstLogin && isAcademy) {
+      let redirectParams: any;
+
+      if (pendingRedirectUrl) {
+        redirectUrl = pendingRedirectUrl;
+        redirectParams = pendingRedirectParams;
+      } else if (isFirstLogin && isAcademy) {
         redirectUrl = Platform.OS === 'ios' ? Routes.Auth.Home : Routes.Auth.Onboarding;
       } else if (redirectUrlProp) {
         redirectUrl = redirectUrlProp;
@@ -86,7 +95,8 @@ const useLogin = () => {
       await handleRedirectAfterSuccess(
         { ...user, isNotEnoughStatements: isFirstLogin, loginMethod },
         token,
-        redirectUrl
+        redirectUrl,
+        redirectParams
       );
     } catch (error) {
       toast.error(getErrorMessage(t, error));

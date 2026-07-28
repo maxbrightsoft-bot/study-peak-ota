@@ -12,7 +12,7 @@ import { ACADEMY_DOMAIN, ACCESS_TOKEN, LEARNING_SPACE } from '@/utils/constants'
 import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { AppState } from 'react-native'
 import { currentScreen, navigate } from '@/navigators/NavigationHelpers'
-import { Routes } from '@/navigators/RouteName'
+import { MainRoutes, Routes } from '@/navigators/RouteName'
 import { apiJoinExam } from '@/containers/DoExam/apiClients'
 import { PusherChannel } from '@pusher/pusher-websocket-react-native'
 
@@ -122,13 +122,20 @@ const useLayoutApp = () => {
   useEffect(() => {
     if (redirectUrl) {
       const timer = setTimeout(() => {
-        (navigation as any).navigate(redirectUrl, redirectParams);
-        clearRedirectUrl();
-      }, 200);
+        if (Object.values(Routes.Auth).includes(redirectUrl)) {
+          (navigation as any).navigate(MainRoutes.AuthStack, {
+            screen: redirectUrl,
+            params: redirectParams,
+          })
+        } else {
+          (navigation as any).navigate(redirectUrl, redirectParams)
+        }
+        clearRedirectUrl()
+      }, 200)
 
-      return () => clearTimeout(timer);
+      return () => clearTimeout(timer)
     }
-  }, [redirectUrl, redirectParams]);
+  }, [redirectUrl, redirectParams])
 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", nextAppState => {

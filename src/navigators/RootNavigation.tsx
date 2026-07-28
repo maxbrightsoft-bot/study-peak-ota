@@ -19,6 +19,8 @@ import { IOS_GOOGLE_CLIENT_ID, WEB_GOOGLE_CLIENT_ID } from '@/utils/constants'
 import AcademyRequestScreen from '@/screens/AcademyRequest'
 import AcademyInvitationScreen from '@/screens/AcademyInvitation'
 import TutorialScreen from '@/screens/Tutorial'
+import { toast } from '@/utils/helpers'
+import i18next from 'i18next'
 import { isDemoMode } from '@/demoData/mockInterceptor'
 
 const Stack = createNativeStackNavigator()
@@ -42,6 +44,11 @@ const linking: any = {
       [Routes.AcademyLogin]: 'login/:domain',
       [Routes.AcademyRequest]: 'student/requests/:domain',
       [Routes.AcademyInvitation]: ':domain/invitations',
+      [MainRoutes.AuthStack]: {
+        screens: {
+          [Routes.Auth.ExamResultList]: 'student/exam-results/:domain',
+        },
+      },
       [MainRoutes.UnAuthStack]: {
         screens: {
           [Routes.UnAuth.Login]: 'login/:domain?',
@@ -73,6 +80,39 @@ const linking: any = {
           params: { domain, ...(classParam ? { class: classParam } : {}) },
         }],
       }
+    }
+    if (path.includes('student/exam-results')) {
+      const user = useAuthStore.getState().user
+      const state = defaultGetStateFromPath(path, options)
+      const authRoute = state?.routes?.find((r: any) => r.name === MainRoutes.AuthStack)
+      const examRoute = (authRoute?.state as any)?.routes?.find((r: any) => r.name === Routes.Auth.ExamResultList)
+      const params = examRoute?.params
+      const targetDomain = params?.domain
+
+      if (!user?.id) {
+        useAuthStore.getState().setPendingRedirectUrl(Routes.Auth.ExamResultList, params)
+
+        return {
+          routes: [{
+            name: MainRoutes.UnAuthStack,
+            state: {
+              routes: [{ name: Routes.UnAuth.Login, params: { domain: targetDomain } }]
+            }
+          }],
+        }
+      }
+
+      const isDemoMode = useAuthStore.getState().isDemoMode
+      const academies = useAuthStore.getState().academies
+      if (!isDemoMode && targetDomain && academies?.length > 0) {
+        const isAcademyExist = academies.some((a: any) => a.domain === targetDomain)
+        if (!isAcademyExist) {
+          toast.error(i18next.t('academy_not_found'))
+          return undefined
+        }
+      }
+
+      return state
     }
     return defaultGetStateFromPath(path, options)
   },
