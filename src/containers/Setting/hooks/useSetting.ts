@@ -17,11 +17,11 @@ import { setDataStorage, removeDataStorage } from "@/utils/storage"
 import { Routes } from "@/navigators/RouteName"
 import { reset } from "@/navigators/NavigationHelpers"
 
-const DEMO_MODE_STORAGE_KEY = 'DEMO_MODE'
-const DEMO_SESSION_BACKUP_STORAGE_KEY = 'DEMO_SESSION_BACKUP'
+export const DEMO_MODE_STORAGE_KEY = 'DEMO_MODE'
+export const DEMO_SESSION_BACKUP_STORAGE_KEY = 'DEMO_SESSION_BACKUP'
 const DEMO_ACADEMY = { id: 1, domain: 'demo-academy', name: 'Demo Academy', image: '' }
 
-type DemoSessionBackup = {
+export type DemoSessionBackup = {
   accessToken: string | null
   academyDomain: string | null
   learningSpace: string | null
@@ -75,7 +75,7 @@ const activateDemoSession = async (demoUser: any) => {
   currentStore.setHasEnteredSelectAcademy(true)
 }
 
-const restorePreviousSession = async (backup: DemoSessionBackup) => {
+export const restorePreviousSession = async (backup: DemoSessionBackup) => {
   await restoreStorageValue(ACCESS_TOKEN, backup.accessToken)
   await restoreStorageValue(ACADEMY_DOMAIN, backup.academyDomain)
   await restoreStorageValue(LEARNING_SPACE, backup.learningSpace)
@@ -86,7 +86,6 @@ const restorePreviousSession = async (backup: DemoSessionBackup) => {
   currentStore.setAcademies(backup.academies || [])
   currentStore.setSelectAcademy(backup.selectedAcademy)
   currentStore.setHasEnteredSelectAcademy(backup.hasEnteredSelectAcademy)
-  currentStore.setRedirectUrl(Routes.Auth.Home)
 }
 
 const useSetting = () => {

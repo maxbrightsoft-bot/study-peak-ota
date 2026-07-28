@@ -16,14 +16,14 @@ export const replace = (routeName: string, params?: object) => {
   }
 };
 
-export const reset = (routeName: string) => {
+export const reset = (routeName: string, params?: object) => {
   if (navigationRef.current.isReady()) {
-  navigationRef?.current?.dispatch(
-    CommonActions.reset({
-      index: 0,
-      routes: [{ name: !!Object.values(Routes.Auth).find( i => i === routeName) ? MainRoutes.AuthStack : MainRoutes.UnAuthStack, state: { index: 0, routes: [{ name: routeName}] } }],
-    })
-  );
+    navigationRef?.current?.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: !!Object.values(Routes.Auth).find( i => i === routeName) ? MainRoutes.AuthStack : MainRoutes.UnAuthStack, state: { index: 0, routes: [{ name: routeName, params }] } }],
+      })
+    );
   }
 };
 

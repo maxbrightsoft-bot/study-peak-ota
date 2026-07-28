@@ -6,12 +6,17 @@ import { getListExamApi } from "../apiClients";
 import { ExamStatus } from "@/utils/enums";
 import { ExamSessionResponse } from "@/utils/types";
 import { GroupExamSession } from "../configs/types";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useRoute } from "@react-navigation/native";
 import { groupMonthV2 } from "@/containers/ExamResult/configs/helpers";
 import { FlatList } from "react-native";
 import { getErrorMessage, toast } from "@/utils/helpers";
 
 const useExamResultList = () => {
+  const route = useRoute<any>()
+  const paramCode = route?.params?.code
+  const paramStudentExamSessionId = route?.params?.studentExamSessionId
+  const paramExamSessionId = route?.params?.id
+
   const user = useAuthStore(state => state.user)
   const setLoading = useAuthStore(state => state.setLoading)
   const selectedAcademy = useAuthStore(state => state.selectedAcademy)
@@ -43,8 +48,46 @@ const useExamResultList = () => {
     setExpandedId((prev) => (prev === id ? null : id))
   }, [])
 
-  const getListExam = async () => {
+  const handleSelectExamFromParams = (items: ExamSessionResponse[]) => {
+    if (!paramCode && !paramStudentExamSessionId && !paramExamSessionId) return
+
+    const groups = groupMonthV2(items)
+    if (!groups) return
+
+    let targetExam: ExamSessionResponse | undefined
+    let targetGroupIndex: number | null = null
+
+    const groupEntries = Object.entries(groups)
+    
+    for (let index = 0; index < groupEntries.length; index++) {
+      const [, exams] = groupEntries[index] as [string, ExamSessionResponse[]]
+      const foundExam = exams.find((exam) => {
+        const matchStudentSessionId =
+          paramStudentExamSessionId && String(exam.studentExamSessionId) === String(paramStudentExamSessionId)
+        return matchStudentSessionId
+      })
+      if (foundExam) {
+        targetExam = foundExam
+        targetGroupIndex = index
+        break
+      }
+    }
+
+    if (targetExam) {
+      setExpandedId(targetGroupIndex)
+      setSelectedExam(targetExam)
+    } else {
+      setSelectedExam({
+        code: paramCode,
+        studentExamSessionId: paramStudentExamSessionId,
+        id: paramExamSessionId,
+      } as ExamSessionResponse)
+    }
+  }
+
+  const getListExam = useCallback(async () => {
     setLoadingList(true)
+    let items: ExamSessionResponse[] = []
     try {
       const res = await getListExamApi({
         pageSize: 15,
@@ -54,12 +97,14 @@ const useExamResultList = () => {
         hidden: false,
         studentId: user?.id
       });
-      setListExam(res.data?.items);
+      items = res.data?.items || [];
+      setListExam(items);
     } catch (error) {
       toast.error(getErrorMessage(t, error))
     }
     setLoadingList(false)
-  };
+    return items
+  }, [user?.id, setLoadingList, t]);
 
   const getResultExamSearch = async (search: string) => {
     try {
@@ -95,8 +140,12 @@ const useExamResultList = () => {
   );
 
   useEffect(() => {
-    getListExam();
-  }, [selectedAcademy?.id]);
+    getListExam().then((items) => {
+      if (items) {
+        handleSelectExamFromParams(items);
+      }
+    });
+  }, [selectedAcademy?.id,route.params])
 
   const handleViewResult = useCallback((exam: ExamSessionResponse) => {
     setSelectedExam(exam)

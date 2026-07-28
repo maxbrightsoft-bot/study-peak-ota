@@ -40,6 +40,8 @@ interface StoreState {
   isLoading: boolean;
   redirectUrl: string | null,
   redirectParams: any | null,
+  pendingRedirectUrl: string | null,
+  pendingRedirectParams: any | null,
   hasConsented: boolean,
   isLoadingWithoutOverlay: boolean;
   user: UserResponse | null;
@@ -71,6 +73,7 @@ interface StoreActions {
   setLanguage: (lang: LanguageResponse) => void;
   setRedirectUrl: (url: string, params?: any) => void
   clearRedirectUrl: () => void
+  setPendingRedirectUrl: (url: string | null, params?: any) => void
   setCrashlyticsUser: (user?: any) => void
   clearCrashlyticsUser: () => void
 
@@ -118,6 +121,8 @@ const useAuthStore = create<AuthStore>()(
       selectedAcademy: null,
       redirectUrl: null,
       redirectParams: null,
+      pendingRedirectUrl: null,
+      pendingRedirectParams: null,
       language: null,
       timers: [],
       alarm: null,
@@ -204,7 +209,8 @@ const useAuthStore = create<AuthStore>()(
       },
 
       setRedirectUrl: (url, params) => set({ redirectUrl: url, redirectParams: params }),
-      clearRedirectUrl: () => set({ redirectUrl: null, redirectParams: null }),
+      clearRedirectUrl: () => set({ redirectUrl: null, redirectParams: null, pendingRedirectUrl: null, pendingRedirectParams: null }),
+      setPendingRedirectUrl: (url, params) => set({ pendingRedirectUrl: url, pendingRedirectParams: params }),
 
       setTimers: (timers) => {
         set((state) => {
@@ -285,7 +291,7 @@ const useAuthStore = create<AuthStore>()(
           },
 
           onConnectionStateChange: (state) => {
-            if (__DEV__) console.log("[Pusher] State:", state);
+            // if (__DEV__) console.log("[Pusher] State:", state);
             if (state === "DISCONNECTED") {
               autoReconnectPusher(instance);
             }
@@ -314,7 +320,7 @@ const useAuthStore = create<AuthStore>()(
                 ? getEventHandlers()
                 : getEventHandlers;
 
-              console.log("[Pusher] Event:", event.eventName, '| channel:', channelName);
+              // console.log("[Pusher] Event:", event.eventName, '| channel:', channelName);
               const matched = eventHandlers.find(
                 (e) => e.eventName === event.eventName
               );
@@ -350,9 +356,9 @@ const useAuthStore = create<AuthStore>()(
         try {
           await pusher.unsubscribe({ channelName });
 
-          if (__DEV__) {
-            console.log(`[Pusher] Unsubscribed: ${channelName}`);
-          }
+          // if (__DEV__) {
+          //   console.log(`[Pusher] Unsubscribed: ${channelName}`);
+          // }
         } catch (err) {
           if (__DEV__) {
             console.warn("[Pusher] Unsubscribe failed:", err);
