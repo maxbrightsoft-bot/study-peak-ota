@@ -1,0 +1,51 @@
+name: Build & Submit iOS App
+
+on:
+  workflow_dispatch:
+    inputs:
+      auto_submit:
+        description: 'Automatically upload to TestFlight after build? (true/false)'
+        type: boolean
+        required: true
+        default: true
+
+jobs:
+  build:
+    name: Build & Upload iOS App
+    runs-on: macos-14
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'yarn'
+
+      - name: Setup EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install Node dependencies
+        run: yarn install
+
+      - name: Build iOS App locally on GitHub Mac runner
+        run: |
+          npx eas-cli build --platform ios --profile preview --local --output=StudyPeak.ipa --non-interactive
+
+      - name: Save IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: StudyPeak-iOS-v1.0.9
+          path: StudyPeak.ipa
+
+      - name: Upload to TestFlight
+        if: ${{ inputs.auto_submit }}
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASS: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        run: |
+          xcrun altool --upload-app -f StudyPeak.ipa -t ios -u "$APPLE_ID" -p "$APPLE_PASS" --end-user-licensing-agreement YES
