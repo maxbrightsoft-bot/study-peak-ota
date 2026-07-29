@@ -1,3 +1,4 @@
+import React, { useState } from 'react'
 import {
   View,
   Text,
@@ -29,6 +30,9 @@ type Props = {
 const { height: SCREEN_H } = Dimensions.get('window')
 
 const AnswerContent = ({ t, question, errors, values }: Props) => {
+  const [hwOpen, setHwOpen] = useState(false)
+  const [hwTargetIndex, setHwTargetIndex] = useState<number>(0)
+
   const textualAnswersList =
     values?.textualAnswers && Array.isArray(values.textualAnswers) && values.textualAnswers.length > 0
       ? values.textualAnswers
@@ -50,7 +54,7 @@ const AnswerContent = ({ t, question, errors, values }: Props) => {
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
           >
-            <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+            <View style={{ flex: 1 }}>
               <View style={styles.answersContainer}>
                 {textualAnswersList.map((_: string, index: number) => (
                   <View key={index} style={styles.answerItem}>
@@ -60,8 +64,9 @@ const AnswerContent = ({ t, question, errors, values }: Props) => {
                       <Field name={`textualAnswers[${index}]`}>
                         {({ field, form }: any) => (
                           <MathRichInput
-                            key={`math-input-${index}`}
+                            key={`math-input-${question.id}-${index}`}
                             style={styles.mathInput}
+                            value={field?.value || ''}
                             initialValue={field?.value || ''}
                             onChange={(text: string) => form.setFieldValue(`textualAnswers[${index}]`, text)}
                           />
@@ -97,7 +102,7 @@ const AnswerContent = ({ t, question, errors, values }: Props) => {
                   <PlusIcon width={24} height={24} color={palette.main[500]} />
                 </TouchableOpacity>
               )}
-            </Pressable>
+            </View>
           </ScrollView>
         </KeyboardAvoidingView>
       )}
@@ -128,11 +133,31 @@ const styles = ScaledSheet.create({
   answerItem: {
     marginBottom: '16@ms'
   },
+  answerLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: '8@ms',
+  },
   correctAnswerText: {
     fontSize: '13@ms',
     fontWeight: '600',
     color: '#212121',
-    marginBottom: '8@ms'
+  },
+  hwBtn: {
+    paddingHorizontal: '10@ms',
+    paddingVertical: '4@ms',
+    borderRadius: '12@ms',
+    backgroundColor: '#ede9fe',
+    borderWidth: 1,
+    borderColor: '#c7d2fe',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hwBtnText: {
+    fontSize: '12@ms',
+    fontWeight: '700',
+    color: '#6d28d9',
   },
   answerInputContainer: {
     flexDirection: 'row',

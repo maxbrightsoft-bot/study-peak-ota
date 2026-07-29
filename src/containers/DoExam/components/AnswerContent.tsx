@@ -6,9 +6,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Dimensions,
-  Pressable,
-  Keyboard
+  Dimensions
 } from 'react-native'
 import { FieldArray, Field } from 'formik'
 import { palette } from '@/theme'
@@ -46,7 +44,7 @@ const AnswerContent = ({ t, question, questionNumber, errors, values }: Props) =
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
           >
-            <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+            <View style={{ flex: 1 }}>
               <View style={styles.answersContainer}>
                 {values.textualAnswers?.map((_: string, index: number) => (
                   <View key={index} style={styles.answerItem}>
@@ -58,7 +56,8 @@ const AnswerContent = ({ t, question, questionNumber, errors, values }: Props) =
                           <MathRichInput
                             key={`math-input-${question.id}-${index}`}
                             style={styles.mathInput}
-                            initialValue={field.value}
+                            value={field?.value || ''}
+                            initialValue={field?.value || ''}
                             onChange={(text: string) => form.setFieldValue(`textualAnswers[${index}]`, text)}
                           />
                         )}
@@ -92,7 +91,7 @@ const AnswerContent = ({ t, question, questionNumber, errors, values }: Props) =
                   <PlusIcon width={24} height={24} color={palette.main[500]} />
                 </TouchableOpacity>
               )}
-            </Pressable>
+            </View>
           </ScrollView>
         </KeyboardAvoidingView>
       )}
@@ -123,11 +122,31 @@ const styles = ScaledSheet.create({
   answerItem: {
     marginBottom: '16@ms'
   },
+  answerLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: '8@ms',
+  },
   correctAnswerText: {
     fontSize: '13@ms',
     fontWeight: '600',
     color: '#212121',
-    marginBottom: '8@ms'
+  },
+  hwBtn: {
+    paddingHorizontal: '10@ms',
+    paddingVertical: '4@ms',
+    borderRadius: '12@ms',
+    backgroundColor: '#ede9fe',
+    borderWidth: 1,
+    borderColor: '#c7d2fe',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hwBtnText: {
+    fontSize: '12@ms',
+    fontWeight: '700',
+    color: '#6d28d9',
   },
   answerInputContainer: {
     flexDirection: 'row',
