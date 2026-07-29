@@ -1,5 +1,5 @@
 import BottomSheet from '@/components/ModalBase/BottomSheet'
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Text, TouchableOpacity, View } from 'react-native'
 import LastIcon from '@/assets/iconJSX/last'
 import NextIcon from '@/assets/iconJSX/next'
 import { useEffect, useMemo, useState } from 'react'
@@ -91,10 +91,8 @@ const SelectAnswerSheet = ({
         <>
           <View style={styles.sheetContent}>
             <Text style={styles.title}>{t('answer_sheet_note')}</Text>
-
-            <ExamAnswer t={t} question={currentQuestion} isLastQuestion={currentQuestion?.id === questionList[questionList.length - 1]?.id} updateQuestionAnswer={updateQuestionAnswer} onClose={onClose} disabled={disabled} />
+            <ExamAnswer key={currentQuestion?.id} t={t} question={currentQuestion} isLastQuestion={currentQuestion?.id === questionList[questionList.length - 1]?.id} updateQuestionAnswer={updateQuestionAnswer} onClose={onClose} disabled={disabled} />
           </View>
-
           <View style={styles.navRow}>
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <TouchableOpacity

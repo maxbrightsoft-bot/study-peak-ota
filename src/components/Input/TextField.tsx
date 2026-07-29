@@ -98,51 +98,19 @@ const TextField = ({
 }: TextFieldProps) => {
   const internalRef = React.useRef<TextInput>(null)
   const resolvedRef = inputRef || internalRef
-  const nativeText = React.useRef(value ?? '')
-  const isFocused = React.useRef(false)
-  const shouldUseNativeText = Platform.OS === 'android'
-
-  React.useEffect(() => {
-    if (!shouldUseNativeText || value === undefined || isFocused.current || value === nativeText.current) {
-      return
-    }
-
-    nativeText.current = value
-    resolvedRef.current?.setNativeProps({ text: value })
-  }, [resolvedRef, shouldUseNativeText, value])
 
   const _onChangeText = useCallback(
     (text: string) => {
       let cleanedText = text
       if (isExamCode) {
         cleanedText = text.replace(/[^a-zA-Z0-9]/g, "")
+        if (text !== cleanedText) {
+          resolvedRef.current?.setNativeProps({ text: cleanedText })
+        }
       }
-
-      nativeText.current = cleanedText
-
-      if (isExamCode && text !== cleanedText) {
-        resolvedRef.current?.setNativeProps({ text: cleanedText })
-      }
-
       onChangeText && onChangeText(cleanedText)
     },
     [onChangeText, isExamCode, resolvedRef]
-  )
-
-  const onFocusClick = useCallback(
-    (e: any) => {
-      isFocused.current = true
-      onFocus && onFocus(e)
-    },
-    [onFocus]
-  )
-
-  const onBlurClick = useCallback(
-    (e: any) => {
-      isFocused.current = false
-      onBlur && onBlur(e)
-    },
-    [onBlur]
   )
 
   const inputHeight = useMemo(() => {
@@ -176,12 +144,12 @@ const TextField = ({
     return keyboardType
   }, [keyboardType])
 
+  const WrapperComponent: any = onPress ? TouchableOpacity : View
+
   return (
-    <TouchableOpacity
+    <WrapperComponent
       style={[styles.container, style]}
-      disabled={!onPress || disabled}
-      onPress={onPress}
-      activeOpacity={1}
+      {...(onPress ? { onPress, activeOpacity: 1, disabled: disabled } : {})}
     >
       {renderLabel()}
       <View style={[styles.inputContainer, containerInputStyle, { paddingVertical: 8 }]}>
@@ -195,8 +163,8 @@ const TextField = ({
             textInputStyle,
             textInputRightStyle,
           ]}
-          onFocus={onFocusClick}
-          onBlur={onBlurClick}
+          onFocus={onFocus}
+          onBlur={onBlur}
           editable={editable && !disabled}
           numberOfLines={numberOfLines}
           multiline={multiline}
@@ -207,7 +175,7 @@ const TextField = ({
           placeholder={placeholder}
           secureTextEntry={secureTextEntry}
           placeholderTextColor={placeholderTextColor || palette.grey[400]}
-          {...(shouldUseNativeText ? { defaultValue: value ?? '' } : { value: value ?? '' })}
+          value={value ?? ''}
           maxLength={maxLength}
           autoFocus={autoFocus}
           autoCorrect={autoCorrect}
@@ -226,7 +194,7 @@ const TextField = ({
         )}
       </View>
       {!!error && <Text style={styles.error}>{error}</Text>}
-    </TouchableOpacity>
+    </WrapperComponent>
   )
 }
 

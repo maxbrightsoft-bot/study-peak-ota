@@ -93,7 +93,7 @@ const SelectAnswerSheet = ({
           <View style={styles.sheetContent}>
             <Text style={styles.title}>{t('answer_sheet_note')}</Text>
 
-            <TextbookAnswer t={t} isLastQuestion={currentQuestion?.id === questionList[questionList.length - 1]?.id} question={currentQuestion} updateQuestionAnswer={updateQuestionAnswer} onClose={onClose} />
+            <TextbookAnswer key={currentQuestion?.id} t={t} isLastQuestion={currentQuestion?.id === questionList[questionList.length - 1]?.id} question={currentQuestion} updateQuestionAnswer={updateQuestionAnswer} onClose={onClose} />
           </View>
           <View style={styles.navRow}>
             <View style={{ flexDirection: 'row', gap: 12 }}>
