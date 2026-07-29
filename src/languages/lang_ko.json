@@ -306,7 +306,7 @@
   "new_user": "새로운 사용자",
   "academy_admin": "아카데미 관리자",
   "super_admin": "최고 관리자",
-  "switch_academy_admin": "스위치 아카데미 관리자",
+  "switch_academy_admin": "학원 변경하기 관리자",
   "switch_academy": "학원 변경하기",
   "there_are_no_lessons_this_week": "이번주는 수업이 없습니다",
   "update_message": "업데이트 메시지",

@@ -7,6 +7,7 @@ import { Avatar } from 'react-native-paper'
 import { highlightText } from '@/utils/helpers'
 import useAuthStore from '@/store/useAuthStore'
 import Icon from '@expo/vector-icons/Ionicons'
+import TextTooltip from '@/components/Tooltip/TextTooltip'
 import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
@@ -71,17 +72,16 @@ const ConversationItem = ({
           ) : (
             <View style={styles.inline}>
               {renderIcon()}
-              <Text
-                style={[styles.title, isActive && styles.activeText]}
-                numberOfLines={1}
-              >
-                {highlightText(
+              <TextTooltip
+                text={
                   conversation?.textbookName ||
                   conversation?.examTitle ||
-                  t(conversation.category || ''),
-                  textSearch
-                )}
-              </Text>
+                  t(conversation.category || '')
+                }
+                numberOfLines={1}
+                textStyle={[styles.title, isActive && styles.activeText]}
+                containerStyle={{ flexShrink: 1 }}
+              />
 
               {conversation?.studentTotalAttemptTime > 1 && (
                 <Text style={[styles.attemptText, { color: conversation.isSelected ? palette.main[500] : palette.red[900] }]}>

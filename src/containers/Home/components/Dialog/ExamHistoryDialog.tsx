@@ -10,6 +10,7 @@ import { ExamStatus, OrderBy } from '@/utils/enums'
 import ExamResult from '@/containers/ExamResult/views'
 import SortIcon from '@/assets/iconJSX/sort'
 import { CourseExamSession } from '../../configs/type'
+import TextTooltip from '@/components/Tooltip/TextTooltip'
 
 interface Props {
   open: boolean
@@ -95,9 +96,12 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
             {item?.subjectName || ''}
           </Text>
           <View style={styles.divider} />
-          <Text numberOfLines={1} style={[styles.examTitle, { flexShrink: 1 }]}>
-            {item?.title || ''}
-          </Text>
+          <TextTooltip
+            text={item?.title || ''}
+            numberOfLines={1}
+            textStyle={styles.examTitle}
+            containerStyle={{ flexShrink: 1 }}
+          />
         </View>
         <Text style={styles.examMeta}>{item?.teacherName || ''}</Text>
 

@@ -1,4 +1,5 @@
 import CommonDialog from '@/components/ModalBase/CommonDialog'
+import TextTooltip from '@/components/Tooltip/TextTooltip'
 import { palette } from '@/theme'
 import { InfoExamSessionByCode } from '@/utils/types'
 import React from 'react'
@@ -19,7 +20,12 @@ const InfoExamCode = ({ onClose, open, examSession }: Props) => {
       <View style={styles.container}>
         <View style={styles.row}>
           <Text style={styles.label}>{t('exam_name')}</Text>
-          <Text style={styles.value} numberOfLines={2} ellipsizeMode="tail">{examSession?.title}</Text>
+          <TextTooltip
+            text={examSession?.title || ''}
+            numberOfLines={2}
+            textStyle={styles.value}
+            containerStyle={{ width: '60%' }}
+          />
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>{t('exam_code')}</Text>

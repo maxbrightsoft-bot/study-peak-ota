@@ -4,6 +4,7 @@ import useLiveResult from '../hooks/useLiveResult'
 import { utcToLocalTime } from '@/utils/helpers'
 import { palette, TYPO } from '@/theme'
 import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
+import TextTooltip from '@/components/Tooltip/TextTooltip'
 import { Ionicons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
 
@@ -38,7 +39,12 @@ const LiveResultDialog = ({ open, onClose = () => {}, examCode, handleExamEnd, h
         </View>
       ) : (
         <View style={styles.container}>
-          <Text style={styles.examTitle}>{examResult?.title || ''}</Text>
+          <TextTooltip
+            text={examResult?.title || ''}
+            numberOfLines={2}
+            textStyle={styles.examTitle}
+            placement='bottom'
+          />
 
           <Text style={styles.score}>{t('score_format', { score: examResult?.score || 0 })}</Text>
 

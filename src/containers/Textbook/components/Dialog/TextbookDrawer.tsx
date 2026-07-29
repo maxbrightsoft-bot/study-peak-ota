@@ -14,6 +14,7 @@ import RestartPageDialog from './RestartPageDialog'
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
 import StartPageDialog from './StartPageDialog'
 import TextbookChapterResultDialog from './TextbookChapterResultDialog'
+import TextTooltip from '@/components/Tooltip/TextTooltip'
 
 type Props = {
   isOpen: boolean
@@ -88,9 +89,11 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props
                 <Text style={styles.badgeText}>{textbook?.subjectName}</Text>
               </View>
 
-              <Text style={styles.title} numberOfLines={2}>
-                {textbook?.name}
-              </Text>
+              <TextTooltip
+                text={textbook?.name || ''}
+                numberOfLines={2}
+                textStyle={styles.title}
+              />
 
               <View style={styles.metaRow}>
                 <Text style={{ color: '#222222' }}>{t('publication_date')}</Text>

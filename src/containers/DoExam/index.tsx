@@ -21,6 +21,7 @@ import ArrowDown from '@/assets/iconJSX/arrowDown'
 import ArrowRight from '@/assets/iconJSX/arrowRight'
 import SelectAnswerSheet from './components/SelectAnswerSheet'
 import InfoExamCode from './components/InfoExamCode'
+import TextTooltip from '@/components/Tooltip/TextTooltip'
 
 type Props = {
   examCode: string
@@ -199,7 +200,12 @@ const DoExam = ({ examCode }: Props) => {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1, marginRight: 8 }}>
                 <Text style={{ fontSize: 14, fontWeight: '600', color: '#171719', flexShrink: 1 }} numberOfLines={1}>{examSession?.subject}</Text>
                 <View style={{ backgroundColor: palette.grey[300], paddingVertical: 7, width: 2 }} />
-                <Text style={{ fontSize: 12, fontWeight: '500', color: '#222222', flexShrink: 1 }} numberOfLines={1}>{exam?.title}</Text>
+                <TextTooltip
+                  text={exam?.title || ''}
+                  numberOfLines={1}
+                  textStyle={{ fontSize: 12, fontWeight: '500', color: '#222222' }}
+                  containerStyle={{ flexShrink: 1 }}
+                />
                 {(exam?.totalStudentAttemptNumber || 0) >= 1 && (
                   <View
                     style={[
