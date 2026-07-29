@@ -7,6 +7,7 @@ import ArrowRight from '@/assets/iconJSX/arrowRight'
 import { ScaledSheet } from 'react-native-size-matters'
 import AudioGuideModal from '@/layouts/components/AudioGuideModal'
 import SelectTimeDialog from '@/layouts/components/SelectTimeDialog'
+import TextTooltip from '@/components/Tooltip/TextTooltip'
 
 
 const styles = ScaledSheet.create({
@@ -179,9 +180,12 @@ const RecentTextbook = () => {
                       {textbook.subject?.name || textbook.subjectName || '—'}
                     </Text>
                   </View>
-                  <Text numberOfLines={1} ellipsizeMode="tail" style={styles.textbookName}>
-                    {textbook.name}
-                  </Text>
+                  <TextTooltip
+                    text={textbook.name}
+                    numberOfLines={1}
+                    textStyle={styles.textbookName}
+                    containerStyle={{ flexShrink: 1}}
+                  />
                 </View>
 
                 <Text style={styles.deadline}>

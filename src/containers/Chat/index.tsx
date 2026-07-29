@@ -17,6 +17,7 @@ import MathRender from '@/components/MathRender'
 import { Ionicons } from '@expo/vector-icons'
 import { useFocusEffect } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import TextTooltip from '@/components/Tooltip/TextTooltip'
 
 const getConversationTitle = (
   conversation: ConversationsResponse,
@@ -93,9 +94,12 @@ const Card = React.memo(({
             <Text style={styles.timeText}>{moment(conversation.createdAt).fromNow()}</Text>
           </View>
         </View>
-        <Text style={styles.cardCategory} numberOfLines={1}>
-          {conversation.examTitle || getConversationTitle(conversation, t)}
-        </Text>
+        <TextTooltip
+          text={conversation.examTitle || getConversationTitle(conversation, t)}
+          numberOfLines={1}
+          textStyle={styles.cardCategory}
+          containerStyle={{ alignSelf: 'flex-start' }}
+        />
       </View>
     </View>
 

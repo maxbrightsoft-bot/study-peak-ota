@@ -6,6 +6,7 @@ import { TooltipProps } from '../configs/types'
 import { palette } from '@/theme'
 import { ExamResult, NoteResponse } from '@/utils/types'
 import MathRender from '@/components/MathRender'
+import TextTooltip from '@/components/Tooltip/TextTooltip'
 import { ScaledSheet } from 'react-native-size-matters'
 
 interface NoteItemProps extends TooltipProps<NoteResponse> {
@@ -85,7 +86,12 @@ const NoteItem: FC<NoteItemProps> = ({
     <Pressable style={({ pressed }) => [styles.container, pressed && styles.pressed]} onPress={handleItemClick}>
       {(examResultData?.title || data?.title) && (
         <View style={styles.headerRow}>
-          <Text style={styles.headerText} numberOfLines={1} ellipsizeMode="tail">{examResultData?.title || data?.title}</Text>
+          <TextTooltip
+            text={examResultData?.title || data?.title || ''}
+            numberOfLines={1}
+            textStyle={styles.headerText}
+            containerStyle={{ flexShrink: 1 }}
+          />
           {(examResultData?.subjectName || data?.subjectName) && <View style={styles.separator} />}
           <Text style={styles.headerText} numberOfLines={1} ellipsizeMode="tail">{examResultData?.subjectName || data?.subjectName}</Text>
         </View>

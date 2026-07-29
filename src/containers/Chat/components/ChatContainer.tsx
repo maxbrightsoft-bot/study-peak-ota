@@ -16,6 +16,7 @@ import useDialog from '../hooks/useDialog'
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
 import UpdateMessageDialog from './UpdateMessageDialog'
 import MathRichInput from '@/components/Input/MathRichInput'
+import TextTooltip from '@/components/Tooltip/TextTooltip'
 
 type prevSender = string | undefined
 
@@ -111,7 +112,13 @@ const ChatContainer = ({
         <View style={styles.container}>
           <View style={styles.subHeader}>
             <View style={styles.examInfoContainer}>
-              <Text style={styles.examTitle} numberOfLines={1}>{examTitle}</Text>
+              <TextTooltip
+                text={examTitle || ''}
+                numberOfLines={1}
+                placement="bottom"
+                textStyle={styles.examTitle}
+                containerStyle={{ flexShrink: 1 }}
+              />
               {studentTotalAttemptTime > 1 && (
                 <Text style={[TYPO.button4, { color: isSelected ? palette.main[600] : palette.red[900] }]}>
                   #{studentAttemptNumber + 1}/{studentTotalAttemptTime}

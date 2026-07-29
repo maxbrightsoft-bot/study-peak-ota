@@ -4,6 +4,7 @@ import { Textbook } from '@/utils/types'
 import { Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import { formatTime } from '../configs/helpers'
 import moment from 'moment'
+import TextTooltip from '@/components/Tooltip/TextTooltip'
 import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
@@ -39,9 +40,11 @@ const TextbookItem = ({ textbook, t, handleOpenDialog }: Props) => {
             <Text style={styles.timeText}>{moment(textbook.createdAt).fromNow()}</Text>
           </View>
 
-          <Text numberOfLines={2} style={styles.title}>
-            {textbook.name}
-          </Text>
+          <TextTooltip
+            text={textbook.name}
+            numberOfLines={2}
+            textStyle={styles.title}
+          />
 
           <View style={styles.progressRow}>
             <Text style={styles.progressText}>{textbook.progress || 0}%</Text>

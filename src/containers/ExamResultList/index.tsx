@@ -10,6 +10,7 @@ import moment from 'moment'
 import { highlightText, isValidTime, utcToLocalTime } from '@/utils/helpers'
 import ExamResult from '../ExamResult/views'
 import HeaderAction from '@/layouts/components/HeaderAction'
+import TextTooltip from '@/components/Tooltip/TextTooltip'
 
 const ExamResultList = () => {
   const {
@@ -31,9 +32,18 @@ const ExamResultList = () => {
     <TouchableOpacity onPress={() => handleViewResult(exam)} activeOpacity={0.85}>
       <View style={styles.examCard}>
         <View style={styles.examTopRow}>
-          <Text numberOfLines={2} style={styles.examTitle}>
-            {highlight ? highlightText((exam?.title || '').trim(), search) : (exam?.title || '').trim()}
-          </Text>
+          <TextTooltip
+            text={(exam?.title || '').trim()}
+            numberOfLines={2}
+            textStyle={styles.examTitle}
+            containerStyle={{ flex: 1 }}
+          >
+            {highlight ? (
+              <Text numberOfLines={2} style={styles.examTitle}>
+                {highlightText((exam?.title || '').trim(), search)}
+              </Text>
+            ) : undefined}
+          </TextTooltip>
 
           {(exam.studentTotalAttemptTime || 0) > 1 && (
             <View

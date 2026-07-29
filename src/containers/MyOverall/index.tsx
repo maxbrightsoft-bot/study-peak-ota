@@ -11,6 +11,7 @@ import { formatNumber, utcToLocalTime } from '@/utils/helpers'
 import ChartSlide from './components/ChartSlide'
 import { useWindowDimensions } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
+import TextTooltip from '@/components/Tooltip/TextTooltip'
 
 interface OverallTabProps {
   examCode: string
@@ -165,7 +166,12 @@ const MyOverall: FC<OverallTabProps> = React.memo(({
             >
               {resultData?.subjectName}
             </Text>
-            <Text style={{ fontSize: 14, fontWeight: 500, color: '#222222', flex: 1 }}>{(resultData?.title || '').trim()}</Text>
+            <TextTooltip
+              text={(resultData?.title || '').trim()}
+              numberOfLines={1}
+              textStyle={{ fontSize: 14, fontWeight: '500', color: '#222222' }}
+              containerStyle={{ flex: 1 }}
+            />
             {(resultData?.studentTotalAttemptTime || 0) > 1 && (
               <View
                 style={[

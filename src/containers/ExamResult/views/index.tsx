@@ -29,6 +29,7 @@ import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 import { Menu, TouchableRipple } from 'react-native-paper'
 import { navigate } from '@/navigators/NavigationHelpers'
 import { Routes } from '@/navigators/RouteName'
+import TextTooltip from '@/components/Tooltip/TextTooltip'
 
 type Props = {
   examCode?: string
@@ -419,7 +420,12 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
         >
           <Text style={{ color: '#222222', fontSize: 12, fontWeight: 600 }}>{resultData?.subjectName}</Text>
           <View style={{ height: 12, width: 2, backgroundColor: palette.grey[300] }} />
-          <Text numberOfLines={1} style={{ color: '#222222', fontSize: 12, fontWeight: 400, flexShrink: 1 }}>{resultData?.title}</Text>
+          <TextTooltip
+            text={resultData?.title || ''}
+            numberOfLines={1}
+            textStyle={{ color: '#222222', fontSize: 12, fontWeight: '400' }}
+            containerStyle={{ flex: 1 }}
+          />
         </View>}
         <View style={styles.contentContainer}>{renderBody()}</View>
       </View>
