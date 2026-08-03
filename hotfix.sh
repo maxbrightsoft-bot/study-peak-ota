@@ -11,13 +11,29 @@ if [ -z "$VERSION" ]; then
 fi
 
 if [ -n "$PLATFORM" ] && [ "$PLATFORM" != "android" ] && [ "$PLATFORM" != "ios" ]; then
-  echo "❌ Platform must be 'android' or 'ios' (hoặc để trống để chạy cả hai)"
+  echo "??Platform must be 'android' or 'ios' (hoặc đ�?trống đ�?chạy c�?hai)"
   exit 1
 fi
 
 set -a
 source "$SCRIPT_DIR/.env"
 set +a
+
+GH_CMD="gh"
+if ! command -v gh >/dev/null 2>&1; then
+  if command -v gh.exe >/dev/null 2>&1; then
+    GH_CMD="gh.exe"
+  fi
+fi
+
+NODE_CMD="node"
+if ! command -v node >/dev/null 2>&1; then
+  if command -v node.exe >/dev/null 2>&1; then
+    NODE_CMD="node.exe"
+  fi
+fi
+
+
 
 CURRENT_IN_CODE=${EXPO_PUBLIC_CURRENT_BUNDLE_VERSION:-}
 
@@ -40,11 +56,12 @@ if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "android" ]; then
   echo "=== Building Android bundle ==="
   mkdir -p ota/android_bundle/bundle
   npx expo export:embed \
-    --platform android --dev false --reset-cache \
+    --platform android --dev false \
+    --reset-cache \
     --entry-file $ENTRY_FILE \
     --bundle-output ota/android_bundle/bundle/index.android.bundle \
     --assets-dest ota/android_bundle/bundle || {
-      echo "❌ Android bundle failed"
+      echo "??Android bundle failed"
       exit 1
   }
 
@@ -64,12 +81,12 @@ if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "android" ]; then
       -out ota/android_bundle/bundle/index.android.bundle \
       ota/android_bundle/bundle/index.android.bundle.js && \
     rm ota/android_bundle/bundle/index.android.bundle.js || {
-      echo "⚠️  Hermes compile failed, using plain JS bundle"
+      echo "?�️  Hermes compile failed, using plain JS bundle"
       mv ota/android_bundle/bundle/index.android.bundle.js ota/android_bundle/bundle/index.android.bundle
     }
-    echo "✅ Hermes bytecode compiled"
+    echo "??Hermes bytecode compiled"
   else
-    echo "⚠️  hermesc not found, using plain JS bundle (may not work with Hermes)"
+    echo "?�️  hermesc not found, using plain JS bundle (may not work with Hermes)"
   fi
 fi
 
@@ -77,11 +94,12 @@ if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "ios" ]; then
   echo "=== Building iOS bundle ==="
   mkdir -p ota/ios_bundle/bundle
   npx expo export:embed \
-    --platform ios --dev false --reset-cache \
+    --platform ios --dev false \
+    --reset-cache \
     --entry-file $ENTRY_FILE \
     --bundle-output ota/ios_bundle/bundle/main.jsbundle \
     --assets-dest ota/ios_bundle/bundle || {
-      echo "❌ iOS bundle failed"
+      echo "??iOS bundle failed"
       exit 1
   }
 fi
@@ -112,7 +130,7 @@ if command -v zip >/dev/null 2>&1; then
   fi
 else
   if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "android" ]; then
-    powershell -Command "
+    powershell.exe -Command "
       Add-Type -AssemblyName System.IO.Compression;
       Add-Type -AssemblyName System.IO.Compression.FileSystem;
       \$archivePath = Join-Path (Get-Location).Path 'ota/android.zip';
@@ -138,7 +156,7 @@ else
     "
   fi
   if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "ios" ]; then
-    powershell -Command "
+    powershell.exe -Command "
       Add-Type -AssemblyName System.IO.Compression;
       Add-Type -AssemblyName System.IO.Compression.FileSystem;
       \$archivePath = Join-Path (Get-Location).Path 'ota/ios.zip';
@@ -180,15 +198,15 @@ if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "ios" ]; then
   FILES_TO_UPLOAD="$FILES_TO_UPLOAD ota/ios.zip"
 fi
 
-if gh release create ota-v$TAG_VERSION \
+if $GH_CMD release create ota-v$TAG_VERSION \
   $FILES_TO_UPLOAD \
   --repo $GITHUB_REPO \
   --title "OTA v$VERSION" \
   --notes "Hotfix v$VERSION ($([[ -z "$PLATFORM" ]] && echo "All" || echo "$PLATFORM"))"; then
   echo "Release created successfully."
 else
-  echo "⚠️ Release already exists, uploading files to existing release..."
-  gh release upload ota-v$TAG_VERSION $FILES_TO_UPLOAD --repo $GITHUB_REPO --clobber
+  echo "?�️ Release already exists, uploading files to existing release..."
+  $GH_CMD release upload ota-v$TAG_VERSION $FILES_TO_UPLOAD --repo $GITHUB_REPO --clobber
 fi
 
 # --- Update update.json ---
@@ -201,18 +219,18 @@ SHA_RESPONSE=$(curl -s \
   -H "Authorization: token $GITHUB_TOKEN" \
   "https://api.github.com/repos/$GITHUB_REPO/contents/update.json")
 
-SHA=$(echo $SHA_RESPONSE | node -pe "try { JSON.parse(require('fs').readFileSync(0)).sha } catch(e) { '' }" 2>/dev/null || echo "")
+SHA=$(echo $SHA_RESPONSE | $NODE_CMD -pe "try { JSON.parse(require('fs').readFileSync(0)).sha } catch(e) { '' }" 2>/dev/null || echo "")
 
 # Fetch current JSON to keep URLs if platform skipped
-CURRENT_DATA_BASE64=$(echo $SHA_RESPONSE | node -pe "try { JSON.parse(require('fs').readFileSync(0)).content } catch(e) { '' }")
+CURRENT_DATA_BASE64=$(echo $SHA_RESPONSE | $NODE_CMD -pe "try { JSON.parse(require('fs').readFileSync(0)).content } catch(e) { '' }")
 if [ -n "$CURRENT_DATA_BASE64" ]; then
   CURRENT_JSON=$(echo "$CURRENT_DATA_BASE64" | base64 -d)
 else
   CURRENT_JSON="{}"
 fi
 
-PREV_ANDROID_URL=$(echo "$CURRENT_JSON" | node -pe "try { JSON.parse(require('fs').readFileSync(0)).downloadAndroidUrl } catch(e) { '' }")
-PREV_IOS_URL=$(echo "$CURRENT_JSON" | node -pe "try { JSON.parse(require('fs').readFileSync(0)).downloadIosUrl } catch(e) { '' }")
+PREV_ANDROID_URL=$(echo "$CURRENT_JSON" | $NODE_CMD -pe "try { JSON.parse(require('fs').readFileSync(0)).downloadAndroidUrl } catch(e) { '' }")
+PREV_IOS_URL=$(echo "$CURRENT_JSON" | $NODE_CMD -pe "try { JSON.parse(require('fs').readFileSync(0)).downloadIosUrl } catch(e) { '' }")
 
 NEW_ANDROID_URL="https://github.com/$GITHUB_REPO/releases/download/ota-v$TAG_VERSION/android.zip"
 NEW_IOS_URL="https://github.com/$GITHUB_REPO/releases/download/ota-v$TAG_VERSION/ios.zip"
@@ -224,11 +242,14 @@ if [ "$PLATFORM" == "android" ]; then
   NEW_IOS_URL=$PREV_IOS_URL
 fi
 
+BUILD_TIME=$(date +%s)
+
 JSON_CONTENT="{
   \"version\": \"$VERSION\",
   \"versionCode\": $VERSION_CODE,
   \"downloadAndroidUrl\": \"$NEW_ANDROID_URL\",
-  \"downloadIosUrl\": \"$NEW_IOS_URL\"
+  \"downloadIosUrl\": \"$NEW_IOS_URL\",
+  \"buildTime\": $BUILD_TIME
 }"
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -254,4 +275,4 @@ curl -s -X PUT \
   }"
 
 echo ""
-echo "=== ✅ OTA v$VERSION ($( [[ -z "$PLATFORM" ]] && echo "Both" || echo "$PLATFORM" )) deployed successfully ==="
+echo "=== ??OTA v$VERSION ($( [[ -z "$PLATFORM" ]] && echo "Both" || echo "$PLATFORM" )) deployed successfully ==="

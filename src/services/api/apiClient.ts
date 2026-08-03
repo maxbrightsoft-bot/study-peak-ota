@@ -17,7 +17,7 @@ import {
 } from '../../utils/constants'
 import { getDataStorage } from '@/utils/storage';
 import useAuthStore from '@/store/useAuthStore';
-import useAppStore from '@/store/useAppStore';
+import useAppStore, { waitForAppStoreHydration } from '@/store/useAppStore';
 import { applyMockAdapter } from '@/demoData/mockInterceptor';
 import { trackErrorStandalone } from '@/hooks/useActivityTracking';
 
@@ -61,6 +61,7 @@ export const apiUpload: AxiosInstance = axios.create({
 
         config.headers['x-platform'] = Platform.OS;
         config.headers['x-app-version'] = DeviceInfo.getVersion();
+        await waitForAppStoreHydration();
         config.headers['x-bundle-version'] = useAppStore.getState().bundleVersion;
         if (__DEV__) {
           config.headers['x-dev-mode'] = 'true';

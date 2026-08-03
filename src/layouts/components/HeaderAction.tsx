@@ -1,10 +1,10 @@
 import { View, TouchableOpacity } from 'react-native'
-import React, { useCallback, useState } from 'react'
+import React, { useState } from 'react'
 import useTimers from '../hooks/useTimer'
 import useAlarm from '../hooks/useAlarm'
 import TimerDropDown from './TimerDropDown'
 import AudioGuideModal from './AudioGuideModal'
-import { useFocusEffect } from '@react-navigation/native'
+import { useIsFocused } from '@react-navigation/native'
 import useAuthStore from '@/store/useAuthStore'
 import Setting from '@/containers/Setting/view'
 import SettingIcon from '@/assets/iconJSX/setting'
@@ -13,6 +13,7 @@ import { currentScreen } from '@/navigators/NavigationHelpers'
 import { Routes } from '@/navigators/RouteName'
 
 const HeaderAction = () => {
+  const isFocused = useIsFocused()
   const isOpenTimerDialog = useAuthStore(state => state.isOpenTimerDialog)
   const setIsOpenTimerDialog = useAuthStore(state => state.setIsOpenTimerDialog)
   const [openSettingDialog, setOpenSettingDialog] = useState<boolean>(false)
@@ -29,7 +30,7 @@ const HeaderAction = () => {
     studyTimerProps,
     timeUpdateDialogProps,
     isTimerRunning,
-  } = useTimers(isOpenTimerDialog, handleTimerDialogToggle)
+  } = useTimers(isOpenTimerDialog && isFocused, handleTimerDialogToggle)
 
   const {
     isAlarmRunning,
@@ -38,7 +39,9 @@ const HeaderAction = () => {
     audioGuideModalProps,
     handleToggleSpeaker,
     alarmClockProps,
-  } = useAlarm(isOpenTimerDialog, timers)
+  } = useAlarm(isOpenTimerDialog && isFocused, timers, !isFocused)
+
+  if (!isFocused) return null
 
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>

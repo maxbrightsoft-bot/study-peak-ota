@@ -205,6 +205,8 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
     }
   }
 
+  const setIsOpenTimerDialog = useAuthStore(state => state.setIsOpenTimerDialog)
+
   const resetAudio = async () => {
     await removeDataStorage(TOAST_EXAM_STATUS)
   }
@@ -213,6 +215,7 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
   }
   const handleStartSubjectAlarm = (duration: number, subject: SubjectTimerResponse) => {
     setSelectedTimer({ duration, timer: subject })
+    setIsOpenTimerDialog(false)
   }
 
   const handleStartSelectedSubjectAlarm = async (enable: boolean, duration?: number, subject?: SubjectTimerResponse, startTime?: number, skipPreAlarm?: boolean) => {

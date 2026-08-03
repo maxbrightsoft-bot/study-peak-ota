@@ -217,7 +217,17 @@ async function checkOtaUpdate(
         setBundleVersion(data.version)
         setIsUpdatingOta(false)
 
-        await delay(PERSIST_FLUSH_DELAY)
+        try {
+          await useAppStore.persist.flush()
+          console.log('[OTA] Zustand store flushed successfully')
+        } catch (flushErr) {
+          console.error('[OTA] Failed to flush Zustand store:', flushErr)
+        }
+
+        // Always await a substantial safety delay so the native AsyncStorage thread 
+        // can successfully write to disk before the JS environment restarts.
+        console.log('[OTA] Awaiting safety delay for native IO to finish...')
+        await delay(1500)
 
         if (isStaleAttempt()) return
 
@@ -447,8 +457,9 @@ export default function App() {
 
     await waitForAppStoreHydration()
 
-    const currentVersionToCheck = isNewerVersion(bundleVersion, CURRENT_BUNDLE_VERSION)
-      ? bundleVersion
+    const activeBundleVersion = useAppStore.getState().bundleVersion
+    const currentVersionToCheck = isNewerVersion(activeBundleVersion, CURRENT_BUNDLE_VERSION)
+      ? activeBundleVersion
       : CURRENT_BUNDLE_VERSION
 
     const handleFailCompletely = () => {
@@ -471,7 +482,7 @@ export default function App() {
     } finally {
       isCheckingRef.current = false
     }
-  }, [bundleVersion, setBundleVersion, setIsUpdatingOta, trackError])
+  }, [setBundleVersion, setIsUpdatingOta, trackError])
 
   useEffect(() => {
     runOtaCheck()

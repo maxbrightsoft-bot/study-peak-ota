@@ -3,7 +3,7 @@
     "name": "Study Peak",
     "slug": "touch-study-mobile",
     "jsEngine": "jsc",
-    "version": "1.0.1",
+    "version": "1.0.9",
     "orientation": "portrait",
     "icon": "./assets/app-icon.png",
     "scheme": "com.max.britghtsoft.touchstudymobile",
@@ -15,6 +15,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
+      "buildNumber": "3",
       "bundleIdentifier": "com.max.britghtsoft.touchstudymobile",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
