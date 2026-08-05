@@ -10,7 +10,9 @@ import {
   View,
   ViewStyle
 } from 'react-native'
-import { ReactNode, useEffect } from 'react'
+import { ReactNode, useEffect, useContext } from 'react'
+import { NavigationContext } from '@react-navigation/native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { ScaledSheet } from 'react-native-size-matters'
 import { Portal } from 'react-native-paper'
 import useAuthStore from '@/store/useAuthStore'
@@ -30,6 +32,7 @@ function ModalBase(props: PropsModalClose) {
   const { isVisible, onClose, children, styleContainer, disableInnerTouchable, position = 'center' } = props
   const { height } = useWindowDimensions()
   const { isLoading, isLoadingWithoutOverlay } = useAuthStore()
+  const navigation = useContext(NavigationContext)
 
   useEffect(() => {
     if (!isVisible) return
@@ -64,7 +67,15 @@ function ModalBase(props: PropsModalClose) {
               styleContainer
             ]}
           >
-            {children}
+            <SafeAreaView style={{ flexShrink: 1 }} edges={['top', 'bottom']}>
+              {navigation ? (
+                <NavigationContext.Provider value={navigation}>
+                  {children}
+                </NavigationContext.Provider>
+              ) : (
+                children
+              )}
+            </SafeAreaView>
           </View>
         </KeyboardAvoidingView>
       </View>

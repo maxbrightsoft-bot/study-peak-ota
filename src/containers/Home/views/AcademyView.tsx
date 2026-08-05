@@ -1,6 +1,7 @@
 import ArrowRight from '@/assets/iconJSX/arrowRight'
 import Verify from '@/assets/iconJSX/verify'
 import CustomCard from '@/components/Card/CustomCard'
+import TextTooltip from '@/components/Tooltip/TextTooltip'
 import WaitingExamStart from '../components/Dialog/WaitingExamStart'
 import ConfirmExamCode from '../components/Dialog/ConfirmExamCode'
 import { timeSpanToLocalMoment } from '@/utils/helpers'
@@ -71,7 +72,12 @@ const AcademyView = () => {
             {schedules?.map((schedule, index) => (
               <View key={index} style={styles.scheduleRow}>
                 <View style={styles.dot}></View>
-                <Text style={styles.bold}>{schedule.title}</Text>
+                <TextTooltip
+                  text={schedule.title || ''}
+                  numberOfLines={2}
+                  placement="top"
+                  textStyle={styles.bold}
+                />
                 <Text style={[styles.time, { flexShrink: 0 }]}>
                   {timeSpanToLocalMoment(schedule.startTime, schedule.date)?.format('HH:mm')} ~{' '}
                   {timeSpanToLocalMoment(schedule.endTime, schedule.date)?.format('HH:mm')}
@@ -106,7 +112,12 @@ const AcademyView = () => {
               >
                 <View style={{}}>
                   <Text style={{ fontSize: 12, fontWeight: 400, marginBottom: 19, color: palette.grey[500] }}>{t('today_attendance')}</Text>
-                  <Text style={{ fontWeight: '600', fontSize: 16, color: palette.grey[500], lineHeight: 22 }}>{selectedSchedule ? selectedSchedule.title : t('no_class_today')}</Text>
+                  <TextTooltip
+                    text={selectedSchedule ? selectedSchedule.title : t('no_class_today')}
+                    numberOfLines={2}
+                    placement="top"
+                    textStyle={{ fontWeight: '600', fontSize: 16, color: palette.grey[500], lineHeight: 22 }}
+                  />
                   {selectedSchedule && (
                     <Text style={styles.time}>
                       {timeSpanToLocalMoment(selectedSchedule.startTime, selectedSchedule.date)?.format('HH:mm')} ~{' '}

@@ -1,8 +1,7 @@
 import { palette, TYPO } from '@/theme'
 import React, { useState } from 'react'
 import { View, TouchableOpacity, ScrollView, Text } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { TabList, DefaultTextbookFilter } from '../configs/constants'
+import {  TabList, DefaultTextbookFilter } from '../configs/constants'
 import useTab from '@/hooks/useTab'
 import { useTranslation } from 'react-i18next'
 import TabPanel from '@/components/Tab/TabPanel'
@@ -14,8 +13,6 @@ import { ScaledSheet } from 'react-native-size-matters'
 const Textbook = () => {
   const { t } = useTranslation()
   const { selected, handleChangeTab } = useTab(TabList)
-  const insets = useSafeAreaInsets()
-
   const [search, setSearch] = useState<string>('')
   const [textbookFilter, setTextbookFilter] = useState<TextbookQuery>(DefaultTextbookFilter)
 
@@ -27,7 +24,7 @@ const Textbook = () => {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: Math.max(insets.top, 18) }]}>
+      <View style={[styles.header]}>
         <Text style={styles.headerTitle}>{t('question_bank')}</Text>
         <View>
           <HeaderAction />

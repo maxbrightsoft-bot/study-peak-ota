@@ -31,6 +31,7 @@ export default LayoutApp
 const styles = ScaledSheet.create({
   container: {
     flex: 1,
+    backgroundColor: palette.main[600],
     position: 'relative',
   }
 })

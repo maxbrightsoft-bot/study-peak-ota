@@ -1,6 +1,5 @@
 import CustomDropDown from '@/components/DropDown/CustomDropDown'
 import { KeyboardAvoidingView, Platform, FlatList, Text, TouchableOpacity, View } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import useExamResultList from './hooks/useExamResultList'
 import { ExamSessionResponse } from '@/utils/types'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -26,7 +25,6 @@ const ExamResultList = () => {
     selectedExam,
     onChangeSearch
   } = useExamResultList()
-  const insets = useSafeAreaInsets()
 
   const renderExamCard = (exam: ExamSessionResponse, highlight = false) => (
     <TouchableOpacity onPress={() => handleViewResult(exam)} activeOpacity={0.85}>
@@ -111,7 +109,7 @@ const ExamResultList = () => {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: Math.max(insets.top, 20) }]}>
+      <View style={[styles.header]}>
         <Text style={styles.headerTitle}>{t('my_grades')}</Text>
         <View>
           <HeaderAction />

@@ -88,13 +88,19 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
             {dateStr || ''}
           </Text>
           <View style={styles.divider} />
-          <Text numberOfLines={1} style={[styles.examTitle, { flexShrink: 1 }]}>
-            {item?.courseName || ''}
-          </Text>
+          <TextTooltip
+            text={item?.courseName || ''}
+            numberOfLines={1}
+            textStyle={styles.examTitle}
+            containerStyle={{ flexShrink: 1 }}
+          />
           <View style={styles.divider} />
-          <Text numberOfLines={1} style={[styles.examTitle, { flexShrink: 1 }]}>
-            {item?.subjectName || ''}
-          </Text>
+          <TextTooltip
+            text={item?.subjectName || ''}
+            numberOfLines={1}
+            textStyle={styles.examTitle}
+            containerStyle={{ flexShrink: 1 }}
+          />
           <View style={styles.divider} />
           <TextTooltip
             text={item?.title || ''}
@@ -297,7 +303,7 @@ const styles = ScaledSheet.create({
     fontSize: '16@ms',
     fontWeight: '600',
     color: palette.grey[900],
-    marginBottom: '6@ms'
+    marginBottom: 0
   },
   examMeta: {
     fontSize: '12@ms',

@@ -70,11 +70,10 @@
     },
     "web": {
       "bundler": "metro",
-      "output": "static"
+      "output": "single"
     },
     "plugins": [
       "react-native-ota-hot-update",
-      "expo-router",
       [
         "react-native-bootsplash",
         {
@@ -111,9 +110,6 @@
       "typedRoutes": true
     },
     "extra": {
-      "router": {
-        "origin": false
-      },
       "eas": {
         "projectId": "ac361f0a-8b47-454e-a8db-4bf5588e4492"
       }

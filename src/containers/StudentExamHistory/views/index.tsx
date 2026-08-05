@@ -7,7 +7,6 @@ import {
   Platform,
   FlatList
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ExamSessionResponse } from "@/utils/types";
 import useStudentExamHistory from "../hooks/useStudentExamHistory";
 import SearchInput from "@/components/Input/SearchInput";
@@ -38,7 +37,6 @@ const StudentExamHistory = ({
     handleSelect,
     handleSelectSession
   } = useStudentExamHistory({ examSessionId, examCode });
-  const insets = useSafeAreaInsets();
 
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [confirmSelectOpen, setConfirmSelectOpen] = useState(false);
@@ -156,7 +154,7 @@ const StudentExamHistory = ({
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: Math.max(insets.top, 20) }]}>
+      <View style={[styles.header]}>
         <Text style={styles.headerTitle}>
           {t("my_exam_sessions")}
         </Text>
