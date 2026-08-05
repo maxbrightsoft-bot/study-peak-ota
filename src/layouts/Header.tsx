@@ -2,7 +2,6 @@ import useAuthStore from '@/store/useAuthStore'
 import { palette, TYPO } from '@/theme'
 import { useTranslation } from 'react-i18next'
 import { View, Text, TouchableOpacity, Platform, useWindowDimensions, ActivityIndicator } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Menu, Avatar, TouchableRipple } from 'react-native-paper'
 import { ScaledSheet } from 'react-native-size-matters'
 import ArrowDown from '@/assets/iconJSX/arrowDown'
@@ -38,7 +37,6 @@ const Header = ({ headerProps }: Props) => {
     openAcademyMenu,
     handleSwitchAcademy
   } = headerProps
-  const insets = useSafeAreaInsets()
 
   const getAcademies = async () => {
     if (!user) return
@@ -62,7 +60,7 @@ const Header = ({ headerProps }: Props) => {
 
   return (
     <View>
-      <View style={[styles.header, { paddingTop: Math.max(insets.top, 8) }]}>
+      <View style={[styles.header]}>
         <>
           <Menu
             visible={academyMenuVisible}

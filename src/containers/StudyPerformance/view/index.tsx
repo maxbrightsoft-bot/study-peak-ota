@@ -43,7 +43,7 @@ const MyData = () => {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: Math.max(insets.top, 16) }]}>
+      <View style={[styles.header]}>
         <Text style={styles.headerTitle}>{t('statistics')}</Text>
         <View style={{ flexDirection: 'row', gap: 20, alignItems: 'center' }}>
           <HeaderAction />

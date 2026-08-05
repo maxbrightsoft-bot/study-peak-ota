@@ -1,7 +1,9 @@
 
 import useAuthStore from '@/store/useAuthStore'
 import { palette } from '@/theme'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useContext } from 'react'
+import { NavigationContext } from '@react-navigation/native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import {
   View,
   Animated,
@@ -30,6 +32,7 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
 }) => {
   const isLoading = useAuthStore(state => state.isLoading)
   const isLoadingWithoutOverlay = useAuthStore(state => state.isLoadingWithoutOverlay)
+  const navigation = useContext(NavigationContext)
 
   const slideAnim = useRef(
     new Animated.Value(position === 'right' ? SCREEN_WIDTH : -SCREEN_WIDTH)
@@ -102,7 +105,15 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
             }
           ]}
         >
-          {children}
+          <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
+            {navigation ? (
+              <NavigationContext.Provider value={navigation}>
+                {children}
+              </NavigationContext.Provider>
+            ) : (
+              children
+            )}
+          </SafeAreaView>
 
           {isLoading && <Loading fullScreen={false} />}
           {!isLoading && isLoadingWithoutOverlay && <Loading isOverlay={false} />}
