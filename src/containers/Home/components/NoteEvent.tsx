@@ -1,0 +1,114 @@
+import { ScrollView, Text, View } from 'react-native'
+import NoteItem from './NoteItem'
+import { palette, TYPO } from '@/theme'
+import { ScheduleFormData, ScheduleResponse, SelectedDateInfo } from '../configs/type'
+import { ScaledSheet } from 'react-native-size-matters'
+import moment from 'moment'
+
+type Props = {
+  t: any
+  loading?: boolean
+  schedules?: ScheduleResponse[]
+  openTooltipList: number | boolean
+  handleOpenTooltip: (index: number) => void
+  handleCloseTooltip: () => void
+  selectedSchedule?: ScheduleResponse
+  handleCreateSchedule: (values: ScheduleFormData) => Promise<void>
+  handleCheckInLesson: (schedule: ScheduleResponse) => Promise<void>
+  isOpenScheduleDialog: boolean
+  handleOpenScheduleDialog: (schedule?: ScheduleResponse | undefined) => void
+  isOpenConfirmDeleteDialog: boolean
+  handleCloseScheduleDialog: () => void
+  handleCloseConfirmDeleteDialog: () => void
+  handleOpenConfirmDeleteDialog: (schedule?: ScheduleResponse | undefined) => void
+  handleDeleteSchedule: () => void
+  selectedDate?: SelectedDateInfo
+  handleUpdateScheduleStatus: (schedule: ScheduleResponse) => Promise<void>
+}
+
+const NoteEvent = (noteProps: Props) => {
+  const {
+    t,
+    schedules,
+    selectedDate,
+    openTooltipList,
+    handleOpenTooltip,
+    handleCloseTooltip,
+    handleCheckInLesson,
+    handleOpenScheduleDialog,
+    handleOpenConfirmDeleteDialog,
+    handleUpdateScheduleStatus
+  } = noteProps
+
+  return (
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 20 }} showsVerticalScrollIndicator={false}>
+        <View
+          style={{
+            marginTop: 20,
+            gap: 16
+          }}
+        >
+          <Text style={styles.dateDisplayText}>{moment(selectedDate?.currentDate).format(t('date_with_day'))}</Text>
+          <View style={{ gap: 8 }}>
+            {schedules?.map((schedule, index) => (
+              <NoteItem
+                key={index}
+                openTooltipList={openTooltipList}
+                schedule={schedule}
+                idx={index}
+                handleOpenTooltip={handleOpenTooltip}
+                handleCloseTooltip={handleCloseTooltip}
+                handleCheckInLesson={handleCheckInLesson}
+                handleOpenConfirmDeleteDialog={handleOpenConfirmDeleteDialog}
+                handleOpenScheduleDialog={handleOpenScheduleDialog}
+                handleUpdateScheduleStatus={handleUpdateScheduleStatus}
+              />
+            ))}
+            {!schedules?.length && (
+                <Text style={[styles.noScheduleText]}>{t('there_is_no_schedule')}</Text>
+            )}
+          </View>
+        </View>
+      </ScrollView>
+  )
+}
+
+const styles = ScaledSheet.create({
+  container: {
+    minHeight: '120@ms',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  noScheduleText: {
+    marginVertical: '20@ms',
+    textAlign: 'center',
+    fontWeight: '600',
+    fontSize: '13@ms',
+    lineHeight: '14@ms',
+    color: palette.grey[500]
+  },
+  dateDisplayText: {
+    ...TYPO.body1,
+    fontWeight: '600',
+    color: '#222222'
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: '1@ms',
+    borderRadius: '4@ms',
+    paddingVertical: '8@vs',
+    paddingHorizontal: '12@s'
+  },
+  buttonText: {
+    fontWeight: '700',
+    fontSize: '13@ms',
+    lineHeight: '14@ms',
+    marginLeft: '8@s'
+  },
+  icon: {
+    marginRight: '8@s'
+  }
+})
+
+export default NoteEvent
