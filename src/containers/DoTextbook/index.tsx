@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from 'react'
-import { View, Text, Platform, KeyboardAvoidingView, TouchableOpacity, FlatList } from 'react-native'
+import { View, Text, Platform, KeyboardAvoidingView, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native'
 import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
 import NotFoundExam from '@/components/NotFoundExam'
@@ -42,6 +42,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
 
   const {
     t,
+    isLoadingWithoutOverlay,
     textbook,
     questionRefs,
     questionList,
@@ -121,6 +122,14 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
     }))
   }, [questionGroupList, questionList])
 
+  const initialGroupIndex = useMemo(() => {
+    if (!currentQuestionId || !questionList.length || !groupedQuestions.length) return undefined;
+    const currentQ = questionList.find((q) => q.id === currentQuestionId);
+    if (!currentQ) return undefined;
+    const idx = groupedQuestions.findIndex((g) => g.id === currentQ.questionGroupId);
+    return idx > 0 ? idx : undefined;
+  }, [currentQuestionId, questionList, groupedQuestions]);
+
   const renderQuestionGroup = useCallback(({ item }: { item: any }) => (
     <TextbookQuestionGroup
       t={t}
@@ -192,6 +201,13 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
                 </Text>
               </View>
             )}
+            {(textbook?.status === ExamStatus.Paused) && (
+              <View style={{ backgroundColor: '#FF9800', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, alignSelf: 'center', marginTop: 2 }}>
+                <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '600' }}>
+                  {t('paused')}
+                </Text>
+              </View>
+            )}
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             {(isTimerRunning || isAlarmRunning) && (
@@ -258,31 +274,26 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
           data={groupedQuestions}
           keyExtractor={(item) => `group-${item.id}`}
           ref={scrollViewRef}
-          initialNumToRender={groupedQuestions.length || 20}
-          maxToRenderPerBatch={20}
-          windowSize={10}
+          initialNumToRender={groupedQuestions.length || 50}
+          maxToRenderPerBatch={50}
+          windowSize={51}
           renderItem={renderQuestionGroup}
+          ListEmptyComponent={
+            isLoadingWithoutOverlay ? null : (
+              <View style={{ paddingVertical: 60, alignItems: 'center', justifyContent: 'center' }}>
+                <ActivityIndicator size="large" color={palette.main[600]} />
+              </View>
+            )
+          }
+          ListFooterComponent={<View style={{ height: 300 }} />}
           onScrollToIndexFailed={(info) => {
-            setTimeout(() => {
-              try {
-                scrollViewRef.current?.scrollToIndex({
-                  index: info.index,
-                  animated: true,
-                  viewPosition: 0
-                })
-              } catch (e) {
-                if (info.averageItemLength > 0) {
-                  scrollViewRef.current?.scrollToOffset({
-                    offset: info.averageItemLength * info.index,
-                    animated: true
-                  })
-                }
-              }
-            }, 100)
+            const offset = info.index * 400;
+            scrollViewRef.current?.scrollToOffset({ offset, animated: true });
           }}
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
         />
+      </KeyboardAvoidingView>
 
         <View style={styles.footer}>
           <View style={styles.footerTop}>
@@ -469,7 +480,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
           text={t('expired_question_prompt')}
           onConfirm={handleOpenTextbookResultDialog}
         />
-        {currentQuestion && (
+        {currentQuestion && openAnswerSheet && (
           <SelectAnswerSheet
             onFishedExam={handleOpenLeaveDialog}
             visible={openAnswerSheet}
@@ -497,7 +508,6 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
             onStart={audioGuideModalProps.onStart}
           />
         )}
-      </KeyboardAvoidingView>
     </View>
   )
 }
@@ -508,7 +518,8 @@ const styles = ScaledSheet.create({
     backgroundColor: '#FFF'
   },
   titleContainer: {
-    gap: '4@ms'
+    gap: '4@ms',
+    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',
@@ -589,7 +600,7 @@ const styles = ScaledSheet.create({
   navRow: {
     paddingVertical: '12@ms',
     paddingHorizontal: '20@ms',
-    paddingBottom: '34@ms',
+    paddingBottom: '54@ms',
     gap: '8@ms',
     flexDirection: 'row',
     justifyContent: 'space-between'

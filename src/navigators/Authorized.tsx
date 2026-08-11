@@ -8,7 +8,7 @@ import HomeScreen from '@/screens/Home'
 import ExamResultScreen from '@/screens/ExamResult'
 import DoExamScreen from '@/screens/DoExam'
 import { hiddenTabBar, Routes } from './RouteName'
-import { currentScreen } from './NavigationHelpers'
+import { currentScreen, navigationRef } from './NavigationHelpers'
 import useAuthStore from '@/store/useAuthStore'
 import DoTextbookScreen from '@/screens/DoTextbook'
 import ExamListScreen from '@/screens/ExamList'
@@ -28,12 +28,26 @@ import { CONSENT_POLICY_VERSION } from '@/utils/constants'
 import { startOfflineSyncListener } from '@/services/offlineSync'
 
 const Tab = createBottomTabNavigator()
+
+const getActiveRouteName = (state: any): string => {
+  if (!state) return ''
+  const route = state.routes[state.index]
+  if (route?.state) {
+    return getActiveRouteName(route.state)
+  }
+  return route?.name || ''
+}
+
 const Authorized = ({ route }: { route: any }) => {
   const user = useAuthStore(state => state.user)
   const setLoading = useAuthStore(state => state.setLoading)
   const hasConsented = useAuthStore(state => state.hasConsented)
   const setHasConsented = useAuthStore(state => state.setHasConsented)
   const [isCheckingConsent, setIsCheckingConsent] = useState(true)
+    const language = useAuthStore(state => state.language)
+  const isDemo = useAuthStore(state => state.isDemoMode)
+  const languageKey = isDemo ? language?.code : undefined
+  
   const { headerProps } =
     useLayoutApp()
   const { t } = useTranslation()
@@ -90,10 +104,6 @@ const Authorized = ({ route }: { route: any }) => {
     }
   }, [t, setLoading])
 
-  const language = useAuthStore(state => state.language)
-  const isDemo = useAuthStore(state => state.isDemoMode)
-  const languageKey = isDemo ? language?.code : undefined
-
   if (isCheckingConsent) {
     return <Loading isOverlay />
   }
@@ -112,10 +122,20 @@ const Authorized = ({ route }: { route: any }) => {
   return (
     <LayoutApp headerProps={headerProps} key={languageKey}>
       <Tab.Navigator
-        screenOptions={{
-          header: (props) => <></>
+        screenOptions={({ route }) => ({
+          header: () => <></>,
+          tabBarStyle: hiddenTabBar.includes(route.name) ? { display: 'none', height: 0, position: 'absolute' } : undefined
+        })}
+        tabBar={(props) => {
+          const topRouteName = navigationRef?.current?.isReady?.() ? navigationRef?.current?.getCurrentRoute?.()?.name : undefined
+          const currentTab = props.state.routes[props.state.index]
+          const activeRouteName = topRouteName || currentTab?.name || currentScreen()
+
+          if (hiddenTabBar.includes(activeRouteName)) {
+            return null
+          }
+          return <Footer {...props} />
         }}
-        tabBar={(props) => !hiddenTabBar.some((i) => i === currentScreen()) && <Footer {...props} />}
       >
         <Tab.Screen name={Routes.Auth.Home} component={HomeScreen} />
         <Tab.Screen name={Routes.Auth.Textbook} component={TextbookScreen} />

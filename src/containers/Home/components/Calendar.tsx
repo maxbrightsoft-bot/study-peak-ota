@@ -107,7 +107,12 @@ const Calendar = (calendarProps: Props) => {
             const containerStyle = [styles.dayContainer, marking?.selected ? marking.customStyles?.container : {}]
 
             return (
-              <TouchableOpacity onPress={() => onDayPress(date)} disabled={isOutsideMonth} style={containerStyle}>
+              <TouchableOpacity
+                onPress={() => onDayPress(date)}
+                disabled={isOutsideMonth}
+                style={containerStyle}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
                 <Text style={dayTextStyle}>{date.day}</Text>
                 {marking?.marked && !isOutsideMonth && <View style={styles.dotStyle} />}
               </TouchableOpacity>
@@ -178,10 +183,11 @@ const styles = ScaledSheet.create({
     overflow: 'hidden'
   },
   dayContainer: {
-    height: '32@ms',
+    width: '100%',
+    height: '38@ms',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: '6@ms'
+    borderRadius: '8@ms'
   },
   dayText: {
     fontSize: '14@ms',

@@ -62,3 +62,4 @@ export const getQuestionTimeCategoriesResultsApi = (code: string, studentExamSes
     }
 })
 export const getQuestionTimeCategoriesResultsTeacherApi = (id: number, studentId: number) => api.get(`${EXAM_SESSION_URL}/${id}/results/question-times/${studentId}`)
+export const getLatestSessionApi = (code: string) => api.get(`${EXAM_SESSION_URL}/${code}/results/latest`)

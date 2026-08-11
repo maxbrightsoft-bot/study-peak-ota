@@ -94,7 +94,7 @@ const ChatContainer = ({
   }, [isScrollToEnd])
 
   return (
-    <SlideDrawerRoot visible={open}>
+    <SlideDrawerRoot visible={open} onClose={onClose}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={onClose}>
           <Ionicons name="close" size={20} color={palette.grey[900]} />
@@ -447,7 +447,7 @@ const styles = ScaledSheet.create({
     flex: 1,
     backgroundColor: '#F9FAFB',
     borderRadius: '12@ms',
-    minHeight: '100@ms',
+    minHeight: '140@ms',
     paddingHorizontal: '12@ms',
     paddingVertical: '8@ms',
     borderWidth: '1@ms',

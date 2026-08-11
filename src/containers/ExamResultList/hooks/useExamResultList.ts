@@ -16,6 +16,7 @@ const useExamResultList = () => {
   const setLoading = useAuthStore(state => state.setLoading)
   const selectedAcademy = useAuthStore(state => state.selectedAcademy)
   const { t } = useTranslation();
+  const [loadingList, setLoadingList] = useState<boolean>(true);
   const [listExam, setListExam] = useState<ExamSessionResponse[]>([]);
   const [search, setSearch] = useState<string>("");
   const inputSearch = useRef<any>(null);
@@ -33,6 +34,7 @@ const useExamResultList = () => {
       return () => {
         setExpandedId(null)
         setSearch("")
+        setSelectedExam(undefined)
       };
     }, [])
   );
@@ -42,7 +44,7 @@ const useExamResultList = () => {
   }, [])
 
   const getListExam = async () => {
-    setLoading(true)
+    setLoadingList(true)
     try {
       const res = await getListExamApi({
         pageSize: 15,
@@ -56,7 +58,7 @@ const useExamResultList = () => {
     } catch (error) {
       toast.error(getErrorMessage(t, error))
     }
-    setLoading(false)
+    setLoadingList(false)
   };
 
   const getResultExamSearch = async (search: string) => {
@@ -116,10 +118,12 @@ const useExamResultList = () => {
     expandedId,
     handleBack,
     toggleExpand,
+    loadingList,
     selectedExam,
     onChangeSearch,
   }), [
     t,
+    loadingList,
     listExam,
     groupExams,
     handleViewResult,

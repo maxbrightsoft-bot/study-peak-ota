@@ -2,13 +2,13 @@ import useAuthStore from "@/store/useAuthStore"
 import { getErrorMessage, toast, utcToLocalTime } from "@/utils/helpers"
 import { CategoryResponse, EffectSize, ExamResult, LongTimeSpendQuestion, NoteResponse, Question, QuestionData, TextbookResult, TimelyOrderQuestion } from "@/utils/types"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { ProblemKey } from "@/utils/enums"
+import { ExamStatus, ProblemKey } from "@/utils/enums"
 import { captureRef } from 'react-native-view-shot'
 import RNFS from 'react-native-fs';
 import { useTranslation } from "react-i18next"
 import useExamResultNote from "./useExamResultNote"
 import useCreateQuestionDialog from "./useQADialog"
-import { getChapterResultsApi, getChapterResultsCategoriesApi, getChapterResultsEffectSizeApi, getChapterResultsLongTimeSpendApi, getChapterResultsTimeOrderQuestionApi, getResults, getResultsCategories, getResultsEffectSize, getResultsLongTimeSpend, getResultsTimeOrderQuestion } from "../apiClients"
+import { getChapterResultsApi, getChapterResultsCategoriesApi, getChapterResultsEffectSizeApi, getChapterResultsLongTimeSpendApi, getChapterResultsTimeOrderQuestionApi, getLatestSessionApi, getResults, getResultsCategories, getResultsEffectSize, getResultsLongTimeSpend, getResultsTimeOrderQuestion } from "../apiClients"
 import { Platform, View } from "react-native"
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import { useFocusEffect } from "@react-navigation/native"
@@ -24,14 +24,16 @@ type Props = {
   isPrint: boolean
   examSessionId?: string
   studentExamSessionId: string
+  onClose?: () => void
 }
 
-const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExamSessionId }: Props) => {
+const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExamSessionId, onClose }: Props) => {
   const { t } = useTranslation()
   const contentRef = useRef<View>(null)
   const user = useAuthStore(state => state.user)
   const setLoading = useAuthStore(state => state.setLoading)
   const [resultData, setResultData] = useState<ExamResult>();
+  const [latestSession, setLatestSession] = useState<any>();
   const [effectSize, setEffectSize] = useState<EffectSize[]>();
   const [longTimeSpend, setLongTimeSpend] = useState<LongTimeSpendQuestion[]>(
     []
@@ -51,6 +53,13 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
   const [contentSize, setContentSize] = useState({ width: 0, height: 0 });
   const [isOpenConfirmRestartExamDialog, setIsOpenConfirmRestartExamDialog] = useState(false)
   const [openActionMenu, setOpenActionMenu] = useState(false)
+
+  const isLatestSessionUnfinished = useMemo(() => {
+    const data = latestSession || resultData
+    if (!data) return false
+    const sessionStatus = data.isLate ? data.lateStatus : data.status
+    return sessionStatus !== ExamStatus.Completed
+  }, [latestSession, resultData])
 
   const handleOpenActionMenu = () => {
     setOpenActionMenu(true)
@@ -83,6 +92,7 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
 
   const resetData = () => {
     setResultData(undefined);
+    setTextbookResult(undefined);
     setErrorMessage(undefined)
     setLongTimeSpend([]);
     setEffectSize([]);
@@ -124,7 +134,10 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
           getResultsLongTimeSpend(examCode, { studentExamSessionId }),
           getResultsEffectSize(examCode, { studentExamSessionId }),
           getResultsTimeOrderQuestion(examCode, { studentExamSessionId }),
-          getResultsCategories(examCode, { studentExamSessionId })
+          getResultsCategories(examCode, { studentExamSessionId }),
+          getLatestSessionApi(examCode).catch((e) => {
+            return null
+          })
         ])
 
       setResultData(result[0].data?.data);
@@ -132,6 +145,10 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
       setEffectSize(result[2].data?.data);
       setTimelyOrderQuestions(result[3].data?.data);
       setCategoryResponses(result[4].data?.data || [])
+      
+      const latestRes = result[5]?.data
+      const sessionData = latestRes?.data !== undefined ? latestRes.data : latestRes
+      setLatestSession(sessionData)
     } catch (error) {
       const message = getErrorMessage(t, error)
       !isPrint && toast.error(message)
@@ -240,12 +257,22 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
     if (!examCode) return
     setLoading(true)
     try {
-      await restartExamApi(examCode);
-      navigate(Routes.Auth.DoExam, { examCode })
+      await restartExamApi(examCode, false);
+      resetData();
+      onClose?.();
+      setLoading(false);
+      navigate(Routes.Auth.DoExam, { examCode, reqTime: Date.now() });
     } catch (error) {
       toast.error(getErrorMessage(t, error))
     }
     setLoading(false)
+  }
+
+  const handleSolveExam = () => {
+    if (!examCode) return
+    resetData()
+    onClose?.()
+    navigate(Routes.Auth.DoExam, { examCode })
   }
 
   const fileExamName = !resultData
@@ -349,6 +376,8 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
       examStatusView,
       totalTime,
       resultData,
+      latestSession,
+      isLatestSessionUnfinished,
       effectSize,
       textbookResult,
       longTimeSpend,
@@ -359,6 +388,7 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
       errorMessage,
       selectedQuestion,
       handleRestartExam,
+      handleSolveExam,
       handleChangeExamStatusView,
       setOpenProblem,
     },

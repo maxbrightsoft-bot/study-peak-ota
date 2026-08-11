@@ -180,11 +180,10 @@ const useMyData = () => {
   }
 
   useEffect(() => {
-    if (isClickPrint) {
+    if (isClickPrint && isReadyPrint) {
       setLoading(true)
+      handlePrint()
     }
-
-    handlePrint()
   }, [isReadyPrint, isClickPrint])
 
   useEffect(() => {

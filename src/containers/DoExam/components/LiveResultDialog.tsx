@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
 import { Button } from 'react-native-paper'
 import useLiveResult from '../hooks/useLiveResult'
@@ -7,17 +8,39 @@ import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 import TextTooltip from '@/components/Tooltip/TextTooltip'
 import { Ionicons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
+import { ExamStatus } from '@/utils/enums'
 
 interface Props {
   open: boolean
   examCode: string
+  studentExamSessionId?: number | string
   onClose?: () => void
   handleExamEnd: () => void
   handleDetailExamResult: () => void
 }
 
-const LiveResultDialog = ({ open, onClose = () => {}, examCode, handleExamEnd, handleDetailExamResult }: Props) => {
-  const { t, examResult, totalTime, resultData, isLoading } = useLiveResult({ examCode })
+const LiveResultDialog = ({ open, onClose = () => {}, examCode, studentExamSessionId, handleExamEnd, handleDetailExamResult }: Props) => {
+  const { t, examResult, totalTime, resultData, isLoading } = useLiveResult({ examCode, studentExamSessionId })
+
+  const hasUnsolved = useMemo(() => {
+    if (!resultData?.questions?.length) return false
+    const isCompleted = resultData.isLate
+      ? resultData.lateStatus === ExamStatus.Completed
+      : resultData.status === ExamStatus.Completed
+    if (isCompleted) return false
+    return resultData.questions.some(
+      (q: any) =>
+        q.questionAnswerType !== undefined && q.questionAnswerType >= 2
+          ? !q.textualAnswers?.length
+          : !q.selectedAnswers?.length && !q.textualAnswers?.length
+    )
+  }, [resultData])
+
+  const scoreDisplay = examResult?.score ?? 0
+  const percentageDisplay =
+    examResult?.percentageAmongStudents !== undefined && examResult?.percentageAmongStudents !== null
+      ? Number(examResult.percentageAmongStudents).toFixed(2)
+      : '0.00'
 
   return (
     <SlideDrawerRoot onClose={onClose} visible={open}>
@@ -46,9 +69,9 @@ const LiveResultDialog = ({ open, onClose = () => {}, examCode, handleExamEnd, h
             placement='bottom'
           />
 
-          <Text style={styles.score}>{t('score_format', { score: examResult?.score || 0 })}</Text>
+          <Text style={styles.score}>{t('score_format', { score: scoreDisplay })}</Text>
 
-          <Text style={styles.percentage}>{t('percentage_among_students')}: {examResult?.percentageAmongStudents?.toFixed(2) || 0}%</Text>
+          <Text style={styles.percentage}>{t('percentage_among_students')}: {percentageDisplay}%</Text>
 
           <View style={styles.infoBlock}>
             <InfoRow label={t('exam_date')} value={utcToLocalTime(examResult?.startTime, t('full_date_time_format'))} />
@@ -57,6 +80,17 @@ const LiveResultDialog = ({ open, onClose = () => {}, examCode, handleExamEnd, h
           </View>
 
           <View style={styles.buttonContainer}>
+            {hasUnsolved && (
+              <Button
+                mode="contained"
+                style={[styles.filledButton, { backgroundColor: palette.main[500] }]}
+                labelStyle={styles.filledText}
+                onPress={onClose}
+              >
+                {t('solve_undone_questions')}
+              </Button>
+            )}
+
             <Button
               mode="outlined"
               style={styles.outlineButton}

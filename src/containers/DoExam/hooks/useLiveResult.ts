@@ -9,9 +9,10 @@ import { StudentExamResult } from "../config/types";
 
 type Props = {
   examCode: string
+  studentExamSessionId?: number | string
 }
 
-const useLiveResult = ({ examCode }: Props) => {
+const useLiveResult = ({ examCode, studentExamSessionId }: Props) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [examResult, setExamResult] = useState<StudentExamResult>();
   const [resultData, setResultData] = useState<ExamResult>();
@@ -32,38 +33,44 @@ const useLiveResult = ({ examCode }: Props) => {
 
       try {
         const [percentRes, resultRes] = await Promise.all([
-          getStudentExamResultPercentages(examCode),
-          getResults(examCode)
+          getStudentExamResultPercentages(examCode, studentExamSessionId),
+          getResults(examCode, studentExamSessionId)
         ]);
 
-        let resData = percentRes.data;
-        let retriesLeft = 5;
-
-        const isScorePending = (data: any) => {
-          if (!data) return true;
-          if (data.score === undefined || data.score === null) return true;
-          if (data.score === 0 && (!data.percentageAmongStudents || data.percentageAmongStudents === 0)) return true;
-          return false;
+        const parseBody = (res: any) => {
+          if (!res) return undefined;
+          const body = res.data;
+          if (!body) return undefined;
+          if (body.data && typeof body.data === 'object') {
+            return body.data;
+          }
+          return body;
         };
 
-        while (isScorePending(resData) && retriesLeft > 0 && isMounted) {
+        let percentData = parseBody(percentRes);
+        let resultsData = parseBody(resultRes);
+
+        let retriesLeft = 5;
+
+        while ((!percentData || percentData.score === undefined || percentData.score === null) && retriesLeft > 0 && isMounted) {
           await new Promise((resolve) => setTimeout(resolve, 500));
           if (!isMounted) return;
-          const retryRes = await getStudentExamResultPercentages(examCode);
-          if (retryRes?.data) {
-            resData = retryRes.data;
-            if (!isScorePending(resData)) break;
+          const retryRes = await getStudentExamResultPercentages(examCode, studentExamSessionId);
+          const newPercentData = parseBody(retryRes);
+          if (newPercentData && newPercentData.score !== undefined && newPercentData.score !== null) {
+            percentData = newPercentData;
+            break;
           }
           retriesLeft--;
         }
 
         if (isMounted) {
           setExamResult({
-            ...resData,
+            ...percentData,
             code: examCode
           });
           setResultData({
-            ...resultRes?.data?.data,
+            ...resultsData,
             code: examCode
           });
         }
@@ -82,8 +89,10 @@ const useLiveResult = ({ examCode }: Props) => {
 
     return () => {
       isMounted = false;
+      setExamResult(undefined);
+      setResultData(undefined);
     };
-  }, [examCode]);
+  }, [examCode, studentExamSessionId]);
 
   const handleExit = () => {
     navigate(Routes.Auth.Home);

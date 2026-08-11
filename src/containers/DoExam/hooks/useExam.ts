@@ -18,6 +18,7 @@ import { useTranslation } from "react-i18next";
 import moment from "moment";
 import { ActivityAction, ActivityResource, AppScreen, ExamEvent, ExamStatus, QuestionAnswerType } from "@/utils/enums";
 import { formatMinutesToTime, getErrorMessage, toast } from "@/utils/helpers";
+import { isTextType } from "@/utils/helpers/textbook";
 import useCountDownTimer from "@/hooks/useCountDownTimer";
 import { useNavigation } from "@react-navigation/native";
 import { useFocusEffect } from "@react-navigation/native";
@@ -39,10 +40,11 @@ import { triggerOfflineSync } from '@/services/offlineSync';
 
 type Props = {
   examCode: string;
+  reqTime?: any;
   onExamEnded?: (examCode?: string) => void;
 };
 
-const useExam = ({ examCode, onExamEnded }: Props) => {
+const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
   const { t } = useTranslation();
   const navigation = useNavigation();
   const [questionList, setQuestionList] = useState<Question[]>([]);
@@ -75,6 +77,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
   const [openInfoExamDialog, setOpenInfoExamDialog] = useState<boolean>(false);
   const [examSession, setExamSession] = useState<InfoExamSessionByCode>();
   const [openLeaveDialog, setOpenLeaveDialog] = useState<boolean>(false)
+  const [openUnsolvedLeaveDialog, setOpenUnsolvedLeaveDialog] = useState<boolean>(false)
   const { getServerNow } = useServerTime();
   const { track, trackError } = useActivityTracking({ screen: AppScreen.DoExam })
   const { handleStopAlarm } = useAlarm(false, [])
@@ -86,6 +89,14 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
 
   const handleCloseLeaveDialog = useCallback(() => {
     setOpenLeaveDialog(false)
+  }, [])
+
+  const handleOpenUnsolvedLeaveDialog = useCallback(() => {
+    setOpenUnsolvedLeaveDialog(true)
+  }, [])
+
+  const handleCloseUnsolvedLeaveDialog = useCallback(() => {
+    setOpenUnsolvedLeaveDialog(false)
   }, [])
 
   const handleOpenInfoExamDialog = useCallback(() => {
@@ -108,8 +119,12 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
   };
 
   const handleOpenFinishConfirmDialog = useCallback(() => {
-    setOpenConfirmFinishDialog(true);
-  }, [])
+    if (questionList?.length && !isAllQuestionsAnswered(questionList)) {
+      setOpenUnsolvedLeaveDialog(true);
+    } else {
+      setOpenConfirmFinishDialog(true);
+    }
+  }, [questionList])
 
   const handleCloseFinishConfirmDialog = useCallback(() => {
     setOpenConfirmFinishDialog(false);
@@ -301,7 +316,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
 
     setEnding(false);
     setNotFoundExam(false);
-    firstLoadRef.current && setLoading(true);
+    setLoading(true);
     const nowTime = getServerNow();
 
     try {
@@ -388,6 +403,9 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
   const handleFinishExam = useCallback(async () => {
     const nowTime = getServerNow();
     setLoadingWithoutOverlay(true);
+    handleCloseAnswerSheet();
+    handleCloseFinishConfirmDialog();
+    handleCloseLeaveDialog();
     try {
       await finishExam(examCode);
       handleStopAlarm()
@@ -540,10 +558,11 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
       const noAnswer = questionList.find(i => i.questionAnswerType < 2 ? !i.selectedAnswers?.length : !i.textualAnswers?.length)
       setCurrentQuestionId(noAnswer?.id || questionList[0].id);
     }
-  }, [questionList.length]);
+  }, [questionList]);
 
   const handleRestartExam = async () => {
-    if (!exam || (!exam.isLate && exam.lateStatus !== ExamStatus.Completed)) return;
+    const codeToRestart = exam?.code || examCode || '';
+    if (!codeToRestart) return;
 
     setLoading(true);
     const nowTime = getServerNow();
@@ -552,20 +571,20 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
       track({
         action: ActivityAction.Restart,
         resourceType: ActivityResource.Exam,
-        resourceId: String(exam.id),
+        resourceId: String(exam?.id),
         triggeredAt: new Date(nowTime).toISOString(),
         metaData: {
-          examCode: exam.code || '',
+          examCode: exam?.code || '',
           examId: exam?.examId,
           examSession: exam?.id,
-          studentExamSessionId: String(exam.studentExamSessionId || ''),
+          studentExamSessionId: String(exam?.studentExamSessionId || ''),
         }
       })
 
-      await restartExamApi(exam?.code || '');
+      await restartExamApi(codeToRestart, false);
       await handleClearStorage();
-      handleClear()
-      getQuestionExams();
+      handleClear();
+      await getQuestionExams();
       toast.info(t("exam_has_been_restarted"));
     } catch (error) {
       trackError(error, {
@@ -714,6 +733,8 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
   };
 
   const handleClear = () => {
+    setLoading(false)
+    setLoadingWithoutOverlay(false)
     handleCloseLiveResultDialog()
     handleCloseResultDialog()
     handleCloseLeaveDialog()
@@ -793,10 +814,8 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
   useFocusEffect(
     useCallback(() => {
       if (!examCode || !academyDomain || !userId) return;
-      if (firstLoadRef.current) {
-        getQuestionExams();
-        firstLoadRef.current = false;
-      }
+      getQuestionExams();
+      firstLoadRef.current = false;
 
       scrollViewRef.current?.scrollToOffset({
         offset: 0,
@@ -806,7 +825,7 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
       return () => {
         handleClear()
       };
-    }, [examCode, academyDomain, userId])
+    }, [examCode, academyDomain, userId, reqTime])
   );
 
 
@@ -824,39 +843,58 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     onFinish: getCheckStatus
   });
 
+  const isQuestionAnswered = (q: Question): boolean => {
+    if (!q) return false;
+    const type = q.questionAnswerType !== undefined ? Number(q.questionAnswerType) : undefined;
+
+    if (type !== undefined && isTextType(type)) {
+      return !!q.textualAnswers?.length && q.textualAnswers.some(a => typeof a === 'string' && a.trim() !== '');
+    }
+
+    if (q.selectedAnswers?.length) {
+      return q.selectedAnswers.some(a => a !== undefined && a !== null && Number(a) >= 0);
+    }
+
+    if (q.textualAnswers?.length) {
+      return q.textualAnswers.some(a => typeof a === 'string' && a.trim() !== '');
+    }
+
+    return false;
+  };
+
   const isAllQuestionsAnswered = (
     questionList: Question[]
   ): boolean => {
     if (!questionList?.length) return false
-
-    return questionList.every((question) => {
-      const { questionAnswerType, selectedAnswers, textualAnswers } = question
-
-      if (questionAnswerType === QuestionAnswerType.SingleChoice || questionAnswerType === QuestionAnswerType.MultipleChoice) {
-        return !!selectedAnswers?.length
-      }
-
-      return !!textualAnswers?.length &&
-        textualAnswers.some(answer => answer?.trim() !== '')
-    })
+    return questionList.every(isQuestionAnswered);
   }
 
-  const handleConfirmLeave = () => {
-    const nowTime = getServerNow();
-    track({
-      action: ActivityAction.End,
-      resourceType: ActivityResource.Exam,
-      resourceId: String(exam?.id),
-      triggeredAt: new Date(nowTime).toISOString(),
-      metaData: {
-        examCode: exam?.code || '',
-        examId: exam?.examId,
-        examSession: exam?.id,
-        studentExamSessionId: String(exam?.studentExamSessionId || ''),
+  const handleSolveItLater = useCallback(async () => {
+    setOpenUnsolvedLeaveDialog(false)
+    if (exam && exam.status !== ExamStatus.Paused && exam.lateStatus !== ExamStatus.Paused) {
+      try {
+        const nowTime = getServerNow()
+        await pauseAndResumeExamApi(examCode, {
+          status: ExamStatus.Paused,
+          rowVersion: exam.rowVersion,
+          pauseTime: nowTime
+        })
+      } catch (err) {
+        // ignore
       }
-    })
+    }
     navigate(Routes.Auth.Home)
-  }
+  }, [exam, examCode])
+
+  const handleConfirmExitAnyway = useCallback(() => {
+    setOpenUnsolvedLeaveDialog(false)
+    handleConfirmLeave()
+  }, [handleConfirmLeave])
+
+  const handleConfirmLeave = useCallback(async () => {
+    setOpenLeaveDialog(false);
+    await handleFinishExam();
+  }, [handleFinishExam]);
 
   const remainTimeString = useMemo(() => {
     return formatMinutesToTime((remainTime || 0) / 60);
@@ -882,6 +920,11 @@ const useExam = ({ examCode, onExamEnded }: Props) => {
     openLeaveDialog,
     handleOpenLeaveDialog,
     handleCloseLeaveDialog,
+    openUnsolvedLeaveDialog,
+    handleOpenUnsolvedLeaveDialog,
+    handleCloseUnsolvedLeaveDialog,
+    handleSolveItLater,
+    handleConfirmExitAnyway,
     questionStarList,
     handleNextStar,
     handlePrevStar,

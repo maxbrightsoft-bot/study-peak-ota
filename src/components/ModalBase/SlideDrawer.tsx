@@ -1,22 +1,29 @@
 import { palette } from '@/theme'
 import React, { useEffect, useRef } from 'react'
-import { View, Animated, TouchableOpacity, StyleSheet, Dimensions, Modal, Platform } from 'react-native'
+import { View, Animated, TouchableOpacity, StyleSheet, Dimensions, Platform, BackHandler } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
-
-const HEADER_HEIGHT = Platform.OS === 'ios' ? 90 : 60
-const TAB_BAR_HEIGHT = 60
+const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
 interface SlideDrawerProps {
   visible: boolean
   children: React.ReactNode
   position?: 'left' | 'right'
+  onClose?: () => void
 }
 
-const SlideDrawer: React.FC<SlideDrawerProps> = ({ visible, children, position = 'right' }) => {
+const SlideDrawer: React.FC<SlideDrawerProps> = ({ visible, children, position = 'right', onClose }) => {
   const slideAnim = useRef(new Animated.Value(SCREEN_WIDTH)).current
   const backdropOpacity = useRef(new Animated.Value(0)).current
+
+  useEffect(() => {
+    if (!visible) return
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      onClose?.()
+      return true
+    })
+    return () => subscription.remove()
+  }, [visible, onClose])
 
   useEffect(() => {
     if (visible) {
@@ -51,24 +58,22 @@ const SlideDrawer: React.FC<SlideDrawerProps> = ({ visible, children, position =
   if (!visible) return null
 
   return (
-    visible && (
-      <View style={styles.container}>
-        <TouchableOpacity style={styles.backdrop} activeOpacity={1}>
-          <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]} />
-        </TouchableOpacity>
-        <Animated.View
-          style={[
-            styles.drawer,
-            {
-              transform: [{ translateX: slideAnim }],
-              ...(position === 'left' ? { left: 0 } : { right: 0 })
-            }
-          ]}
-        >
-          {children}
-        </Animated.View>
-      </View>
-    )
+    <View style={styles.container}>
+      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose}>
+        <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]} />
+      </TouchableOpacity>
+      <Animated.View
+        style={[
+          styles.drawer,
+          {
+            transform: [{ translateX: slideAnim }],
+            ...(position === 'left' ? { left: 0 } : { right: 0 })
+          }
+        ]}
+      >
+        {children}
+      </Animated.View>
+    </View>
   )
 }
 

@@ -33,7 +33,7 @@ const TodayStudyDrawer = ({
 }: Props) => {
   const { t } = useTranslation()
   return (
-    <SlideDrawerRoot visible={isOpen}>
+    <SlideDrawerRoot visible={isOpen} onClose={onClose}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={onClose}>
           <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />

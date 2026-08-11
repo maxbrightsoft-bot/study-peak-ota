@@ -63,7 +63,7 @@ const CreateQuestionConversationDialog = ({
 
 
   return (
-    <SlideDrawerRoot visible={open}>
+    <SlideDrawerRoot visible={open} onClose={toggleDialog}>
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={toggleDialog}>

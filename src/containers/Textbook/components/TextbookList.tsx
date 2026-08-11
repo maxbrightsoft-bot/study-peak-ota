@@ -50,7 +50,8 @@ const TextbookList = ({
     handleCloseTimeSelectModal,
     handleStartTextbook,
     handleLoadMore,
-    loadingMore
+    loadingMore,
+    loadingList
   } = useTextbook({
     preparedType,
     preparedFilterType,
@@ -99,8 +100,14 @@ const TextbookList = ({
           paddingHorizontal: 20
         }}
         renderItem={({ item }) => <TextbookItem textbook={item} t={t} handleOpenDialog={handleOpenDialog} />}
-        keyExtractor={(item) => item.id.toString()}
-        ListEmptyComponent={<Text style={styles.emptyText}>{t('no_data')}</Text>}
+        keyExtractor={(item, index) => `${item.id}_${index}`}
+        ListEmptyComponent={
+          loadingList ? (
+            <ActivityIndicator size="large" color={palette.main[600]} style={{ marginTop: 40 }} />
+          ) : (
+            <Text style={styles.emptyText}>{t('no_data')}</Text>
+          )
+        }
         showsVerticalScrollIndicator={false}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}

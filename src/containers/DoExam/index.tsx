@@ -1,5 +1,6 @@
 import React, { useMemo, useCallback } from 'react'
-import { View, Text, Platform, KeyboardAvoidingView, TouchableOpacity, FlatList } from 'react-native'
+import { View, Text, Platform, KeyboardAvoidingView, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
 import useExam from './hooks/useExam'
@@ -25,9 +26,10 @@ import TextTooltip from '@/components/Tooltip/TextTooltip'
 
 type Props = {
   examCode: string
+  reqTime?: any
 }
 
-const DoExam = ({ examCode }: Props) => {
+const DoExam = ({ examCode, reqTime }: Props) => {
   const {
     t,
     exam,
@@ -36,6 +38,11 @@ const DoExam = ({ examCode }: Props) => {
     openLeaveDialog,
     handleOpenLeaveDialog,
     handleCloseLeaveDialog,
+    openUnsolvedLeaveDialog,
+    handleOpenUnsolvedLeaveDialog,
+    handleCloseUnsolvedLeaveDialog,
+    handleSolveItLater,
+    handleConfirmExitAnyway,
     questionListMapped,
     questionList,
     remainTime,
@@ -73,7 +80,7 @@ const DoExam = ({ examCode }: Props) => {
     handleDetailExamResult,
     handleCloseLiveResultDialog,
     handleFinishExam,
-  } = useExam({ examCode })
+  } = useExam({ examCode, reqTime })
 
   const currentQuestion = useMemo(
     () => questionList.find((q) => q.id === currentQuestionId),
@@ -114,6 +121,8 @@ const DoExam = ({ examCode }: Props) => {
     currentQuestionId
   ])
 
+  const insets = useSafeAreaInsets()
+
   if (isNotFoundExam) return <NotFoundExam title={t('the_exam_code_you_are_looking_for_was_not_found')} />
 
   return (
@@ -124,16 +133,31 @@ const DoExam = ({ examCode }: Props) => {
         keyboardVerticalOffset={80}
       >
         <View style={styles.header}>
-          <TouchableOpacity onPress={handleOpenLeaveDialog}>
+          <TouchableOpacity onPress={() => {
+            if (exam && !isAllQuestionsAnswered(questionList)) {
+              handleOpenUnsolvedLeaveDialog()
+            } else {
+              handleOpenLeaveDialog()
+            }
+          }}>
             <View style={{ transform: 'rotate(180deg)' }}>
               <ArrowRight width={24} height={24} color={palette.grey[300]} />
             </View>
           </TouchableOpacity>
           <View style={styles.titleContainer}>
-            <Text style={styles.title}>{t('live_exam_in_progress')}</Text>
+            <Text style={styles.title}>
+              {!exam?.isLate ? t('live_exam_in_progress') : (examSession?.title || exam?.title || t('do_exam'))}
+            </Text>
             <Text style={[styles.subtitle, { color: (remainTime || 0) < 10 ? palette.red[900] : palette.grey[400] }]}>
               {remainTimeString || 0}
             </Text>
+            {((exam?.isLate ? exam?.lateStatus : exam?.status) === ExamStatus.Paused) && (
+              <View style={{ backgroundColor: '#FF9800', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, alignSelf: 'center', marginTop: 2 }}>
+                <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '600' }}>
+                  {t('paused')}
+                </Text>
+              </View>
+            )}
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             {(exam?.isLate || (!exam?.isLate && exam?.lateStatus === ExamStatus.Completed)) && (
@@ -142,17 +166,20 @@ const DoExam = ({ examCode }: Props) => {
                 status={exam?.lateStatus}
                 onTogglePauseResume={handlePauseAndResumeExam}
                 onOpenConfirmDialog={handleOpenConfirmDialog}
+                onSolveItLater={!isAllQuestionsAnswered(questionList) ? handleOpenUnsolvedLeaveDialog : undefined}
+                onEndExam={isAllQuestionsAnswered(questionList) ? handleOpenLeaveDialog : undefined}
                 keys={{
                   pause: 'pause_exam',
                   resume: 'resume_exam',
-                  restart: 'restart_exam'
+                  restart: 'restart_exam',
+                  solveItLater: 'solve_it_later',
+                  endExam: 'exam_end'
                 }}
                 ariaLabel="exam-actions"
               />
             )}
           </View>
         </View>
-
         {questionStarList.length > 0 && (
           <View
             style={{
@@ -179,6 +206,7 @@ const DoExam = ({ examCode }: Props) => {
         )}
 
         <FlatList
+          style={{ flex: 1 }}
           ref={scrollViewRef}
           data={groupedQuestions}
           keyExtractor={(item) => `group-${item.id}`}
@@ -233,19 +261,28 @@ const DoExam = ({ examCode }: Props) => {
               </TouchableOpacity>
             </View>
           }
-          contentContainerStyle={styles.scrollContainer}
+          contentContainerStyle={[
+            styles.scrollContainer,
+            { paddingBottom: exam?.isLate === false ? Math.max(insets.bottom + 250, 300) : Math.max(insets.bottom + 180, 220) }
+          ]}
           renderItem={renderQuestionGroup}
           initialNumToRender={3}
           maxToRenderPerBatch={3}
           windowSize={5}
           removeClippedSubviews={Platform.OS === 'android'}
+          ListEmptyComponent={
+            <View style={{ paddingVertical: 60, alignItems: 'center', justifyContent: 'center' }}>
+              <ActivityIndicator size="large" color={palette.main[600]} />
+            </View>
+          }
         />
 
         <View style={styles.footer}>
           <View
             style={{
-              paddingVertical: 14,
+              paddingTop: 18,
               paddingHorizontal: 20,
+              paddingBottom: exam?.isLate !== false ? (Platform.OS === 'android' ? Math.max(insets.bottom + 40, 70) : Math.max(insets.bottom + 30, 60)) : 14,
               flexDirection: 'row',
               justifyContent: 'space-between',
               alignItems: 'center'
@@ -263,9 +300,9 @@ const DoExam = ({ examCode }: Props) => {
                       : (currentQuestion?.questionOrder || 0) + 1
                   })}{' '}
                 </Text>
-                <Text style={styles.totalTime}>{t('return_to_question')}</Text>
+                <Text style={styles.totalTime}>{openAnswerSheet ? t('return_to_question') : t('answer_sheet')}</Text>
               </View>
-              <View style={{ transform: 'rotate(180deg)' }}>
+              <View style={{ transform: [{ rotate: openAnswerSheet ? '0deg' : '180deg' }] }}>
                 <ArrowDown color="#222222" />
               </View>
             </TouchableOpacity>
@@ -280,88 +317,96 @@ const DoExam = ({ examCode }: Props) => {
               <Text style={{ color: 'red', fontWeight: '500', fontSize: 14 }}>{t('end_exam')}</Text>
             </TouchableOpacity>
           </View>
-          <View style={styles.navRow}>
-            <View style={{ flexDirection: 'row', gap: 12 }}>
-              <TouchableOpacity
-                disabled={currentQuestion?.id === questionList[0]?.id}
-                style={[
-                  styles.navButton,
-                  currentQuestion?.id === questionList[0]?.id && { borderColor: palette.grey[300] }
-                ]}
-                onPress={disabled ? undefined : () => scrollToQuestion(ScrollType.FIRST)}
-              >
-                <View style={{ transform: 'rotate(180deg)' }}>
-                  <LastIcon color={currentQuestion?.id === questionList[0]?.id ? palette.grey[300] : '#222222'} />
-                </View>
-              </TouchableOpacity>
+          {exam?.isLate === false && (
+            <View
+              style={[
+                styles.navRow,
+                { paddingBottom: Platform.OS === 'android' ? Math.max(insets.bottom, 48) : Math.max(insets.bottom, 24) }
+              ]}
+            >
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <TouchableOpacity
+                  disabled={currentQuestion?.id === questionList[0]?.id}
+                  style={[
+                    styles.navButton,
+                    currentQuestion?.id === questionList[0]?.id && { borderColor: palette.grey[300] }
+                  ]}
+                  onPress={disabled ? undefined : () => scrollToQuestion(ScrollType.FIRST)}
+                >
+                  <View style={{ transform: 'rotate(180deg)' }}>
+                    <LastIcon color={currentQuestion?.id === questionList[0]?.id ? palette.grey[300] : '#222222'} />
+                  </View>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                disabled={currentQuestion?.id === questionList[0]?.id}
-                style={[
-                  styles.navButton,
-                  currentQuestion?.id === questionList[0]?.id && { borderColor: palette.grey[300] }
-                ]}
-                onPress={disabled ? undefined : () => scrollToQuestion(ScrollType.PREV)}
-              >
-                <View style={{ transform: 'rotate(180deg)', padding: 4 }}>
-                  <NextIcon color={currentQuestion?.id === questionList[0]?.id ? palette.grey[300] : '#222222'} />
-                </View>
-                <Text
+                <TouchableOpacity
+                  disabled={currentQuestion?.id === questionList[0]?.id}
                   style={[
-                    styles.actionTitle,
-                    currentQuestion?.id === questionList[0]?.id && { color: palette.grey[300] }
+                    styles.navButton,
+                    currentQuestion?.id === questionList[0]?.id && { borderColor: palette.grey[300] }
                   ]}
+                  onPress={disabled ? undefined : () => scrollToQuestion(ScrollType.PREV)}
                 >
-                  {t('previous_question')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View style={{ flexDirection: 'row', gap: 12 }}>
-              <TouchableOpacity
-                disabled={currentQuestion?.id === questionList[questionList.length - 1]?.id}
-                style={[
-                  styles.navButton,
-                  currentQuestion?.id === questionList[questionList.length - 1]?.id && {
-                    borderColor: palette.grey[300]
-                  }
-                ]}
-                onPress={disabled ? undefined : () => scrollToQuestion(ScrollType.NEXT)}
-              >
-                <Text
+                  <View style={{ transform: 'rotate(180deg)', padding: 4 }}>
+                    <NextIcon color={currentQuestion?.id === questionList[0]?.id ? palette.grey[300] : '#222222'} />
+                  </View>
+                  <Text
+                    style={[
+                      styles.actionTitle,
+                      currentQuestion?.id === questionList[0]?.id && { color: palette.grey[300] }
+                    ]}
+                  >
+                    {t('previous_question')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <TouchableOpacity
+                  disabled={currentQuestion?.id === questionList[questionList.length - 1]?.id}
                   style={[
-                    styles.actionTitle,
-                    currentQuestion?.id === questionList[questionList.length - 1]?.id && { color: palette.grey[300] }
+                    styles.navButton,
+                    currentQuestion?.id === questionList[questionList.length - 1]?.id && {
+                      borderColor: palette.grey[300]
+                    }
                   ]}
+                  onPress={disabled ? undefined : () => scrollToQuestion(ScrollType.NEXT)}
                 >
-                  {t('next_question')}
-                </Text>
-                <View style={{ padding: 4 }}>
-                  <NextIcon
+                  <Text
+                    style={[
+                      styles.actionTitle,
+                      currentQuestion?.id === questionList[questionList.length - 1]?.id && { color: palette.grey[300] }
+                    ]}
+                  >
+                    {t('next_question')}
+                  </Text>
+                  <View style={{ padding: 4 }}>
+                    <NextIcon
+                      color={
+                        currentQuestion?.id === questionList[questionList.length - 1]?.id ? palette.grey[300] : '#222222'
+                      }
+                    />
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  disabled={currentQuestion?.id === questionList[questionList.length - 1]?.id}
+                  style={[
+                    styles.navButton,
+                    currentQuestion?.id === questionList[questionList.length - 1]?.id && {
+                      borderColor: palette.grey[300]
+                    }
+                  ]}
+                  onPress={disabled ? undefined : () => scrollToQuestion(ScrollType.LAST)}
+                >
+                  <LastIcon
                     color={
                       currentQuestion?.id === questionList[questionList.length - 1]?.id ? palette.grey[300] : '#222222'
                     }
                   />
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity
-                disabled={currentQuestion?.id === questionList[questionList.length - 1]?.id}
-                style={[
-                  styles.navButton,
-                  currentQuestion?.id === questionList[questionList.length - 1]?.id && {
-                    borderColor: palette.grey[300]
-                  }
-                ]}
-                onPress={disabled ? undefined : () => scrollToQuestion(ScrollType.LAST)}
-              >
-                <LastIcon
-                  color={
-                    currentQuestion?.id === questionList[questionList.length - 1]?.id ? palette.grey[300] : '#222222'
-                  }
-                />
-              </TouchableOpacity>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          )}
         </View>
+      </KeyboardAvoidingView>
 
         {!isEnding && (
           <HangOnDialog
@@ -398,10 +443,27 @@ const DoExam = ({ examCode }: Props) => {
           text={t('are_you_sure_you_want_to_leave')}
           onConfirm={handleConfirmLeave}
         />
+        <ConfirmDialog
+          open={openUnsolvedLeaveDialog}
+          toggle={handleCloseUnsolvedLeaveDialog}
+          title={t('notification')}
+          text={t('unsolved_questions_exit_warning')}
+          okText={t('solve_it_later')}
+          cancelText={t('exit_anyway')}
+          onConfirm={handleSolveItLater}
+          onCancel={handleConfirmExitAnyway}
+        />
         <InfoExamCode open={openInfoExamDialog} onClose={handleCloseInfoExamDialog} examSession={examSession} />
-        {currentQuestion && (
+        {currentQuestion && openAnswerSheet && (
           <SelectAnswerSheet
-            onFishedExam={handleOpenFinishConfirmDialog}
+            onFishedExam={() => {
+              handleCloseAnswerSheet()
+              if (!isAllQuestionsAnswered(questionList)) {
+                handleOpenUnsolvedLeaveDialog()
+              } else {
+                handleOpenFinishConfirmDialog()
+              }
+            }}
             visible={openAnswerSheet}
             onClose={handleCloseAnswerSheet}
             scrollToQuestion={scrollToQuestion}
@@ -416,6 +478,7 @@ const DoExam = ({ examCode }: Props) => {
           <LiveResultDialog
             open={liveResultDialog}
             examCode={examCode}
+            studentExamSessionId={exam?.studentExamSessionId}
             onClose={() => {
               handleCloseLiveResultDialog()
               navigate(Routes.Auth.Home)
@@ -432,7 +495,6 @@ const DoExam = ({ examCode }: Props) => {
             studentExamSessionId={exam?.studentExamSessionId}
           />
         )}
-      </KeyboardAvoidingView>
     </View>
   )
 }
@@ -440,7 +502,7 @@ const DoExam = ({ examCode }: Props) => {
 const styles = ScaledSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF'
+    backgroundColor: '#FFF',
   },
   header: {
     flexDirection: 'row',
@@ -455,6 +517,7 @@ const styles = ScaledSheet.create({
   },
   titleContainer: {
     gap: '4@ms',
+    alignItems: 'center',
   },
   attemptBadge: {
     paddingHorizontal: '8@ms',
@@ -489,14 +552,13 @@ const styles = ScaledSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    gap: '20@ms',
     backgroundColor: '#FFF',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: '-6@ms' },
     shadowOpacity: 0.1,
     shadowRadius: '14@ms',
-    elevation: '10@ms',
-    zIndex: 20
+    elevation: 100,
+    zIndex: 9999
   },
   timeContainer: {
     flexDirection: 'row',
@@ -505,19 +567,19 @@ const styles = ScaledSheet.create({
   },
   timeLeft: {
     color: '#222222',
-    fontWeight: 600,
+    fontWeight: '600',
     fontSize: '16@ms'
   },
   totalTime: {
     color: '#222222',
     fontSize: '16@ms',
-    fontWeight: 600
+    fontWeight: '600'
   },
   navRow: {
-    paddingVertical: '12@ms',
+    paddingVertical: '10@ms',
     paddingHorizontal: '20@ms',
     flexDirection: 'row',
-    paddingBottom: '34@ms',
+    paddingBottom: '16@ms',
     gap: '8@ms',
     justifyContent: 'space-between'
   },

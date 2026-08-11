@@ -1,10 +1,10 @@
 import { palette, TYPO } from '@/theme'
 import { Action, NoteResponse, Question } from '@/utils/types'
 import { FontAwesome, FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Platform, Pressable, Text, TouchableOpacity, View } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
-import { ExamStatusView } from '@/utils/enums'
+import { ExamStatus, ExamStatusView } from '@/utils/enums'
 import ExamMyAnswer from '@/containers/MyAnswer/views/ExamMyAnswer'
 import TextbookMyAnswer from '@/containers/MyAnswer/views/TextbookMyAnswer'
 import ExamQuestionAnalysis from '@/containers/QuestionAnalysis/views/ExamQuestionAnalysis'
@@ -62,7 +62,8 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
     chapterId,
     examSessionId,
     studentExamSessionId,
-    isPrint: false
+    isPrint: false,
+    onClose
   })
 
   // const {
@@ -82,11 +83,13 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
   const {
     examStatusView,
     resultData,
+    isLatestSessionUnfinished,
     timelyOrderQuestions,
     longTimeSpend,
     openProblem,
     effectSize,
     handleRestartExam,
+    handleSolveExam,
     textbookResult,
     categoryResponses,
     questionOptions,
@@ -192,6 +195,8 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
     chapterId ?? 0
   )
 
+
+
   const noteItemActions: Action<NoteResponse>[] = [
     {
       label: t('ask_a_question'),
@@ -294,7 +299,7 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
   }
 
   return (
-    <SlideDrawerRoot visible={!!resultData || !!textbookResult}>
+    <SlideDrawerRoot visible={!!resultData || !!textbookResult} onClose={onClose}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={onClose}>
           <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />
@@ -308,8 +313,13 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
             onDismiss={handleCloseActionMenu}
             anchorPosition="bottom"
             anchor={
-              <TouchableOpacity onPress={handleOpenActionMenu} style={{ padding: 0, margin: 0 }}>
-                <MaterialCommunityIcons name="dots-vertical" size={24} color={palette.grey[700]} />
+              <TouchableOpacity
+                onPress={handleOpenActionMenu}
+                hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                style={{ padding: 10, margin: -10, justifyContent: 'center', alignItems: 'center' }}
+                activeOpacity={0.7}
+              >
+                <MaterialCommunityIcons name="dots-vertical" size={26} color={palette.grey[700]} />
               </TouchableOpacity>
             }
             contentStyle={{
@@ -397,6 +407,33 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
                 <Text style={{ fontWeight: '600', color: '#3498db' }}>{t('restart_exam')}</Text>
               </View>
             </TouchableRipple>
+            {isLatestSessionUnfinished && (
+              <TouchableRipple
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  borderColor: '#E0E0E0'
+                }}
+                onPress={() => {
+                  handleCloseActionMenu()
+                  handleSolveExam()
+                }}
+              >
+                <View
+                  style={{
+                    flex: 1,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingVertical: 12,
+                    gap: 12
+                  }}
+                >
+                  <FontAwesome5 name="edit" size={18} color="#3498db" />
+                  <Text style={{ fontWeight: '600', color: '#3498db' }}>{t('solve_undone_questions')}</Text>
+                </View>
+              </TouchableRipple>
+            )}
           </Menu>}
         </View>
       </View>
@@ -415,18 +452,20 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
             )
           })}
         </View>
-        {resultData && <View
-          style={{ flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 8, gap: 10, alignItems: 'center' }}
-        >
-          <Text style={{ color: '#222222', fontSize: 12, fontWeight: 600 }}>{resultData?.subjectName}</Text>
-          <View style={{ height: 12, width: 2, backgroundColor: palette.grey[300] }} />
-          <TextTooltip
-            text={resultData?.title || ''}
-            numberOfLines={1}
-            textStyle={{ color: '#222222', fontSize: 12, fontWeight: '400' }}
-            containerStyle={{ flex: 1 }}
-          />
-        </View>}
+        {resultData && (
+          <View
+            style={{ flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 8, gap: 10, alignItems: 'center' }}
+          >
+            <Text style={{ color: '#222222', fontSize: 12, fontWeight: '600' }}>{resultData?.subjectName}</Text>
+            <View style={{ height: 12, width: 2, backgroundColor: palette.grey[300] }} />
+            <TextTooltip
+              text={resultData?.title || ''}
+              numberOfLines={1}
+              textStyle={{ color: '#222222', fontSize: 12, fontWeight: '400' }}
+              containerStyle={{ flex: 1 }}
+            />
+          </View>
+        )}
         <View style={styles.contentContainer}>{renderBody()}</View>
       </View>
       <View style={{ opacity: 0, position: 'absolute', top: -9999 }} pointerEvents="none">

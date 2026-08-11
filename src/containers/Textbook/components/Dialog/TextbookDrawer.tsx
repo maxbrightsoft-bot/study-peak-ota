@@ -58,7 +58,7 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props
   const bgColor = textbook?.id ? colors[textbook.id % colors.length] : colors[0];
 
   return (
-    <SlideDrawerRoot visible={isOpen}>
+    <SlideDrawerRoot visible={isOpen} onClose={onClose}>
       <View style={styles.wrapper}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose}>

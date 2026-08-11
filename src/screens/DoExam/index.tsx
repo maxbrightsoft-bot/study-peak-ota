@@ -6,7 +6,8 @@ type Props = {
 
 const DoExamScreen = ({ route }: Props) => {
   const examCode = route?.params?.examCode;
-  return <DoExam examCode={examCode}/>
+  const reqTime = route?.params?.reqTime;
+  return <DoExam examCode={examCode} reqTime={reqTime}/>
 }
 
 export default DoExamScreen

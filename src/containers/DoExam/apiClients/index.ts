@@ -8,12 +8,16 @@ export const getQuestionExam = (code?: string) => api.get(`${EXAM_SESSION_URL}/$
 
 export const answerQuestionExam = (examCode: string, body: StudentAnswerRequest) => api.post(`${EXAM_SESSION_URL}/${examCode}/answer`, body);
 
-export const getExamResult = (examCode?: string) => api.get(`${EXAM_SESSION_URL}/${examCode}/results`)
-export const getStudentExamResultPercentages = (examCode: string) => api.get(`${EXAM_SESSION_URL}/${examCode}/results/percentages`)
+export const getStudentExamResultPercentages = (examCode: string, studentExamSessionId?: number | string) =>
+  api.get(`${EXAM_SESSION_URL}/${examCode}/results/percentages`, {
+    params: { studentExamSessionId }
+  })
 
 export const finishExam = (code?: string) => api.post(`${EXAM_SESSION_URL}/${code}/finish`)
-export const getResults = (code: string) =>
-  api.get(`${EXAM_SESSION_URL}/${code}/results`);
+export const getResults = (code: string, studentExamSessionId?: number | string) =>
+  api.get(`${EXAM_SESSION_URL}/${code}/results`, {
+    params: { studentExamSessionId }
+  });
 
 export const getResultsLongTimeSpend = (code: string) => api.get(`${EXAM_SESSION_URL}/${code}/results/longTimeSpend`)
 export const getResultsEffectSize = (code: string) => api.get(`${EXAM_SESSION_URL}/${code}/results/effectSize`)
@@ -31,5 +35,8 @@ export const apiJoinExam = (code: any, auto?: boolean) => api.post(`${EXAM_SESSI
 
 export const pauseAndResumeExamApi = (examCode: string, body: PauseOrResumeExamRequest) => api.post(`${EXAM_SESSION_URL}/${examCode}/student-pause-resume`, body);
 
-export const restartExamApi = (examCode: string) => api.post(`${EXAM_SESSION_URL}/${examCode}/student-restart`);
+export const restartExamApi = (examCode: string, isDelete: boolean = false) =>
+  api.post(`${EXAM_SESSION_URL}/${examCode}/student-restart`, undefined, {
+    params: { isDelete }
+  });
 

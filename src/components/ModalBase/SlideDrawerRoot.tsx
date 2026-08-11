@@ -1,4 +1,3 @@
-
 import useAuthStore from '@/store/useAuthStore'
 import { palette } from '@/theme'
 import React, { useEffect, useRef, useState, useContext } from 'react'
@@ -9,7 +8,8 @@ import {
   Animated,
   TouchableOpacity,
   StyleSheet,
-  Dimensions
+  Dimensions,
+  BackHandler
 } from 'react-native'
 import { Portal } from 'react-native-paper'
 import Loading from '../Loading'
@@ -43,7 +43,15 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
   const [mounted, setMounted] = useState(visible)
 
   useEffect(() => {
-    
+    if (!visible) return
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      onClose?.()
+      return true
+    })
+    return () => subscription.remove()
+  }, [visible, onClose])
+
+  useEffect(() => {
     if (visible) {
       setMounted(true)
     }
@@ -76,7 +84,6 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
   return (
     <Portal>
       <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-        
         <TouchableOpacity
           style={StyleSheet.absoluteFill}
           activeOpacity={1}
@@ -92,7 +99,6 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
           />
         </TouchableOpacity>
 
-        
         <Animated.View
           style={[
             styles.drawer,
