@@ -23,7 +23,8 @@ const ExamResultList = () => {
     toggleExpand,
     handleViewResult,
     selectedExam,
-    onChangeSearch
+    onChangeSearch,
+    loadingList
   } = useExamResultList()
 
   const renderExamCard = (exam: ExamSessionResponse, highlight = false) => (

@@ -122,7 +122,7 @@ const TimeUpdateDialog: FC<TimeUpdateDialogProps> = ({
   }
 
   return (
-    <SlideDrawerRoot visible={open} >
+    <SlideDrawerRoot visible={open} onClose={handleClose}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <Text style={styles.title}>{t("updating_timeline")}</Text>

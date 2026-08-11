@@ -12,10 +12,14 @@ type Props = {
   isOnlyRestart?: boolean
   onTogglePauseResume: (status: ExamStatus) => void
   onOpenConfirmDialog: () => void
+  onSolveItLater?: () => void
+  onEndExam?: () => void
   keys?: {
     pause?: string
     resume?: string
     restart?: string
+    solveItLater?: string
+    endExam?: string
   }
   ariaLabel?: string
 }
@@ -26,6 +30,8 @@ const FloatingActionButton: React.FC<Props> = ({
   status,
   onTogglePauseResume,
   onOpenConfirmDialog,
+  onSolveItLater,
+  onEndExam,
   isOnlyRestart,
   keys,
   ariaLabel = 'more-actions'
@@ -40,6 +46,8 @@ const FloatingActionButton: React.FC<Props> = ({
   const pauseKey = keys?.pause ?? 'pause'
   const resumeKey = keys?.resume ?? 'resume'
   const restartKey = keys?.restart ?? 'restart'
+  const solveItLaterKey = keys?.solveItLater ?? 'solve_it_later'
+  const endExamKey = keys?.endExam ?? 'exam_end'
 
   const toggleMenu = () => {
     if (menuOpen) {
@@ -85,6 +93,16 @@ const FloatingActionButton: React.FC<Props> = ({
     toggleMenu()
   }
 
+  const handleSolveItLater = () => {
+    onSolveItLater?.()
+    toggleMenu()
+  }
+
+  const handleEndExam = () => {
+    onEndExam?.()
+    toggleMenu()
+  }
+
   useFocusEffect(
     useCallback(() => {
       return () =>
@@ -115,6 +133,34 @@ const FloatingActionButton: React.FC<Props> = ({
             }
           ]}
         >
+          {!!onSolveItLater && (
+            <View style={styles.buttonWrapper}>
+              <TouchableOpacity
+                onPress={handleSolveItLater}
+                style={[styles.menuButton, styles.solveItLaterButton]}
+              >
+                <View style={styles.buttonContent}>
+                  <Ionicons name={'bookmark-sharp'} size={20} color={'#FFF'} />
+                  <Text style={styles.buttonLabel}>{t(solveItLaterKey)}</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {!!onEndExam && (
+            <View style={styles.buttonWrapper}>
+              <TouchableOpacity
+                onPress={handleEndExam}
+                style={[styles.menuButton, styles.endExamButton]}
+              >
+                <View style={styles.buttonContent}>
+                  <Ionicons name={'checkmark-circle-sharp'} size={20} color={'#FFF'} />
+                  <Text style={styles.buttonLabel}>{t(endExamKey)}</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          )}
+
           {!isOnlyRestart && (
             <View style={styles.buttonWrapper}>
               <TouchableOpacity
@@ -153,13 +199,18 @@ const FloatingActionButton: React.FC<Props> = ({
           </View>
         </Animated.View>
       )}
-      <Ionicons
-        style={styles.fab}
+      <TouchableOpacity
         onPress={toggleMenu}
-        name={menuOpen ? 'close' : 'ellipsis-vertical'}
-        size={20}
-        color={palette.grey[500]}
-      />
+        hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+        style={styles.fabTouch}
+        activeOpacity={0.7}
+      >
+        <Ionicons
+          name={menuOpen ? 'close' : 'ellipsis-vertical'}
+          size={24}
+          color={palette.grey[500]}
+        />
+      </TouchableOpacity>
     </Pressable>
   )
 }
@@ -186,6 +237,12 @@ const styles = ScaledSheet.create({
     borderRadius: '24@ms',
     alignSelf: 'flex-start'
   },
+  solveItLaterButton: {
+    backgroundColor: '#9C27B0'
+  },
+  endExamButton: {
+    backgroundColor: '#4CAF50'
+  },
   pauseResumeButton: {
     backgroundColor: '#FF9800'
   },
@@ -210,6 +267,12 @@ const styles = ScaledSheet.create({
   },
   fab: {
     alignSelf: 'flex-end',
+  },
+  fabTouch: {
+    padding: '8@ms',
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'flex-end'
   }
 })
 

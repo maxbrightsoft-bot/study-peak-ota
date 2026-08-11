@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, ViewStyle, Dimensions } from 'react-native'
+import { View, Text, ViewStyle, Dimensions } from 'react-native'
 import { WebView } from 'react-native-webview'
 import { ScaledSheet } from 'react-native-size-matters'
 
@@ -14,6 +14,18 @@ interface Props {
 }
 
 const { width: SCREEN_W } = Dimensions.get('window')
+
+const containsMathOrHtml = (str?: string): boolean => {
+  if (!str) return false;
+  return (
+    str.includes('$') ||
+    str.includes('\\') ||
+    str.includes('<') ||
+    str.includes('>') ||
+    str.includes('{') ||
+    str.includes('}')
+  );
+};
 
 const buildHTML = (
   content: string,
@@ -175,6 +187,23 @@ const MathRender = ({
   onClamp,
 }: Props) => {
   const [size, setSize] = useState({ width: 40, height: 20 })
+
+  if (!containsMathOrHtml(content)) {
+    return (
+      <View style={[styles.wrapper, style]}>
+        <Text
+          style={{
+            fontSize,
+            color: textColor,
+            lineHeight: Math.round(fontSize * 1.4)
+          }}
+          numberOfLines={maxLines}
+        >
+          {content}
+        </Text>
+      </View>
+    );
+  }
 
   const handleMessage = (e: any) => {
     try {

@@ -149,9 +149,12 @@ const useExamSolving = (props: Props) => {
         }
         handleNextQuestion(true);
 
-        const errorMessage = error?.response?.data?.title || res?.message;
-        if (errorMessage && typeof errorMessage === "string" && !callback && error?.response?.status !== 409)
-          toast.error(error?.response?.status === 500 ? `${getErrorMessage(t, error)}: ${errorMessage}` : getErrorMessage(t, error));
+        const errorMessage = res?.message || error?.response?.data?.title || error?.response?.data?.message;
+        if (errorMessage && typeof errorMessage === "string" && !callback) {
+          toast.error(errorMessage);
+        } else if (!callback) {
+          toast.error(getErrorMessage(t, error));
+        }
       }
       if (res?.status === 0)
         await removeDataStorage(`${recoverKey}`);
@@ -208,18 +211,33 @@ const useExamSolving = (props: Props) => {
 
     !isStar && handleNextQuestion()
 
+    const mappedQuestions = arrQuestionNew.map((i) => {
+      const isTextAnswer = isTextType(i.questionAnswerType);
+      const hasAnswer = isTextAnswer
+        ? (i.textualAnswers?.length ?? 0) > 0
+        : (i.selectedAnswers?.length ?? 0) > 0;
+      const answerTime = hasAnswer ? (i.answerTime && i.answerTime !== 0 ? i.answerTime : lastAnswerTimeNum) : 0;
+      const duration = hasAnswer ? Math.max(1, i.duration || 0) : (i.duration || 0);
+
+      return {
+        questionId: i.id,
+        ...(isTextAnswer
+          ? { textualAnswers: i.textualAnswers || [] }
+          : { selectedAnswers: i.selectedAnswers || [] }),
+        duration,
+        isStar: !!i.isStar,
+        answerTime,
+        ...(i.unit ? { unit: i.unit } : {})
+      };
+    });
+
+    const sumQuestionDuration = mappedQuestions.reduce((acc, q) => acc + (q.duration || 0), 0);
+    const finalRunningTime = Math.max(runningTime || 0, sumQuestionDuration);
+
     const body: StudentAnswerRequest = {
       lastAnswerTime: lastAnswerTimeNum,
-      runningTime: runningTime,
-      questions: arrQuestionNew.map((i) => ({
-        questionId: i.id,
-        selectedAnswers: i.selectedAnswers,
-        duration: i.duration,
-        isStar: i.isStar,
-        answerTime: i.answerTime,
-        textualAnswers: i.textualAnswers,
-        unit: i.unit
-      })),
+      runningTime: finalRunningTime,
+      questions: mappedQuestions,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
     };
     const prevApiCall = apiTimeouts.current[rollbackKey];
@@ -260,19 +278,21 @@ const useExamSolving = (props: Props) => {
 
     if (!exam) return;
     const examStatus = exam.isLate ? exam.lateStatus : exam.status
-    if (examStatus !== ExamStatus.InProgress) return
+    if (examStatus !== ExamStatus.InProgress) return;
 
-    const totalRunningTime = moment(now).diff(moment.utc(!exam.isLate ? exam.startTime : exam.startTimeSession).local(), "milliseconds") - exam.totalPausedTime
+    const calculatedRunningTime = moment(now).diff(
+      moment.utc(!exam.isLate ? exam.startTime : exam.startTimeSession).local(),
+      "milliseconds"
+    ) - (exam.totalPausedTime || 0);
+
+    const totalRunningTime = Math.max(
+      exam.runningTime || 0,
+      runningTimeRef.current || 0,
+      calculatedRunningTime || 0
+    );
 
     const listQuestionNews = _.cloneDeep(questionList);
     const arrQuestionNew = listQuestionNews.map((item: Question) => {
-      const isTextAnswerType = isTextType(item.questionAnswerType)
-      if (item.textualAnswers !== undefined && !isTextAnswerType) {
-        delete item.textualAnswers
-      }
-      if (item.selectedAnswers !== undefined && isTextAnswerType) {
-        delete item.selectedAnswers
-      }
       if (item.id === questionId) {
         switch (item.questionAnswerType) {
           case QuestionAnswerType.SingleChoice:
@@ -293,12 +313,18 @@ const useExamSolving = (props: Props) => {
         }
 
         const diff = getDiffTime(exam, now, totalRunningTime)
-        item.duration = (item.duration || 0) + diff;
+        const isTextAnswerType = isTextType(item.questionAnswerType);
+        const hasAnswer = isTextAnswerType
+          ? (item.textualAnswers?.length ?? 0) > 0
+          : (item.selectedAnswers?.length ?? 0) > 0;
 
-        item.answerTime =
-          item.answerTime && item.answerTime !== 0
-            ? item.answerTime
-            : nowTime;
+        if (hasAnswer) {
+          item.answerTime = item.answerTime && item.answerTime !== 0 ? item.answerTime : nowTime;
+          item.duration = Math.max(1, (item.duration || 0) + diff);
+        } else {
+          item.answerTime = 0;
+          item.duration = (item.duration || 0) + diff;
+        }
       }
       return item;
     });
@@ -333,18 +359,32 @@ const useExamSolving = (props: Props) => {
         status: exam?.isLate ? exam?.lateStatus : exam?.status,
         studentExamSessionId: String(exam?.studentExamSessionId || ''),
       })
+      const mappedQuestionsCatch = arrQuestionNew.map((i) => {
+        const isTextAnswer = isTextType(i.questionAnswerType);
+        const hasAnswer = isTextAnswer
+          ? (i.textualAnswers?.length ?? 0) > 0
+          : (i.selectedAnswers?.length ?? 0) > 0;
+        const answerTime = hasAnswer ? (i.answerTime && i.answerTime !== 0 ? i.answerTime : nowTime) : 0;
+        const duration = hasAnswer ? Math.max(1, i.duration || 0) : (i.duration || 0);
+
+        return {
+          questionId: i.id,
+          ...(isTextAnswer
+            ? { textualAnswers: i.textualAnswers || [] }
+            : { selectedAnswers: i.selectedAnswers || [] }),
+          duration,
+          isStar: !!i.isStar,
+          answerTime,
+          ...(i.unit ? { unit: i.unit } : {})
+        };
+      });
+
+      const sumDurationCatch = mappedQuestionsCatch.reduce((acc, q) => acc + (q.duration || 0), 0);
+
       const body: StudentAnswerRequest = {
         lastAnswerTime: nowTime,
-        runningTime: totalRunningTime,
-        questions: arrQuestionNew.map((i) => ({
-          questionId: i.id,
-          selectedAnswers: i.selectedAnswers,
-          duration: i.duration,
-          isStar: i.isStar,
-          answerTime: i.answerTime,
-          textualAnswers: i.textualAnswers,
-          unit: i.unit
-        }))
+        runningTime: Math.max(totalRunningTime || 0, sumDurationCatch),
+        questions: mappedQuestionsCatch
       };
       trackError(error, {
         resourceType: ActivityResource.Question,

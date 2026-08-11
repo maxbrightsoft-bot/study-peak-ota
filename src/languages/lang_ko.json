@@ -2280,5 +2280,20 @@
   "force_web_title": "업데이트 실패",
   "force_web_subtitle": "새 버전으로 자동 업데이트할 수 없습니다. 대신 웹 버전을 사용하여 학습을 계속하십시오.",
   "force_web_button": "웹 앱 열기",
-  "invalid_code_format": "잘못된 코드 형식입니다"
+  "invalid_code_format": "잘못된 코드 형식입니다",
+  "solve_it_later": "나중에 다시 풀기",
+  "unsolved_questions_exit_warning": "안 푼 문제가 남아있습니다. 나가시겠습니까?",
+  "exit_anyway": "그냥 나가기",
+  "incomplete": "미완료",
+  "not_taken": "미응시",
+  "done": "완료",
+  "take_exam": "시험 보기",
+  "continue_exam": "이어풀기",
+  "exam_history": "시험 내역",
+  "completed_exam": "완료된 시험",
+  "not_joined_exam": "미참여 시험",
+  "incomplete_exam": "미완료 시험",
+  "exam_results": "시험 결과",
+  "join_exam": "시험 참여",
+  "solve_undone_questions": "시험 이어 풀기"
 }

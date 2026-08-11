@@ -17,6 +17,7 @@ const useExamResultList = ({ onClose, open }: { onClose: () => void, open: boole
   const { setLoading, isDemoMode } = useAuthStore()
   const { t } = useTranslation();
   const [listExam, setListExam] = useState<CourseExamSession[]>([]);
+  const [listCourses, setListCourses] = useState<any[]>([]);
   const [search, setSearch] = useState<string>("");
   const inputSearch = useRef<any>(null);
   const [selectedExam, setSelectedExam] = useState<CourseExamSession>();
@@ -80,7 +81,18 @@ const useExamResultList = ({ onClose, open }: { onClose: () => void, open: boole
     setLoading(true)
     try {
       const res = await getListExamApi({ ...filter, textSearch });
-      const result = res?.data?.items.flatMap((item: any) =>
+      const rawCourses = res?.data?.items || [];
+      const isAsc = filter.sortColumnDirection === OrderBy.ASC;
+      const sortedCourses = [...rawCourses].sort((a: any, b: any) => {
+        const aTimes = (a.examSessions || []).map((s: any) => (s.startTime ? moment(s.startTime).valueOf() : 0));
+        const bTimes = (b.examSessions || []).map((s: any) => (s.startTime ? moment(s.startTime).valueOf() : 0));
+        const aTime = aTimes.length ? Math.max(...aTimes) : 0;
+        const bTime = bTimes.length ? Math.max(...bTimes) : 0;
+        return isAsc ? aTime - bTime : bTime - aTime;
+      });
+      setListCourses(sortedCourses);
+
+      const result = rawCourses.flatMap((item: any) =>
         item.examSessions.map((session: CourseExamSession) => ({
           ...session,
           courseId: item.id,
@@ -134,6 +146,7 @@ const useExamResultList = ({ onClose, open }: { onClose: () => void, open: boole
   return {
     t,
     listExam,
+    listCourses,
     handleJoinExam,
     search,
     filter,

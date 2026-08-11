@@ -41,8 +41,9 @@ const NoteDrawer: FC<Props> = (props) => {
         setNoteData(res.data)
       } catch (error) {
         toast.error(getErrorMessage(t, error))
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
     getNoteById()
   }, [id, t])
@@ -166,7 +167,7 @@ const NoteDrawer: FC<Props> = (props) => {
   })
 
   return (
-    <SlideDrawer visible={open}>
+    <SlideDrawer visible={open} onClose={onClose}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={onClose}>
           <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />

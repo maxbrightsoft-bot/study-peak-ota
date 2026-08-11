@@ -82,7 +82,7 @@ const NoticeDrawer = ({ t, open, onClose, notification }: Props) => {
     )
   }
 
-  return <SlideDrawer visible={open}>{renderBodyModal()}</SlideDrawer>
+  return <SlideDrawer visible={open} onClose={onClose}>{renderBodyModal()}</SlideDrawer>
 }
 
 export default NoticeDrawer

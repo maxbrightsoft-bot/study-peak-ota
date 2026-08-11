@@ -135,9 +135,12 @@ const useTextbookSolving = (props: Props) => {
         }
         handleNextQuestion(true);
 
-        const errorMessage = error?.response?.data?.title || res?.message;
-        if (errorMessage && typeof errorMessage === "string" && !callback)
-          toast.error(error?.response?.status === 500 ? `${getErrorMessage(t, error)}: ${errorMessage}` : getErrorMessage(t, error));
+        const errorMessage = res?.message || error?.response?.data?.title || error?.response?.data?.message;
+        if (errorMessage && typeof errorMessage === "string" && !callback) {
+          toast.error(errorMessage);
+        } else if (!callback) {
+          toast.error(getErrorMessage(t, error));
+        }
       }
       if (res?.status === 0)
         await removeDataStorage(`${recoverKey}`);
@@ -189,15 +192,25 @@ const useTextbookSolving = (props: Props) => {
 
     const body: StudentTextbookAnswerRequest = {
       lastAnswerTime: lastAnswerTimeNum,
-      questions: arrQuestionNew.map((i) => ({
-        questionId: i.id,
-        selectedAnswers: i.selectedAnswers,
-        textualAnswers: i.textualAnswers,
-        duration: i.duration,
-        isStar: i.isStar,
-        answerTime: i.answerTime,
-        unit: i.unit
-      })),
+      questions: arrQuestionNew.map((i) => {
+        const isTextAnswer = isTextType(i.questionAnswerType);
+        const hasAnswer = isTextAnswer
+          ? (i.textualAnswers?.length ?? 0) > 0
+          : (i.selectedAnswers?.length ?? 0) > 0;
+        const answerTime = hasAnswer ? (i.answerTime && i.answerTime !== 0 ? i.answerTime : lastAnswerTimeNum) : 0;
+        const duration = hasAnswer ? Math.max(1000, i.duration || 0) : (i.duration || 0);
+
+        return {
+          questionId: i.id,
+          ...(isTextAnswer
+            ? { textualAnswers: i.textualAnswers || [] }
+            : { selectedAnswers: i.selectedAnswers || [] }),
+          duration,
+          isStar: !!i.isStar,
+          answerTime,
+          ...(i.unit ? { unit: i.unit } : {})
+        };
+      }),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
     };
     const prevApiCall = apiTimeouts.current[rollbackKey];
@@ -240,13 +253,6 @@ const useTextbookSolving = (props: Props) => {
 
     const listQuestionNews = _.cloneDeep(questionList);
     const arrQuestionNew = listQuestionNews.map((item: PreparedQuestionResponse) => {
-      const isTextAnswerType = isTextType(item.questionAnswerType)
-      if (item.textualAnswers !== undefined && !isTextAnswerType) {
-        delete item.textualAnswers
-      }
-      if (item.selectedAnswers !== undefined && isTextAnswerType) {
-        delete item.selectedAnswers
-      }
       if (item.id === questionId) {
         switch (item.questionAnswerType) {
           case QuestionAnswerType.SingleChoice:
@@ -267,11 +273,18 @@ const useTextbookSolving = (props: Props) => {
         }
 
         const diff = getDiffTime(now, nowTime);
-        item.duration = (item.duration || 0) + +diff;
-        item.answerTime =
-          item.answerTime && item.answerTime !== 0
-            ? item.answerTime
-            : nowTime;
+        const isTextAnswerType = isTextType(item.questionAnswerType);
+        const hasAnswer = isTextAnswerType
+          ? (item.textualAnswers?.length ?? 0) > 0
+          : (item.selectedAnswers?.length ?? 0) > 0;
+
+        if (hasAnswer) {
+          item.answerTime = item.answerTime && item.answerTime !== 0 ? item.answerTime : nowTime;
+          item.duration = Math.max(1000, (item.duration || 0) + +diff);
+        } else {
+          item.answerTime = 0;
+          item.duration = (item.duration || 0) + +diff;
+        }
       }
       return item;
     });
@@ -304,15 +317,25 @@ const useTextbookSolving = (props: Props) => {
       })
       const body: StudentTextbookAnswerRequest = {
         lastAnswerTime: nowTime,
-        questions: arrQuestionNew.map((i) => ({
-          questionId: i.id,
-          selectedAnswers: i.selectedAnswers,
-          textualAnswers: i.textualAnswers,
-          duration: i.duration,
-          isStar: i.isStar,
-          answerTime: i.answerTime,
-          unit: i.unit
-        }))
+        questions: arrQuestionNew.map((i) => {
+          const isTextAnswer = isTextType(i.questionAnswerType);
+          const hasAnswer = isTextAnswer
+            ? (i.textualAnswers?.length ?? 0) > 0
+            : (i.selectedAnswers?.length ?? 0) > 0;
+          const answerTime = hasAnswer ? (i.answerTime && i.answerTime !== 0 ? i.answerTime : nowTime) : 0;
+          const duration = hasAnswer ? Math.max(1000, i.duration || 0) : (i.duration || 0);
+
+          return {
+            questionId: i.id,
+            ...(isTextAnswer
+              ? { textualAnswers: i.textualAnswers || [] }
+              : { selectedAnswers: i.selectedAnswers || [] }),
+            duration,
+            isStar: !!i.isStar,
+            answerTime,
+            ...(i.unit ? { unit: i.unit } : {})
+          };
+        })
       };
       trackError(error, {
         resourceId: String(questionId),
@@ -339,21 +362,10 @@ const useTextbookSolving = (props: Props) => {
     const { now, nowTime } = getServerTimeFormatted();
     const listQuestionNews = _.cloneDeep(questionList);
     const arrQuestionNew = listQuestionNews.map((item: PreparedQuestionResponse) => {
-      const isTextAnswerType = isTextType(item.questionAnswerType)
-      if (item.textualAnswers !== undefined && !isTextAnswerType) {
-        delete item.textualAnswers
-      }
-      if (item.selectedAnswers !== undefined && isTextAnswerType) {
-        delete item.selectedAnswers
-      }
       if (item.id === questionId) {
         item.isStar = isStar;
         const diff = getDiffTime(now, nowTime);
         item.duration = (item.duration || 0) + +diff;
-        item.answerTime =
-          item.answerTime && item.answerTime !== 0
-            ? item.answerTime
-            : nowTime;
       }
       return item;
     });

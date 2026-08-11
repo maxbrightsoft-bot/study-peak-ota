@@ -38,6 +38,7 @@ export const hiddenTabBar = [
     Routes.Auth.SelectAcademy,
     Routes.Auth.DoExam,
     Routes.Auth.DoTextbook,
+    Routes.Auth.ExamResult,
     Routes.AcademyInvitation,
     Routes.AcademyRequest,
 ]
@@ -46,6 +47,7 @@ export const noLayoutScreens = [
     Routes.Auth.DoExam,
     Routes.Auth.DoTextbook,
     Routes.Auth.Textbook,
+    Routes.Auth.ExamResult,
     Routes.Auth.ExamResultList,
     Routes.Auth.Question,
     Routes.Auth.StudyPerformance,

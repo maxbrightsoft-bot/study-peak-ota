@@ -46,7 +46,7 @@ const CalendarSchedule = ({ isVisible, onClose }: Props) => {
   } = useSchedule()
 
   return (
-    <SlideDrawerRoot visible={isVisible}>
+    <SlideDrawerRoot visible={isVisible} onClose={onClose}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={onClose}>
           <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />

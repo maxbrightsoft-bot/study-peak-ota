@@ -54,7 +54,8 @@ const findTargetQuestionForPageRange = (
   pageNum: number,
   questions: PreparedQuestionResponse[],
   groupList: PreparedQuestionGroupResponse[],
-  textbook?: SimplePreparedTextbookResponse
+  textbook?: SimplePreparedTextbookResponse,
+  isRestart?: boolean
 ): number | undefined => {
   if (!pageNum || pageNum <= 0 || !questions.length) return undefined;
 
@@ -108,6 +109,10 @@ const findTargetQuestionForPageRange = (
   });
 
   if (rangeQuestions.length > 0) {
+    if (isRestart) {
+      return rangeQuestions[0].id;
+    }
+
     const answeredPages = rangeQuestions
       .filter(isQuestionAnswered)
       .map((q: any) => q.pageFrom || q.chapterPageFrom || q.parentChapterPageFrom || 0);
@@ -134,8 +139,31 @@ const findTargetQuestionForPageRange = (
     }
   }
 
-  const fallbackQ = questions.find((q: any) => (q.pageFrom || q.chapterPageFrom || q.parentChapterPageFrom) === pageNum);
-  return fallbackQ ? fallbackQ.id : questions[0]?.id;
+  const questionsBefore = questions
+    .filter((q: any) => (q.pageFrom || q.chapterPageFrom || q.parentChapterPageFrom || 0) <= pageNum)
+    .sort((a: any, b: any) => {
+      const pA = a.pageFrom || a.chapterPageFrom || a.parentChapterPageFrom || 0;
+      const pB = b.pageFrom || b.chapterPageFrom || b.parentChapterPageFrom || 0;
+      return pB - pA;
+    });
+
+  if (questionsBefore.length > 0) {
+    return questionsBefore[0].id;
+  }
+
+  const questionsAfter = questions
+    .filter((q: any) => (q.pageFrom || q.chapterPageFrom || q.parentChapterPageFrom || 0) >= pageNum)
+    .sort((a: any, b: any) => {
+      const pA = a.pageFrom || a.chapterPageFrom || a.parentChapterPageFrom || 0;
+      const pB = b.pageFrom || b.chapterPageFrom || b.parentChapterPageFrom || 0;
+      return pA - pB;
+    });
+
+  if (questionsAfter.length > 0) {
+    return questionsAfter[0].id;
+  }
+
+  return questions[0]?.id;
 };
 
 const useTextbook = ({
@@ -146,7 +174,7 @@ const useTextbook = ({
   restart
 }: Props = {}) => {
   const { t } = useTranslation();
-  const { setLoading, alarm, setLoadingWithoutOverlay } = useAuthStore();
+  const { setLoading, alarm, setLoadingWithoutOverlay, isLoadingWithoutOverlay } = useAuthStore();
   const firstLoadRef = useRef<boolean>(true);
   const [textbook, setTextbook] = useState<SimplePreparedTextbookResponse>();
   const [questionGroupList, setQuestionGroupList] = useState<
@@ -158,6 +186,7 @@ const useTextbook = ({
   const navigation = useNavigation();
   const scrollViewRef = useRef<FlatList>(null)
   const questionRefs = useRef<Array<View | null>>([])
+  const isJustRestartedRef = useRef<boolean>(false)
   const [isNotFoundTextbook, setNotFoundTextbook] = useState<boolean>();
   const [currentSlide, setCurrentSlide] = useState<number>(0);
   const [startTime, setStartTime] = useState<moment.Moment>();
@@ -318,8 +347,14 @@ const useTextbook = ({
     [questionList, currentQuestionId]
   )
 
-  const onScrollToIndex = useCallback((index: number, retries = 5) => {
+  const onScrollToIndex = useCallback((index: number) => {
     if (!questionList || !questionList[index]) return;
+
+    if (index === 0) {
+      scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
+      return;
+    }
+
     const targetQ = questionList[index];
     const groupIndex = questionGroupList.findIndex(g => g.id === targetQ.questionGroupId);
 
@@ -327,11 +362,13 @@ const useTextbook = ({
       try {
         scrollViewRef.current.scrollToIndex({
           index: groupIndex,
-          animated: false,
+          animated: true,
           viewPosition: 0
         });
-      } catch (e) {
-        // scrollToIndex fallback
+        isJustRestartedRef.current = false;
+      } catch (e: any) {
+        scrollViewRef.current?.scrollToOffset({ offset: groupIndex * 400, animated: true });
+        isJustRestartedRef.current = false;
       }
     }
 
@@ -364,16 +401,9 @@ const useTextbook = ({
       return false;
     };
 
-    const tryMeasureProgressive = (attemptsLeft: number) => {
-      if (tryMeasure()) return;
-      if (attemptsLeft > 0) {
-        setTimeout(() => {
-          tryMeasureProgressive(attemptsLeft - 1);
-        }, 150);
-      }
-    };
-
-    tryMeasureProgressive(retries);
+    setTimeout(() => {
+      tryMeasure();
+    }, 100);
   }, [questionList, questionGroupList]);
 
   useEffect(() => {
@@ -382,16 +412,14 @@ const useTextbook = ({
     const index = questionList.findIndex(q => q.id === currentQuestionId);
     if (index === -1) return;
 
-    const timer1 = setTimeout(() => onScrollToIndex(index, 5), 100);
-    const timer2 = setTimeout(() => onScrollToIndex(index, 3), 400);
+    const timer = setTimeout(() => onScrollToIndex(index), 50);
 
     return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
+      clearTimeout(timer);
     };
   }, [currentQuestionId, questionList, questionGroupList, onScrollToIndex]);
 
-  const getQuestionsTextbook = async (showErrorMessage: boolean = false) => {
+  const getQuestionsTextbook = async (showErrorMessage: boolean = false, overrideStartPage?: number) => {
     if (!textbookId) return;
 
     setNotFoundTextbook(false);
@@ -443,13 +471,21 @@ const useTextbook = ({
       setQuestionGroupList(data?.questionGroups || []);
       setQuestionList(questions);
 
-      if (page) {
-        const pageNum = Number(page);
-        if (pageNum > 0) {
-          const targetId = findTargetQuestionForPageRange(pageNum, questions, data?.questionGroups || []);
-          if (targetId) {
-            setCurrentQuestionId(targetId);
-          }
+      const targetStartPage = overrideStartPage || restartTextbookData?.startPage;
+      const isRestarting = isJustRestartedRef.current || !!targetStartPage;
+      const targetPageNum = targetStartPage || (isRestarting ? 1 : (page ? Number(page) : 0));
+      if (targetPageNum > 0) {
+        const targetId = findTargetQuestionForPageRange(
+          targetPageNum,
+          questions,
+          data?.questionGroups || [],
+          responseTextbook,
+          isRestarting
+        );
+        if (targetId) {
+          setCurrentQuestionId(targetId);
+        } else if (questions.length > 0) {
+          setCurrentQuestionId(questions[0].id);
         }
       } else if (questions.length > 0) {
         setCurrentQuestionId(questions[0].id);
@@ -470,7 +506,7 @@ const useTextbook = ({
     }
 
     setLoadingWithoutOverlay(false);
-    if (!page) {
+    if (!page && !restartTextbookData?.startPage) {
       scrollViewRef.current?.scrollToOffset({
         offset: 0,
         animated: true
@@ -686,16 +722,20 @@ const useTextbook = ({
   const handleRestartTextbook = async () => {
     if (!textbook || !textbookId) return;
 
-    setLoadingWithoutOverlay(true);
+    handleCloseConfirmDialog();
+    handleCloseRestartTextbookDialog();
+    
+    isJustRestartedRef.current = true;
     const nowTime = getServerNow();
     try {
       const latestRes = await getTextbookByIdApi(Number(textbookId));
       const latestData = latestRes?.data?.data;
       const freshRowVersion = latestData?.rowVersion || textbook.rowVersion;
 
+      const startPageTarget = restartTextbookData?.startPage;
       const req: RestartTextbookRequest = {
         rowVersion: freshRowVersion,
-        startPage: restartTextbookData?.startPage,
+        startPage: startPageTarget,
         endPage: restartTextbookData?.endPage
       };
 
@@ -708,12 +748,14 @@ const useTextbook = ({
           status: textbook?.status,
           studentTextbookId: textbook?.studentTextbookId
         }
-      })
+      });
 
       await handleClearStorage();
       handleResetTextbookSolving();
       await restartTextbookApi(Number(textbook.id), req);
-      getQuestionsTextbook();
+      clearData(true);
+      isJustRestartedRef.current = true;
+      await getQuestionsTextbook(false, startPageTarget);
       toast.info(t("textbook_has_been_restarted"));
     } catch (error) {
       toast.error(getErrorMessage(t, error));
@@ -728,11 +770,15 @@ const useTextbook = ({
         }
       });
     }
-    setLoadingWithoutOverlay(false);
-    handleCloseConfirmDialog();
   };
 
-  const clearData = () => {
+  const clearData = (keepLoading: boolean = false) => {
+    if (!keepLoading) {
+      setLoading(false);
+      setLoadingWithoutOverlay(false);
+    }
+    isJustRestartedRef.current = false;
+    setRestartTextbookData({});
     handleResetTextbookSolving();
     triggerOfflineSync();
     setTextbook(undefined);
@@ -758,6 +804,7 @@ const useTextbook = ({
   useFocusEffect(
     useCallback(() => {
       if (!textbookId) return;
+      isJustRestartedRef.current = false;
       const nowTime = getServerNow();
 
       getQuestionsTextbook();
@@ -778,7 +825,7 @@ const useTextbook = ({
   );
 
   useEffect(() => {
-    if (!page || questionGroupList.length === 0) return;
+    if (!page || questionGroupList.length === 0 || isJustRestartedRef.current || !!restartTextbookData?.startPage) return;
     const pageNumber = +page;
     if (Number.isNaN(pageNumber) || pageNumber <= 0) return;
 
@@ -895,6 +942,8 @@ const useTextbook = ({
   const navigateToPageRange = useCallback(
     (pageNum: number) => {
       if (!pageNum || pageNum <= 0 || !questionList.length) return;
+      isJustRestartedRef.current = false;
+      setRestartTextbookData({});
       const targetId = findTargetQuestionForPageRange(pageNum, questionList, questionGroupList, textbook);
       if (targetId) {
         setCurrentQuestionId(targetId);
@@ -909,6 +958,7 @@ const useTextbook = ({
 
   return {
     t,
+    isLoadingWithoutOverlay,
     currentQuestionId,
     questionRefs,
     scrollViewRef,

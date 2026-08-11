@@ -123,6 +123,10 @@ const RootNavigation: React.FC = () => {
         <NavigationContainer
           linking={linking}
           onReady={() => RNBootSplash.hide()}
+          onStateChange={() => {
+            useAuthStore.getState().setLoading(false)
+            useAuthStore.getState().setLoadingWithoutOverlay(false)
+          }}
           ref={(navigatorRef) => {
             if (navigatorRef) {
               NavigationHelpers.setTopLevelNavigator(navigatorRef)

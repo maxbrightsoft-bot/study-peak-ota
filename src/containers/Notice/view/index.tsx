@@ -92,7 +92,7 @@ const Notice = ({ open, onClose }: Props) => {
         </View>
         <FlatList
           data={notifications}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item, index) => `${item.id}_${index}`}
           renderItem={renderItem}
           contentContainerStyle={styles.listContainer}
           ListEmptyComponent={renderEmptyComponent}

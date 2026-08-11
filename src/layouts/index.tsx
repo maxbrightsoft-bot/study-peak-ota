@@ -8,17 +8,37 @@ import { ScaledSheet } from 'react-native-size-matters'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Watermark from '@/components/Watermark'
 
+import { useNavigationState } from '@react-navigation/native'
+
 interface Props {
   children?: React.ReactNode
   headerProps: any
 }
 
 const LayoutApp = ({ children, headerProps }: Props) => {
-  const isNoLayout = noLayoutScreens.includes(currentScreen())
+  const currentRouteName = useNavigationState((state) => {
+    if (!state) return undefined
+    let route = state.routes[state.index]
+    while (route?.state) {
+      route = route.state.routes[route.state.index]
+    }
+    return route?.name
+  })
+
+  const isNoLayout = noLayoutScreens.includes(currentRouteName || currentScreen())
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={palette.main[600]} />
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: isNoLayout ? '#FFF' : palette.main[600] }
+      ]}
+      edges={['top']}
+    >
+      <StatusBar
+        barStyle={isNoLayout ? 'dark-content' : 'light-content'}
+        backgroundColor={isNoLayout ? '#FFF' : palette.main[600]}
+      />
       {!isNoLayout && <Header headerProps={headerProps} />}
       {children}
       <Watermark />
@@ -31,7 +51,7 @@ export default LayoutApp
 const styles = ScaledSheet.create({
   container: {
     flex: 1,
-    backgroundColor: palette.main[600],
+    backgroundColor: '#FFF',
     position: 'relative',
   }
 })

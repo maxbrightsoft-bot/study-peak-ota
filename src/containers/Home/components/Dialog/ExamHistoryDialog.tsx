@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { FlatList, Text, TouchableOpacity, View, ScrollView } from 'react-native'
+import React, { useState, useMemo } from 'react'
+import { SectionList, Text, TouchableOpacity, View, ScrollView } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -11,6 +11,8 @@ import ExamResult from '@/containers/ExamResult/views'
 import SortIcon from '@/assets/iconJSX/sort'
 import { CourseExamSession } from '../../configs/type'
 import TextTooltip from '@/components/Tooltip/TextTooltip'
+import _ from 'lodash'
+import moment from 'moment'
 
 interface Props {
   open: boolean
@@ -27,15 +29,16 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'done', label: 'done' }
 ]
 
-const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  incomplete: { label: '미완료', color: '#FEAF06' },
-  not_taken: { label: '미응시', color: '#DB4D4D' },
-  done: { label: '완료', color: '#3DC674' }
+const STATUS_CONFIG: Record<string, { labelKey: string; color: string }> = {
+  incomplete: { labelKey: 'incomplete_exam', color: '#FEAF06' },
+  not_taken: { labelKey: 'not_joined_exam', color: '#DB4D4D' },
+  done: { labelKey: 'completed_exam', color: '#3DC674' }
 }
 
 const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
   const {
     listExam,
+    listCourses,
     handleJoinExam,
     scrollViewRef,
     filter,
@@ -49,39 +52,86 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
 
   const getStatus = (item: CourseExamSession): 'incomplete' | 'not_taken' | 'done' => {
     if (item.isCompleted) return 'done'
-    if (item.isNotTaken) return 'not_taken'
-    return 'incomplete'
+    const isJoined = !!item.studentExamSessionId || item.isImComplete
+    if (isJoined && !item.isNotTaken) return 'incomplete'
+    return 'not_taken'
   }
 
-  const filteredList = listExam.filter((item) => {
-    if (activeTab === 'all') return true
-    return getStatus(item) === activeTab
-  })
+  const sections = useMemo(() => {
+    const isAsc = filter.sortColumnDirection === OrderBy.ASC
+
+    const processed = (listCourses || [])
+      .map((course: any) => {
+        const examSessions: CourseExamSession[] = (course.examSessions || []).map((s: any) => ({
+          ...s,
+          courseId: course.id,
+          courseName: course.name
+        }))
+
+        const filteredSessions = examSessions.filter((item) => {
+          if (activeTab === 'all') return true
+          return getStatus(item) === activeTab
+        })
+
+        const sortedSessions = _.orderBy(
+          filteredSessions,
+          [(session) => (session.startTime ? moment(session.startTime).valueOf() : 0)],
+          [isAsc ? 'asc' : 'desc']
+        )
+
+        const latestTime = sortedSessions.reduce((acc, session) => {
+          const t = session.startTime ? moment(session.startTime).valueOf() : 0
+          return isAsc ? Math.min(acc, t) : Math.max(acc, t)
+        }, isAsc ? Infinity : 0)
+
+        return {
+          title: course.name,
+          courseId: course.id,
+          data: sortedSessions,
+          sectionTime: latestTime === Infinity ? 0 : latestTime
+        }
+      })
+      .filter((section: any) => section.data.length > 0)
+
+    return _.orderBy(
+      processed,
+      ['sectionTime'],
+      [isAsc ? 'asc' : 'desc']
+    )
+  }, [listCourses, activeTab, filter.sortColumnDirection])
 
   const renderExamCard = ({ item }: { item: CourseExamSession }) => {
     const status = getStatus(item)
     const statusCfg = STATUS_CONFIG[status]
     const isDone = status === 'done'
+    const isIncomplete = status === 'incomplete'
 
     const dateStr = utcToLocalTime(
       item.startTime,
       t('day_month_format')
     )
 
+    const getButtonText = () => {
+      if (isDone) return t('exam_results')
+      if (isIncomplete) return t('solve_undone_questions')
+      return t('join_exam')
+    }
+
+    const handleButtonClick = () => {
+      if (isDone) {
+        handleOpenResultDialog(item)
+      } else {
+        handleJoinExam(item)
+      }
+    }
+
     return (
       <View style={styles.examCard}>
         <View style={styles.cardTopRow}>
           <View style={[styles.statusBadge]}>
-            <Text style={[styles.statusText, { color: statusCfg.color }]}>{t(statusCfg.label)}</Text>
+            <Text style={[styles.statusText, { color: statusCfg.color }]}>{t(statusCfg.labelKey)}</Text>
           </View>
           <Text style={styles.examCode}>{item?.examCode || ''}</Text>
-
-          {isDone && (
-            <TouchableOpacity style={styles.resultLink} onPress={() => handleOpenResultDialog(item)}>
-              <Text style={styles.resultLinkText}>{t('view_result')}</Text>
-              <Ionicons name="chevron-forward" size={13} color={palette.grey[500]} />
-            </TouchableOpacity>
-          )}
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' }}>
           <Text numberOfLines={1} style={[styles.examTitle, { flexShrink: 1 }]}>
@@ -111,20 +161,24 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
         </View>
         <Text style={styles.examMeta}>{item?.teacherName || ''}</Text>
 
-        {!isDone && (
-          <View style={styles.cardFooter}>
-            <TouchableOpacity style={styles.applyButton} activeOpacity={0.85} onPress={() => handleJoinExam(item)}>
-              <Text style={styles.applyButtonText}>{t('take_exam')}</Text>
-              <Ionicons name="chevron-forward" size={16} color={'#FFF'} />
-            </TouchableOpacity>
-          </View>
-        )}
+        <View style={styles.cardFooter}>
+          <TouchableOpacity
+            style={[styles.applyButton, isDone && styles.resultButton]}
+            activeOpacity={0.85}
+            onPress={handleButtonClick}
+          >
+            <Text style={[styles.applyButtonText, isDone && styles.resultButtonText]}>
+              {getButtonText()}
+            </Text>
+            <Ionicons name="chevron-forward" size={16} color={isDone ? palette.main[600] : '#FFF'} />
+          </TouchableOpacity>
+        </View>
       </View>
     )
   }
 
   return (
-    <SlideDrawerRoot visible={open}>
+    <SlideDrawerRoot visible={open} onClose={onClose}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={onClose}>
           <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />
@@ -161,13 +215,20 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
           </View>
 
           <View style={styles.content}>
-            <FlatList
-              data={filteredList}
-              ref={scrollViewRef}
-              renderItem={renderExamCard}
-              keyExtractor={(item, index) => `exam_${index}`}
+            <SectionList
+              sections={sections}
+              ref={scrollViewRef as any}
+              renderSectionHeader={({ section: { title } }) => (
+                <View style={styles.classHeader}>
+                  <Ionicons name="school" size={16} color={palette.main[600]} />
+                  <Text style={styles.classTitle}>{title}</Text>
+                </View>
+              )}
+              renderItem={({ item }) => renderExamCard({ item })}
+              keyExtractor={(item, index) => `exam_${item.id || index}`}
               contentContainerStyle={styles.scrollContainer}
               showsVerticalScrollIndicator={false}
+              stickySectionHeadersEnabled={false}
             />
           </View>
         </View>
@@ -214,6 +275,19 @@ const styles = ScaledSheet.create({
     fontSize: '17@ms',
     fontWeight: '700',
     color: '#111'
+  },
+  classHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: '8@ms',
+    marginTop: '14@ms',
+    marginBottom: '8@ms',
+    paddingHorizontal: '2@ms'
+  },
+  classTitle: {
+    fontSize: '15@ms',
+    fontWeight: '700',
+    color: palette.grey[900]
   },
   content: {},
   backButton: {
@@ -338,5 +412,13 @@ const styles = ScaledSheet.create({
     color: '#FFF',
     fontSize: '13@ms',
     fontWeight: '700'
+  },
+  resultButton: {
+    backgroundColor: '#FFF',
+    borderWidth: '1@ms',
+    borderColor: palette.main[600]
+  },
+  resultButtonText: {
+    color: palette.main[600]
   }
 })

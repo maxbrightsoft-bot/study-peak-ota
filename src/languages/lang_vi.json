@@ -2303,5 +2303,20 @@
   "force_web_title": "Cập nhật bị lỗi",
   "force_web_subtitle": "Không thể tự động cập nhật phiên bản mới. Vui lòng sử dụng phiên bản Web thay thế để tiếp tục học tập.",
   "force_web_button": "Mở ứng dụng Web",
-  "invalid_code_format": "Mã Code không đúng định dạng"
+  "invalid_code_format": "Mã Code không đúng định dạng",
+  "solve_it_later": "Giải sau",
+  "unsolved_questions_exit_warning": "Vẫn còn câu hỏi chưa giải. Bạn có muốn thoát không?",
+  "exit_anyway": "Vẫn thoát",
+  "incomplete": "Chưa hoàn thành",
+  "not_taken": "Chưa thi",
+  "done": "Hoàn thành",
+  "take_exam": "Vào thi",
+  "continue_exam": "Tiếp tục làm bài",
+  "exam_history": "Lịch sử kiểm tra",
+  "completed_exam": "Bài thi đã hoàn thành",
+  "not_joined_exam": "Chưa tham gia thi",
+  "incomplete_exam": "Chưa hoàn thành",
+  "exam_results": "Xem kết quả",
+  "join_exam": "Tham gia thi",
+  "solve_undone_questions": "Tiếp tục làm bài"
 }

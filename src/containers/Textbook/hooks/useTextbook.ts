@@ -44,6 +44,7 @@ const useTextbook = ({
   const { t } = useTranslation();
   const [textbookList, setTextbookList] = useState<Textbook[]>([]);
   const [totalPages, setTotalPages] = useState<number>(1);
+  const [loadingList, setLoadingList] = useState<boolean>(true);
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const inputSearch = useRef<any>(null);
   const [selectedTextbook, setSelectedTextbook] = useState<Textbook>()
@@ -131,7 +132,7 @@ const useTextbook = ({
 
   const getTextbookList = async (textSearch?: string) => {
     if (textbookFilter.currentPage === 1) {
-      setLoading(true)
+      setLoadingList(true)
     } else {
       setLoadingMore(true)
     }
@@ -145,16 +146,19 @@ const useTextbook = ({
 
       const { items = [], totalPages = 1 } = data;
       setTotalPages(totalPages);
-      setTextbookList((prev) =>
-        textbookFilter.currentPage === 1 ? items : [...prev, ...items]
-      );
+      setTextbookList((prev) => {
+        if (textbookFilter.currentPage === 1) return items;
+        const existingIds = new Set(prev.map((i) => i.id));
+        const newItems = items.filter((i) => !existingIds.has(i.id));
+        return [...prev, ...newItems];
+      });
     } catch (error: any) {
       if (textbookFilter.currentPage === 1) {
         setTextbookList([]);
       }
       toast.error(getErrorMessage(t, error));
     } finally {
-      setLoading(false)
+      setLoadingList(false)
       setLoadingMore(false)
     }
   };
@@ -331,7 +335,8 @@ const useTextbook = ({
     isOpenTimeSelectModal,
     handleCloseTimeSelectModal,
     handleLoadMore,
-    loadingMore
+    loadingMore,
+    loadingList
   };
 };
 
