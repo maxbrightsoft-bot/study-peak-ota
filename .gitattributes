@@ -1,8 +1,0 @@
-# Handle line endings automatically for files detected as text
-* text=auto
-
-# Enforce LF (Unix) line endings for configuration and shell files used in builds
-.xcode.env text eol=lf
-.xcode.env.local text eol=lf
-Podfile text eol=lf
-*.sh text eol=lf
