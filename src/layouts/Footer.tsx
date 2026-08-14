@@ -1,10 +1,9 @@
 import React from 'react'
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs'
 import { Ionicons } from '@expo/vector-icons'
 import { palette, TYPO } from '@/theme'
-import { TAB_BAR_HEIGHT } from '@/utils/constants'
 import { Routes } from '@/navigators/RouteName'
 import { currentScreen } from '@/navigators/NavigationHelpers'
 import PieChartIcon from '@/assets/iconJSX/pieChart'
@@ -15,11 +14,16 @@ import BookIcon from '@/assets/iconJSX/book'
 import useAuthStore from '@/store/useAuthStore'
 import { useTranslation } from 'react-i18next'
 import { ScaledSheet } from 'react-native-size-matters'
+import { Language } from '@/utils/enums'
 
 const Footer = ({ navigation }: BottomTabBarProps) => {
   const user = useAuthStore(state => state.user)
-  const { t } = useTranslation()
+  const language = useAuthStore(state => state.language)
+  const { t, i18n } = useTranslation()
   const insets = useSafeAreaInsets()
+
+  const currentLang = language?.code || i18n.language
+  const isEnOrVi = currentLang === Language.en || currentLang === Language.vi || currentLang === 'en' || currentLang === 'vi'
 
   const studySpaceTabItems = [
     {
@@ -73,6 +77,7 @@ const Footer = ({ navigation }: BottomTabBarProps) => {
     <View style={[styles.tabBar]}>
       {(user?.academyDomain ? tabItems : studySpaceTabItems).map((item) => {
         const isFocused = currentScreen() == item.name
+        const shouldShowText = !isEnOrVi || isFocused
 
         return (
           <TouchableOpacity key={item.name} style={styles.tabItem} onPress={() => navigation.navigate(item.name)}>
@@ -83,7 +88,9 @@ const Footer = ({ navigation }: BottomTabBarProps) => {
                 <Ionicons name={item.icon as any} size={24} color={isFocused ? palette.main[500] : palette.grey[500]} />
               )}
             </View>
-            <Text style={isFocused ? styles.activeTabText : styles.tabText}>{item.label}</Text>
+            {shouldShowText && (
+              <Text style={isFocused ? styles.activeTabText : styles.tabText}>{item.label}</Text>
+            )}
           </TouchableOpacity>
         )
       })}
