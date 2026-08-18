@@ -8,7 +8,7 @@ import { timeSpanToLocalMoment } from '@/utils/helpers'
 import ExamHistoryDialog from '../components/Dialog/ExamHistoryDialog'
 import { ScheduleStatus } from '../configs/type'
 import RecentTextbook from '../components/RecentTextbook'
-import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { ScrollView, View, Text, TouchableOpacity } from 'react-native'
 import CalendarSchedule from '../components/CalendarSchedule'
 import ModalExamCode from '../components/Dialog/ModalExamCode'
 import { palette } from '@/theme'
@@ -71,14 +71,17 @@ const AcademyView = () => {
 
             {schedules?.map((schedule, index) => (
               <View key={index} style={styles.scheduleRow}>
-                <View style={styles.dot}></View>
-                <TextTooltip
-                  text={schedule.title || ''}
-                  numberOfLines={2}
-                  placement="top"
-                  textStyle={styles.bold}
-                />
-                <Text style={[styles.time, { flexShrink: 0 }]}>
+                <View style={styles.titleContainer}>
+                  <View style={styles.dot} />
+                  <Text
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    style={styles.bold}
+                  >
+                    {schedule.title || ''}
+                  </Text>
+                </View>
+                <Text style={styles.time}>
                   {timeSpanToLocalMoment(schedule.startTime, schedule.date)?.format('HH:mm')} ~{' '}
                   {timeSpanToLocalMoment(schedule.endTime, schedule.date)?.format('HH:mm')}
                 </Text>
@@ -236,27 +239,39 @@ const styles = ScaledSheet.create({
   },
   scheduleRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginTop: '6@ms'
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: '8@ms',
+    minHeight: '22@ms'
+  },
+  titleContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: '12@ms',
+    gap: '6@ms'
   },
   dot: {
-    marginRight: '6@ms',
     width: '4@ms',
     height: '4@ms',
-    borderRadius: '50%',
+    borderRadius: '2@ms',
     backgroundColor: palette.main[300]
   },
   bold: {
     fontWeight: '600',
     fontSize: '14@ms',
-    flex: 1,
     color: '#222222',
-    lineHeight: '22@ms'
+    flex: 1,
+    includeFontPadding: false,
+    textAlignVertical: 'center'
   },
   time: {
     color: palette.grey[400],
     fontSize: '13@ms',
-    fontWeight: 400
+    fontWeight: '400',
+    flexShrink: 0,
+    includeFontPadding: false,
+    textAlignVertical: 'center'
   },
   attendBtn: {
     alignSelf: 'flex-end',

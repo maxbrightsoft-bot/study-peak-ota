@@ -14,9 +14,15 @@ type Props = {
 
 const useLiveResult = ({ examCode, studentExamSessionId }: Props) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isError, setIsError] = useState<boolean>(false);
   const [examResult, setExamResult] = useState<StudentExamResult>();
   const [resultData, setResultData] = useState<ExamResult>();
+  const [reloadKey, setReloadKey] = useState<number>(0);
   const { t } = useTranslation();
+
+  const refetch = () => {
+    setReloadKey(prev => prev + 1);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -26,10 +32,12 @@ const useLiveResult = ({ examCode, studentExamSessionId }: Props) => {
         setExamResult(undefined);
         setResultData(undefined);
         setIsLoading(false);
+        setIsError(false);
         return;
       }
 
       setIsLoading(true);
+      setIsError(false);
 
       try {
         const [percentRes, resultRes] = await Promise.all([
@@ -55,11 +63,15 @@ const useLiveResult = ({ examCode, studentExamSessionId }: Props) => {
         while ((!percentData || percentData.score === undefined || percentData.score === null) && retriesLeft > 0 && isMounted) {
           await new Promise((resolve) => setTimeout(resolve, 500));
           if (!isMounted) return;
-          const retryRes = await getStudentExamResultPercentages(examCode, studentExamSessionId);
-          const newPercentData = parseBody(retryRes);
-          if (newPercentData && newPercentData.score !== undefined && newPercentData.score !== null) {
-            percentData = newPercentData;
-            break;
+          try {
+            const retryRes = await getStudentExamResultPercentages(examCode, studentExamSessionId);
+            const newPercentData = parseBody(retryRes);
+            if (newPercentData && newPercentData.score !== undefined && newPercentData.score !== null) {
+              percentData = newPercentData;
+              break;
+            }
+          } catch {
+            // Ignore retry error and continue retry loop
           }
           retriesLeft--;
         }
@@ -76,6 +88,7 @@ const useLiveResult = ({ examCode, studentExamSessionId }: Props) => {
         }
       } catch (error) {
         if (isMounted) {
+          setIsError(true);
           toast.error(getErrorMessage(t, error));
         }
       } finally {
@@ -92,7 +105,7 @@ const useLiveResult = ({ examCode, studentExamSessionId }: Props) => {
       setExamResult(undefined);
       setResultData(undefined);
     };
-  }, [examCode, studentExamSessionId]);
+  }, [examCode, studentExamSessionId, reloadKey]);
 
   const handleExit = () => {
     navigate(Routes.Auth.Home);
@@ -115,6 +128,8 @@ const useLiveResult = ({ examCode, studentExamSessionId }: Props) => {
   return {
     t,
     isLoading,
+    isError,
+    refetch,
     totalTime,
     examResult,
     resultData,

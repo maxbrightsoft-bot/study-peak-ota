@@ -20,7 +20,7 @@ interface Props {
 }
 
 const LiveResultDialog = ({ open, onClose = () => {}, examCode, studentExamSessionId, handleExamEnd, handleDetailExamResult }: Props) => {
-  const { t, examResult, totalTime, resultData, isLoading } = useLiveResult({ examCode, studentExamSessionId })
+  const { t, examResult, totalTime, resultData, isLoading, isError, refetch } = useLiveResult({ examCode, studentExamSessionId })
 
   const hasUnsolved = useMemo(() => {
     if (!resultData?.questions?.length) return false
@@ -36,11 +36,35 @@ const LiveResultDialog = ({ open, onClose = () => {}, examCode, studentExamSessi
     )
   }, [resultData])
 
-  const scoreDisplay = examResult?.score ?? 0
-  const percentageDisplay =
-    examResult?.percentageAmongStudents !== undefined && examResult?.percentageAmongStudents !== null
-      ? Number(examResult.percentageAmongStudents).toFixed(2)
-      : '0.00'
+  const scoreDisplay = useMemo(() => {
+    if (examResult?.score && examResult.score > 0) {
+      return examResult.score
+    }
+    if (resultData?.questions?.length) {
+      const correctQuestions = resultData.questions.filter((q: any) => q.isCorrect)
+      const hasQuestionScore = resultData.questions.some((q: any) => q.score !== undefined && q.score !== null && Number(q.score) > 0)
+      if (hasQuestionScore) {
+        return correctQuestions.reduce((sum: number, q: any) => sum + (Number(q.score) || 0), 0)
+      }
+      return correctQuestions.length
+    }
+    return examResult?.score ?? 0
+  }, [examResult?.score, resultData?.questions])
+
+  const percentageDisplay = useMemo(() => {
+    if (
+      examResult?.percentageAmongStudents !== undefined &&
+      examResult?.percentageAmongStudents !== null &&
+      Number(examResult.percentageAmongStudents) > 0
+    ) {
+      return Number(examResult.percentageAmongStudents).toFixed(2)
+    }
+    if (resultData?.questions?.length) {
+      const correctCount = resultData.questions.filter((q: any) => q.isCorrect).length
+      return ((correctCount / resultData.questions.length) * 100).toFixed(2)
+    }
+    return '0.00'
+  }, [examResult?.percentageAmongStudents, resultData?.questions])
 
   return (
     <SlideDrawerRoot onClose={onClose} visible={open}>
@@ -54,11 +78,25 @@ const LiveResultDialog = ({ open, onClose = () => {}, examCode, studentExamSessi
         <View></View>
       </View>
 
-      {isLoading || !examResult ? (
+      {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={palette.main[600]} />
           <Text style={styles.loadingTitle}>{t('calculating_exam_score')}</Text>
           <Text style={styles.loadingSub}>{t('please_wait_a_moment')}</Text>
+        </View>
+      ) : isError || !examResult ? (
+        <View style={styles.loadingContainer}>
+          <Ionicons name="alert-circle-outline" size={48} color={palette.red[500]} />
+          <Text style={styles.loadingTitle}>{t('failed_to_load_exam_result')}</Text>
+          <Text style={styles.loadingSub}>{t('check_network_and_try_again')}</Text>
+          <View style={[styles.buttonContainer, { width: '100%', marginTop: 24 }]}>
+            <Button mode="contained" style={styles.filledButton} labelStyle={styles.filledText} onPress={refetch}>
+              {t('try_again')}
+            </Button>
+            <Button mode="outlined" style={styles.outlineButton} labelStyle={styles.outlineText} onPress={handleExamEnd}>
+              {t('exam_end')}
+            </Button>
+          </View>
         </View>
       ) : (
         <View style={styles.container}>
