@@ -114,8 +114,8 @@ const styles = ScaledSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: '16@ms',
-    paddingHorizontal: '20@ms'
+    paddingVertical: '20@ms',
+    paddingHorizontal: '18@ms'
   },
   headerTitle: {
     fontSize: '20@ms',

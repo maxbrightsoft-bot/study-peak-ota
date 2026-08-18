@@ -1,5 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { NavigationContainer, getStateFromPath as defaultGetStateFromPath } from '@react-navigation/native'
 import React, { useEffect, useState } from 'react'
 import NavigationHelpers from './NavigationHelpers'
@@ -78,6 +78,11 @@ const linking: any = {
   },
 }
 
+const ToastWrapper: React.FC = () => {
+  const insets = useSafeAreaInsets()
+  return <Toast config={audioToastConfig} position="top" topOffset={insets.top + 10} />
+}
+
 const RootNavigation: React.FC = () => {
   const user = useAuthStore(state => state.user)
   const isLoading = useAuthStore(state => state.isLoading)
@@ -151,7 +156,7 @@ const RootNavigation: React.FC = () => {
         {isLoading && <Loading isOverlay />}
         {!isLoading && isLoadingWithoutOverlay && <Loading />}
       </PaperProvider>
-      <Toast config={audioToastConfig} position="top" topOffset={10} />
+      <ToastWrapper />
     </SafeAreaProvider>
   )
 }

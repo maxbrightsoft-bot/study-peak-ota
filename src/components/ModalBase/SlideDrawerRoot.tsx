@@ -2,6 +2,7 @@ import useAuthStore from '@/store/useAuthStore'
 import { palette } from '@/theme'
 import React, { useEffect, useRef, useState, useContext } from 'react'
 import { NavigationContext } from '@react-navigation/native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import {
   View,
   Animated,
@@ -110,16 +111,18 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
             }
           ]}
         >
-          {navigation ? (
-            <NavigationContext.Provider value={navigation}>
-              {children}
-            </NavigationContext.Provider>
-          ) : (
-            children
-          )}
+          <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+            {navigation ? (
+              <NavigationContext.Provider value={navigation}>
+                {children}
+              </NavigationContext.Provider>
+            ) : (
+              children
+            )}
 
-          {isLoading && <Loading fullScreen={false} />}
-          {!isLoading && isLoadingWithoutOverlay && <Loading isOverlay={false} />}
+            {isLoading && <Loading fullScreen={false} />}
+            {!isLoading && isLoadingWithoutOverlay && <Loading isOverlay={false} />}
+          </SafeAreaView>
         </Animated.View>
       </View>
     </Portal>
