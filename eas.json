@@ -1,0 +1,90 @@
+{
+  "cli": {
+    "version": ">= 7.0.0",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "preview": {
+      "distribution": "store",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": false,
+        "image": "latest"
+      },
+      "env": {
+        "GRADLE_OPTS": "-Xmx4g",
+        "EXPO_PUBLIC_BASE_URL": "https://api-studypeak.brightsoftsolution.com",
+        "EXPO_PUBLIC_SUPER_ADMIN_BASE_URL": "https://apisuper-studypeak.brightsoftsolution.com",
+        "EXPO_PUBLIC_SOCKET_URL": "https://socket-studypeak.brightsoftsolution.com",
+        "EXPO_PUBLIC_STUDENT_URL": "https://student-studypeak.brightsoftsolution.com",
+        "EXPO_PUBLIC_OTA_URL": "https://maxbrightsoft-bot.github.io/study-peak-ota/update.json",
+        "EXPO_PUBLIC_CONSENT_POLICY_VERSION": "1.0.0",
+        "EXPO_PUBLIC_NEIS_KEY": "24b1c9aeb3f84ae79af60f1e1a82c320",
+        "GITHUB_REPO": "maxbrightsoft-bot/study-peak-ota",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "64118819726-0qlur4qjrs9jbuu6rnoa0u91g680lmpg.apps.googleusercontent.com",
+        "EXPO_PUBLIC_IOS_GOOGLE_CLIENT_ID": "152811895076-4fh9ctjtl077laeh3itrtn3fejdtlcqc.apps.googleusercontent.com",
+        "EXPO_PUBLIC_ANDROID_GOOGLE_CLIENT_ID": "152811895076-0ul1mil39iporlm21965ralbvgco54nh.apps.googleusercontent.com",
+        "EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID": "152811895076-buh6rrpgo10076tt4vc4j318tus1i8kk.apps.googleusercontent.com",
+
+        "EXPO_PUBLIC_GOOGLE_RECAPTCHA_ID": "6LcO2nQqAAAAAJYgdyF-lgE8YIGO3m_djA3YDEbP",
+        "EXPO_PUBLIC_GOOGLE_RECAPTCHA_KEY": "6LcO2nQqAAAAAJYgdyF-lgE8YIGO3m_djA3YDEbP",
+
+        "EXPO_PUBLIC_PUSHER_CONFIG_KEY": "9018c77328885a14150b",
+        "EXPO_PUBLIC_PUSHER_CONFIG_CLUSTER": "ap1",
+
+        "EXPO_PUBLIC_STORE_VERSION_ANDROID": "1.0.1",
+        "EXPO_PUBLIC_STORE_VERSION_IOS": "1.0.9",
+        "EXPO_PUBLIC_CURRENT_BUNDLE_VERSION": "3.0.32"
+      }
+    },
+    "production": {
+      "distribution": "store",
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "ios": {
+        "simulator": false,
+        "image": "latest"
+      },
+      "env": {
+        "GRADLE_OPTS": "-Xmx4g",
+        "EXPO_PUBLIC_BASE_URL": "https://api.studypeak.io/web",
+        "EXPO_PUBLIC_SUPER_ADMIN_BASE_URL": "https://api.studypeak.io/super-admin",
+        "EXPO_PUBLIC_SOCKET_URL": "https://socket.studypeak.io",
+        "EXPO_PUBLIC_STUDENT_URL": "https://student.studypeak.io",
+        "EXPO_PUBLIC_OTA_URL": "https://maxbrightsoft-bot.github.io/study-peak-ota/update.json",
+        "EXPO_PUBLIC_CONSENT_POLICY_VERSION": "1.0.0",
+        "EXPO_PUBLIC_NEIS_KEY": "24b1c9aeb3f84ae79af60f1e1a82c320",
+        "GITHUB_REPO": "maxbrightsoft-bot/study-peak-ota",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "64118819726-0qlur4qjrs9jbuu6rnoa0u91g680lmpg.apps.googleusercontent.com",
+        "EXPO_PUBLIC_IOS_GOOGLE_CLIENT_ID": "152811895076-4fh9ctjtl077laeh3itrtn3fejdtlcqc.apps.googleusercontent.com",
+        "EXPO_PUBLIC_ANDROID_GOOGLE_CLIENT_ID": "152811895076-0ul1mil39iporlm21965ralbvgco54nh.apps.googleusercontent.com",
+        "EXPO_PUBLIC_WEB_GOOGLE_CLIENT_ID": "152811895076-buh6rrpgo10076tt4vc4j318tus1i8kk.apps.googleusercontent.com",
+
+        "EXPO_PUBLIC_GOOGLE_RECAPTCHA_ID": "6LcO2nQqAAAAAJYgdyF-lgE8YIGO3m_djA3YDEbP",
+        "EXPO_PUBLIC_GOOGLE_RECAPTCHA_KEY": "6LcO2nQqAAAAAJYgdyF-lgE8YIGO3m_djA3YDEbP",
+
+        "EXPO_PUBLIC_PUSHER_CONFIG_KEY": "d2562f855c170787949a",
+        "EXPO_PUBLIC_PUSHER_CONFIG_CLUSTER": "ap1",
+
+        "EXPO_PUBLIC_STORE_VERSION_ANDROID": "1.0.1",
+        "EXPO_PUBLIC_STORE_VERSION_IOS": "1.0.9",
+        "EXPO_PUBLIC_CURRENT_BUNDLE_VERSION": "3.0.32"
+      }
+    }
+  },
+  "submit": {
+    "preview": {
+      "ios": {
+        "ascAppId": "6760352231"
+      }
+    },
+    "production": {
+      "ios": {
+        "ascAppId": "6760352231"
+      }
+    }
+  }
+}

@@ -2,9 +2,11 @@
 node_modules/
 *.log
 *.lock
+!yarn.lock
 .env
 ota/
-eas.json
+*.ipa
+google-service-account.json
 project_summary.txt
 # iOS
 ios/Pods/

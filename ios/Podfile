@@ -50,12 +50,31 @@ target 'StudyPeak' do
       :ccache_enabled => podfile_properties['apple.ccacheEnabled'] == 'true',
     )
 
+    # Fix "deployment version mismatch" warnings from Firebase, GoogleSignIn, etc.
+    # Force all pods to use at least the app's minimum deployment target
+    min_ios_version = podfile_properties['ios.deploymentTarget'] || '15.1'
+
+    # FIX: fmt/glog compile error with Xcode 26 / Clang 26
+    # Clang 26 enforces stricter consteval (C++23 rules) which breaks the old
+    # fmt library bundled in React Native Pods. Force C++17 for these pods
+    # where consteval behaviour is more lenient.
+    FMT_GLOG_PODS = %w[fmt glog].freeze
+
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
         # Sửa lỗi Module map not found
         config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
         # Hỗ trợ Crashlytics dSYM
         config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
+        # Enforce minimum iOS version for all pods
+        current = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+        if current.to_f < min_ios_version.to_f
+          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = min_ios_version
+        end
+        # Force C++17 for fmt/glog to avoid Clang 26 strict consteval errors
+        if FMT_GLOG_PODS.include?(target.name)
+          config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+        end
       end
     end
 
