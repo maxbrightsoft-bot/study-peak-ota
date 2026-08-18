@@ -187,6 +187,7 @@ const useTextbook = ({
   const scrollViewRef = useRef<FlatList>(null)
   const questionRefs = useRef<Array<View | null>>([])
   const isJustRestartedRef = useRef<boolean>(false)
+  const lastHandledPageParamRef = useRef<string | undefined>(undefined)
   const [isNotFoundTextbook, setNotFoundTextbook] = useState<boolean>();
   const [currentSlide, setCurrentSlide] = useState<number>(0);
   const [startTime, setStartTime] = useState<moment.Moment>();
@@ -755,6 +756,10 @@ const useTextbook = ({
       await restartTextbookApi(Number(textbook.id), req);
       clearData(true);
       isJustRestartedRef.current = true;
+      lastHandledPageParamRef.current = String(startPageTarget || 'restarted');
+      try {
+        (navigation as any)?.setParams?.({ page: undefined });
+      } catch (e) {}
       await getQuestionsTextbook(false, startPageTarget);
       toast.info(t("textbook_has_been_restarted"));
     } catch (error) {
@@ -778,6 +783,7 @@ const useTextbook = ({
       setLoadingWithoutOverlay(false);
     }
     isJustRestartedRef.current = false;
+    lastHandledPageParamRef.current = undefined;
     setRestartTextbookData({});
     handleResetTextbookSolving();
     triggerOfflineSync();
@@ -826,8 +832,12 @@ const useTextbook = ({
 
   useEffect(() => {
     if (!page || questionGroupList.length === 0 || isJustRestartedRef.current || !!restartTextbookData?.startPage) return;
+    if (lastHandledPageParamRef.current === page) return;
+
     const pageNumber = +page;
     if (Number.isNaN(pageNumber) || pageNumber <= 0) return;
+
+    lastHandledPageParamRef.current = page;
 
     let groupIndex = questionGroupList.findIndex(
       (i) =>
@@ -944,6 +954,10 @@ const useTextbook = ({
       if (!pageNum || pageNum <= 0 || !questionList.length) return;
       isJustRestartedRef.current = false;
       setRestartTextbookData({});
+      lastHandledPageParamRef.current = String(pageNum);
+      try {
+        (navigation as any)?.setParams?.({ page: undefined });
+      } catch (e) {}
       const targetId = findTargetQuestionForPageRange(pageNum, questionList, questionGroupList, textbook);
       if (targetId) {
         setCurrentQuestionId(targetId);
@@ -953,7 +967,7 @@ const useTextbook = ({
         }
       }
     },
-    [questionList, questionGroupList, onScrollToIndex, textbook]
+    [questionList, questionGroupList, onScrollToIndex, textbook, navigation]
   );
 
   return {
