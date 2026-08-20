@@ -139,7 +139,7 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
           </Text>
           <View style={styles.divider} />
           <TextTooltip
-            text={item?.courseName || ''}
+            text={t(item?.courseName || '', { defaultValue: item?.courseName || '' })}
             numberOfLines={1}
             textStyle={styles.examTitle}
             containerStyle={{ flexShrink: 1 }}
@@ -221,7 +221,7 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
               renderSectionHeader={({ section: { title } }) => (
                 <View style={styles.classHeader}>
                   <Ionicons name="school" size={16} color={palette.main[600]} />
-                  <Text style={styles.classTitle}>{title}</Text>
+                  <Text style={styles.classTitle}>{t(title, { defaultValue: title })}</Text>
                 </View>
               )}
               renderItem={({ item }) => renderExamCard({ item })}
