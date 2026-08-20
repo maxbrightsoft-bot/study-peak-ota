@@ -1278,6 +1278,7 @@
   "questions_in_total_format": "{{total}} question(s) in total",
   "view_details": "View details",
   "recent_class_exams": "Recent Class Exams",
+  "other_exams": "Non-class Exams",
   "there_are_no_problems_you_were_working_on": "There are no problems you were working on",
   "incomplete_exam": "Incomplete",
   "completed_exam": "Completed",
