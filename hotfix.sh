@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 set -e
 
 VERSION=$1
@@ -11,7 +11,7 @@ if [ -z "$VERSION" ]; then
 fi
 
 if [ -n "$PLATFORM" ] && [ "$PLATFORM" != "android" ] && [ "$PLATFORM" != "ios" ]; then
-  echo "❌ Platform must be 'android' or 'ios' (hoặc để trống để chạy cả hai)"
+  echo "??Platform must be 'android' or 'ios' (ho梳톍 휃沼?tr沼몁g 휃沼?ch梳죣 c梳?hai)"
   exit 1
 fi
 
@@ -33,7 +33,7 @@ echo "=== Cleaning ==="
 rm -rf ota
 mkdir -p ota
 
-ENTRY_FILE="node_modules/expo-router/entry.js"
+ENTRY_FILE="index.js"
 
 # --- Building ---
 if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "android" ]; then
@@ -44,7 +44,7 @@ if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "android" ]; then
     --entry-file $ENTRY_FILE \
     --bundle-output ota/android_bundle/bundle/index.android.bundle \
     --assets-dest ota/android_bundle/bundle || {
-      echo "❌ Android bundle failed"
+      echo "??Android bundle failed"
       exit 1
   }
 
@@ -79,12 +79,12 @@ if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "android" ]; then
       -out ota/android_bundle/bundle/index.android.bundle \
       ota/android_bundle/bundle/index.android.bundle.js && \
     rm ota/android_bundle/bundle/index.android.bundle.js || {
-      echo "⚠️  Hermes compile failed, using plain JS bundle"
+      echo "?좑툘  Hermes compile failed, using plain JS bundle"
       mv ota/android_bundle/bundle/index.android.bundle.js ota/android_bundle/bundle/index.android.bundle
     }
-    echo "✅ Hermes bytecode compiled"
+    echo "??Hermes bytecode compiled"
   else
-    echo "⚠️  hermesc not found, using plain JS bundle (may not work with Hermes)"
+    echo "?좑툘  hermesc not found, using plain JS bundle (may not work with Hermes)"
   fi
 fi
 
@@ -96,7 +96,7 @@ if [ -z "$PLATFORM" ] || [ "$PLATFORM" == "ios" ]; then
     --entry-file $ENTRY_FILE \
     --bundle-output ota/ios_bundle/bundle/main.jsbundle \
     --assets-dest ota/ios_bundle/bundle || {
-      echo "❌ iOS bundle failed"
+      echo "??iOS bundle failed"
       exit 1
   }
 fi
@@ -202,7 +202,7 @@ if gh.exe release create ota-v$TAG_VERSION \
   --notes "Hotfix v$VERSION ($([[ -z "$PLATFORM" ]] && echo "All" || echo "$PLATFORM"))"; then
   echo "Release created successfully."
 else
-  echo "⚠️ Release already exists, uploading files to existing release..."
+  echo "?좑툘 Release already exists, uploading files to existing release..."
   gh.exe release upload ota-v$TAG_VERSION $FILES_TO_UPLOAD --repo $GITHUB_REPO --clobber
 fi
 
@@ -269,4 +269,4 @@ curl -s -X PUT \
   }"
 
 echo ""
-echo "=== ✅ OTA v$VERSION ($( [[ -z "$PLATFORM" ]] && echo "Both" || echo "$PLATFORM" )) deployed successfully ==="
+echo "=== ??OTA v$VERSION ($( [[ -z "$PLATFORM" ]] && echo "Both" || echo "$PLATFORM" )) deployed successfully ==="

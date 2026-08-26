@@ -16,7 +16,7 @@ import {
 } from "../config/types";
 import useTextbookSolving from "./useTextbookSolving";
 import { useTextbookTimer } from "./useTextbookTimer";
-import { isNull } from "../config/helpers";
+import { findTargetQuestionForPageRange, isNull } from "../config/helpers";
 import { Routes } from "@/navigators/RouteName";
 import { navigate } from "@/navigators/NavigationHelpers";
 import { Alert, findNodeHandle, FlatList, UIManager, View } from "react-native";
@@ -41,129 +41,6 @@ type Props = {
   page?: string;
   reqTime?: string
   restart?: boolean;
-};
-
-const isQuestionAnswered = (q: any) => {
-  if (!q) return false;
-  const hasSelected = Boolean(q.selectedAnswers && Array.isArray(q.selectedAnswers) && q.selectedAnswers.length > 0);
-  const hasTextual = Boolean(q.textualAnswers && Array.isArray(q.textualAnswers) && q.textualAnswers.length > 0 && !isNull(q.textualAnswers));
-  return hasSelected || hasTextual;
-};
-
-const findTargetQuestionForPageRange = (
-  pageNum: number,
-  questions: PreparedQuestionResponse[],
-  groupList: PreparedQuestionGroupResponse[],
-  textbook?: SimplePreparedTextbookResponse,
-  isRestart?: boolean
-): number | undefined => {
-  if (!pageNum || pageNum <= 0 || !questions.length) return undefined;
-
-  let rangeFrom = pageNum;
-  let rangeTo = pageNum;
-
-  // 1. Collect all chapter, subchapter, and group page range candidates
-  const candidates: { pageFrom: number; pageTo: number }[] = [];
-
-  textbook?.chapters?.forEach((ch) => {
-    if (ch.pageFrom) {
-      candidates.push({ pageFrom: ch.pageFrom, pageTo: ch.pageTo || ch.pageFrom });
-    }
-    ch.subChapters?.forEach((sub) => {
-      if (sub.pageFrom) {
-        candidates.push({ pageFrom: sub.pageFrom, pageTo: sub.pageTo || sub.pageFrom });
-      }
-    });
-  });
-
-  groupList.forEach((g) => {
-    const pFrom = g.parentChapterPageFrom || g.chapterPageFrom || g.pageFrom;
-    const pTo = g.parentChapterPageTo || g.chapterPageTo || g.pageTo || pFrom;
-    if (pFrom) {
-      candidates.push({ pageFrom: pFrom, pageTo: pTo || pFrom });
-    }
-  });
-
-  // 2. Find matching candidate: prioritize exact pageFrom === pageNum FIRST
-  let match = candidates.find((c) => c.pageFrom === pageNum);
-
-  // If not matched by exact pageFrom, search for range where pageFrom <= pageNum && pageNum < pageTo (strict < pageTo)
-  if (!match) {
-    match = candidates.find((c) => c.pageFrom <= pageNum && pageNum < c.pageTo);
-  }
-
-  // Final fallback
-  if (!match) {
-    match = candidates.find((c) => c.pageFrom <= pageNum && pageNum <= c.pageTo);
-  }
-
-  if (match) {
-    rangeFrom = match.pageFrom;
-    rangeTo = match.pageTo;
-  }
-
-  // 3. Filter questions strictly falling within [rangeFrom, rangeTo]
-  const rangeQuestions = questions.filter((q: any) => {
-    const qPage = q.pageFrom || q.chapterPageFrom || q.parentChapterPageFrom || 0;
-    return qPage >= rangeFrom && qPage <= rangeTo;
-  });
-
-  if (rangeQuestions.length > 0) {
-    if (isRestart) {
-      return rangeQuestions[0].id;
-    }
-
-    const answeredPages = rangeQuestions
-      .filter(isQuestionAnswered)
-      .map((q: any) => q.pageFrom || q.chapterPageFrom || q.parentChapterPageFrom || 0);
-
-    if (answeredPages.length > 0) {
-      const maxAnsweredPage = Math.max(...answeredPages);
-      const forwardUnanswered = rangeQuestions.find((q: any) => {
-        const qPage = q.pageFrom || q.chapterPageFrom || q.parentChapterPageFrom || 0;
-        return qPage >= maxAnsweredPage && !isQuestionAnswered(q);
-      });
-
-      if (forwardUnanswered) {
-        return forwardUnanswered.id;
-      }
-
-      const anyUnanswered = rangeQuestions.find((q: any) => !isQuestionAnswered(q));
-      if (anyUnanswered) {
-        return anyUnanswered.id;
-      }
-
-      return rangeQuestions[rangeQuestions.length - 1].id;
-    } else {
-      return rangeQuestions[0].id;
-    }
-  }
-
-  const questionsBefore = questions
-    .filter((q: any) => (q.pageFrom || q.chapterPageFrom || q.parentChapterPageFrom || 0) <= pageNum)
-    .sort((a: any, b: any) => {
-      const pA = a.pageFrom || a.chapterPageFrom || a.parentChapterPageFrom || 0;
-      const pB = b.pageFrom || b.chapterPageFrom || b.parentChapterPageFrom || 0;
-      return pB - pA;
-    });
-
-  if (questionsBefore.length > 0) {
-    return questionsBefore[0].id;
-  }
-
-  const questionsAfter = questions
-    .filter((q: any) => (q.pageFrom || q.chapterPageFrom || q.parentChapterPageFrom || 0) >= pageNum)
-    .sort((a: any, b: any) => {
-      const pA = a.pageFrom || a.chapterPageFrom || a.parentChapterPageFrom || 0;
-      const pB = b.pageFrom || b.chapterPageFrom || b.parentChapterPageFrom || 0;
-      return pA - pB;
-    });
-
-  if (questionsAfter.length > 0) {
-    return questionsAfter[0].id;
-  }
-
-  return questions[0]?.id;
 };
 
 const useTextbook = ({
@@ -264,6 +141,64 @@ const useTextbook = ({
   const nav1 = useRef<any>(null);
   const nav2 = useRef<any>(null);
 
+    const onScrollToIndex = useCallback((index: number) => {
+    if (!questionList || !questionList[index]) return;
+
+    if (index === 0) {
+      scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
+      return;
+    }
+
+    const tryMeasure = () => {
+      const ref = questionRefs.current[index];
+      const scrollResponder = (scrollViewRef.current as any)?.getScrollResponder
+        ? (scrollViewRef.current as any).getScrollResponder()
+        : scrollViewRef.current;
+      const scrollViewNode = scrollResponder ? findNodeHandle(scrollResponder) : null;
+
+      if (ref && scrollViewNode) {
+        const node = findNodeHandle(ref);
+        if (node) {
+          UIManager.measureLayout(
+            node,
+            scrollViewNode,
+            () => { },
+            (_left, top) => {
+              if (top >= 0) {
+                scrollViewRef.current?.scrollToOffset({
+                  offset: Math.max(0, top - 20),
+                  animated: true
+                });
+              }
+            }
+          );
+          return true;
+        }
+      }
+      return false;
+    };
+
+    if (tryMeasure()) return;
+
+    const targetQ = questionList[index];
+    const groupIndex = questionGroupList.findIndex(g => g.id === targetQ.questionGroupId);
+
+    if (groupIndex !== -1 && scrollViewRef.current) {
+      try {
+        scrollViewRef.current.scrollToIndex({
+          index: groupIndex,
+          animated: true,
+          viewPosition: 0
+        });
+        isJustRestartedRef.current = false;
+      } catch (e: any) {
+        scrollViewRef.current?.scrollToOffset({ offset: groupIndex * 400, animated: true });
+        isJustRestartedRef.current = false;
+      }
+    }
+  }, [questionList, questionGroupList]);
+
+
   const handleCloseConfirmDialog = () => {
     setOpenConfirmDialog(false);
   };
@@ -280,6 +215,8 @@ const useTextbook = ({
   const handleOpenRestartTextbookDialog = () => {
     setOpenRestartTextbookDialog(true);
   };
+
+  const hasInitialScrolledRef = useRef<boolean>(false);
 
   const handleNextQuestion = (isError?: boolean) => {
     if (!questionList?.length) return
@@ -344,68 +281,10 @@ const useTextbook = ({
       if (targetIndex === currentIndex) return
 
       setCurrentQuestionId(questionList[targetIndex].id)
+      onScrollToIndex(targetIndex)
     },
-    [questionList, currentQuestionId]
+    [questionList, currentQuestionId, onScrollToIndex]
   )
-
-  const onScrollToIndex = useCallback((index: number) => {
-    if (!questionList || !questionList[index]) return;
-
-    if (index === 0) {
-      scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
-      return;
-    }
-
-    const targetQ = questionList[index];
-    const groupIndex = questionGroupList.findIndex(g => g.id === targetQ.questionGroupId);
-
-    if (groupIndex !== -1 && scrollViewRef.current) {
-      try {
-        scrollViewRef.current.scrollToIndex({
-          index: groupIndex,
-          animated: true,
-          viewPosition: 0
-        });
-        isJustRestartedRef.current = false;
-      } catch (e: any) {
-        scrollViewRef.current?.scrollToOffset({ offset: groupIndex * 400, animated: true });
-        isJustRestartedRef.current = false;
-      }
-    }
-
-    const tryMeasure = () => {
-      const ref = questionRefs.current[index];
-      const scrollResponder = (scrollViewRef.current as any)?.getScrollResponder
-        ? (scrollViewRef.current as any).getScrollResponder()
-        : scrollViewRef.current;
-      const scrollViewNode = scrollResponder ? findNodeHandle(scrollResponder) : null;
-
-      if (ref && scrollViewNode) {
-        const node = findNodeHandle(ref);
-        if (node) {
-          UIManager.measureLayout(
-            node,
-            scrollViewNode,
-            () => {},
-            (_left, top) => {
-              if (top >= 0) {
-                scrollViewRef.current?.scrollToOffset({
-                  offset: Math.max(0, top - 20),
-                  animated: true
-                });
-              }
-            }
-          );
-          return true;
-        }
-      }
-      return false;
-    };
-
-    setTimeout(() => {
-      tryMeasure();
-    }, 100);
-  }, [questionList, questionGroupList]);
 
   useEffect(() => {
     if (!currentQuestionId || !questionList.length) return;
@@ -413,12 +292,12 @@ const useTextbook = ({
     const index = questionList.findIndex(q => q.id === currentQuestionId);
     if (index === -1) return;
 
-    const timer = setTimeout(() => onScrollToIndex(index), 50);
+    const timer = setTimeout(() => onScrollToIndex(index), 100);
 
     return () => {
       clearTimeout(timer);
     };
-  }, [currentQuestionId, questionList, questionGroupList, onScrollToIndex]);
+  }, [currentQuestionId, questionList.length, onScrollToIndex]);
 
   const getQuestionsTextbook = async (showErrorMessage: boolean = false, overrideStartPage?: number) => {
     if (!textbookId) return;
@@ -723,9 +602,11 @@ const useTextbook = ({
   const handleRestartTextbook = async () => {
     if (!textbook || !textbookId) return;
 
+    setLoadingWithoutOverlay(true);
+
     handleCloseConfirmDialog();
     handleCloseRestartTextbookDialog();
-    
+
     isJustRestartedRef.current = true;
     const nowTime = getServerNow();
     try {
@@ -759,10 +640,11 @@ const useTextbook = ({
       lastHandledPageParamRef.current = String(startPageTarget || 'restarted');
       try {
         (navigation as any)?.setParams?.({ page: undefined });
-      } catch (e) {}
+      } catch (e) { }
       await getQuestionsTextbook(false, startPageTarget);
       toast.info(t("textbook_has_been_restarted"));
     } catch (error) {
+      setLoadingWithoutOverlay(false);
       toast.error(getErrorMessage(t, error));
       trackError(error, {
         resourceType: ActivityResource.Textbook,
@@ -783,6 +665,7 @@ const useTextbook = ({
       setLoadingWithoutOverlay(false);
     }
     isJustRestartedRef.current = false;
+    hasInitialScrolledRef.current = false;
     lastHandledPageParamRef.current = undefined;
     setRestartTextbookData({});
     handleResetTextbookSolving();
@@ -957,7 +840,7 @@ const useTextbook = ({
       lastHandledPageParamRef.current = String(pageNum);
       try {
         (navigation as any)?.setParams?.({ page: undefined });
-      } catch (e) {}
+      } catch (e) { }
       const targetId = findTargetQuestionForPageRange(pageNum, questionList, questionGroupList, textbook);
       if (targetId) {
         setCurrentQuestionId(targetId);
