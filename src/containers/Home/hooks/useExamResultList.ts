@@ -3,7 +3,7 @@ import _ from "lodash";
 import moment from "moment";
 import { useTranslation } from "react-i18next";
 import useAuthStore from "@/store/useAuthStore";
-import { getListExamApi, joinExamApi } from "../apiClients";
+import { getListExamApi, getUnattachedExamApi, joinExamApi } from "../apiClients";
 import { useFocusEffect } from "@react-navigation/native";
 import { FlatList } from "react-native";
 import { getErrorMessage, toast } from "@/utils/helpers";
@@ -80,8 +80,14 @@ const useExamResultList = ({ onClose, open }: { onClose: () => void, open: boole
   const getListExam = async (textSearch?: string) => {
     setLoading(true)
     try {
-      const res = await getListExamApi({ ...filter, textSearch });
-      const rawCourses = res?.data?.items || [];
+      const [res, unattachedRes] = await Promise.all([
+        getListExamApi({ ...filter, textSearch }),
+        getUnattachedExamApi({ ...filter, textSearch }).catch(() => null)
+      ]);
+      const courseItems = res?.data?.items || res?.items || [];
+      const unattachedGroup = unattachedRes?.data?.data || unattachedRes?.data || unattachedRes;
+      const unattachedItem = (unattachedGroup && unattachedGroup.examSessions && Array.isArray(unattachedGroup.examSessions) && unattachedGroup.examSessions.length > 0) ? [unattachedGroup] : [];
+      const rawCourses = [...courseItems, ...unattachedItem];
       const isAsc = filter.sortColumnDirection === OrderBy.ASC;
       const sortedCourses = [...rawCourses].sort((a: any, b: any) => {
         const aTimes = (a.examSessions || []).map((s: any) => (s.startTime ? moment(s.startTime).valueOf() : 0));

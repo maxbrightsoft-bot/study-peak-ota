@@ -21,6 +21,7 @@ export interface SimplePreparedTextbookResponse {
   subject: any
   rowVersion: string
   timestamp?: number
+  chapters?: PreparedChapterResponse[]
 }
 
 export enum ScrollType {
@@ -70,6 +71,7 @@ export interface PreparedChapterResponse {
   pageTo: number;
   textbookId?: number | null;
   parentChapterId?: number | null;
+  subChapters?: PreparedChapterResponse[];
 }
 
 export interface PreparedQuestionGroupResponse {

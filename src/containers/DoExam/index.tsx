@@ -226,7 +226,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
               }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1, marginRight: 8 }}>
-                <Text style={{ fontSize: 14, fontWeight: '600', color: '#171719', flexShrink: 1 }} numberOfLines={1}>{examSession?.subject}</Text>
+                <Text style={{ fontSize: 14, fontWeight: '600', color: '#171719', flexShrink: 1 }} numberOfLines={1}>{examSession?.subject || exam?.subject}</Text>
                 <View style={{ backgroundColor: palette.grey[300], paddingVertical: 7, width: 2 }} />
                 <TextTooltip
                   text={exam?.title || ''}

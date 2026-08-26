@@ -3,6 +3,7 @@ import { BASE_URL } from "@/utils/constants";
 import { NoteType } from "@/utils/enums";
 
 const COURSE_EXAM_SESSION_URL = `${BASE_URL}/api/course/exam-sessions`;
+const UNATTACHED_EXAM_SESSION_URL = `${BASE_URL}/api/course/unattached-exam-sessions`;
 const EXAM_SESSION_URL = `${BASE_URL}/api/examsession`;
 const LESSON_URL = `${BASE_URL}/api/lesson`;
 const SOCIAL_URL = `${BASE_URL}/api/sociallink`;
@@ -34,6 +35,13 @@ export const getNoteByIdApi = (id: number) => api.get(`${NOTES_URL}/${id}`)
 
 export const getListExamApi = (query: any) =>
     api.get(`${COURSE_EXAM_SESSION_URL}`, {
+        params: {
+            ...query,
+        }
+    })
+
+export const getUnattachedExamApi = (query?: any) =>
+    api.get(`${UNATTACHED_EXAM_SESSION_URL}`, {
         params: {
             ...query,
         }

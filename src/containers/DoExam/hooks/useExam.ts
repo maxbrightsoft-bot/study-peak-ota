@@ -109,12 +109,9 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
 
   const handleGetInfoExam = async () => {
     try {
-      setLoadingWithoutOverlay(true);
       const response = await getExamInfoApi(examCode);
       setExamSession(response.data);
     } catch (error) {
-    } finally {
-      setLoadingWithoutOverlay(false);
     }
   };
 
@@ -380,10 +377,10 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
         action: 'GET_QUESTION_EXAM',
         examCode
       })
+    } finally {
+      setLoading(false);
+      if (firstLoadRef.current) firstLoadRef.current = false;
     }
-
-    setLoading(false);
-    if (firstLoadRef.current) firstLoadRef.current = false;
   };
 
   const getCheckStatus = useCallback(() => {
@@ -886,15 +883,15 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     navigate(Routes.Auth.Home)
   }, [exam, examCode])
 
+    const handleConfirmLeave = useCallback(async () => {
+    setOpenLeaveDialog(false);
+    await handleFinishExam();
+  }, [handleFinishExam]);
+
   const handleConfirmExitAnyway = useCallback(() => {
     setOpenUnsolvedLeaveDialog(false)
     handleConfirmLeave()
   }, [handleConfirmLeave])
-
-  const handleConfirmLeave = useCallback(async () => {
-    setOpenLeaveDialog(false);
-    await handleFinishExam();
-  }, [handleFinishExam]);
 
   const remainTimeString = useMemo(() => {
     return formatMinutesToTime((remainTime || 0) / 60);
