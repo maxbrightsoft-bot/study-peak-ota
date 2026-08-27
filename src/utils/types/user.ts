@@ -17,6 +17,8 @@ export type UserResponse = {
   roles: string[]
   superId: number
   loginMethod: string
+  hasPassword?: boolean,
+  mustChangePassword?: boolean,
 }
 
 export type Student = {

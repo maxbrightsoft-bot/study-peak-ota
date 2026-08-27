@@ -106,7 +106,8 @@ const styles = ScaledSheet.create({
     paddingVertical: '14@ms',
     paddingHorizontal: '16@ms',
     minWidth: '120@ms',
-    alignItems: 'center'
+    alignItems: 'center',
+    flex: 1
   },
   cancelButton: {
     borderWidth: 0,

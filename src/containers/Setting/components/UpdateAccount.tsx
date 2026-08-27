@@ -14,6 +14,7 @@ import { UserInfo } from '../configs/types'
 import useAuthStore from '@/store/useAuthStore'
 import CustomSelect from '@/components/Select/CustomSelect'
 import SchoolSearchSelect from '@/components/Select/SchoolSearchSelect'
+import ChangePasswordDialog from './ChangePasswordDialog'
 
 type Props = {
   open: boolean
@@ -42,6 +43,9 @@ type FormItemProps = {
     value: any
   }[]
   setEditingField: (field: string | null) => void
+  rightElement?: React.ReactNode
+  badgeElement?: React.ReactNode
+  actionElement?: React.ReactNode
 }
 
 const getOptionDisplayValue = (
@@ -55,7 +59,16 @@ const getOptionDisplayValue = (
   return value != null && value !== '' ? String(value) : ''
 }
 
-const FormItem = ({ label, name, options, value, onChange, editingField, setEditingField }: FormItemProps) => {
+const FormItem = ({
+  label,
+  name,
+  options,
+  value,
+  onChange,
+  editingField,
+  setEditingField,
+  rightElement,
+}: FormItemProps) => {
   const isEditing = editingField === name
   const displayValue = useMemo(() => getOptionDisplayValue(value, options), [value, options])
 
@@ -85,7 +98,7 @@ const FormItem = ({ label, name, options, value, onChange, editingField, setEdit
         ) : (
           <Text style={styles.valueText} numberOfLines={2} ellipsizeMode="tail">{displayValue}</Text>
         )}
-
+        {rightElement}
         <TouchableOpacity onPress={() => setEditingField(isEditing ? null : name)}>
           <EditIcon color={palette.grey[500]} />
         </TouchableOpacity>
@@ -111,6 +124,7 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
   )
   const user = useAuthStore(state => state.user)
   const [editingField, setEditingField] = useState<string | null>(null)
+  const [openChangePassword, setOpenChangePassword] = useState(false)
 
   const initialValues = {
     fullName: user?.fullName || '',
@@ -119,7 +133,7 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
     parentPhoneNumber: user?.parentPhoneNumber || '',
     schoolName: user?.schoolName || '',
     grade: user?.grade || 1,
-    major: user?.major || ''
+    major: user?.major || '',
   }
 
   return (
@@ -239,6 +253,19 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
                     />
                   </View>
 
+                  <View style={styles.card}>
+                    <TouchableOpacity
+                      style={styles.changePasswordItem}
+                      onPress={() => setOpenChangePassword(true)}
+                    >
+                      <View style={styles.changePasswordLeft}>
+                        <Ionicons name="lock-closed-outline" size={20} color={palette.grey[800]} />
+                        <Text style={styles.changePasswordText}>{t('change_password')}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward-outline" size={20} color={palette.grey[400]} />
+                    </TouchableOpacity>
+                  </View>
+
                   {/* <View style={styles.deleteCard}>
                   <Text style={styles.deleteText}>계정 삭제하기</Text>
                   <Text style={styles.deleteWarning}>복구는 불가능합니다.</Text>
@@ -253,6 +280,11 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
           }
         </Formik>
       </View>
+
+      <ChangePasswordDialog
+        visible={openChangePassword}
+        onClose={() => setOpenChangePassword(false)}
+      />
     </SlideDrawerRoot>
   )
 }
@@ -398,5 +430,96 @@ const styles = ScaledSheet.create({
     color: palette.main[600],
     minWidth: '120@ms',
     textAlign: 'center'
+  },
+  verifiedBadge: {
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: '6@ms',
+    paddingVertical: '2@ms',
+    borderRadius: '4@ms',
+    marginRight: '6@ms'
+  },
+  verifiedText: {
+    color: '#2E7D32',
+    fontSize: '11@ms',
+    fontWeight: '700'
+  },
+  unverifiedBadge: {
+    backgroundColor: '#FFEBEE',
+    paddingHorizontal: '6@ms',
+    paddingVertical: '2@ms',
+    borderRadius: '4@ms',
+    marginRight: '2@ms'
+  },
+  unverifiedText: {
+    color: '#C62828',
+    fontSize: '11@ms',
+    fontWeight: '700'
+  },
+  verifyBtn: {
+    backgroundColor: 'rgba(95, 48, 170, 0.1)',
+    paddingHorizontal: '16@ms',
+    height: '48@ms',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: '10@ms',
+    marginRight: '6@ms',
+    borderWidth: 1,
+    borderColor: '#6A3DE8'
+  },
+  verifyBtnText: {
+    color: '#6A3DE8',
+    fontSize: '13@ms',
+    fontWeight: '700'
+  },
+  changePasswordItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: '20@ms',
+    paddingHorizontal: '16@ms'
+  },
+  changePasswordLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: '8@ms'
+  },
+  changePasswordText: {
+    fontSize: '16@ms',
+    fontWeight: '600',
+    color: '#222'
+  },
+  multilineItem: {
+    paddingVertical: '16@ms',
+    paddingHorizontal: '16@ms',
+    gap: '8@ms'
+  },
+  multilineHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  multilineContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    minHeight: '36@ms'
+  },
+  multilineInput: {
+    fontSize: '15@ms',
+    color: '#6A3DE8',
+    flex: 1,
+    marginRight: '8@ms'
+  },
+  multilineValueText: {
+    fontSize: '14@ms',
+    color: palette.main[600],
+    fontWeight: '500',
+    flex: 1,
+    marginRight: '8@ms'
+  },
+  multilineRightElement: {
+    flexDirection: 'row',
+    alignItems: 'center'
   }
-})
+}
+)

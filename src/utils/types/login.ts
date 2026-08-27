@@ -33,3 +33,27 @@ export type LoginEmailRequest = {
   role: string
   isKeepMeLoggedIn: boolean
 }
+
+export type ForgotPasswordRequest = {
+  email: string;
+  reCaptcha?: string;
+}
+
+export type ResetPasswordRequest = {
+  email: string;
+  otp: string;
+  key: string;
+  newPassword: string;
+}
+
+export type ChangePasswordRequest = {
+  currentPassword?: string;
+  newPassword: string;
+}
+
+export type VerifyResetPasswordOtpRequest = {
+  email: string;
+  key: string;
+  otp: string;
+}
+
