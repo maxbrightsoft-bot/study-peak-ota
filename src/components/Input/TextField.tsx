@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo } from 'react'
 import { View, Text, TextInput, TouchableOpacity, Platform, KeyboardTypeOptions, TextInputProps } from 'react-native'
 import styles from './styles'
 import { palette } from '@/theme'
@@ -98,15 +98,16 @@ const TextField = ({
 }: TextFieldProps) => {
   const internalRef = React.useRef<TextInput>(null)
   const resolvedRef = inputRef || internalRef
+  // // Đồng bộ giá trị khi value từ ngoài (formik, setState, reset form) thay đổi
+  useEffect(() => {
+      resolvedRef.current?.setNativeProps({ text: value })
+  }, [value])
 
   const _onChangeText = useCallback(
     (text: string) => {
       let cleanedText = text
       if (isExamCode) {
         cleanedText = text.replace(/[^a-zA-Z0-9]/g, "")
-        if (text !== cleanedText) {
-          resolvedRef.current?.setNativeProps({ text: cleanedText })
-        }
       }
       onChangeText && onChangeText(cleanedText)
     },
@@ -136,7 +137,7 @@ const TextField = ({
   }, [labelComponent, label, isRequired, labelStyle])
 
   const editable = !readOnly && !labelReadOnly && !onPress
-  
+
   const _keyboardType = useMemo(() => {
     if (keyboardType === KeyboardType.numbersAndPunctuation) {
       return Platform.OS === 'android' ? 'numeric' : 'numbers-and-punctuation'
@@ -175,7 +176,7 @@ const TextField = ({
           placeholder={placeholder}
           secureTextEntry={secureTextEntry}
           placeholderTextColor={placeholderTextColor || palette.grey[400]}
-          value={value ?? ''}
+          defaultValue={value ?? ''}
           maxLength={maxLength}
           autoFocus={autoFocus}
           autoCorrect={autoCorrect}

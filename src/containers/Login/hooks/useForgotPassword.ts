@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useTranslation } from 'react-i18next';
-import { apiForgotPassword, apiResetPassword } from '../apiClients/accountService';
+import { forgotPasswordApi, resetPasswordApi, verifyResetPasswordOtpApi } from '../apiClients/accountService';
 import { getErrorMessage, toast } from '@/utils/helpers';
+import useAuthStore from '@/store/useAuthStore';
 
-export type ForgotPasswordStep = 'email' | 'reset';
+export type ForgotPasswordStep = 'email' | 'verify_otp' | 'reset';
 
 type Props = {
   onOpenLoginAccountDialog: () => void
@@ -14,8 +15,10 @@ type Props = {
 
 const useForgotPassword = ({ onOpenLoginAccountDialog, onClose }: Props) => {
   const { t } = useTranslation();
+  const setLoading = useAuthStore(state => state.setLoading);
+  const loading = useAuthStore(state => state.isLoading);
   const [step, setStep] = useState<ForgotPasswordStep>('email');
-  const [loading, setLoading] = useState(false);
+  const [key, setKey] = useState<string>('');
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -26,11 +29,15 @@ const useForgotPassword = ({ onOpenLoginAccountDialog, onClose }: Props) => {
     email: Yup.string()
       .email(t('invalid_email_address'))
       .required(t('email_required')),
+    sendToType: Yup.string().required()
+  });
+
+  const otpValidationSchema = Yup.object().shape({
+    otp: Yup.string()
+      .required(t('verification_code_required')),
   });
 
   const resetValidationSchema = Yup.object().shape({
-    otp: Yup.string()
-      .required(t('verification_code_required')),
     newPassword: Yup.string()
       .min(6, t('password_min_length'))
       .matches(/[0-9]/, t('password_must_contain_number'))
@@ -41,22 +48,44 @@ const useForgotPassword = ({ onOpenLoginAccountDialog, onClose }: Props) => {
       .required(t('confirm_password_required')),
   });
 
-
   const emailFormik = useFormik({
     initialValues: {
       email: '',
+      sendToType: 'main'
     },
     validationSchema: emailValidationSchema,
     onSubmit: async (values) => {
       setLoading(true);
       try {
-        const res = await apiForgotPassword(values.email);
-        const key = res.data?.key;
+        const res = await forgotPasswordApi({email: values.email});
+        const resKey = res.data?.key;
 
-        if (key) {
-          resetFormik.setFieldValue('key', key);
+        if (resKey) {
+          setKey(resKey);
         }
-        toast.success(t('verification_code_sent'));
+        toast.success(t('please_check_your_mailbox'));
+        setStep('verify_otp');
+      } catch (error) {
+        toast.error(getErrorMessage(t, error));
+      } finally {
+        setLoading(false);
+      }
+    },
+  });
+
+  const otpFormik = useFormik({
+    initialValues: {
+      otp: '',
+    },
+    validationSchema: otpValidationSchema,
+    onSubmit: async (values) => {
+      setLoading(true);
+      try {
+        await verifyResetPasswordOtpApi({
+          email: emailFormik.values.email,
+          key,
+          otp: values.otp,
+        });
         setStep('reset');
       } catch (error) {
         toast.error(getErrorMessage(t, error));
@@ -68,8 +97,6 @@ const useForgotPassword = ({ onOpenLoginAccountDialog, onClose }: Props) => {
 
   const resetFormik = useFormik({
     initialValues: {
-      key: '',
-      otp: '',
       newPassword: '',
       confirmPassword: '',
     },
@@ -77,14 +104,14 @@ const useForgotPassword = ({ onOpenLoginAccountDialog, onClose }: Props) => {
     onSubmit: async (values) => {
       setLoading(true);
       try {
-        await apiResetPassword({
-          key: resetFormik.values.key,
+        await resetPasswordApi({
           email: emailFormik.values.email,
-          otp: values.otp,
+          key,
+          otp: otpFormik.values.otp,
           newPassword: values.newPassword,
         });
         toast.success(t('password_reset_success'));
-        onOpenLoginAccountDialog()
+        onOpenLoginAccountDialog();
         onClose();
       } catch (error) {
         toast.error(getErrorMessage(t, error));
@@ -96,7 +123,9 @@ const useForgotPassword = ({ onOpenLoginAccountDialog, onClose }: Props) => {
 
   const handleReset = () => {
     setStep('email');
+    setKey('');
     emailFormik.resetForm();
+    otpFormik.resetForm();
     resetFormik.resetForm();
     setShowNewPassword(false);
     setShowConfirmPassword(false);
@@ -105,13 +134,13 @@ const useForgotPassword = ({ onOpenLoginAccountDialog, onClose }: Props) => {
   const handleResendCode = async () => {
     setLoading(true);
     try {
-      const res = await apiForgotPassword(emailFormik.values.email);
-      const key = res.data?.key;
+      const res = await forgotPasswordApi({ email: emailFormik.values.email });
+      const resKey = res.data?.key;
 
-      if (key) {
-        resetFormik.setFieldValue('key', key);
+      if (resKey) {
+        setKey(resKey);
       }
-      toast.success(t('verification_code_sent'));
+      toast.success(t('please_check_your_mailbox'));
     } catch (error) {
       toast.error(getErrorMessage(t, error));
     } finally {
@@ -123,6 +152,7 @@ const useForgotPassword = ({ onOpenLoginAccountDialog, onClose }: Props) => {
     step,
     loading,
     emailFormik,
+    otpFormik,
     resetFormik,
     showNewPassword,
     showConfirmPassword,

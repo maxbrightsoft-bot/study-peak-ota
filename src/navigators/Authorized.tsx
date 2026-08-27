@@ -26,6 +26,8 @@ import { toast, getErrorMessage } from '@/utils/helpers'
 import { useTranslation } from 'react-i18next'
 import { CONSENT_POLICY_VERSION } from '@/utils/constants'
 import { startOfflineSyncListener } from '@/services/offlineSync'
+import ChangePasswordDialog from '@/containers/Setting/components/ChangePasswordDialog'
+import ResetPasswordWarningDialog from '@/containers/Setting/components/ResetPasswordWarningDialog'
 
 const Tab = createBottomTabNavigator()
 
@@ -51,6 +53,17 @@ const Authorized = ({ route }: { route: any }) => {
   const { headerProps } =
     useLayoutApp()
   const { t } = useTranslation()
+
+  const mustChangePassword = !!user?.mustChangePassword
+  const [hasConfirmedWarning, setHasConfirmedWarning] = useState(false)
+  const [isMustChangePasswordDismissed, setIsMustChangePasswordDismissed] = useState(false)
+
+  useEffect(() => {
+    if (mustChangePassword) {
+      setHasConfirmedWarning(false)
+      setIsMustChangePasswordDismissed(false)
+    }
+  }, [mustChangePassword])
 
   const isNotEnoughStatements = useMemo(
     () => user?.email && user?.isNotEnoughStatements,
@@ -120,36 +133,48 @@ const Authorized = ({ route }: { route: any }) => {
     )
 
   return (
-    <LayoutApp headerProps={headerProps} key={languageKey}>
-      <Tab.Navigator
-        screenOptions={({ route }) => ({
-          header: () => <></>,
-          tabBarStyle: hiddenTabBar.includes(route.name) ? { display: 'none', height: 0, position: 'absolute' } : undefined
-        })}
-        tabBar={(props) => {
-          const topRouteName = navigationRef?.current?.isReady?.() ? navigationRef?.current?.getCurrentRoute?.()?.name : undefined
-          const currentTab = props.state.routes[props.state.index]
-          const activeRouteName = topRouteName || currentTab?.name || currentScreen()
+    <>
+      <LayoutApp headerProps={headerProps} key={languageKey}>
+        <Tab.Navigator
+          screenOptions={({ route }) => ({
+            header: () => <></>,
+            tabBarStyle: hiddenTabBar.includes(route.name) ? { display: 'none', height: 0, position: 'absolute' } : undefined
+          })}
+          tabBar={(props) => {
+            const topRouteName = navigationRef?.current?.isReady?.() ? navigationRef?.current?.getCurrentRoute?.()?.name : undefined
+            const currentTab = props.state.routes[props.state.index]
+            const activeRouteName = topRouteName || currentTab?.name || currentScreen()
 
-          if (hiddenTabBar.includes(activeRouteName)) {
-            return null
-          }
-          return <Footer {...props} />
-        }}
-      >
-        <Tab.Screen name={Routes.Auth.Home} component={HomeScreen} />
-        <Tab.Screen name={Routes.Auth.Textbook} component={TextbookScreen} />
-        <Tab.Screen name={Routes.Auth.DoExam} component={DoExamScreen} />
-        <Tab.Screen name={Routes.Auth.DoTextbook} component={DoTextbookScreen} />
-        <Tab.Screen name={Routes.Auth.ExamList} component={ExamListScreen} />
-        <Tab.Screen name={Routes.Auth.ExamResult} component={ExamResultScreen} />
-        <Tab.Screen name={Routes.Auth.ExamResultList} component={ExamResultListScreen} />
-        <Tab.Screen name={Routes.Auth.StudyPerformance} component={StudyPerformanceScreen} />
-        <Tab.Screen name={Routes.Auth.Profile} component={ProfileScreen} />
-        <Tab.Screen name={Routes.Auth.Question} component={QuestionScreen} />
-        <Tab.Screen name={Routes.Auth.StudentExamHistory} component={StudentExamHistoryScreen} />
-      </Tab.Navigator>
-    </LayoutApp>
+            if (hiddenTabBar.includes(activeRouteName)) {
+              return null
+            }
+            return <Footer {...props} />
+          }}
+        >
+          <Tab.Screen name={Routes.Auth.Home} component={HomeScreen} />
+          <Tab.Screen name={Routes.Auth.Textbook} component={TextbookScreen} />
+          <Tab.Screen name={Routes.Auth.DoExam} component={DoExamScreen} />
+          <Tab.Screen name={Routes.Auth.DoTextbook} component={DoTextbookScreen} />
+          <Tab.Screen name={Routes.Auth.ExamList} component={ExamListScreen} />
+          <Tab.Screen name={Routes.Auth.ExamResult} component={ExamResultScreen} />
+          <Tab.Screen name={Routes.Auth.ExamResultList} component={ExamResultListScreen} />
+          <Tab.Screen name={Routes.Auth.StudyPerformance} component={StudyPerformanceScreen} />
+          <Tab.Screen name={Routes.Auth.Profile} component={ProfileScreen} />
+          <Tab.Screen name={Routes.Auth.Question} component={QuestionScreen} />
+          <Tab.Screen name={Routes.Auth.StudentExamHistory} component={StudentExamHistoryScreen} />
+        </Tab.Navigator>
+      </LayoutApp>
+      <ChangePasswordDialog
+        visible={mustChangePassword && hasConfirmedWarning && !isMustChangePasswordDismissed}
+        onClose={() => setIsMustChangePasswordDismissed(true)}
+        cancelText={t('change_later')}
+      />
+      <ResetPasswordWarningDialog
+        visible={mustChangePassword && !hasConfirmedWarning && !isMustChangePasswordDismissed}
+        onClose={() => setIsMustChangePasswordDismissed(true)}
+        onConfirm={() => setHasConfirmedWarning(true)}
+      />
+    </>
   )
 }
 

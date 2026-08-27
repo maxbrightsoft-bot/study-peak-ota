@@ -21,6 +21,7 @@ const ForgotPasswordDialog = ({ visible, onOpenLoginAccountDialog, onClose }: Pr
     step,
     loading,
     emailFormik,
+    otpFormik,
     resetFormik,
     showNewPassword,
     showConfirmPassword,
@@ -40,9 +41,9 @@ const ForgotPasswordDialog = ({ visible, onOpenLoginAccountDialog, onClose }: Pr
       ? emailFormik.errors.email
       : ''
 
-  const codeError =
-    resetFormik.touched.otp && resetFormik.errors.otp
-      ? resetFormik.errors.otp
+  const otpError =
+    otpFormik.touched.otp && otpFormik.errors.otp
+      ? otpFormik.errors.otp
       : ''
 
   const newPasswordError =
@@ -54,6 +55,40 @@ const ForgotPasswordDialog = ({ visible, onOpenLoginAccountDialog, onClose }: Pr
     resetFormik.touched.confirmPassword && resetFormik.errors.confirmPassword
       ? resetFormik.errors.confirmPassword
       : ''
+
+  const OptionCard = ({
+    type,
+    title,
+    description,
+  }: {
+    type: 'main'
+    title: string
+    description: string
+  }) => {
+    const active = emailFormik.values.sendToType === type
+    return (
+      <TouchableOpacity
+        onPress={() => emailFormik.setFieldValue('sendToType', type)}
+        style={[
+          styles.optionCard,
+          active ? styles.optionCardActive : styles.optionCardInactive,
+        ]}
+      >
+        <View
+          style={[
+            styles.radioButton,
+            active ? styles.radioButtonActive : styles.radioButtonInactive,
+          ]}
+        >
+          {active && <View style={styles.radioButtonInner} />}
+        </View>
+        <View style={styles.optionTextContainer}>
+          <Text style={styles.optionTitle}>{title}</Text>
+          <Text style={styles.optionDescription}>{description}</Text>
+        </View>
+      </TouchableOpacity>
+    )
+  }
 
   const renderEmailStep = () => (
     <View style={styles.form}>
@@ -71,6 +106,17 @@ const ForgotPasswordDialog = ({ visible, onOpenLoginAccountDialog, onClose }: Pr
         />
       </View>
 
+      <View style={styles.optionsContainer}>
+        <Text style={styles.label}>{t('send_otp_to_destination')}</Text>
+        <View style={styles.optionsList}>
+          <OptionCard
+            type="main"
+            title={t('main_email')}
+            description={t('main_email_desc')}
+          />
+        </View>
+      </View>
+
       <CustomTouchable
         style={[styles.submitButton, loading && styles.disabledButton]}
         onPress={() => emailFormik.handleSubmit()}
@@ -83,21 +129,49 @@ const ForgotPasswordDialog = ({ visible, onOpenLoginAccountDialog, onClose }: Pr
     </View>
   )
 
-  const renderResetStep = () => (
+  const renderOtpStep = () => (
     <View style={styles.form}>
       <Text style={styles.description}>
-        {t('reset_password_description')}
+        {t('verification_code_sent')}
       </Text>
 
       <View>
         <Text style={styles.label}>{t('verification_code')}</Text>
         <TextField
-          onChangeText={(text: string) => resetFormik.setFieldValue('otp', text)}
-          value={resetFormik.values.otp}
-          error={codeError}
+          onChangeText={(text: string) => otpFormik.setFieldValue('otp', text)}
+          value={otpFormik.values.otp}
+          error={otpError}
           keyboardType="number-pad"
         />
       </View>
+
+      <CustomTouchable
+        style={[styles.submitButton, loading && styles.disabledButton]}
+        onPress={() => otpFormik.handleSubmit()}
+        disabled={loading}
+      >
+        <Text style={styles.submitButtonText}>
+          {loading ? t('please_wait_a_moment') : t('confirmation')}
+        </Text>
+      </CustomTouchable>
+
+      <TouchableOpacity
+        style={styles.resendButton}
+        onPress={handleResendCode}
+        disabled={loading}
+      >
+        <Text style={styles.resendButtonText}>
+          {t('resend_verification_code')}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  )
+
+  const renderResetStep = () => (
+    <View style={styles.form}>
+      <Text style={styles.description}>
+        {t('reset_password_description')}
+      </Text>
 
       <View>
         <Text style={styles.label}>{t('new_password')}</Text>
@@ -143,19 +217,9 @@ const ForgotPasswordDialog = ({ visible, onOpenLoginAccountDialog, onClose }: Pr
         disabled={loading}
       >
         <Text style={styles.submitButtonText}>
-          {loading ? t('please_wait_a_moment') : t('reset_password')}
+          {loading ? t('submitting') : t('change_password')}
         </Text>
       </CustomTouchable>
-
-      <TouchableOpacity
-        style={styles.resendButton}
-        onPress={handleResendCode}
-        disabled={loading}
-      >
-        <Text style={styles.resendButtonText}>
-          {t('resend_verification_code')}
-        </Text>
-      </TouchableOpacity>
     </View>
   )
 
@@ -163,9 +227,17 @@ const ForgotPasswordDialog = ({ visible, onOpenLoginAccountDialog, onClose }: Pr
     <CommonDialog
       isVisible={visible}
       onClose={handleClose}
-      title={step === 'email' ? t('forgot_password') : t('reset_password')}
+      title={
+        step === 'email'
+          ? t('forgot_password')
+          : step === 'verify_otp'
+          ? t('verification_code')
+          : t('change_password')
+      }
     >
-      {step === 'email' ? renderEmailStep() : renderResetStep()}
+      {step === 'email' && renderEmailStep()}
+      {step === 'verify_otp' && renderOtpStep()}
+      {step === 'reset' && renderResetStep()}
     </CommonDialog>
   )
 }
@@ -217,5 +289,60 @@ const styles = ScaledSheet.create({
     ...TYPO.body3,
     color: palette.main[500],
     fontWeight: '600',
+  },
+  optionsContainer: {
+    marginTop: '4@ms',
+  },
+  optionsList: {
+    gap: '8@ms',
+  },
+  optionCard: {
+    padding: '12@ms',
+    borderRadius: '8@ms',
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: '12@ms',
+  },
+  optionCardActive: {
+    borderColor: palette.main[600],
+    backgroundColor: `${palette.main[600]}10`,
+  },
+  optionCardInactive: {
+    borderColor: palette.grey[300],
+    backgroundColor: '#fff',
+  },
+  radioButton: {
+    width: '20@ms',
+    height: '20@ms',
+    borderRadius: '10@ms',
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  radioButtonActive: {
+    borderColor: palette.main[600],
+  },
+  radioButtonInactive: {
+    borderColor: palette.grey[400],
+  },
+  radioButtonInner: {
+    width: '10@ms',
+    height: '10@ms',
+    borderRadius: '5@ms',
+    backgroundColor: palette.main[600],
+  },
+  optionTextContainer: {
+    flex: 1,
+    gap: '2@ms',
+  },
+  optionTitle: {
+    ...TYPO.body2,
+    fontWeight: 'bold',
+    color: palette.grey[800],
+  },
+  optionDescription: {
+    ...TYPO.caption,
+    color: palette.grey[500],
   },
 })
