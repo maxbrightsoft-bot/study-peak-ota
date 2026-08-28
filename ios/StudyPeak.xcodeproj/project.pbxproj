@@ -428,7 +428,7 @@
 				CODE_SIGN_ENTITLEMENTS = StudyPeak/StudyPeak.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 9PC7DVBBJ8;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -477,7 +477,7 @@
 				CODE_SIGN_ENTITLEMENTS = StudyPeak/StudyPeak.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 9PC7DVBBJ8;
 				HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/../node_modules/react-native-firebase/ios/RNFBApp/**",
