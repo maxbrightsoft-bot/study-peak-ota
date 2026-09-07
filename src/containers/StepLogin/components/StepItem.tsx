@@ -184,10 +184,15 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
           }}
         >
           {step !== 0 ? (
-            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={onPrev}>
+            <TouchableOpacity
+              style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}
+              onPress={onPrev}
+              activeOpacity={0.7}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
               <Ionicons name="chevron-back-outline" size={24} color={palette.grey[600]} />
             </TouchableOpacity>
-          ) : (<View></View>)}
+          ) : (<View style={{ width: 40 }} />)}
           <TouchableOpacity
             onPress={logout}
             activeOpacity={0.7}

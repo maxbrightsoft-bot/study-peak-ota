@@ -171,7 +171,7 @@ const useNotice = (setNew: any) => {
   }
   useEffect(() => {
     handleGetListNotification(typeSelected)
-  }, [JSON.stringify(typeSelected), selectedAcademy?.id])
+  }, [JSON.stringify(typeSelected), user?.academyDomain])
 
   const noteHandlersRef = useRef<{ [event: string]: (data: any) => void }>({})
   const notificationHandlersRef = useRef<{ [event: string]: (data: any) => void }>({})

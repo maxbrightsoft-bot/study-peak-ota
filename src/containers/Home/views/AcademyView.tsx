@@ -16,7 +16,10 @@ import useProblemSolving from '../hooks/useProblemSolving'
 import StudyTimerCard from '../components/StudyTimerCard'
 import { ScaledSheet } from 'react-native-size-matters'
 
+import useAuthStore from '@/store/useAuthStore'
+
 const AcademyView = () => {
+  const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
   const {
     t,
     open,
@@ -128,61 +131,65 @@ const AcademyView = () => {
                     </Text>
                   )}
                 </View>
-                <TouchableOpacity
-                  style={[
-                    styles.attendBtn,
-                    {
-                      backgroundColor:
-                        selectedSchedule?.status === ScheduleStatus.Completed ? palette.grey[200] : palette.sub[400]
-                    }
-                  ]}
-                  onPress={handleCheckSchedule}
-                  disabled={!enableCheckSchedule}
-                >
-                  <View style={{ flexDirection: 'row', gap: 4, justifyContent: 'center', alignItems: 'center' }}>
-                    <View style={{ padding: 4 }}>
-                      <Verify
-                        color={selectedSchedule?.status === ScheduleStatus.Completed ? palette.grey[400] : '#FFF'}
-                      />
+                {!isParentMode && (
+                  <TouchableOpacity
+                    style={[
+                      styles.attendBtn,
+                      {
+                        backgroundColor:
+                          selectedSchedule?.status === ScheduleStatus.Completed ? palette.grey[200] : palette.sub[400]
+                      }
+                    ]}
+                    onPress={handleCheckSchedule}
+                    disabled={!enableCheckSchedule}
+                  >
+                    <View style={{ flexDirection: 'row', gap: 4, justifyContent: 'center', alignItems: 'center' }}>
+                      <View style={{ padding: 4 }}>
+                        <Verify
+                          color={selectedSchedule?.status === ScheduleStatus.Completed ? palette.grey[400] : '#FFF'}
+                        />
+                      </View>
+                      <Text
+                        style={{
+                          fontSize: 14,
+                          fontWeight: 500,
+                          color: selectedSchedule?.status === ScheduleStatus.Completed ? palette.grey[400] : '#FFF'
+                        }}
+                      >
+                        {t('check_in')}
+                      </Text>
                     </View>
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 500,
-                        color: selectedSchedule?.status === ScheduleStatus.Completed ? palette.grey[400] : '#FFF'
-                      }}
-                    >
-                      {t('check_in')}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
+                  </TouchableOpacity>
+                )}
               </View>
             </CustomCard>
 
-            <View style={styles.half}>
-              <CustomCard style={{ ...styles.card, paddingHorizontal: 12, paddingVertical: 15, width: '100%' }}>
-                <Text style={{ fontSize: 12, color: palette.grey[500] }}>{t('new_exam')}</Text>
-                <TouchableOpacity
-                  style={{ backgroundColor: '#F6F6F6', padding: 12, borderRadius: 10, marginTop: 6 }}
-                  onPress={() => openCloseModal()}
-                >
-                  <Text style={{ fontSize: 14, fontWeight: 400, color: '#C0C0C0' }}>{t('enter_exam_code')}</Text>
-                </TouchableOpacity>
-              </CustomCard>
-              <View style={{ height: 12 }} />
+              <View style={styles.half}>
+            {!isParentMode && (
+                <CustomCard style={{ ...styles.card, paddingHorizontal: 12, paddingVertical: 15, width: '100%' }}>
+                  <Text style={{ fontSize: 12, color: palette.grey[500] }}>{t('new_exam')}</Text>
+                  <TouchableOpacity
+                    style={{ backgroundColor: '#F6F6F6', padding: 12, borderRadius: 10, marginTop: 6 }}
+                    onPress={() => openCloseModal()}
+                  >
+                    <Text style={{ fontSize: 14, fontWeight: 400, color: '#C0C0C0' }}>{t('enter_exam_code')}</Text>
+                  </TouchableOpacity>
+                </CustomCard>
+            )}
+                <View style={{ height: 12 }} />
 
-              <CustomCard style={[styles.card, { paddingHorizontal: 12, paddingVertical: 15, width: '100%' }]}>
-                <Text style={{ fontSize: 12, fontWeight: 400, color: '#2E2E2E', marginBottom: 6 }}>{t('past_exam')}</Text>
-                <TouchableOpacity onPress={handleOpenExamHistoryDialog}>
-                  <View style={{ justifyContent: 'space-between', alignItems: 'center', flexDirection: 'row' }}>
-                    <Text style={{ fontSize: 16, fontWeight: 600, color: '#36BFEC', lineHeight: 24, paddingVertical: 6 }}>
-                      {t('solve_past_exam')}
-                    </Text>
-                    <ArrowRight color="#E2F4FC" />
-                  </View>
-                </TouchableOpacity>
-              </CustomCard>
-            </View>
+                <CustomCard style={[styles.card, { paddingHorizontal: 12, paddingVertical: 15, width: '100%' }]}>
+                  <Text style={{ fontSize: 12, fontWeight: 400, color: '#2E2E2E', marginBottom: 6 }}>{t('past_exam')}</Text>
+                  <TouchableOpacity onPress={handleOpenExamHistoryDialog}>
+                    <View style={{ justifyContent: 'space-between', alignItems: 'center', flexDirection: 'row' }}>
+                      <Text style={{ fontSize: 16, fontWeight: 600, color: '#36BFEC', lineHeight: 24, paddingVertical: 6 }}>
+                        {t('solve_past_exam')}
+                      </Text>
+                      <ArrowRight color="#E2F4FC" />
+                    </View>
+                  </TouchableOpacity>
+                </CustomCard>
+              </View>
           </View>}
 
           <View style={{ marginBottom: 28 }}>

@@ -30,6 +30,7 @@ import { Menu, TouchableRipple } from 'react-native-paper'
 import { navigate } from '@/navigators/NavigationHelpers'
 import { Routes } from '@/navigators/RouteName'
 import TextTooltip from '@/components/Tooltip/TextTooltip'
+import useAuthStore from '@/store/useAuthStore'
 
 type Props = {
   examCode?: string
@@ -43,6 +44,7 @@ type Props = {
 }
 
 const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, studentExamSessionId, onViewQA }: Props) => {
+  const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
   const {
     t,
     contentRef,
@@ -195,9 +197,9 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
     chapterId ?? 0
   )
 
-
-
-  const noteItemActions: Action<NoteResponse>[] = [
+  const noteItemActions: Action<NoteResponse>[] = isParentMode
+    ? []
+    : [
     {
       label: t('ask_a_question'),
       textStyle: {
@@ -301,11 +303,16 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
   return (
     <SlideDrawerRoot visible={!!resultData || !!textbookResult} onClose={onClose}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onClose}>
-          <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={onClose}
+          activeOpacity={0.7}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <Ionicons name="chevron-back-outline" size={24} color={palette.grey[800] || '#222'} />
         </TouchableOpacity>
         <View>
-          <Text style={{ fontSize: 16, fontWeight: 600, color: '#222222' }}>{t('exam_results')}</Text>
+          <Text style={{ fontSize: 16, fontWeight: '600', color: '#222222' }}>{t('exam_results')}</Text>
         </View>
         <View>
           {resultData && <Menu
@@ -357,57 +364,61 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
                 <Text style={{ fontWeight: '600', color: palette.main[600] }}>{t('history')}</Text>
               </View>
             </TouchableRipple>
-            <TouchableRipple
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                borderColor: '#E0E0E0'
-              }}
-              onPress={(e) => {
-                handleCloseActionMenu()
-                handleOpenQuestionDialog(e);
-              }}
-            >
-              <View
+            {!isParentMode && (
+              <TouchableRipple
                 style={{
-                  flex: 1,
                   flexDirection: 'row',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  paddingVertical: 12,
-                  gap: 12
+                  borderColor: '#E0E0E0'
+                }}
+                onPress={(e) => {
+                  handleCloseActionMenu()
+                  handleOpenQuestionDialog(e);
                 }}
               >
-                <Ionicons name="chatbubble-ellipses" size={18} color={palette.main[600]} />
-                <Text style={{ fontWeight: '600', color: palette.main[600] }}>{t('ask_a_question2')}</Text>
-              </View>
-            </TouchableRipple>
-            <TouchableRipple
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                borderColor: '#E0E0E0'
-              }}
-              onPress={() => {
-                handleCloseActionMenu()
-                handleOpenConfirmRestartExamDialog()
-              }}
-            >
-              <View
+                <View
+                  style={{
+                    flex: 1,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingVertical: 12,
+                    gap: 12
+                  }}
+                >
+                  <Ionicons name="chatbubble-ellipses" size={18} color={palette.main[600]} />
+                  <Text style={{ fontWeight: '600', color: palette.main[600] }}>{t('ask_a_question2')}</Text>
+                </View>
+              </TouchableRipple>
+            )}
+            {!isParentMode && (
+              <TouchableRipple
                 style={{
-                  flex: 1,
                   flexDirection: 'row',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  paddingVertical: 12,
-                  gap: 12
+                  borderColor: '#E0E0E0'
+                }}
+                onPress={() => {
+                  handleCloseActionMenu()
+                  handleOpenConfirmRestartExamDialog()
                 }}
               >
+                <View
+                  style={{
+                    flex: 1,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingVertical: 12,
+                    gap: 12
+                  }}
+                >
                 <FontAwesome name="refresh" size={18} color="#3498db" />
                 <Text style={{ fontWeight: '600', color: '#3498db' }}>{t('restart_exam')}</Text>
               </View>
             </TouchableRipple>
-            {isLatestSessionUnfinished && (
+            )}
+            {isLatestSessionUnfinished && !isParentMode && (
               <TouchableRipple
                 style={{
                   flexDirection: 'row',
@@ -556,8 +567,10 @@ const styles = ScaledSheet.create({
     color: '#FFFF'
   },
   backButton: {
-    flexDirection: 'row',
-    alignItems: 'center'
+    width: '40@ms',
+    height: '40@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   backText: {
     ...TYPO.button2,

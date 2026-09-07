@@ -1,16 +1,20 @@
 import { api, apiUpload } from "@/services/api/apiClient"
 import { BASE_URL } from "@/utils/constants"
+import { getIdLinkAccount } from "@/utils/helpers"
 import { StudentAnswerRequest } from "@/utils/types"
 
 const EXAM_SESSION_URL = `${BASE_URL}/api/examSession`
 
-export const getListExamApi = (query: any) =>
-    api.get(`${EXAM_SESSION_URL}`, {
+export const getListExamApi = (query: any) => {
+    const idLinkAccount = getIdLinkAccount();
+    return api.get(`${EXAM_SESSION_URL}`, {
         params: {
             ...query,
-            roles: ["Student"]
+            roles: ["Student"],
+            ...(idLinkAccount ? { idLinkAccount } : {})
         }
-    })
+    });
+};
 
 export const getExamResult = (examCode?: string) => api.get(`${EXAM_SESSION_URL}/${examCode}/results`)
 

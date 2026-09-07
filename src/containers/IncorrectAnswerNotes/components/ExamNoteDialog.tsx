@@ -53,15 +53,20 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
   return (
     <SlideDrawerRoot onClose={onClose} visible={open}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onClose}>
-          <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={onClose}
+          activeOpacity={0.7}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <Ionicons name="chevron-back-outline" size={24} color={palette.grey[800] || '#222'} />
         </TouchableOpacity>
         <View>
-          <Text style={{ fontSize: 16, fontWeight: 600, color: '#222222' }}>
+          <Text style={{ fontSize: 16, fontWeight: '600', color: '#222222' }}>
             {t('write_a_note_of_incorrect_answers')}
           </Text>
         </View>
-        <View></View>
+        <View style={{ width: 40 }} />
       </View>
       {isLoadingNotes && <Loading isOverlay={false} />}
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={80}>
@@ -149,8 +154,10 @@ const styles = ScaledSheet.create({
     paddingHorizontal: '24@ms'
   },
   backButton: {
-    flexDirection: 'row',
-    alignItems: 'center'
+    width: '40@ms',
+    height: '40@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   backText: {
     ...TYPO.button2,

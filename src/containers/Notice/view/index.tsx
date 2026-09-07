@@ -62,13 +62,18 @@ const Notice = ({ open, onClose }: Props) => {
   return (
     <SlideDrawerRoot visible={open} onClose={onClose}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onClose}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={onClose}
+          activeOpacity={0.7}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
           <Ionicons name="chevron-back-outline" size={24} color={palette.grey[800]} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>{t('institute_notice')}</Text>
 
-        <View style={{ width: 24 }} />
+        <View style={{ width: 40 }} />
       </View>
       <View style={styles.container}>
         <View style={styles.tabsWrapper}>
@@ -143,7 +148,10 @@ const styles = ScaledSheet.create({
   },
 
   backButton: {
-    width: '24@ms'
+    width: '40@ms',
+    height: '40@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tabsWrapper: {
     backgroundColor: '#fff',

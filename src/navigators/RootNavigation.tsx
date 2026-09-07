@@ -22,6 +22,7 @@ import TutorialScreen from '@/screens/Tutorial'
 import { toast } from '@/utils/helpers'
 import i18next from 'i18next'
 import { isDemoMode } from '@/demoData/mockInterceptor'
+import { KeyboardProvider } from 'react-native-keyboard-controller'
 
 const Stack = createNativeStackNavigator()
 
@@ -46,7 +47,11 @@ const linking: any = {
       [Routes.AcademyInvitation]: ':domain/invitations',
       [MainRoutes.AuthStack]: {
         screens: {
-          [Routes.Auth.ExamResultList]: 'student/exam-results/:domain',
+          [Routes.Auth.MainTabs]: {
+            screens: {
+              [Routes.Auth.ExamResultList]: 'student/exam-results/:domain',
+            },
+          },
         },
       },
       [MainRoutes.UnAuthStack]: {
@@ -85,7 +90,9 @@ const linking: any = {
       const user = useAuthStore.getState().user
       const state = defaultGetStateFromPath(path, options)
       const authRoute = state?.routes?.find((r: any) => r.name === MainRoutes.AuthStack)
-      const examRoute = (authRoute?.state as any)?.routes?.find((r: any) => r.name === Routes.Auth.ExamResultList)
+      const mainTabsRoute = (authRoute?.state as any)?.routes?.find((r: any) => r.name === Routes.Auth.MainTabs)
+      const examRoute = (mainTabsRoute?.state as any)?.routes?.find((r: any) => r.name === Routes.Auth.ExamResultList)
+        || (authRoute?.state as any)?.routes?.find((r: any) => r.name === Routes.Auth.ExamResultList)
       const params = examRoute?.params
       const targetDomain = params?.domain
 
@@ -112,7 +119,22 @@ const linking: any = {
         }
       }
 
-      return state
+      return {
+        routes: [{
+          name: MainRoutes.AuthStack,
+          state: {
+            routes: [{
+              name: Routes.Auth.MainTabs,
+              state: {
+                routes: [{
+                  name: Routes.Auth.ExamResultList,
+                  params,
+                }],
+              },
+            }],
+          },
+        }],
+      }
     }
     return defaultGetStateFromPath(path, options)
   },
@@ -156,46 +178,46 @@ const RootNavigation: React.FC = () => {
     }
   }, [user?.id])
 
-
-
   if (!hydrated) {
     return null
   }
 
   return (
     <SafeAreaProvider>
-      <PaperProvider>
-        <NavigationContainer
-          linking={linking}
-          onReady={() => RNBootSplash.hide()}
-          onStateChange={() => {
-            useAuthStore.getState().setLoading(false)
-            useAuthStore.getState().setLoadingWithoutOverlay(false)
-          }}
-          ref={(navigatorRef) => {
-            if (navigatorRef) {
-              NavigationHelpers.setTopLevelNavigator(navigatorRef)
-            }
-          }}
-        >
-          <Stack.Navigator screenOptions={{ headerShown: false }}>
-            {!user?.id ? (
-              <Stack.Screen
-                name={MainRoutes.UnAuthStack}
-                component={UnAuthorized}
-                initialParams={{ tutorialSeen: hasSeenTutorial }}
-              />
-            ) : (
-              <Stack.Screen name={MainRoutes.AuthStack} component={Authorized} />
-            )}
-            <Stack.Screen name={Routes.AcademyRequest} component={AcademyRequestScreen} />
-            <Stack.Screen name={Routes.AcademyInvitation} component={AcademyInvitationScreen} />
-            <Stack.Screen name={Routes.Auth.Tutorial} component={TutorialScreen} />
-          </Stack.Navigator>
-        </NavigationContainer>
-        {isLoading && <Loading isOverlay />}
-        {!isLoading && isLoadingWithoutOverlay && <Loading />}
-      </PaperProvider>
+      <KeyboardProvider>
+        <PaperProvider>
+          <NavigationContainer
+            linking={linking}
+            onReady={() => RNBootSplash.hide()}
+            onStateChange={() => {
+              useAuthStore.getState().setLoading(false)
+              useAuthStore.getState().setLoadingWithoutOverlay(false)
+            }}
+            ref={(navigatorRef) => {
+              if (navigatorRef) {
+                NavigationHelpers.setTopLevelNavigator(navigatorRef)
+              }
+            }}
+          >
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+              {!user?.id ? (
+                <Stack.Screen
+                  name={MainRoutes.UnAuthStack}
+                  component={UnAuthorized}
+                  initialParams={{ tutorialSeen: hasSeenTutorial }}
+                />
+              ) : (
+                <Stack.Screen name={MainRoutes.AuthStack} component={Authorized} />
+              )}
+              <Stack.Screen name={Routes.AcademyRequest} component={AcademyRequestScreen} />
+              <Stack.Screen name={Routes.AcademyInvitation} component={AcademyInvitationScreen} />
+              <Stack.Screen name={Routes.Auth.Tutorial} component={TutorialScreen} />
+            </Stack.Navigator>
+          </NavigationContainer>
+          {isLoading && <Loading isOverlay />}
+          {!isLoading && isLoadingWithoutOverlay && <Loading />}
+        </PaperProvider>
+      </KeyboardProvider>
       <ToastWrapper />
     </SafeAreaProvider>
   )
