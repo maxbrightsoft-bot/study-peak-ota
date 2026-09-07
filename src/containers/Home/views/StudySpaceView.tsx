@@ -16,8 +16,10 @@ import StudyTimerCard from '../components/StudyTimerCard'
 import { Ionicons } from '@expo/vector-icons'
 import { navigate } from '@/navigators/NavigationHelpers'
 import { Routes } from '@/navigators/RouteName'
+import useAuthStore from '@/store/useAuthStore'
 
 const StudySpaceView = () => {
+  const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
   const {
     t,
     user,
@@ -72,14 +74,16 @@ const StudySpaceView = () => {
             <View>
               <Text style={{ fontSize: 11, color: palette.main[600], fontWeight: 500 }}>{t('schedule_detail')}</Text>
             </View>
+            {!isParentMode && (
             <TouchableOpacity
-              style={styles.fabButton}
-              onPress={() => handleOpenDialog()}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.fabIcon}>＋</Text>
-              <Text style={styles.fabText}>{t('add_new_schedule')}</Text>
-            </TouchableOpacity>
+                style={styles.fabButton}
+                onPress={() => handleOpenDialog()}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.fabIcon}>＋</Text>
+                <Text style={styles.fabText}>{t('add_new_schedule')}</Text>
+              </TouchableOpacity>
+          )}
 
             <View style={{ marginBottom: 24 }}>
               <Calendar

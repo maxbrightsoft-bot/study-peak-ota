@@ -1,5 +1,6 @@
 import { View, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
+import { ms } from 'react-native-size-matters'
 import useTimers from '../hooks/useTimer'
 import useAlarm from '../hooks/useAlarm'
 import TimerDropDown from './TimerDropDown'
@@ -11,12 +12,14 @@ import SettingIcon from '@/assets/iconJSX/setting'
 import { palette } from '@/theme'
 import { currentScreen } from '@/navigators/NavigationHelpers'
 import { Routes } from '@/navigators/RouteName'
+import { checkIsParent } from '@/utils/helpers'
 
 const HeaderAction = () => {
   const isFocused = useIsFocused()
   const isOpenTimerDialog = useAuthStore(state => state.isOpenTimerDialog)
   const setIsOpenTimerDialog = useAuthStore(state => state.setIsOpenTimerDialog)
   const [openSettingDialog, setOpenSettingDialog] = useState<boolean>(false)
+  const isParent = checkIsParent();
 
   const handleTimerDialogToggle = () => {
     setIsOpenTimerDialog(!isOpenTimerDialog)
@@ -45,22 +48,31 @@ const HeaderAction = () => {
 
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-      <TimerDropDown
-        speaker={speaker}
-        disabledSpeaker={disabledSpeaker}
-        openTimerDialog={isOpenTimerDialog}
-        alarmClockProps={alarmClockProps}
-        isAlarmRunning={isAlarmRunning}
-        isTimerRunning={isTimerRunning}
-        studyTimerProps={studyTimerProps}
-        timeUpdateDialogProps={timeUpdateDialogProps}
-        onToggleSpeaker={handleToggleSpeaker}
-        onToggleTimerDialog={handleTimerDialogToggle}
-      />
-      <TouchableOpacity onPress={() => handleOpenSettingDialog()}>
+      {isParent ? (
+        <View style={{ width: ms(16) }} />
+      ) : (
+        <TimerDropDown
+          speaker={speaker}
+          disabledSpeaker={disabledSpeaker}
+          openTimerDialog={isOpenTimerDialog}
+          alarmClockProps={alarmClockProps}
+          isAlarmRunning={isAlarmRunning}
+          isTimerRunning={isTimerRunning}
+          studyTimerProps={studyTimerProps}
+          timeUpdateDialogProps={timeUpdateDialogProps}
+          onToggleSpeaker={handleToggleSpeaker}
+          onToggleTimerDialog={handleTimerDialogToggle}
+        />
+      )}
+      <TouchableOpacity
+        style={{ width: ms(40), height: ms(40), alignItems: 'center', justifyContent: 'center' }}
+        onPress={() => handleOpenSettingDialog()}
+        activeOpacity={0.7}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
         <SettingIcon color={currentScreen() === Routes.Auth.Home ? "#FFF": palette.grey[300]} />
       </TouchableOpacity>
-      <AudioGuideModal {...audioGuideModalProps} />
+      {!isParent && <AudioGuideModal {...audioGuideModalProps} />}
       <Setting open={openSettingDialog} onClose={handleCloseSettingDialog} />
     </View>
   )

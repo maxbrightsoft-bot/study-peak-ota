@@ -28,6 +28,7 @@ import useServerTime from "@/hooks/useServerTime"
 
 const useTimers = (open: boolean, handleToggle: () => void) => {
     const user = useAuthStore(state => state.user)
+    const parentViewMode = useAuthStore(state => state.parentViewMode)
     const timers = useAuthStore(state => state.timers)
     const setTimers = useAuthStore(state => state.setTimers)
     const activeTimerId = useAuthStore(state => state.activeTimerId)
@@ -71,6 +72,7 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
     }
 
     const handleStopTimer = async (data: SubjectTimerResponse) => {
+        if (parentViewMode?.isActive) return
         const isActive = activeTimerId === data.id
         const isStarted = data.status === TimerStatus.Started
         const timerKey = `${TIMER_KEY}.${user?.superId}.${data.id}.${data.timerId}`
@@ -99,7 +101,7 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
         onSuccess?: (data: SubjectTimerResponse) => void,
         onError?: (error: any) => void
     ) => {
-        if (data.status === TimerStatus.Paused) return data
+        if (parentViewMode?.isActive || data.status === TimerStatus.Paused) return data
         const nowTime = getServerNow()
         const timerKey = `${TIMER_KEY}.${user?.superId}.${data.id}.${data.timerId}`
         try {
@@ -144,6 +146,7 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
         isRestart?: boolean,
         isTimerRunning?: boolean
     ) => {
+        if (parentViewMode?.isActive) return
         const isActive = activeTimerId === data.id
         const isStarted = data.status === TimerStatus.Started
         const isPaused = data.status === TimerStatus.Paused
@@ -272,6 +275,7 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
 
     const handleSaveTimer = useCallback(async () => {
         if (
+            parentViewMode?.isActive ||
             !selectedTimer ||
             selectedTimer.status !== TimerStatus.Started ||
             loadingItem ||
@@ -300,11 +304,13 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
         selectedTimer?.pauseTime,
         loadingItem,
         onAcademy,
-        timers
+        timers,
+        parentViewMode?.isActive
     ])
 
     useEffect(() => {
         if (
+            parentViewMode?.isActive ||
             !selectedTimer ||
             selectedTimer.status !== TimerStatus.Started ||
             loadingItem ||
@@ -324,7 +330,8 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
         selectedTimer?.id,
         selectedTimer?.status,
         selectedTimer?.pauseTime,
-        loadingItem
+        loadingItem,
+        parentViewMode?.isActive
     ])
 
     useEffect(() => {
@@ -371,7 +378,10 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
 
                 const secs = Math.floor(time / 1000)
                 handleChangeTime(selectedTimer, secs)
-                await setDataStorage(timerKey, `${nowTime}`)
+
+                if (!parentViewMode?.isActive) {
+                    await setDataStorage(timerKey, `${nowTime}`)
+                }
             } finally {
                 ticking = false
             }
@@ -391,7 +401,8 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
         selectedTimer?.status,
         selectedTimer?.pauseTime,
         activeTimerId,
-        loadingItem
+        loadingItem,
+        parentViewMode?.isActive
     ])
 
     const isTimerRunning = timers.some(t => t.status === TimerStatus.Started)

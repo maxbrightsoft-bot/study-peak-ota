@@ -11,6 +11,7 @@ import { Platform, Text } from 'react-native'
 import { palette } from '@/theme'
 import { Language, Role } from '../enums'
 import { trackErrorStandalone } from '@/hooks/useActivityTracking'
+import useAuthStore from '@/store/useAuthStore'
 
 export const toast = {
   success: (message: string) =>
@@ -18,8 +19,8 @@ export const toast = {
       type: 'success',
       text1: message
     }),
-  error: (message: string) => {
-    if (message === 'DEMO_BLOCKED' || message === UPDATE_REQUIRED) return;
+  error: (message?: string) => {
+    if (!message || !message.trim() || message === 'DEMO_BLOCKED' || message === UPDATE_REQUIRED) return;
     Toast.show({
       type: 'error',
       text1: message
@@ -121,6 +122,10 @@ export const formatGrade = (grade: number, t: any, language?: string) => {
 }
 
 export const getErrorMessage = (t: TFunction<"translation", undefined>, error: any, defaultErrorMessage?: string): string => {
+    if (error?.isSilent) {
+      return ""
+    }
+
     if (error) {
       trackErrorStandalone(error).catch(() => {})
     }
@@ -148,6 +153,10 @@ export const getErrorMessage = (t: TFunction<"translation", undefined>, error: a
     return defaultErrorMessage || t("an_unexpected_error_has_occurred");
 }
 export const getMessageFromError = (t: TFunction<"translation", undefined>, error: any, defaultErrorMessage?: string): string => {
+    if (error?.isSilent) {
+      return ""
+    }
+
     const message = error?.response?.data?.title
     const errorStatus = error?.response?.status
     if(errorStatus === 420 && !!message) {
@@ -288,6 +297,21 @@ export const decodeJwtPayload = <T extends Record<string, unknown>>(token: strin
       .join('')
   )
   return JSON.parse(json) as T
+}
+
+export const getCurrentRole = (roles?: string[]): Role => {
+  const userRoles = roles || useAuthStore.getState().user?.roles
+  if (!userRoles) return Role.Student
+  return userRoles.includes(Role.Parent) ? Role.Parent : Role.Student
+}
+
+export const checkIsParent = (): boolean => {
+  return getCurrentRole() === Role.Parent
+}
+
+export const getIdLinkAccount = (): number | undefined => {
+  const parentViewMode = useAuthStore.getState().parentViewMode
+  return (parentViewMode?.isActive && parentViewMode?.linkId) ? parentViewMode.linkId : undefined
 }
 
 export * from './times'

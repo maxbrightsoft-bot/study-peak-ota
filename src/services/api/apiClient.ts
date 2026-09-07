@@ -15,11 +15,14 @@ import {
   OTA_UPDATE_REQUIRED,
   UPDATE_REQUIRED,
 } from '../../utils/constants'
+import { ErrorMessageCodes } from '../../utils/constants/error'
 import { getDataStorage } from '@/utils/storage';
 import useAuthStore from '@/store/useAuthStore';
 import useAppStore, { waitForAppStoreHydration } from '@/store/useAppStore';
 import { applyMockAdapter } from '@/demoData/mockInterceptor';
 import { trackErrorStandalone } from '@/hooks/useActivityTracking';
+import { reset } from '@/navigators/NavigationHelpers';
+import { Routes } from '@/navigators/RouteName';
 
 export const api: AxiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -50,10 +53,8 @@ export const apiUpload: AxiosInstance = axios.create({
           config.headers.Authorization = `Bearer ${token}`
         }
 
-        const authState = useAuthStore.getState()
-        const currentUser = authState.user
-        const academyDomain = currentUser ? currentUser.academyDomain : await getDataStorage(ACADEMY_DOMAIN)
-        const isLearningSpace = currentUser ? !!currentUser.isLearningSpace : !!(await getDataStorage(LEARNING_SPACE)) === true
+        const academyDomain = await getDataStorage(ACADEMY_DOMAIN)
+        const isLearningSpace = !!(await getDataStorage(LEARNING_SPACE))
 
         if ((academyDomain && !isLearningSpace) && config.headers[AcademyHeaders] == undefined) config.headers[AcademyHeaders] = `${academyDomain}`
         if (isLearningSpace && config.headers[NoAcademyHeaders] == undefined) config.headers[NoAcademyHeaders] = `${isLearningSpace}`
@@ -91,6 +92,23 @@ export const apiUpload: AxiosInstance = axios.create({
           await logout();
         }
         console.log({ error });
+        const responseData = error?.response?.data;
+
+        const errorCode =
+          responseData?.title ||
+          responseData?.code ||
+          responseData?.message ||
+          responseData?.instance ||
+          (typeof responseData === 'string' ? responseData : undefined);
+
+        if (errorCode === ErrorMessageCodes.AccountLinkNotFound) {
+          const currentUser = useAuthStore.getState().user;
+          if (currentUser) {
+            await useAuthStore.getState().setUserCustom(currentUser);
+          }
+          reset(Routes.Auth.Home);
+          error.isSilent = true;
+        }
         
         if (status === 426) {
           const data = error?.response?.data;

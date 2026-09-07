@@ -1,4 +1,9 @@
 export const ErrorMessages: any = {
+    InvalidOrExpiredCode: "invalid_or_expired_code",
+    AlreadyLinked: "already_linked",
+    AccountLinkNotFound: "account_link_not_found",
+    CannotLinkToYourself: "cannot_link_to_yourself",
+    LinkRequestExpired: "link_request_expired",
     SuperAdministratorsCannotCreateAcademyRequest: "super_administrators_cannot_create_academy_request",
     AcademyRequestRoleIsInvalid: "academy_request_role_is_invalid",
     TheUserAlreadyExistInTheAcademyWithRole: "user_already_exists_in_academy_with_role",
@@ -38,6 +43,11 @@ export const ErrorMessages: any = {
     PopQuizAlreadyUsed: "PopQuizAlreadyUsed"
 }
 export enum ErrorMessageCodes {
+    InvalidOrExpiredCode = "InvalidOrExpiredCode",
+    AlreadyLinked = "AlreadyLinked",
+    AccountLinkNotFound = "AccountLinkNotFound",
+    CannotLinkToYourself = "CannotLinkToYourself",
+    LinkRequestExpired = "LinkRequestExpired",
     SuperAdministratorsCannotCreateAcademyRequest = "SuperAdministratorsCannotCreateAcademyRequest",
     AcademyRequestRoleIsInvalid = "AcademyRequestRoleIsInvalid",
     TheUserAlreadyExistInTheAcademyWithRole = "TheUserAlreadyExistInTheAcademyWithRole",

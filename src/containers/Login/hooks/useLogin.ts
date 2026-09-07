@@ -28,7 +28,7 @@ const useLogin = () => {
   const {
     setLoading,
     logout,
-    setUser,
+    setUserCustom,
     setHasEnteredSelectAcademy,
     setRedirectUrl,
   } = useAuthStore();
@@ -59,7 +59,7 @@ const useLogin = () => {
       : await removeDataStorage(LEARNING_SPACE);
 
     setRedirectUrl(redirectUrl, redirectParams);
-    setUser(data);
+    await setUserCustom(data);
   };
   const handleLogin = async (
     apiLogin: () => Promise<LoginResponse>,
