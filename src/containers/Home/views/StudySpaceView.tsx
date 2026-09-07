@@ -16,8 +16,10 @@ import StudyTimerCard from '../components/StudyTimerCard'
 import { Ionicons } from '@expo/vector-icons'
 import { navigate } from '@/navigators/NavigationHelpers'
 import { Routes } from '@/navigators/RouteName'
+import useAuthStore from '@/store/useAuthStore'
 
 const StudySpaceView = () => {
+  const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
   const {
     t,
     user,
@@ -66,9 +68,53 @@ const StudySpaceView = () => {
       >
         <View style={{ position: 'absolute', top: -1000, left: 0, right: 0, height: 1200, backgroundColor: palette.main[600] }} />
         <View style={styles.container}>
-            <View style={{ marginBottom: 28 }}>
-              <StudyTimerCard />
-            </View>
+          <View style={{ marginBottom: 28 }}>
+            <StudyTimerCard />
+          </View>
+          <View>
+            <Text style={{ fontSize: 11, color: palette.main[600], fontWeight: 500, }}>{t('schedule_detail')}</Text>
+          </View>
+          {!isParentMode && (
+            <TouchableOpacity
+              style={styles.fabButton}
+              onPress={() => handleOpenDialog()}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.fabIcon}>＋</Text>
+              <Text style={styles.fabText}>{t('add_new_schedule')}</Text>
+            </TouchableOpacity>
+          )}
+
+          <View style={{ marginBottom: 24 }}>
+            <Calendar
+              highlightedDays={highlightedDays}
+              selectedDate={selectedDate}
+              handleSelectDate={handleSelectDate}
+              getScheduleList={getScheduleList}
+              getScheduleListForNoteEvent={getScheduleListForNoteEvent}
+              onScheduleCountChange={handleGetScheduleCount}
+            />
+            <NoteEvent
+              t={t}
+              schedules={schedules?.slice(0, 3)}
+              selectedDate={selectedDate}
+              handleCreateSchedule={handleCreateSchedule}
+              openTooltipList={openTooltipList}
+              handleOpenTooltip={handleOpenTooltip}
+              handleCloseTooltip={handleCloseTooltip}
+              selectedSchedule={selectedSchedule}
+              handleCheckInLesson={handleCheckInLesson}
+              isOpenScheduleDialog={isOpenScheduleDialog}
+              handleOpenScheduleDialog={handleOpenScheduleDialog}
+              isOpenConfirmDeleteDialog={isOpenConfirmDeleteDialog}
+              handleCloseScheduleDialog={handleCloseScheduleDialog}
+              handleCloseConfirmDeleteDialog={handleCloseConfirmDeleteDialog}
+              handleOpenConfirmDeleteDialog={handleOpenConfirmDeleteDialog}
+              handleDeleteSchedule={handleDeleteSchedule}
+              handleUpdateScheduleStatus={handleUpdateScheduleStatus}
+            />
+
+          </View>
 
           {user?.academyDomain && (
             <View style={[styles.row, { marginBottom: 28, gap: 14 }]}>

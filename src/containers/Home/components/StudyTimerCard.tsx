@@ -92,6 +92,9 @@ const StudyTimerCard = () => {
   const isCurrentRunning = selectedId === activeTimerId && selectedTimer?.status === TimerStatus.Started
   const isRestartIcon = selectedTimer && (selectedTimer.limitedTimeReached || selectedTimer.status === TimerStatus.Stopped || (selectedTimer.status === TimerStatus.Paused && !moment.utc(selectedTimer.lastPauseTime).isSame(moment(), 'day')))
 
+  const parentViewMode = useAuthStore(state => state.parentViewMode)
+  const isParentMode = !!parentViewMode?.isActive
+
   return (
     <CustomCard style={styles.card}>
       <View style={styles.header}>
@@ -132,45 +135,51 @@ const StudyTimerCard = () => {
               </TouchableOpacity>
             ))}
 
-            <TouchableOpacity
-              style={{ backgroundColor: palette.main[50], borderRadius: 8, alignItems: 'center', justifyContent: 'center', width: 30, height: 38 }}
-              onPress={() => setIsOpenTimerDialog(true)}
-            >
-              <AntDesign name="plus" size={20} color={palette.main[600]} />
-            </TouchableOpacity>
+            {!isParentMode && (
+              <TouchableOpacity
+                style={{ backgroundColor: palette.main[50], borderRadius: 8, alignItems: 'center', justifyContent: 'center', width: 30, height: 38 }}
+                onPress={() => setIsOpenTimerDialog(true)}
+              >
+                <AntDesign name="plus" size={20} color={palette.main[600]} />
+              </TouchableOpacity>
+            )}
           </View>
 
           <View style={styles.timerRow}>
             <Text style={styles.timerText}>{formatTime(displayTime)}</Text>
-            <TouchableOpacity
-              style={[styles.startBtn, loadingItem && { opacity: 0.7 }]}
-              onPress={handleStartStop}
-              disabled={loadingItem}
-            >
-              {loadingItem ? (
-                <ActivityIndicator size="small" color="#FFF" />
-              ) : isCurrentRunning ? (
-                <Pause width={12} height={12} color="#FFF" />
-              ) : isRestartIcon ? (
-                <Ionicons name="reload" size={14} color="#FFF" />
-              ) : (
-                <Next width={12} height={12} color="#FFF" />
-              )}
-              <Text style={styles.startBtnText}>
-                {loadingItem ? t('loading') : isCurrentRunning ? t('pause') : isRestartIcon ? t('restart') : t('start')}
-              </Text>
-            </TouchableOpacity>
+            {!isParentMode && (
+              <TouchableOpacity
+                style={[styles.startBtn, loadingItem && { opacity: 0.7 }]}
+                onPress={handleStartStop}
+                disabled={loadingItem}
+              >
+                {loadingItem ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : isCurrentRunning ? (
+                  <Pause width={12} height={12} color="#FFF" />
+                ) : isRestartIcon ? (
+                  <Ionicons name="reload" size={14} color="#FFF" />
+                ) : (
+                  <Next width={12} height={12} color="#FFF" />
+                )}
+                <Text style={styles.startBtnText}>
+                  {loadingItem ? t('loading') : isCurrentRunning ? t('pause') : isRestartIcon ? t('restart') : t('start')}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </>
       ) : (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>{t('no_data')}</Text>
-          <TouchableOpacity
-            style={{ backgroundColor: palette.main[50], borderRadius: 8, alignItems: 'center', justifyContent: 'center', width: 44, height: 44, marginTop: 16 }}
-            onPress={() => setIsOpenTimerDialog(true)}
-          >
-            <AntDesign name="plus" size={20} color={palette.main[600]} />
-          </TouchableOpacity>
+          {!isParentMode && (
+            <TouchableOpacity
+              style={{ backgroundColor: palette.main[50], borderRadius: 8, alignItems: 'center', justifyContent: 'center', width: 44, height: 44, marginTop: 16 }}
+              onPress={() => setIsOpenTimerDialog(true)}
+            >
+              <AntDesign name="plus" size={20} color={palette.main[600]} />
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </CustomCard>

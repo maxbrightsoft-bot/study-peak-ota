@@ -92,15 +92,20 @@ const CreateExamNoteDialog: FC<ExamNoteDialogProps> = ({
     <SlideDrawerRoot onClose={onClose} visible={open}>
       <View style={styles.wrapper}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={onClose}>
-            <Ionicons name="close" size={20} color={palette.grey[900]} />
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={onClose}
+            activeOpacity={0.7}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <Ionicons name="close" size={24} color={palette.grey[900]} />
           </TouchableOpacity>
 
           <Text style={styles.headerTitle}>
             {t('write_a_note_of_incorrect_answers')}
           </Text>
 
-          <View style={{ width: 24 }} />
+          <View style={{ width: 40 }} />
         </View>
 
         {isLoadingNotes && <Loading isOverlay={false} />}
@@ -273,8 +278,10 @@ const styles = ScaledSheet.create({
   },
 
   backButton: {
-    flexDirection: 'row',
-    alignItems: 'center'
+    width: '40@ms',
+    height: '40@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   contentWrapper: {

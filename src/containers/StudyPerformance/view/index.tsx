@@ -1,6 +1,5 @@
 import React from 'react'
 import { View, Text, Pressable, TouchableOpacity } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { StudySpaceTabList, TabList } from '../configs/constants'
 import useMyData from '../hooks/useMyData'
 import { palette } from '@/theme'
@@ -12,8 +11,10 @@ import AddChatIcon from '@/assets/iconJSX/addChat'
 import IncorrectNotes from '../components/IncorrectNotes'
 import CreateExamNoteDialog from '../components/CreateExamNoteDialog'
 import HeaderAction from '@/layouts/components/HeaderAction'
+import useAuthStore from '@/store/useAuthStore'
 
 const MyData = () => {
+  const isParentMode = !!useAuthStore((state) => state.parentViewMode?.isActive)
   const {
     t,
     imageUrl,
@@ -39,7 +40,6 @@ const MyData = () => {
     handleRemoveImage,
     isAdminOrNonAcademy
   } = useMyData()
-  const insets = useSafeAreaInsets()
 
   return (
     <View style={styles.container}>
@@ -47,7 +47,7 @@ const MyData = () => {
         <Text style={styles.headerTitle}>{t('statistics')}</Text>
         <View style={{ flexDirection: 'row', gap: 20, alignItems: 'center' }}>
           <HeaderAction />
-          {!!academyDomain && <TouchableOpacity onPress={() => handleOpenCreateNote()}>
+          {!!academyDomain && !isParentMode && <TouchableOpacity onPress={() => handleOpenCreateNote()}>
             <AddChatIcon width={24} height={24} color="#222222" />
           </TouchableOpacity>}
         </View>

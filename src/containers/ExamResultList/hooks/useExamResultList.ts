@@ -19,7 +19,6 @@ const useExamResultList = () => {
 
   const user = useAuthStore(state => state.user)
   const setLoading = useAuthStore(state => state.setLoading)
-  const selectedAcademy = useAuthStore(state => state.selectedAcademy)
   const { t } = useTranslation();
   const [loadingList, setLoadingList] = useState<boolean>(true);
   const [listExam, setListExam] = useState<ExamSessionResponse[]>([]);
@@ -145,7 +144,7 @@ const useExamResultList = () => {
         handleSelectExamFromParams(items);
       }
     });
-  }, [selectedAcademy?.id,route.params])
+  }, [user?.academyDomain,route.params])
 
   const handleViewResult = useCallback((exam: ExamSessionResponse) => {
     setSelectedExam(exam)

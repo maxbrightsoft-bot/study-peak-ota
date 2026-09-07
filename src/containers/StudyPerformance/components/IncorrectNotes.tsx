@@ -9,8 +9,10 @@ import NoteDialog from './NoteDialog'
 import GroupedNoteCard from './GroupedNoteCard'
 import FilterBottomSheet from './FilterBottomSheet'
 import { ScaledSheet } from 'react-native-size-matters'
+import useAuthStore from '@/store/useAuthStore'
 
 export default function IncorrectNotes({ contentRef }: { contentRef?: React.RefObject<FlatList | null> }) {
+  const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
   const {
     t,
     notes,
@@ -126,7 +128,17 @@ export default function IncorrectNotes({ contentRef }: { contentRef?: React.RefO
             </View>
           ) : null
         }
-        renderItem={({ item }) => <GroupedNoteCard item={item} t={t} onOpenDialog={handleOpenDialog} filter={filter} refreshGroup={refreshGroup} onRemoveGroup={removeGroup} />}
+        renderItem={({ item }) => (
+          <GroupedNoteCard
+            item={item}
+            t={t}
+            onOpenDialog={isParentMode ? undefined : handleOpenDialog}
+            isParentMode={isParentMode}
+            filter={filter}
+            refreshGroup={refreshGroup}
+            onRemoveGroup={removeGroup}
+          />
+        )}
         ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
       />
 

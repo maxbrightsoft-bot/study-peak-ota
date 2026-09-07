@@ -8,11 +8,11 @@ import ArrowDown from '@/assets/iconJSX/arrowDown'
 import Alarm from '@/assets/iconJSX/alarm'
 import Notice from '@/containers/Notice/view'
 import SignOut from '@/assets/iconJSX/signOut'
+import { Ionicons } from '@expo/vector-icons'
 import HeaderAction from './components/HeaderAction'
 import { getUserAcademies } from './apiClients/academyServices'
-import { Role } from '@/utils/enums'
 import { AcademyResponse } from '@/utils/types'
-import { getErrorMessage, toast } from '@/utils/helpers'
+import { getCurrentRole, getErrorMessage, toast } from '@/utils/helpers'
 import { Fragment, useEffect, useState } from 'react'
 
 type Props = {
@@ -26,6 +26,8 @@ const Header = ({ headerProps }: Props) => {
   const user = useAuthStore(state => state.user)
   const academies = useAuthStore(state => state.academies)
   const selectedAcademy = useAuthStore(state => state.selectedAcademy)
+  const parentViewMode = useAuthStore(state => state.parentViewMode)
+  const isParentMode = !!parentViewMode?.isActive
   const setAcademies = useAuthStore(state => state.setAcademies)
   const logout = useAuthStore(state => state.logout)
   const {
@@ -42,7 +44,8 @@ const Header = ({ headerProps }: Props) => {
     if (!user) return
     setLoading(true)
     try {
-      const res = await getUserAcademies(Role.Student, user.isLearningSpace)
+      const userRole = getCurrentRole(user.roles)
+      const res = await getUserAcademies(userRole, user.isLearningSpace)
       const items: AcademyResponse[] = res.data.items || []
       setAcademies(items)
     } catch (error) {
@@ -67,18 +70,42 @@ const Header = ({ headerProps }: Props) => {
             onDismiss={closeAcademyMenu}
             anchorPosition="bottom"
             anchor={
-              <TouchableOpacity onPress={openAcademyMenu} style={{ padding: 0, margin: 0, width: width * 0.5 }}>
+              <TouchableOpacity
+                onPress={openAcademyMenu}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                style={{ padding: 0, margin: 0, width: width * 0.55 }}
+              >
                 <View style={{ alignItems: 'center', flexDirection: 'row', gap: 6, width: '100%' }}>
                   <View style={{ flex: 1 }}>
                     <Text numberOfLines={1} style={{ fontSize: 20, fontWeight: 700, color: '#FFF' }}>
                       {selectedAcademy ? selectedAcademy?.name || t('my_study_space') : t('my_study_space')}
                     </Text>
-                    <View style={{ flexDirection: 'row', gap: 3, flexWrap: 'wrap' }}>
-                      <Text style={{ fontSize: 12, fontWeight: 500, color: '#FFFFFFCC' }}>
-                        {t('number_grade', { number: user?.grade })}
-                      </Text>
-                      <Text numberOfLines={1} style={{ fontSize: 12, fontWeight: 500, color: '#FFF', flexShrink: 1 }}>{user?.classes?.join(',')}</Text>
-                    </View>
+                    {isParentMode ? (
+                     <>
+                     {parentViewMode?.linkId && (
+                      <View style={styles.studentBadgeWrapper}>
+                        <View style={styles.studentBadgePill}>
+                          <Ionicons name="person" size={11} color="#FFE082" />
+                          <Text
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                            style={styles.studentBadgeText}
+                          >
+                            {`${t('student')}: ${parentViewMode?.studentName || ''}`}
+                          </Text>
+                        </View>
+                      </View>
+                     )}
+                     </>
+                    ) : (
+                      <View style={{ flexDirection: 'row', gap: 3, flexWrap: 'wrap' }}>
+                        <Text style={{ fontSize: 12, fontWeight: 500, color: '#FFFFFFCC' }}>
+                          {t('number_grade', { number: user?.grade })}
+                        </Text>
+                        <Text numberOfLines={1} style={{ fontSize: 12, fontWeight: 500, color: '#FFF', flexShrink: 1 }}>{user?.classes?.join(',')}</Text>
+                      </View>
+                    )}
                   </View>
                   <View style={{ alignItems: 'center', justifyContent: 'center' }}>
                     <ArrowDown />
@@ -207,9 +234,16 @@ const Header = ({ headerProps }: Props) => {
           </Menu>
 
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            {user?.academyDomain && <TouchableOpacity onPress={() => handleOpenNoticeDialog()}>
-              <Alarm />
-            </TouchableOpacity>}
+            {user?.academyDomain && (
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => handleOpenNoticeDialog()}
+                activeOpacity={0.7}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Alarm />
+              </TouchableOpacity>
+            )}
 
             <HeaderAction />
 
@@ -243,5 +277,34 @@ const styles = ScaledSheet.create({
   headerTitle: {
     ...TYPO.heading2,
     color: palette.grey[900]
+  },
+  studentBadgeWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: '6@ms'
+  },
+  studentBadgePill: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    paddingHorizontal: '8@ms',
+    paddingVertical: '3@ms',
+    borderRadius: '12@ms',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: '4@ms',
+    borderWidth: '1@ms',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+    maxWidth: '100%'
+  },
+  studentBadgeText: {
+    fontSize: '11@ms',
+    fontWeight: '700',
+    color: '#FFF',
+    flexShrink: 1
+  },
+  actionButton: {
+    width: '40@ms',
+    height: '40@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
   }
 })
