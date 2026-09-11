@@ -86,7 +86,7 @@ export const apiUpload: AxiosInstance = axios.create({
       async (error: any) => {
         const status = error?.response?.status
 
-        if (status === 401 || status === 403) {
+        if (status === 401) {
           const logout = useAuthStore.getState().logout;
           await logout();
         }
