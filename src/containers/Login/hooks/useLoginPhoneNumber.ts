@@ -1,5 +1,5 @@
 import useAuthStore from "@/store/useAuthStore"
-import { ACADEMY_DOMAIN, ACCESS_TOKEN, LEARNING_SPACE, REDIRECT_URL } from "@/utils/constants"
+import { ACADEMY_DOMAIN, ACCESS_TOKEN, KEEP_LOGIN, LEARNING_SPACE, REDIRECT_URL } from "@/utils/constants"
 import { getErrorMessage, toast } from "@/utils/helpers"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -25,6 +25,7 @@ const useLoginPhoneNumber = () => {
             ...data,
         });
         await setDataStorage(ACCESS_TOKEN, token);
+        await setDataStorage(KEEP_LOGIN, 'true');
         !data.academyDomain && await removeDataStorage(ACADEMY_DOMAIN);
         !!data.academyDomain && await setDataStorage(ACADEMY_DOMAIN, data.academyDomain);
         data.isLearningSpace

@@ -6,8 +6,6 @@ import { useTranslation } from 'react-i18next'
 import { registerAccountApi } from '@/services'
 import useAuthStore from '@/store/useAuthStore'
 import { getErrorMessage, toast } from '@/utils/helpers'
-import { getDataStorage } from '@/utils/storage'
-import { KEEP_LOGIN } from '@/utils/constants'
 import { LoginEmailRequest } from '@/utils/types'
 import { Role } from '@/utils/enums'
 import useLogin from './useLogin'
@@ -82,8 +80,7 @@ const useRegisterEmail = ({ mode, setMode }: { mode: "login" | "register", setMo
 
         setLoading(true)
         await registerAccountApi(data)
-        const keepLogin = await getDataStorage(KEEP_LOGIN);
-        const isKeepMeLoggedIn = keepLogin !== 'false';
+        const isKeepMeLoggedIn = true;
         const loginData: LoginEmailRequest = {
           email: values.email,
           password: values.password,

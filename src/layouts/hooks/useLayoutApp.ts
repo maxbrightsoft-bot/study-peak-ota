@@ -72,11 +72,18 @@ const useLayoutApp = () => {
 
       const info =
         isAcademy || isLearningSpace ? await getInfo(Role.Student, isLearningSpace) : await getSuperAdminInfoFromWeb()
-      if (!info.data) logout()
+      if (!info.data) {
+        await logout()
+        return
+      }
 
       setUser(info.data)
-    } catch (err) {
-      await logout()
+    } catch (err: any) {
+      if (err?.response?.status === 401) {
+        await logout()
+      } else {
+        console.warn('loadInfo failed without 401, preserving session:', err)
+      }
     }
     setLoadingWithoutOverlay(false)
   }
