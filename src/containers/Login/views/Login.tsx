@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { View, Text, Platform, TouchableOpacity } from 'react-native'
+import React from 'react'
+import { View, Text, Platform } from 'react-native'
 import { palette, TYPO } from '@/theme'
 import GoogleLoginButton from '../components/GoogleLoginButton'
 import LogoEN from '@/assets/icons/with-slogan_full-logo_eng.svg'
@@ -11,9 +11,6 @@ import useLogin from '../hooks/useLogin'
 import LoginAccountButton from '../components/LoginAccountButton'
 import LoginAccountDialog from '../components/LoginAccountDialog'
 import { useTranslation } from 'react-i18next'
-import Checkbox from '@/components/Button/Checkbox'
-import { setDataStorage } from '@/utils/storage'
-import { KEEP_LOGIN } from '@/utils/constants'
 import { ScaledSheet } from 'react-native-size-matters'
 // import PhoneNumberLoginButton from '../components/PhoneNumberLoginButton'
 
@@ -21,14 +18,6 @@ const Login = () => {
   const { t } = useTranslation()
   const { language } = useAuthStore()
   const { loginWithGoogle, onAppleButtonPress, openLoginAccountDialog, handleOpenLoginAccountDialog, handleCloseLoginAccountDialog } = useLogin()
-
-  const [isKeepLogin, setIsKeepLogin] = useState(true)
-
-  const handleToggleKeepLogin = async () => {
-    const newVal = !isKeepLogin
-    setIsKeepLogin(newVal)
-    await setDataStorage(KEEP_LOGIN, newVal ? 'true' : 'false')
-  }
 
   const isEnglish = language?.code === Language.en;
   return (
@@ -54,11 +43,6 @@ const Login = () => {
           <GoogleLoginButton loginWithGoogle={loginWithGoogle} />
           <LoginAccountButton title={t('login_with_email')} onPress={handleOpenLoginAccountDialog} />
           {/* <PhoneNumberLoginButton /> */}
-
-          <TouchableOpacity style={styles.keepLoginContainer} onPress={handleToggleKeepLogin} activeOpacity={0.7}>
-            <Checkbox checked={isKeepLogin} />
-            <Text style={styles.keepLoginText}>{t('keep_logging_in')}</Text>
-          </TouchableOpacity>
         </View>
       </View>
       <LoginAccountDialog visible={openLoginAccountDialog} onOpen={handleOpenLoginAccountDialog} onClose={handleCloseLoginAccountDialog} />
@@ -109,18 +93,5 @@ const styles = ScaledSheet.create({
   highlight: {
     color: palette.main[500],
     fontWeight: '600'
-  },
-  keepLoginContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: '8@ms',
-    marginTop: '8@ms',
-    alignSelf: 'flex-start',
-    paddingVertical: '4@ms',
-  },
-  keepLoginText: {
-    fontSize: '14@ms',
-    color: palette.grey[700],
-    fontWeight: '500'
   }
 })

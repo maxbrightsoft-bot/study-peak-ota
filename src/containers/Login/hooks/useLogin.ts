@@ -48,6 +48,7 @@ const useLogin = () => {
     redirectParams?: any
   ) => {
     await setDataStorage(ACCESS_TOKEN, token);
+    await setDataStorage(KEEP_LOGIN, 'true');
 
     data.academyDomain
       ? await setDataStorage(ACADEMY_DOMAIN, data.academyDomain)
@@ -147,8 +148,7 @@ const useLogin = () => {
           picture?: string
           sub?: string
         }>(idToken);
-        const keepLogin = await getDataStorage(KEEP_LOGIN);
-        const isKeepMeLoggedIn = keepLogin !== 'false';
+        const isKeepMeLoggedIn = true;
 
         const fullName =
           userInfo.user?.name?.trim() ||
@@ -214,8 +214,7 @@ const useLogin = () => {
           : '';
 
       await setDataStorage(APPLE_USER_KEY, user);
-      const keepLogin = await getDataStorage(KEEP_LOGIN);
-      const isKeepMeLoggedIn = keepLogin !== 'false';
+      const isKeepMeLoggedIn = true;
 
       const infoLogin: LoginRequest = {
         fullName: nameFromResponse,
