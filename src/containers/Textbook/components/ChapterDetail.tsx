@@ -15,11 +15,11 @@ type Props = {
   handleStartFromPage: (values: { startPage: number }) => Promise<void>
 }
 
-const ChapterDetail = ({ t, isEnglish, isMock, chapter, isStudying, handleOpenChapterDialog }: Props) => {
+const ChapterDetail = ({ t, chapter, handleOpenChapterDialog }: Props) => {
   const isCompleted = chapter.completedChapterQuestions === chapter.totalChapterQuestions && chapter.completedChapterQuestions > 0
 
   const handleCardPress = () => {
-    if (!isStudying || !isCompleted) {
+    if (chapter.completedChapterQuestions === 0) {
       toast.info(t('result_will_be_displayed_after_doing_exam'))
     }
   }
@@ -28,7 +28,19 @@ const ChapterDetail = ({ t, isEnglish, isMock, chapter, isStudying, handleOpenCh
     <View style={styles.chapterCardContainer}>
       <TouchableOpacity activeOpacity={0.8} onPress={handleCardPress} style={styles.chapterCard}>
         <View style={{ flex: 1 }}>
-          {!isCompleted && <Text style={styles.chapterTitle} numberOfLines={2}>{chapter.name}</Text>}
+          {!isCompleted && (
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Text style={styles.chapterTitle} numberOfLines={2}>{chapter.name}</Text>
+              {chapter.completedChapterQuestions > 0 && <TouchableOpacity
+                style={[styles.resultBtn]}
+                onPress={() => {
+                  handleOpenChapterDialog(chapter)
+                }}
+              >
+                <Text style={styles.resultText}>{t('solution_results')}</Text>
+              </TouchableOpacity>}
+            </View>
+          )}
           {isCompleted && (
             <View style={styles.chapterTop}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1, marginRight: 8 }}>
@@ -39,13 +51,10 @@ const ChapterDetail = ({ t, isEnglish, isMock, chapter, isStudying, handleOpenCh
                 <Text style={[styles.chapterTitle, { flex: 1 }]} numberOfLines={2}>{chapter.name}</Text>
               </View>
 
+
               <TouchableOpacity
                 style={[styles.resultBtn]}
                 onPress={() => {
-                  if (!isStudying) {
-                    toast.info(t('result_will_be_displayed_after_doing_exam'))
-                    return
-                  }
                   handleOpenChapterDialog(chapter)
                 }}
               >
