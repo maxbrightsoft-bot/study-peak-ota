@@ -2507,6 +2507,14 @@
     component-type "^1.2.1"
     join-component "^1.1.0"
 
+"@shopify/react-native-skia@2.0.0-next.4":
+  version "2.0.0-next.4"
+  resolved "https://registry.yarnpkg.com/@shopify/react-native-skia/-/react-native-skia-2.0.0-next.4.tgz#eb3e142d9e5cccbc248c3bb232cecd82224758c4"
+  integrity sha512-NzvdgryRz6tkKMHgCChCKa3wXfN9TZhlV0/LrfIU/wKLC1uKgGXkoZgNz7Is0wwdhtao1JJJJ81fqHCGHgzk9g==
+  dependencies:
+    canvaskit-wasm "0.40.0"
+    react-reconciler "0.31.0"
+
 "@sinclair/typebox@^0.27.8":
   version "0.27.12"
   resolved "https://registry.yarnpkg.com/@sinclair/typebox/-/typebox-0.27.12.tgz#0cacd3cff047a32936b1ace47ea7c86eaab60a7f"
@@ -3049,6 +3057,11 @@
   version "9.3.2"
   resolved "https://registry.yarnpkg.com/@vscode/sudo-prompt/-/sudo-prompt-9.3.2.tgz#692ba38df40bd3502ccc4e9f099fbbaedbd5f04e"
   integrity sha512-gcXoCN00METUNFeQOFJ+C9xUI0DKB+0EGMVg7wbVYRHBw2Eq3fKisDZOkRdOz3kqXRKOENMfShPOmypw1/8nOw==
+
+"@webgpu/types@0.1.21":
+  version "0.1.21"
+  resolved "https://registry.yarnpkg.com/@webgpu/types/-/types-0.1.21.tgz#b181202daec30d66ccd67264de23814cfd176d3a"
+  integrity sha512-pUrWq3V5PiSGFLeLxoGqReTZmiiXwY3jRkIG5sLLKjyqNxrwm/04b4nw7LSmGWJcKk59XOM/YRTUwOzo4MMlow==
 
 "@xmldom/xmldom@^0.9.10":
   version "0.9.11"
@@ -3854,6 +3867,13 @@ caniuse-lite@^1.0.30001809:
   version "1.0.30001809"
   resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001809.tgz#e6cf71f14ddfe008f114dd2a846923be3c03a07b"
   integrity sha512-xxWVywk6a6Arlk+hymeycyn/VgqEfLDxupvhH/xiY5SJ/18kmi9o6MiO320DCUzypORHLtvh0I4i04tUhCNHNQ==
+
+canvaskit-wasm@0.40.0:
+  version "0.40.0"
+  resolved "https://registry.yarnpkg.com/canvaskit-wasm/-/canvaskit-wasm-0.40.0.tgz#61a77657259fddfc0025ad1c3f57ac8d4d5850ff"
+  integrity sha512-Od2o+ZmoEw9PBdN/yCGvzfu0WVqlufBPEWNG452wY7E9aT8RBE+ChpZF526doOlg7zumO4iCS+RAeht4P0Gbpw==
+  dependencies:
+    "@webgpu/types" "0.1.21"
 
 chalk@^2.0.1, chalk@^2.4.2:
   version "2.4.2"
@@ -5290,6 +5310,11 @@ expo-asset@~11.0.5:
     invariant "^2.2.4"
     md5-file "^3.2.3"
 
+expo-audio@~0.4.9:
+  version "0.4.9"
+  resolved "https://registry.yarnpkg.com/expo-audio/-/expo-audio-0.4.9.tgz#f15f64652785ecd416ad351bf42666315e1e0b69"
+  integrity sha512-J4mMYEt2mqRqqwmSsXFylMGlrNWa+MbCzGl1IZBs+smvPAMJ3Ni8fNplzCQ0I9RnRzygKhRwJNpnAVL+n4MuyA==
+
 expo-av@~15.0.2:
   version "15.0.2"
   resolved "https://registry.yarnpkg.com/expo-av/-/expo-av-15.0.2.tgz#65bb08658a7fe3a67aa47da614abbfae9adb684e"
@@ -5307,6 +5332,18 @@ expo-build-properties@~0.13.3:
   dependencies:
     ajv "^8.11.0"
     semver "^7.6.0"
+
+expo-camera@~16.1.11:
+  version "16.1.11"
+  resolved "https://registry.yarnpkg.com/expo-camera/-/expo-camera-16.1.11.tgz#9b63c5e6807f960f54efec31fbe5d25a6a1dac83"
+  integrity sha512-etA5ZKoC6nPBnWWqiTmlX//zoFZ6cWQCCIdmpUHTGHAKd4qZNCkhPvBWbi8o32pDe57lix1V4+TPFgEcvPwsaA==
+  dependencies:
+    invariant "^2.2.4"
+
+expo-clipboard@~7.0.0:
+  version "7.0.1"
+  resolved "https://registry.yarnpkg.com/expo-clipboard/-/expo-clipboard-7.0.1.tgz#31d61270e77a37d2a6b7ae9abf79e060497ef43b"
+  integrity sha512-rqYk0+WoqitPcPKxmMxSpLonX1E5Ije3LBYfnYMbH3xU5Gr8EAH9QnOWOi4BgahUPvcot6nbFEnx+DqARrmxKQ==
 
 expo-constants@~17.0.5, expo-constants@~17.0.7, expo-constants@~17.0.8:
   version "17.0.8"
@@ -5403,6 +5440,13 @@ expo-linking@~7.0.5:
   integrity sha512-3KptlJtcYDPWohk0MfJU75MJFh2ybavbtcSd84zEPfw9s1q3hjimw3sXnH03ZxP54kiEWldvKmmnGcVffBDB1g==
   dependencies:
     expo-constants "~17.0.5"
+    invariant "^2.2.4"
+
+expo-local-authentication@~16.0.5:
+  version "16.0.5"
+  resolved "https://registry.yarnpkg.com/expo-local-authentication/-/expo-local-authentication-16.0.5.tgz#a058f735100678131ec37a8e55a828cd55954b3b"
+  integrity sha512-JzrUssLBB5tr06ffbZJC074fru2mw6He3ALtwlRnrmL7svMJS0zvm6e5Gx5CSxfHf1DgneBVBnyRlmtWxQzY9Q==
+  dependencies:
     invariant "^2.2.4"
 
 expo-manifests@~0.15.8:
@@ -8972,6 +9016,11 @@ react-native-calendars@^1.1311.0:
   optionalDependencies:
     moment "^2.29.4"
 
+react-native-confirmation-code-field@^9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/react-native-confirmation-code-field/-/react-native-confirmation-code-field-9.0.0.tgz#2009ba5ac9023c8be74198bc2186993c77e00292"
+  integrity sha512-U2/rNPpvsEbRTj/dP3bwjFR5C5tnqOXJ4RE/OCxE13Z0TBYnqkA2WpPYZDqEDPJ/u1Ana7aXLzeOkUoHGEMVZw==
+
 react-native-device-info@^15.0.2:
   version "15.0.2"
   resolved "https://registry.yarnpkg.com/react-native-device-info/-/react-native-device-info-15.0.2.tgz#c7de1bb6baeb07e1bab70159ad540c5705cb8dc0"
@@ -9032,6 +9081,13 @@ react-native-is-edge-to-edge@^1.1.6, react-native-is-edge-to-edge@^1.2.1:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/react-native-is-edge-to-edge/-/react-native-is-edge-to-edge-1.3.1.tgz#feb9a6a8faf0874298947edd556e5af22044e139"
   integrity sha512-NIXU/iT5+ORyCc7p0z2nnlkouYKX425vuU1OEm6bMMtWWR9yvb+Xg5AZmImTKoF9abxCPqrKC3rOZsKzUYgYZA==
+
+react-native-keyboard-controller@^1.22.1:
+  version "1.22.5"
+  resolved "https://registry.yarnpkg.com/react-native-keyboard-controller/-/react-native-keyboard-controller-1.22.5.tgz#5cfb97d2f26e766fae3f6803042e03cd799b76a6"
+  integrity sha512-JS989QM4OpO17WmxoG/TK734ypfCL2ypMS1lClN7HAP0fNccfXkF+oIKhw25QDXOBZIcd/jhnLmoel7LFh1z9g==
+  dependencies:
+    react-native-is-edge-to-edge "^1.2.1"
 
 react-native-localize@^3.7.0:
   version "3.7.0"
@@ -9266,6 +9322,13 @@ react-native@0.76.9:
     whatwg-fetch "^3.0.0"
     ws "^6.2.3"
     yargs "^17.6.2"
+
+react-reconciler@0.31.0:
+  version "0.31.0"
+  resolved "https://registry.yarnpkg.com/react-reconciler/-/react-reconciler-0.31.0.tgz#6b7390fe8fab59210daf523d7400943973de1458"
+  integrity sha512-7Ob7Z+URmesIsIVRjnLoDGwBEG/tVitidU0nMsqX/eeJaLY89RISO/10ERe0MqmzuKUUB1rmY+h1itMbUHg9BQ==
+  dependencies:
+    scheduler "^0.25.0"
 
 react-refresh@^0.14.0, react-refresh@^0.14.2:
   version "0.14.2"
@@ -9615,6 +9678,11 @@ scheduler@^0.23.2:
   integrity sha512-UOShsPwz7NrMUqhR6t0hWjFduvOzbtv7toDH1/hIrfRNIDBnnBWd0CwJTGvTpngVlmwGCdP9/Zl/tVrDqcuYzQ==
   dependencies:
     loose-envify "^1.1.0"
+
+scheduler@^0.25.0:
+  version "0.25.0"
+  resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.25.0.tgz#336cd9768e8cceebf52d3c80e3dcf5de23e7e015"
+  integrity sha512-xFVuu11jh+xcO7JOAGJNOXld8/TcEHK/4CituBUeUb5hqxJLj9YuemAEuvm9gQ/+pgXYfbQuqAkiYu+u7YEsNA==
 
 schema-utils@^4.0.1:
   version "4.3.3"

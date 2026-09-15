@@ -74,7 +74,7 @@ jobs:
         run: |
           npx eas-cli build \
             --platform ios \
-            --profile ${{ inputs.build_profile || 'production' }} \
+            --profile ${{ inputs.build_profile || 'preview' }} \
             --local \
             --output=StudyPeak.ipa \
             --non-interactive
@@ -99,6 +99,6 @@ jobs:
           echo "Uploading StudyPeak.ipa to TestFlight via eas submit..."
           npx eas-cli submit \
             --platform ios \
-            --profile ${{ inputs.build_profile || 'production' }} \
+            --profile ${{ inputs.build_profile || 'preview' }} \
             --path StudyPeak.ipa \
             --non-interactive

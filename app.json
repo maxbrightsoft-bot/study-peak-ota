@@ -15,7 +15,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "buildNumber": "16",
+      "buildNumber": "17",
       "bundleIdentifier": "com.max.britghtsoft.touchstudymobile",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
