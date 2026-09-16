@@ -145,7 +145,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
             </View>
           </TouchableOpacity>
           <View style={styles.titleContainer}>
-            <Text style={styles.title}>
+            <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
               {!exam?.isLate ? t('live_exam_in_progress') : (examSession?.title || exam?.title || t('do_exam'))}
             </Text>
             <Text style={[styles.subtitle, { color: (remainTime || 0) < 10 ? palette.red[900] : palette.grey[400] }]}>
@@ -251,7 +251,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
                         }
                       ]}
                     >
-                      {`#${(exam?.totalStudentAttemptNumber || 0) + 1}`}
+                      {`#${exam?.totalStudentAttemptNumber || 1}`}
                     </Text>
                   </View>
                 )}
@@ -516,6 +516,8 @@ const styles = ScaledSheet.create({
     backgroundColor: '#FFF',
   },
   titleContainer: {
+    flex: 1,
+    marginHorizontal: '8@ms',
     gap: '4@ms',
     alignItems: 'center',
   },
@@ -531,7 +533,8 @@ const styles = ScaledSheet.create({
   title: {
     fontSize: '16@ms',
     color: '#222222',
-    fontWeight: '600'
+    fontWeight: '600',
+    textAlign: 'center'
   },
   subtitle: {
     fontSize: '14@ms',
