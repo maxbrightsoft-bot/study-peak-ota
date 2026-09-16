@@ -630,6 +630,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
       await handleClearStorage();
       handleClear();
       await getQuestionExams();
+      await handleGetInfoExam();
       toast.info(t("exam_has_been_restarted"));
     } catch (error) {
       trackError(error, {
@@ -796,6 +797,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     setNotFoundExam(undefined)
     setCurrentQuestionId(undefined)
     setExam(undefined)
+    setExamSession(undefined)
     firstLoadRef.current = true
     scrollViewRef.current?.scrollToOffset({
       offset: 0,
