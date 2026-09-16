@@ -473,7 +473,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
           startTimeSession: data?.startTime,
           lastPausedAt: data?.lastPausedAt,
           lastResumedAt: data?.lastResumedAt,
-          rowVersion: data?.rowVersion
+          rowVersion: data?.rowVersion || prev.rowVersion
         };
       });
 
@@ -501,7 +501,55 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
         }
       })
       toast.info(t(status === ExamStatus.Paused ? "exam_has_been_paused" : "exam_has_been_resumed"));
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.response?.status === 409 || error?.status === 409) {
+        try {
+          const freshRes = await getQuestionExam(exam.code || '');
+          const freshExam = freshRes.data?.data;
+          if (freshExam?.rowVersion) {
+            const retryReq: PauseOrResumeExamRequest = {
+              status,
+              rowVersion: freshExam.rowVersion,
+              pauseTime: nowTime
+            };
+            const res = await pauseAndResumeExamApi(exam.code || '', retryReq);
+            const data = res.data;
+            const isCompleted = data?.status === ExamStatus.Completed;
+            setExam((prev) => {
+              if (!prev) return undefined;
+              return {
+                ...prev,
+                lateStatus: data?.status,
+                totalPausedTime: data?.totalPausedTime,
+                duration: data?.duration,
+                startTimeSession: data?.startTime,
+                lastPausedAt: data?.lastPausedAt,
+                lastResumedAt: data?.lastResumedAt,
+                rowVersion: data?.rowVersion || freshExam.rowVersion
+              };
+            });
+
+            if (isCompleted) {
+              handleStopAlarm();
+              getCheckStatus();
+              handleCloseAnswerSheet();
+              handleCloseConfirmDialog();
+              handleCloseFinishConfirmDialog();
+              handleCloseLeaveDialog();
+              handleCloseInfoExamDialog();
+              setLoading(false);
+              return;
+            }
+
+            toast.info(t(status === ExamStatus.Paused ? "exam_has_been_paused" : "exam_has_been_resumed"));
+            setLoading(false);
+            return;
+          }
+        } catch (retryErr) {
+          // fallback to error handling below
+        }
+      }
+
       trackError(error, {
         resourceType: ActivityResource.Exam,
         triggeredAt: new Date(nowTime).toISOString(),

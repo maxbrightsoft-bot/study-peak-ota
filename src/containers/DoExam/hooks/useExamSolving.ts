@@ -122,7 +122,7 @@ const useExamSolving = (props: Props) => {
         if (!totalAnsweredTimeRef.current || (examResponse.totalAnsweredTime && examResponse.totalAnsweredTime > totalAnsweredTimeRef.current))
           totalAnsweredTimeRef.current = examResponse.totalAnsweredTime;
         updateExam?.((prev: any) => {
-          return ({ ...prev, questions: examResponse?.questions, rowVersion: examResponse?.rowVersion, runningTime: examResponse?.runningTime, startTime: examResponse?.startTime, totalAnsweredTime: examResponse?.totalAnsweredTime, totalPausedTime: examResponse?.totalPausedTime })
+          return ({ ...prev, questions: examResponse?.questions, rowVersion: examResponse?.rowVersion || prev?.rowVersion, runningTime: examResponse?.runningTime, startTime: examResponse?.startTime, totalAnsweredTime: examResponse?.totalAnsweredTime, totalPausedTime: examResponse?.totalPausedTime })
         })
       }
     } catch (err: any) {
