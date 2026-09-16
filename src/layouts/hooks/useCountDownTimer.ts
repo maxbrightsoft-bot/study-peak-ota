@@ -35,10 +35,12 @@ const useCountDownTimer = (props: Props) => {
     const { getServerNow } = useServerTime();
 
     useEffect(() => {
-        if (!duration || !startTime || isLoading) {
+        if (!duration || !startTime) {
             setRemainTime(undefined);
             return;
         }
+
+        if (isLoading) return;
 
         if (status === TimerStatus.Paused) {
             setRemainTime(Math.max(Math.floor((duration - runningTime) / ONE_SECOND), 0));

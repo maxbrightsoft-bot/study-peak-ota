@@ -213,7 +213,7 @@
   "q&a": "질문 및 답변",
   "user_is_disabled": "사용자가 비활성화되었습니다.",
   "cover_image": "표지 이미지",
-  "notification": "공고",
+  "notification": "시험 종료",
   "notification_board": "알림 게시판",
   "waiting_for_all_students_to_complete_the_exam": "모든 학생이 시험을 종료 할 때 까지 기다리는 중입니다.",
   "created_at": "생성일",
@@ -721,7 +721,7 @@
   "messages": {
     "exam_sessions_are_being_synchronized": "{{ total }} 개의 시험 세션이 동기화되고 있습니다"
   },
-  "submit": "제출하다",
+  "submit": "변경하기",
   "must_select_a_teacher_first": "먼저 교사를 선택해야 합니다",
   "student_grade_is_invalid": "학생 등급은 1에서 12 사이여야 합니다",
   "recent_users": "최근 사용자",
