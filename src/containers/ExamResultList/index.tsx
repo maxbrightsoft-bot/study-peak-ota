@@ -88,19 +88,25 @@ const ExamResultList = () => {
   const renderGroupItem = ({ item, index }: { item: [string, ExamSessionResponse[]]; index: number }) => {
     const [key, exams] = item
 
+    const sortedExams = [...exams].sort((a, b) => {
+      const timeA = isValidTime(a.studentStartTime) ? a.studentStartTime : a.startTime;
+      const timeB = isValidTime(b.studentStartTime) ? b.studentStartTime : b.startTime;
+      return moment.utc(timeB).valueOf() - moment.utc(timeA).valueOf();
+    });
+
     return (
       <View style={styles.groupExamContainer}>
         <CustomDropDown
           title={
             <View style={styles.groupHeader}>
               <Text style={styles.groupDate}>{moment(key).format(t('date_format_exam'))}</Text>
-              <Text style={styles.groupCase}>{t('cases', { number: exams.length })}</Text>
+              <Text style={styles.groupCase}>{t('cases', { number: sortedExams.length })}</Text>
             </View>
           }
           expanded={expandedId === index}
           onPress={() => toggleExpand(index)}
         >
-          {exams.map((exam, idx) => (
+          {sortedExams.map((exam, idx) => (
             <View key={`${key}_${idx}`}>{renderExamCard(exam)}</View>
           ))}
         </CustomDropDown>
@@ -137,7 +143,7 @@ const ExamResultList = () => {
         ) : (
           <FlatList
             ref={scrollViewRef}
-            data={Object.entries(groupExams || {})}
+            data={Object.entries(groupExams || {}).sort((a, b) => b[0].localeCompare(a[0]))}
             renderItem={renderGroupItem}
             keyExtractor={(item) => item[0]}
             contentContainerStyle={styles.scrollContainer}
