@@ -28,6 +28,7 @@ const Header = ({ headerProps }: Props) => {
   const selectedAcademy = useAuthStore(state => state.selectedAcademy)
   const parentViewMode = useAuthStore(state => state.parentViewMode)
   const isParentMode = !!parentViewMode?.isActive
+  const canShowNotice = isParentMode ? !!parentViewMode?.linkId : !!user?.academyDomain
   const setAcademies = useAuthStore(state => state.setAcademies)
   const logout = useAuthStore(state => state.logout)
   const {
@@ -234,7 +235,7 @@ const Header = ({ headerProps }: Props) => {
           </Menu>
 
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            {user?.academyDomain && (
+            {canShowNotice && (
               <TouchableOpacity
                 style={styles.actionButton}
                 onPress={() => handleOpenNoticeDialog()}
@@ -250,7 +251,7 @@ const Header = ({ headerProps }: Props) => {
           </View>
         </>
       </View>
-      <Notice open={openNoticeDialog} onClose={handleCloseNoticeDialog} />
+      {canShowNotice && <Notice open={openNoticeDialog} onClose={handleCloseNoticeDialog} />}
     </View>
   )
 }

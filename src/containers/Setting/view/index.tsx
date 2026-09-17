@@ -25,6 +25,7 @@ import { checkIsParent, getMessageFromError, toast } from '@/utils/helpers'
 import PremiumSwitch from '@/components/Switch/PremiumSwitch'
 import useAuthStore from '@/store/useAuthStore'
 import useAccountLinkingStore from '@/store/useAccountLinkingStore'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 type Props = {
   open: boolean
@@ -104,7 +105,8 @@ const Setting = ({ open, onClose }: Props) => {
   const setLinkedStudents = useAuthStore((state) => state.setLinkedStudents)
   const syncParentLinkedStudents = useAuthStore((state) => state.syncParentLinkedStudents)
   const appVersion = DeviceInfo.getVersion();
-  const navigation = useNavigation<any>()
+  const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
 
   const { isBiometricEnabled, handleToggleBiometric, authenticateBiometric } = useBiometric()
 
@@ -257,7 +259,7 @@ const Setting = ({ open, onClose }: Props) => {
 
   return (
     <SlideDrawerRoot visible={open} onClose={onClose}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: Math.max(insets.top, 16) }]}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={onClose}
