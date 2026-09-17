@@ -20,12 +20,16 @@ const InfoExamCode = ({ onClose, open, examSession }: Props) => {
       <View style={styles.container}>
         <View style={styles.row}>
           <Text style={styles.label}>{t('exam_name')}</Text>
-          <TextTooltip
-            text={examSession?.title || ''}
-            numberOfLines={2}
-            textStyle={styles.value}
-            containerStyle={{ width: '60%' }}
-          />
+          <View style={{ width: '60%' }}>
+            <TextTooltip
+              text={examSession?.title || ''}
+              containerStyle={{ width: '100%' }}
+            >
+              <Text style={[styles.value, { width: '100%' }]} numberOfLines={2} ellipsizeMode="tail">
+                {examSession?.title || ''}
+              </Text>
+            </TextTooltip>
+          </View>
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>{t('exam_code')}</Text>

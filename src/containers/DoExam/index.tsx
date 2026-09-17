@@ -133,19 +133,21 @@ const DoExam = ({ examCode, reqTime }: Props) => {
         keyboardVerticalOffset={80}
       >
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => {
-            if (exam && !isAllQuestionsAnswered(questionList)) {
-              handleOpenUnsolvedLeaveDialog()
-            } else {
-              handleOpenLeaveDialog()
-            }
-          }}>
-            <View style={{ transform: 'rotate(180deg)' }}>
-              <ArrowRight width={24} height={24} color={palette.grey[300]} />
-            </View>
-          </TouchableOpacity>
-          <View style={styles.titleContainer}>
-            <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+          <View style={{ zIndex: 10 }}>
+            <TouchableOpacity onPress={() => {
+              if (exam && !isAllQuestionsAnswered(questionList)) {
+                handleOpenUnsolvedLeaveDialog()
+              } else {
+                handleOpenLeaveDialog()
+              }
+            }}>
+              <View style={{ transform: 'rotate(180deg)' }}>
+                <ArrowRight width={24} height={24} color={palette.grey[300]} />
+              </View>
+            </TouchableOpacity>
+          </View>
+          <View style={[styles.titleContainer, { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, justifyContent: 'center', pointerEvents: 'none', paddingHorizontal: 60, zIndex: 1 }]}>
+            <Text style={styles.title} numberOfLines={1}>
               {!exam?.isLate ? t('live_exam_in_progress') : (examSession?.title || exam?.title || t('do_exam'))}
             </Text>
             <Text style={[styles.subtitle, { color: (remainTime || 0) < 10 ? palette.red[900] : palette.grey[400] }]}>
@@ -159,7 +161,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
               </View>
             )}
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View style={{ zIndex: 10, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             {(exam?.isLate || (!exam?.isLate && exam?.lateStatus === ExamStatus.Completed)) && (
               <FloatingActionButton
                 t={t}
@@ -228,12 +230,14 @@ const DoExam = ({ examCode, reqTime }: Props) => {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1, marginRight: 8 }}>
                 <Text style={{ fontSize: 14, fontWeight: '600', color: '#171719', flexShrink: 1 }} numberOfLines={1}>{examSession?.subject || exam?.subject}</Text>
                 <View style={{ backgroundColor: palette.grey[300], paddingVertical: 7, width: 2 }} />
-                <TextTooltip
-                  text={exam?.title || ''}
-                  numberOfLines={1}
-                  textStyle={{ fontSize: 12, fontWeight: '500', color: '#222222' }}
-                  containerStyle={{ flexShrink: 1 }}
-                />
+                <View style={{ flex: 1, justifyContent: 'center' }}>
+                  <TextTooltip
+                    text={exam?.title || ''}
+                    numberOfLines={1}
+                    textStyle={{ fontSize: 12, fontWeight: '500', color: '#222222' }}
+                    containerStyle={{ flexShrink: 1 }}
+                  />
+                </View>
                 {(exam?.totalStudentAttemptNumber || 0) >= 1 && (
                   <View
                     style={[

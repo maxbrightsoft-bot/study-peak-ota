@@ -227,9 +227,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     );
   };
 
-  useEffect(() => {
-    handleGetInfoExam()
-  }, [])
+
 
   useEffect(() => {
     if (!currentQuestionId) return
@@ -862,6 +860,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     useCallback(() => {
       if (!examCode || !academyDomain || !userId) return;
       getQuestionExams();
+      handleGetInfoExam();
       firstLoadRef.current = false;
 
       scrollViewRef.current?.scrollToOffset({
