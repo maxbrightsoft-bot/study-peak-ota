@@ -15,7 +15,7 @@ on:
           - production
           - preview
         required: true
-        default: 'production'
+        default: 'preview'
       auto_submit:
         description: 'Automatically upload to TestFlight after build?'
         type: boolean
