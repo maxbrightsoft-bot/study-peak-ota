@@ -257,7 +257,7 @@ const ParentQrScan = () => {
       <View style={styles.scanContainer} onLayout={onLayout}>
         {isFocused && (
           <CameraView
-            style={StyleSheet.absoluteFillObject}
+            style={{ flex: 1 }}
             facing="back"
             barcodeScannerSettings={{
               barcodeTypes: ['qr']
@@ -269,7 +269,7 @@ const ParentQrScan = () => {
         {canvasSize.width > 0 && canvasSize.height > 0 && (
           <>
             {/* Lớp phủ Canvas tối khoanh vùng cut-out mã QR sử dụng Skia DiffRect */}
-            <Canvas style={StyleSheet.absoluteFillObject}>
+            <Canvas style={{ flex: 1, position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}>
               <DiffRect outer={outerRect} inner={innerRRect} color="rgba(23, 23, 25, 0.7)" />
             </Canvas>
 

@@ -8,13 +8,14 @@ import moment from 'moment'
 import NoticeDetailDialog from '../components/NoticeDetailDialog'
 import { TabList } from '../configs/constants'
 import { useState } from 'react'
+import useAuthStore from '@/store/useAuthStore'
 
 type Props = {
   open: boolean
   onClose: () => void
 }
 
-const Notice = ({ open, onClose }: Props) => {
+const NoticeContent = ({ open, onClose }: Props) => {
   const [isNew, setNew] = useState<any>({});
   const {
     t,
@@ -110,6 +111,14 @@ const Notice = ({ open, onClose }: Props) => {
       />
     </SlideDrawerRoot>
   )
+}
+
+const Notice = (props: Props) => {
+  const parentViewMode = useAuthStore(state => state.parentViewMode)
+  if (parentViewMode?.isActive && !parentViewMode?.linkId) {
+    return null
+  }
+  return <NoticeContent {...props} />
 }
 
 export default Notice

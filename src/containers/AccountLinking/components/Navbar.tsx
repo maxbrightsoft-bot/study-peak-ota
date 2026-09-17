@@ -60,7 +60,7 @@ const Navbar = ({
   }
 
   return (
-    <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) }]}>
+    <View style={[styles.header, { paddingTop: 12 }]}>
       {showHome ? (
         <TouchableOpacity
           onPress={handleHome}

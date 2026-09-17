@@ -106,7 +106,9 @@ export const apiUpload: AxiosInstance = axios.create({
           if (currentUser) {
             await useAuthStore.getState().setUserCustom(currentUser);
           }
-          reset(Routes.Auth.Home);
+          if (currentScreen() !== Routes.Auth.Home) {
+            reset(Routes.Auth.Home);
+          }
           error.isSilent = true;
         }
         
