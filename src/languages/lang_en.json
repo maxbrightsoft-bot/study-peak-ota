@@ -2567,5 +2567,6 @@
   "cannot_link_to_yourself": "Cannot link to your own account.",
   "link_request_expired": "Link request has expired.",
   "sync": "Sync",
-  "sync_success": "Synced successfully"
+  "sync_success": "Synced successfully",
+  "too_many_requests": "Request limit exceeded. Please try again in a few minutes."
 }

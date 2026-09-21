@@ -40,7 +40,8 @@ export const ErrorMessages: any = {
     StudentExamSessionsDoNotMatch: "student_exam_sessions_do_not_match",
     DuplicatedStudentExamSessions: "duplicated_student_exam_sessions",
     InvalidPopQuizStatus: "invalid_pop_quiz_status",
-    PopQuizAlreadyUsed: "PopQuizAlreadyUsed"
+    PopQuizAlreadyUsed: "PopQuizAlreadyUsed",
+    TooManyRequests: "too_many_requests"
 }
 export enum ErrorMessageCodes {
     InvalidOrExpiredCode = "InvalidOrExpiredCode",
@@ -84,7 +85,8 @@ export enum ErrorMessageCodes {
     StudentExamSessionsDoNotMatch = "StudentExamSessionsDoNotMatch",
     DuplicatedStudentExamSessions = "DuplicatedStudentExamSessions",
     InvalidPopQuizStatus = "InvalidPopQuizStatus",
-    PopQuizAlreadyUsed = "PopQuizAlreadyUsed"
+    PopQuizAlreadyUsed = "PopQuizAlreadyUsed",
+    TooManyRequests = "TooManyRequests"
 }
 
 export const INVALID_CODE_FORMAT = "INVALID_CODE_FORMAT";

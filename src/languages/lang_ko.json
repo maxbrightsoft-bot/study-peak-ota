@@ -2563,5 +2563,6 @@
   "cannot_link_to_yourself": "본인 계정과 연결할 수 없습니다.",
   "link_request_expired": "연결 요청이 만료되었습니다.",
   "sync": "동기화",
-  "sync_success": "동기화되었습니다."
+  "sync_success": "동기화되었습니다.",
+  "too_many_requests": "요청 한도를 초과했습니다. 잠시 후 다시 시도해 주세요."
 }

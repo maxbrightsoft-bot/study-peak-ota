@@ -89,20 +89,20 @@ const MainTabNavigator = () => {
 
   return (
     <Tab.Navigator
-        screenOptions={({ route }) => ({
-          header: () => <></>,
-          tabBarStyle: hiddenTabBar.includes(route.name) ? { display: 'none', height: 0, position: 'absolute' } : undefined
-        })}
-        tabBar={(props) => {
-          const topRouteName = navigationRef?.current?.isReady?.() ? navigationRef?.current?.getCurrentRoute?.()?.name : undefined
-          const currentTab = props.state.routes[props.state.index]
-          const activeRouteName = topRouteName || currentTab?.name || currentScreen()
+      screenOptions={({ route }) => ({
+        header: () => <></>,
+        tabBarStyle: hiddenTabBar.includes(route.name) ? { display: 'none', height: 0, position: 'absolute' } : undefined
+      })}
+      tabBar={(props) => {
+        const topRouteName = navigationRef?.current?.isReady?.() ? navigationRef?.current?.getCurrentRoute?.()?.name : undefined
+        const currentTab = props.state.routes[props.state.index]
+        const activeRouteName = topRouteName || currentTab?.name || currentScreen()
 
-          if (hiddenTabBar.includes(activeRouteName)) {
-            return null
-          }
-          return <Footer {...props} />
-        }}
+        if (hiddenTabBar.includes(activeRouteName)) {
+          return null
+        }
+        return <Footer {...props} />
+      }}
     >
       <Tab.Screen name={Routes.Auth.Home} component={HomeScreen} />
       <Tab.Screen name={Routes.Auth.Textbook} component={TextbookScreen} />
@@ -119,6 +119,11 @@ const MainTabNavigator = () => {
       <Tab.Screen name={Routes.Auth.Profile} component={ProfileScreen} />
       <Tab.Screen name={Routes.Auth.Question} component={QuestionScreen} />
       <Tab.Screen name={Routes.Auth.StudentExamHistory} component={StudentExamHistoryScreen} />
+      <Tab.Screen name={Routes.Auth.PopQuiz} component={PopQuizScreen} />
+      <Tab.Screen name={Routes.Auth.PopQuizCreate} component={PopQuizCreateScreen} />
+      <Tab.Screen name={Routes.Auth.PopQuizIntro} component={PopQuizIntroScreen} />
+      <Tab.Screen name={Routes.Auth.PopQuizTake} component={PopQuizTakeScreen} />
+      <Tab.Screen name={Routes.Auth.PopQuizResult} component={PopQuizResultScreen} />
     </Tab.Navigator>
   )
 }
@@ -136,7 +141,7 @@ const Authorized = ({ route }: { route: any }) => {
   const isUserCustomLoaded = useAuthStore(state => state.isUserCustomLoaded)
   const isParent = checkIsParent();
   const isParentNoChildren = isParent && linkedStudents?.length === 0
-  
+
   const { headerProps } =
     useLayoutApp()
   const { t } = useTranslation()
@@ -222,38 +227,38 @@ const Authorized = ({ route }: { route: any }) => {
 
   return (
     <>
-    <AuthStack.Navigator screenOptions={{ headerShown: false }}>
-      <AuthStack.Screen name={Routes.Auth.MainTabs}>
-        {() => (
-          <LayoutApp headerProps={headerProps} key={languageKey}>
-            {isParentNoChildren ? (
-              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24, backgroundColor: '#FFFFFF' }}>
-                <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: '#F3E5F5', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-                  <Ionicons name="people-outline" size={36} color="#5F30AA" />
+      <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+        <AuthStack.Screen name={Routes.Auth.MainTabs}>
+          {() => (
+            <LayoutApp headerProps={headerProps} key={languageKey}>
+              {isParentNoChildren ? (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24, backgroundColor: '#FFFFFF' }}>
+                  <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: '#F3E5F5', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                    <Ionicons name="people-outline" size={36} color="#5F30AA" />
+                  </View>
+                  <Text style={{ fontSize: 16, fontWeight: '700', color: '#222222', textAlign: 'center', marginBottom: 8 }}>
+                    {t('no_linked_children_in_academy')}
+                  </Text>
+                  <Text style={{ fontSize: 13, color: '#666666', textAlign: 'center', lineHeight: 18 }}>
+                    {t('select_another_academy_desc')}
+                  </Text>
                 </View>
-                <Text style={{ fontSize: 16, fontWeight: '700', color: '#222222', textAlign: 'center', marginBottom: 8 }}>
-                  {t('no_linked_children_in_academy')}
-                </Text>
-                <Text style={{ fontSize: 13, color: '#666666', textAlign: 'center', lineHeight: 18 }}>
-                  {t('select_another_academy_desc')}
-                </Text>
-              </View>
-            ) : (
-              <MainTabNavigator />
-            )}
-          </LayoutApp>
-        )}
-      </AuthStack.Screen>
-      <AuthStack.Screen name={Routes.Auth.AccountLinkingGroup}>
-        {() => (
-          <LayoutApp headerProps={headerProps} hideHeader={true} key={languageKey}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FAFAFB" animated />
-            <AccountLinkingNavigator />
-          </LayoutApp>
-        )}
-      </AuthStack.Screen>
-    </AuthStack.Navigator>
-    <ChangePasswordDialog
+              ) : (
+                <MainTabNavigator />
+              )}
+            </LayoutApp>
+          )}
+        </AuthStack.Screen>
+        <AuthStack.Screen name={Routes.Auth.AccountLinkingGroup}>
+          {() => (
+            <LayoutApp headerProps={headerProps} hideHeader={true} key={languageKey}>
+              <StatusBar barStyle="dark-content" backgroundColor="#FAFAFB" animated />
+              <AccountLinkingNavigator />
+            </LayoutApp>
+          )}
+        </AuthStack.Screen>
+      </AuthStack.Navigator>
+      <ChangePasswordDialog
         visible={mustChangePassword && hasConfirmedWarning && !isMustChangePasswordDismissed}
         onClose={() => setIsMustChangePasswordDismissed(true)}
         cancelText={t('change_later')}

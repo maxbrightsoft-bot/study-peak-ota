@@ -2586,5 +2586,6 @@
   "cannot_link_to_yourself": "Không thể liên kết với chính tài khoản của bạn.",
   "link_request_expired": "Yêu cầu kết nối đã hết hạn.",
   "sync": "Đồng bộ",
-  "sync_success": "Đồng bộ thành công"
+  "sync_success": "Đồng bộ thành công",
+  "too_many_requests": "Đã vượt quá số lượng yêu cầu quy định. Vui lòng thử lại sau ít phút."
 }
