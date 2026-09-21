@@ -24,11 +24,12 @@ interface PropsModalClose {
   styleContainer?: StyleProp<ViewStyle>
   style?: StyleProp<ViewStyle>
   disableInnerTouchable?: boolean
+  disableBackdropPress?: boolean
   position?: 'center' | 'bottom'
 }
 
 function ModalBase(props: PropsModalClose) {
-  const { isVisible, onClose, children, styleContainer, disableInnerTouchable, position = 'center' } = props
+  const { isVisible, onClose, children, styleContainer, disableInnerTouchable, disableBackdropPress, position = 'center' } = props
   const { height } = useWindowDimensions()
   const { isLoading, isLoadingWithoutOverlay } = useAuthStore()
   const navigation = useContext(NavigationContext)
@@ -49,7 +50,7 @@ function ModalBase(props: PropsModalClose) {
       <View style={styles.overlay}>
         <StatusBar backgroundColor="rgba(0,0,0,0.3)" />
 
-        <TouchableWithoutFeedback onPress={() => { Keyboard.dismiss(); onClose() }}>
+        <TouchableWithoutFeedback onPress={() => { Keyboard.dismiss(); if (!disableBackdropPress) onClose() }}>
           <View style={styles.backdrop} />
         </TouchableWithoutFeedback>
 

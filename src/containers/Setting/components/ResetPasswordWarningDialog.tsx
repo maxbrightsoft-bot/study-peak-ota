@@ -9,26 +9,30 @@ type Props = {
   visible: boolean
   onClose: () => void
   onConfirm: () => void
+  isMustChange?: boolean
 }
 
-const ResetPasswordWarningDialog = ({ visible, onClose, onConfirm }: Props) => {
+const ResetPasswordWarningDialog = ({ visible, onClose, onConfirm, isMustChange = true }: Props) => {
   const { t } = useTranslation()
 
   return (
     <CommonDialog
       isVisible={visible}
       onClose={onClose}
-      title={t('confirmation')}
+      title={
+        isMustChange
+          ? t('confirmation')
+          : t('security_tip')
+      }
       submitText={t('confirm')}
       cancelText={t('change_later')}
       onSubmit={onConfirm}
     >
       <View style={styles.container}>
         <Text style={styles.message}>
-          {t(
-            'password_reset_warning_msg',
-            'Your password has been reset. Therefore, to ensure security, please change your password.'
-          )}
+          {isMustChange
+            ? t('password_reset_warning_msg')
+            : t('password_weak_warning_msg')}
         </Text>
       </View>
     </CommonDialog>

@@ -18,6 +18,7 @@ interface CommonDialogProps {
   positionTitle?: PositionFlex
   isVisibleHeader?: boolean
   disableInnerTouchable?: boolean
+  disableBackdropPress?: boolean
 }
 
 const CommonDialog: React.FC<CommonDialogProps> = ({
@@ -30,11 +31,18 @@ const CommonDialog: React.FC<CommonDialogProps> = ({
   onSubmit,
   positionTitle = PositionFlex.Center,
   isVisibleHeader = true,
-  disableInnerTouchable
+  disableInnerTouchable,
+  disableBackdropPress
 }) => {
   const { t } = useTranslation()
   return (
-    <ModalBase isVisible={isVisible} onClose={onClose} styleContainer={styles.container} disableInnerTouchable={disableInnerTouchable}>
+    <ModalBase
+      isVisible={isVisible}
+      onClose={onClose}
+      styleContainer={styles.container}
+      disableInnerTouchable={disableInnerTouchable}
+      disableBackdropPress={disableBackdropPress}
+    >
       {isVisibleHeader && (
         <View style={styles.header}>
           <View></View>

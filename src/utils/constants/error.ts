@@ -29,8 +29,8 @@ export const ErrorMessages: any = {
     StoppedTimeMustBeGreaterThanStartTime: "stopped_time_must_be_greater_than_start_time",
     TotalTimeMustBePositive: "total_time_must_be_positive",
     TotalTimeOutOfRange: "total_time_out_of_range",
-    ScheduleCannotBeCompletedBeforeStartTime: "schedule_cannot_be_completed_before_start_time"
-
+    ScheduleCannotBeCompletedBeforeStartTime: "schedule_cannot_be_completed_before_start_time",
+    PasswordPolicyViolation: "password_policy_violation",
 }
 export enum ErrorMessageCodes {
     SuperAdministratorsCannotCreateAcademyRequest = "SuperAdministratorsCannotCreateAcademyRequest",
@@ -63,7 +63,8 @@ export enum ErrorMessageCodes {
     StoppedTimeMustBeGreaterThanStartTime = "StoppedTimeMustBeGreaterThanStartTime",
     TotalTimeMustBePositive = "TotalTimeMustBePositive",
     TotalTimeOutOfRange = "TotalTimeOutOfRange",
-    ScheduleCannotBeCompletedBeforeStartTime = "ScheduleCannotBeCompletedBeforeStartTime"
+    ScheduleCannotBeCompletedBeforeStartTime = "ScheduleCannotBeCompletedBeforeStartTime",
+    PasswordPolicyViolation = "PasswordPolicyViolation",
 }
 
 export const INVALID_CODE_FORMAT = "INVALID_CODE_FORMAT";

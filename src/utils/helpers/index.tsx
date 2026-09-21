@@ -326,4 +326,14 @@ export const decodeJwtPayload = <T extends Record<string, unknown>>(token: strin
   return JSON.parse(json) as T
 }
 
+export const getPasswordStrength = (password: string): number => {
+  if (!password) return 0
+  let score = 0
+  if (/[a-z]/.test(password)) score++
+  if (/[A-Z]/.test(password)) score++
+  if (/\d/.test(password)) score++
+  if (password.length >= 8) score++
+  return score
+}
+
 export * from './times'
