@@ -123,6 +123,7 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
     [t]
   )
   const user = useAuthStore(state => state.user)
+  const hasPassword = user?.hasPassword !== false
   const [editingField, setEditingField] = useState<string | null>(null)
   const [openChangePassword, setOpenChangePassword] = useState(false)
 
@@ -260,7 +261,9 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
                     >
                       <View style={styles.changePasswordLeft}>
                         <Ionicons name="lock-closed-outline" size={20} color={palette.grey[800]} />
-                        <Text style={styles.changePasswordText}>{t('change_password')}</Text>
+                        <Text style={styles.changePasswordText}>
+                          {hasPassword ? t('change_password') : t('create_password')}
+                        </Text>
                       </View>
                       <Ionicons name="chevron-forward-outline" size={20} color={palette.grey[400]} />
                     </TouchableOpacity>

@@ -5,13 +5,15 @@ import { Role } from '@/utils/enums';
 import { LoginEmailRequest } from '@/utils/types';
 import { apiLoginEmail } from '../apiClients/accountService';
 import useLogin from './useLogin';
-import { useEffect, useState } from 'react';
-import { ACADEMY_DOMAIN } from '@/utils/constants';
+import { useState } from 'react';
+import { ACADEMY_DOMAIN, PASSWORD_POLICY } from '@/utils/constants';
 import { getDataStorage } from '@/utils/storage';
+import useAuthStore from '@/store/useAuthStore';
 
 const useLoginEmail = () => {
   const { t } = useTranslation();
   const { handleLogin } = useLogin();
+  const setWeakPassword = useAuthStore(state => state.setWeakPassword)
   const [showPassword, setShowPassword] = useState(false);
 
   const toggleShowPassword = () => setShowPassword(!showPassword);
@@ -43,6 +45,8 @@ const useLoginEmail = () => {
         const response = await apiLoginEmail(loginData, !academyDomain, academyDomain);
         return response.data;
       }, false);
+      // Check password policy after login (password is still in form values)
+      setWeakPassword(!PASSWORD_POLICY.test(values.password))
     },
   });
 

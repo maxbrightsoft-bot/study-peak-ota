@@ -55,15 +55,22 @@ const Authorized = ({ route }: { route: any }) => {
   const { t } = useTranslation()
 
   const mustChangePassword = !!user?.mustChangePassword
+  const isWeakPassword = useAuthStore(state => state.isWeakPassword)
+  const setWeakPassword = useAuthStore(state => state.setWeakPassword)
   const [hasConfirmedWarning, setHasConfirmedWarning] = useState(false)
   const [isMustChangePasswordDismissed, setIsMustChangePasswordDismissed] = useState(false)
 
   useEffect(() => {
-    if (mustChangePassword) {
+    if (mustChangePassword || isWeakPassword) {
       setHasConfirmedWarning(false)
       setIsMustChangePasswordDismissed(false)
     }
-  }, [mustChangePassword])
+  }, [mustChangePassword, isWeakPassword])
+
+  const handleClosePasswordModal = () => {
+    setIsMustChangePasswordDismissed(true)
+    setWeakPassword(false)
+  }
 
   const isNotEnoughStatements = useMemo(
     () => user?.email && user?.isNotEnoughStatements,
@@ -165,14 +172,19 @@ const Authorized = ({ route }: { route: any }) => {
         </Tab.Navigator>
       </LayoutApp>
       <ChangePasswordDialog
-        visible={mustChangePassword && hasConfirmedWarning && !isMustChangePasswordDismissed}
-        onClose={() => setIsMustChangePasswordDismissed(true)}
+        visible={(mustChangePassword || isWeakPassword) && hasConfirmedWarning && !isMustChangePasswordDismissed}
+        onClose={handleClosePasswordModal}
         cancelText={t('change_later')}
       />
       <ResetPasswordWarningDialog
-        visible={mustChangePassword && !hasConfirmedWarning && !isMustChangePasswordDismissed}
-        onClose={() => setIsMustChangePasswordDismissed(true)}
+        visible={
+          !isMustChangePasswordDismissed &&
+          !hasConfirmedWarning &&
+          (mustChangePassword || isWeakPassword)
+        }
+        onClose={handleClosePasswordModal}
         onConfirm={() => setHasConfirmedWarning(true)}
+        isMustChange={mustChangePassword}
       />
     </>
   )

@@ -59,6 +59,7 @@ interface StoreState {
   channel?: PusherChannel;
   hasSeenTutorial: boolean;
   isDemoMode: boolean;
+  isWeakPassword: boolean;
 }
 
 interface StoreActions {
@@ -106,6 +107,7 @@ interface StoreActions {
 
   logout: () => Promise<void>;
   setHasSeenTutorial: (value: boolean) => void;
+  setWeakPassword: (value: boolean) => void;
 }
 
 type AuthStore = StoreState & StoreActions;
@@ -134,6 +136,7 @@ const useAuthStore = create<AuthStore>()(
       channel: undefined,
       hasSeenTutorial: false,
       isDemoMode: false,
+      isWeakPassword: false,
 
       setUser: (user) => {
         set((state) => {
@@ -161,6 +164,12 @@ const useAuthStore = create<AuthStore>()(
       setHasSeenTutorial: (value) => {
         set((state) => {
           state.hasSeenTutorial = value
+        })
+      },
+
+      setWeakPassword: (value) => {
+        set((state) => {
+          state.isWeakPassword = value
         })
       },
 

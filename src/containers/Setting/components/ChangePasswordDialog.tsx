@@ -8,9 +8,11 @@ import { changePasswordApi } from '@/containers/Login/apiClients/accountService'
 import { getErrorMessage, toast } from '@/utils/helpers'
 import { palette } from '@/theme'
 import TextField from '@/components/Input/TextField'
+import PasswordRequirements from '@/components/Input/PasswordRequirements'
 import CommonDialog from '@/components/ModalBase/CommonDialog'
 import { ScaledSheet } from 'react-native-size-matters'
 import useAuthStore from '@/store/useAuthStore'
+import { PASSWORD_POLICY } from '@/utils/constants'
 
 type Props = {
   visible: boolean
@@ -35,10 +37,19 @@ const ChangePasswordDialog = ({ visible, onClose, cancelText }: Props) => {
         .required(t('current_password_required'))
     } : {}),
     newPassword: Yup.string()
-      .min(6, t('password_min_length'))
-      .matches(/[0-9]/, t('password_must_contain_number'))
-      .matches(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, t('password_must_contain_special_char'))
-      .required(t('new_password_required')),
+      .matches(PASSWORD_POLICY, t('password_policy_violation'))
+      .required(t('new_password_required'))
+      .test(
+        'not-same-as-current',
+        t('new_password_cannot_be_same_as_old_password'),
+        function (value) {
+          const { currentPassword } = this.parent
+          if (hasPassword && currentPassword && value && currentPassword === value) {
+            return false
+          }
+          return true
+        }
+      ),
     confirmNewPassword: Yup.string()
       .oneOf([Yup.ref('newPassword')], t('passwords_do_not_match'))
       .required(t('confirm_password_required'))
@@ -70,6 +81,7 @@ const ChangePasswordDialog = ({ visible, onClose, cancelText }: Props) => {
             mustChangePassword: false
           })
         }
+        useAuthStore.getState().setWeakPassword(false)
         handleClose()
       } catch (error: any) {
         toast.error(getErrorMessage(t, error))
@@ -87,13 +99,24 @@ const ChangePasswordDialog = ({ visible, onClose, cancelText }: Props) => {
     onClose()
   }
 
+  React.useEffect(() => {
+    if (!visible) {
+      formik.resetForm()
+      setShowCurrent(false)
+      setShowNew(false)
+      setShowConfirm(false)
+    }
+  }, [visible])
+
   const currentPasswordError =
     formik.touched.currentPassword && formik.errors.currentPassword
       ? formik.errors.currentPassword
       : ''
 
   const newPasswordError =
-    formik.touched.newPassword && formik.errors.newPassword
+    (formik.touched.newPassword || formik.submitCount > 0) &&
+    (formik.errors.newPassword === t('new_password_required') ||
+     formik.errors.newPassword === t('new_password_cannot_be_same_as_old_password'))
       ? formik.errors.newPassword
       : ''
 
@@ -106,6 +129,7 @@ const ChangePasswordDialog = ({ visible, onClose, cancelText }: Props) => {
     <CommonDialog
       isVisible={visible}
       onClose={handleClose}
+      disableBackdropPress
       title={hasPassword ? t('change_password') : t('create_password')}
       submitText={loading ? t('submitting') : t('submit')}
       cancelText={cancelText}
@@ -119,6 +143,7 @@ const ChangePasswordDialog = ({ visible, onClose, cancelText }: Props) => {
             <TextField
               value={formik.values.currentPassword}
               onChangeText={(text: string) => formik.setFieldValue('currentPassword', text)}
+              onBlur={() => formik.setFieldTouched('currentPassword', true)}
               placeholder={t('enter_current_password')}
               secureTextEntry={!showCurrent}
               readOnly={loading}
@@ -142,6 +167,7 @@ const ChangePasswordDialog = ({ visible, onClose, cancelText }: Props) => {
           <TextField
             value={formik.values.newPassword}
             onChangeText={(text: string) => formik.setFieldValue('newPassword', text)}
+            onBlur={() => formik.setFieldTouched('newPassword', true)}
             placeholder={t('enter_new_password')}
             secureTextEntry={!showNew}
             readOnly={loading}
@@ -156,21 +182,11 @@ const ChangePasswordDialog = ({ visible, onClose, cancelText }: Props) => {
               </TouchableOpacity>
             }
           />
-          {/* Strength Indicator */}
-          <View style={styles.strengthContainer}>
-            {[1, 2, 3, 4].map((step) => (
-              <View
-                key={step}
-                style={[
-                  styles.strengthBar,
-                  {
-                    backgroundColor:
-                      formik.values.newPassword.length >= step * 3 ? palette.main[600] : palette.grey[200]
-                  }
-                ]}
-              />
-            ))}
-          </View>
+          {/* Password Requirements */}
+          <PasswordRequirements
+            password={formik.values.newPassword}
+            hasSubmitted={formik.submitCount > 0}
+          />
         </View>
 
         {/* Confirm Password */}
@@ -179,6 +195,7 @@ const ChangePasswordDialog = ({ visible, onClose, cancelText }: Props) => {
           <TextField
             value={formik.values.confirmNewPassword}
             onChangeText={(text: string) => formik.setFieldValue('confirmNewPassword', text)}
+            onBlur={() => formik.setFieldTouched('confirmNewPassword', true)}
             placeholder={t('re_enter_new_password')}
             secureTextEntry={!showConfirm}
             readOnly={loading}

@@ -8,6 +8,7 @@ import CustomTouchable from '@/components/Button/CustomTouchable'
 import CommonDialog from '@/components/ModalBase/CommonDialog'
 import useForgotPassword from '../hooks/useForgotPassword'
 import { ScaledSheet } from 'react-native-size-matters'
+import PasswordRequirements from '@/components/Input/PasswordRequirements'
 
 type Props = {
   visible: boolean
@@ -36,6 +37,12 @@ const ForgotPasswordDialog = ({ visible, onOpenLoginAccountDialog, onClose }: Pr
     onClose()
   }
 
+  React.useEffect(() => {
+    if (!visible) {
+      handleReset()
+    }
+  }, [visible])
+
   const emailError =
     emailFormik.touched.email && emailFormik.errors.email
       ? emailFormik.errors.email
@@ -47,7 +54,8 @@ const ForgotPasswordDialog = ({ visible, onOpenLoginAccountDialog, onClose }: Pr
       : ''
 
   const newPasswordError =
-    resetFormik.touched.newPassword && resetFormik.errors.newPassword
+    (resetFormik.touched.newPassword || resetFormik.submitCount > 0) &&
+    resetFormik.errors.newPassword === t('new_password_required')
       ? resetFormik.errors.newPassword
       : ''
 
@@ -177,6 +185,7 @@ const ForgotPasswordDialog = ({ visible, onOpenLoginAccountDialog, onClose }: Pr
         <Text style={styles.label}>{t('new_password')}</Text>
         <TextField
           onChangeText={(text: string) => resetFormik.setFieldValue('newPassword', text)}
+          onBlur={() => resetFormik.setFieldTouched('newPassword', true)}
           value={resetFormik.values.newPassword}
           error={newPasswordError}
           secureTextEntry={!showNewPassword}
@@ -190,12 +199,18 @@ const ForgotPasswordDialog = ({ visible, onOpenLoginAccountDialog, onClose }: Pr
             </TouchableOpacity>
           }
         />
+        {/* Password Requirements */}
+        <PasswordRequirements
+          password={resetFormik.values.newPassword}
+          hasSubmitted={resetFormik.submitCount > 0}
+        />
       </View>
 
       <View>
         <Text style={styles.label}>{t('confirm_new_password')}</Text>
         <TextField
           onChangeText={(text: string) => resetFormik.setFieldValue('confirmPassword', text)}
+          onBlur={() => resetFormik.setFieldTouched('confirmPassword', true)}
           value={resetFormik.values.confirmPassword}
           error={confirmPasswordError}
           secureTextEntry={!showConfirmPassword}
@@ -227,6 +242,7 @@ const ForgotPasswordDialog = ({ visible, onOpenLoginAccountDialog, onClose }: Pr
     <CommonDialog
       isVisible={visible}
       onClose={handleClose}
+      disableBackdropPress
       title={
         step === 'email'
           ? t('forgot_password')
@@ -345,4 +361,14 @@ const styles = ScaledSheet.create({
     ...TYPO.caption,
     color: palette.grey[500],
   },
+  strengthContainer: {
+    flexDirection: 'row',
+    gap: '4@ms',
+    marginTop: '4@ms'
+  },
+  strengthBar: {
+    flex: 1,
+    height: '4@ms',
+    borderRadius: '2@ms'
+  }
 })

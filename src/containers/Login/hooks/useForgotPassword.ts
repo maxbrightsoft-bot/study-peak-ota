@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { forgotPasswordApi, resetPasswordApi, verifyResetPasswordOtpApi } from '../apiClients/accountService';
 import { getErrorMessage, toast } from '@/utils/helpers';
 import useAuthStore from '@/store/useAuthStore';
+import { PASSWORD_POLICY } from '@/utils/constants';
 
 export type ForgotPasswordStep = 'email' | 'verify_otp' | 'reset';
 
@@ -39,9 +40,7 @@ const useForgotPassword = ({ onOpenLoginAccountDialog, onClose }: Props) => {
 
   const resetValidationSchema = Yup.object().shape({
     newPassword: Yup.string()
-      .min(6, t('password_min_length'))
-      .matches(/[0-9]/, t('password_must_contain_number'))
-      .matches(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, t('password_must_contain_special_char'))
+      .matches(PASSWORD_POLICY, t('password_policy_violation'))
       .required(t('new_password_required')),
     confirmPassword: Yup.string()
       .oneOf([Yup.ref('newPassword')], t('passwords_do_not_match'))
