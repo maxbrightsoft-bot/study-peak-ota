@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next'
 import { ScaledSheet } from 'react-native-size-matters'
 import { useNavigation, useFocusEffect } from '@react-navigation/native'
 import { CameraView, useCameraPermissions } from 'expo-camera'
-import { Canvas, DiffRect, rect, rrect } from '@shopify/react-native-skia'
 import { palette } from '@/theme'
 import { Routes } from '@/navigators/RouteName'
 import Navbar from '../components/Navbar'
@@ -238,12 +237,9 @@ const ParentQrScan = () => {
     )
   }
 
-  // Toạ độ vẽ khung Skia cut-out
+  // Toạ độ khung quét mã QR
   const cutoutX = (canvasSize.width - SCAN_FRAME_SIZE) / 2
   const cutoutY = (canvasSize.height - SCAN_FRAME_SIZE) / 2.5
-
-  const outerRect = rrect(rect(0, 0, canvasSize.width, canvasSize.height), 0, 0)
-  const innerRRect = rrect(rect(cutoutX, cutoutY, SCAN_FRAME_SIZE, SCAN_FRAME_SIZE), 24, 24)
 
   return (
     <View style={styles.container}>
@@ -268,11 +264,6 @@ const ParentQrScan = () => {
 
         {canvasSize.width > 0 && canvasSize.height > 0 && (
           <>
-            {/* Lớp phủ Canvas tối khoanh vùng cut-out mã QR sử dụng Skia DiffRect */}
-            <Canvas style={{ flex: 1, position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}>
-              <DiffRect outer={outerRect} inner={innerRRect} color="rgba(23, 23, 25, 0.7)" />
-            </Canvas>
-
             {/* Hướng dẫn quét đặt ở phần trên overlay */}
             <View style={[styles.instructionWrapper, { top: cutoutY - 55 }]}>
               <Text style={styles.scanInstruction}>
