@@ -3,7 +3,7 @@
     "name": "Study Peak",
     "slug": "touch-study-mobile",
     "jsEngine": "jsc",
-    "version": "1.0.9",
+    "version": "1.0.10",
     "orientation": "portrait",
     "icon": "./assets/app-icon.png",
     "scheme": "com.max.britghtsoft.touchstudymobile",
@@ -15,13 +15,13 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "buildNumber": "15",
+      "buildNumber": "4",
       "bundleIdentifier": "com.max.britghtsoft.touchstudymobile",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSPhotoLibraryUsageDescription": "This app needs access to your photos so you can upload images.",
         "NSPhotoLibraryAddUsageDescription": "Allow StudyPeak to save photos to your library.",
-        "NSCameraUsageDescription": "This app needs access to the camera to take photos.",
+        "NSCameraUsageDescription": "Study Peak needs camera access to scan a QR code to link your account with another user, such as a parent or tutor account.",
         "CFBundleURLTypes": [
           {
             "CFBundleURLSchemes": [
