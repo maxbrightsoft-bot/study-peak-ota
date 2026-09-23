@@ -82,7 +82,7 @@ const useExamResultList = ({ onClose, open }: { onClose: () => void, open: boole
     try {
       const [res, unattachedRes] = await Promise.all([
         getListExamApi({ ...filter, textSearch }),
-        getUnattachedExamApi({ ...filter, textSearch }).catch(() => null)
+        getUnattachedExamApi({ ...filter, textSearch, sortColumnName: "StartTime" }).catch(() => null)
       ]);
       const courseItems = res?.data?.items || res?.items || [];
       const unattachedGroup = unattachedRes?.data?.data || unattachedRes?.data || unattachedRes;

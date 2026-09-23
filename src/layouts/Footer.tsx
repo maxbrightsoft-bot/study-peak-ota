@@ -74,7 +74,7 @@ const Footer = ({ navigation }: BottomTabBarProps) => {
   ]
 
   return (
-    <View style={[styles.tabBar]}>
+    <View style={[styles.tabBar, insets.bottom > 12 && { paddingBottom: insets.bottom }]}>
       {(user?.academyDomain ? tabItems : studySpaceTabItems).map((item) => {
         const isFocused = currentScreen() == item.name
         const shouldShowText = !isEnOrVi || isFocused
@@ -89,7 +89,7 @@ const Footer = ({ navigation }: BottomTabBarProps) => {
               )}
             </View>
             {shouldShowText && (
-              <Text style={isFocused ? styles.activeTabText : styles.tabText}>{item.label}</Text>
+              <Text numberOfLines={1} style={isFocused ? styles.activeTabText : styles.tabText}>{item.label}</Text>
             )}
           </TouchableOpacity>
         )
@@ -107,21 +107,25 @@ const styles = ScaledSheet.create({
     borderTopWidth: '1@ms',
     borderTopColor: '#eee',
     backgroundColor: 'white',
-    paddingVertical: '12@ms',
+    paddingTop: '12@ms',
+    paddingBottom: '12@ms',
     paddingHorizontal: '24@ms',
-
+    minHeight: '66@ms',
   },
   tabItem: {
     paddingHorizontal: '5@ms',
     alignItems: 'center',
-    gap: '6@ms'
+    gap: '6@ms',
+    height: '42@ms',
   },
   tabText: {
     ...TYPO.button4,
-    color: palette.grey[700]
+    color: palette.grey[700],
+    textAlign: 'center'
   },
   activeTabText: {
     ...TYPO.button4,
-    color: palette.main[500]
+    color: palette.main[500],
+    textAlign: 'center'
   }
 })
