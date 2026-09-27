@@ -1,4 +1,5 @@
-import { Text, TouchableOpacity, View } from 'react-native'
+import { Text, TouchableOpacity, View, ScrollView } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { palette } from '@/theme'
 import { ExamStatus, QuestionAnswerType, SubjectType } from '@/utils/enums'
 import { QuestionGroupResponse, QuestionResponse } from '../config/types'
@@ -73,7 +74,17 @@ const QuestionRow = React.memo(({
       </View>
 
       <View style={{ flex: 3 }}>
-        <View style={styles.answerCol}>{renderAnswer(item)}</View>
+        {(item.answerCount || 0) > 5 ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={[styles.answerCol, styles.answerColScroll]}
+          >
+            {renderAnswer(item)}
+          </ScrollView>
+        ) : (
+          <View style={styles.answerCol}>{renderAnswer(item)}</View>
+        )}
       </View>
     </TouchableOpacity>
   )
@@ -92,9 +103,10 @@ const ExamQuestionGroup = ({
   const { t } = useTranslation()
   const questions = data.questions
   const disabled = disabledProp || isEnd || status === ExamStatus.Paused
+  const hasMoreThan5Answers = useMemo(() => questions.some(q => (q.answerCount || 0) > 5), [questions])
   const questionContent = useMemo(() => {
-    const title = data.articles?.[0].title;
-    const author = data.articles?.[0].author;
+    const title = data.articles?.[0]?.title;
+    const author = data.articles?.[0]?.author;
     const category = data.articles?.[0]?.category?.name;
     const subCategory = data.articles?.[0]?.subcategory?.name;
     const titleAuthor = [title, author].filter((i) => !!i).join(", ");
@@ -105,8 +117,8 @@ const ExamQuestionGroup = ({
     return content;
   }, [
     type,
-    data.articles?.[0].title,
-    data.articles?.[0].author,
+    data.articles?.[0]?.title,
+    data.articles?.[0]?.author,
     data.articles?.[0]?.category?.name,
     data.articles?.[0]?.subcategory?.name
   ]);
@@ -155,8 +167,14 @@ const ExamQuestionGroup = ({
           <View style={{ borderRightWidth: 1, borderColor: palette.grey[300], flex: 1 }}>
             <Text style={styles.headerText}>{t('problem_number')}</Text>
           </View>
-          <View style={{ flex: 3 }}>
+          <View style={{ flex: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
             <Text style={styles.headerText}>{t('answer_sheet')}</Text>
+            {hasMoreThan5Answers && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                <Text style={{ fontSize: 10, color: palette.grey[500] }}>({t('scroll_horizontal')})</Text>
+                <Ionicons name="swap-horizontal" size={12} color={palette.grey[500]} />
+              </View>
+            )}
           </View>
         </View>
 
@@ -234,6 +252,10 @@ const styles = ScaledSheet.create({
     flexWrap: 'nowrap',
     justifyContent: 'space-around',
     alignItems: 'center'
+  },
+  answerColScroll: {
+    justifyContent: 'flex-start',
+    gap: '6@ms'
   },
   option: {
     width: '30@ms',
