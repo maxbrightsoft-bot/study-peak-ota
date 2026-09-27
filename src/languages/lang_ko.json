@@ -632,7 +632,7 @@
   "are_you_sure_to_delete_article_from_chapter": "{{chapterName}} 장에서 기사 {{articleNumber}}을(를) 삭제하시겠습니까?",
   "are_you_sure_to_delete_subchapter_from_chapter": "{{chapter}} 장에서 {{subchapter}} 하위 장을 삭제하시겠습니까?",
   "are_you_sure_to_delete_chapter_from_textbook": "교과서 {{chapter}}에서 {{textbook}}장을 삭제하시겠습니까?",
-  "do_you_want_to_quit_your_exam": "당신의 시험을 종료하시겠습니까?",
+  "do_you_want_to_quit_your_exam": "시험을 종료하시겠습니까?",
   "home": "홈",
   "profile": "프로필",
   "settings": "설정",

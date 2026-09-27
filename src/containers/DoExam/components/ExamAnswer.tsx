@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { View, TouchableOpacity } from 'react-native'
+import { View, TouchableOpacity, ScrollView } from 'react-native'
 import { Text } from 'react-native-paper'
+import { Ionicons } from '@expo/vector-icons'
 import _ from 'lodash'
 import { QuestionAnswerType } from '../../../utils/enums'
 import { palette, TYPO } from '@/theme'
@@ -109,27 +110,64 @@ const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer
         )
 
       case QuestionAnswerType.MultipleChoice:
-      case QuestionAnswerType.SingleChoice:
+      case QuestionAnswerType.SingleChoice: {
+        const isManyAnswers = (question?.answerCount || 0) > 5
         return (
-          <View style={styles.answerRow}>
-            {Array.from({ length: question?.answerCount || 0 }).map((_, num) => {
-              const isSelected = selectedAnswers?.includes(num + 1)
-              return (
-                <TouchableOpacity
-                  key={num}
-                  style={[styles.answerButton, isSelected && styles.selectedAnswerButton]}
-                  onPress={() => {
-                    if (disabled) return
-                    handleSelectAnswer(num + 1, question.questionAnswerType)
-                    isLastQuestion && onClose()
-                  }}
-                >
-                  <Text style={{ color: isSelected ? '#FFF' : '#222222' }}>{num + 1}</Text>
-                </TouchableOpacity>
-              )
-            })}
+          <View>
+            {isManyAnswers && (
+              <View style={styles.scrollHintContainer}>
+                <Ionicons name="swap-horizontal" size={14} color={palette.grey[500]} />
+                <Text style={styles.scrollHintText}>{t('scroll_horizontal')}</Text>
+              </View>
+            )}
+            {isManyAnswers ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.answerScrollContainer}
+              >
+                {Array.from({ length: question?.answerCount || 0 }).map((_, num) => {
+                  const isSelected = selectedAnswers?.includes(num + 1)
+                  return (
+                    <TouchableOpacity
+                      key={num}
+                      style={[styles.answerButtonScroll, isSelected && styles.selectedAnswerButton]}
+                      onPress={() => {
+                        if (disabled) return
+                        handleSelectAnswer(num + 1, question.questionAnswerType)
+                        isLastQuestion && onClose()
+                      }}
+                    >
+                      <Text style={{ color: isSelected ? '#FFF' : '#222222', fontSize: 15, fontWeight: '600' }}>
+                        {num + 1}
+                      </Text>
+                    </TouchableOpacity>
+                  )
+                })}
+              </ScrollView>
+            ) : (
+              <View style={styles.answerRow}>
+                {Array.from({ length: question?.answerCount || 0 }).map((_, num) => {
+                  const isSelected = selectedAnswers?.includes(num + 1)
+                  return (
+                    <TouchableOpacity
+                      key={num}
+                      style={[styles.answerButton, isSelected && styles.selectedAnswerButton]}
+                      onPress={() => {
+                        if (disabled) return
+                        handleSelectAnswer(num + 1, question.questionAnswerType)
+                        isLastQuestion && onClose()
+                      }}
+                    >
+                      <Text style={{ color: isSelected ? '#FFF' : '#222222' }}>{num + 1}</Text>
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
+            )}
           </View>
         )
+      }
 
       default:
         return null
@@ -226,6 +264,12 @@ const styles = ScaledSheet.create({
     gap: '16@ms',
     justifyContent: 'space-between'
   },
+  answerScrollContainer: {
+    flexDirection: 'row',
+    gap: '12@ms',
+    paddingHorizontal: '4@ms',
+    alignItems: 'center'
+  },
   answerButton: {
     flex: 1,
     height: '50@ms',
@@ -234,6 +278,27 @@ const styles = ScaledSheet.create({
     borderColor: '#EAEAEA',
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  answerButtonScroll: {
+    width: '50@ms',
+    height: '50@ms',
+    borderRadius: '25@ms',
+    borderWidth: '1@ms',
+    borderColor: '#EAEAEA',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  scrollHintContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4@ms',
+    marginBottom: '10@ms'
+  },
+  scrollHintText: {
+    fontSize: '12@ms',
+    color: palette.grey[500],
+    fontWeight: '500'
   },
   navRow: {
     paddingVertical: '12@ms',

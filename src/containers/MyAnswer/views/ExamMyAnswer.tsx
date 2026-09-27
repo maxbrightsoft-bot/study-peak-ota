@@ -87,7 +87,7 @@ const MyAnswer: FC<Props> = ({ data, categories, effectSize, onCreateNote, onCre
       item.questionGroupIndex >= (data.questionGroups?.length || 0)
         ? null
         : data.questionGroups?.[item.questionGroupIndex]
-    const subcategory = questionGroup?.articles[0]?.subcategory
+    const subcategory = questionGroup?.articles?.[0]?.subcategory
 
     return (
       <View key={item.id}>
