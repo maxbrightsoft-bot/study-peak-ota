@@ -74,6 +74,8 @@ const useExamSolving = (props: Props) => {
   const ltAnswerTime = useRef<string | undefined>(undefined);
   const runningTimeRef = useRef<number | undefined>(undefined);
   const totalAnsweredTimeRef = useRef<number | undefined>(undefined);
+  const isCallingApi = useRef<boolean>(false);
+  const pendingApiCall = useRef<any>(null);
   const [recoverExamCode, setRecoveredExamCode] = useState<string>();
   const examRef = useRef(exam);
   useEffect(() => {
@@ -104,11 +106,20 @@ const useExamSolving = (props: Props) => {
     return diff;
   };
 
+  const processNextPendingCall = () => {
+    const pending = pendingApiCall.current;
+    if (pending) {
+      pendingApiCall.current = null;
+      updateAnswers(pending.body, pending.lastAnswerTime, pending.callback);
+    }
+  };
+
   const updateAnswers = async (
     body: StudentAnswerRequest,
     lastAnswerTime: string,
     callback?: Function
   ) => {
+    isCallingApi.current = true;
     let res: any = null;
     let error: any = null;
     const serverNow = getServerNow();
@@ -160,6 +171,8 @@ const useExamSolving = (props: Props) => {
         await removeDataStorage(`${recoverKey}`);
       await removeDataStorage(`${rollbackKey}`);
       callback?.();
+      isCallingApi.current = false;
+      processNextPendingCall();
     }
   };
 
@@ -183,7 +196,7 @@ const useExamSolving = (props: Props) => {
 
     questionId && handleUpdateSlider?.(questionId);
 
-    callApiUpdateAnswers(questions, lastAnswerTime, lastAnswerTimeNum, runningTime, isStar);
+    callApiUpdateAnswers(questions, lastAnswerTime, lastAnswerTimeNum, runningTime, isStar, undefined, questionId);
   };
 
   const callApiUpdateAnswers = async (
@@ -192,7 +205,8 @@ const useExamSolving = (props: Props) => {
     lastAnswerTimeNum: number,
     runningTime: number,
     isStar?: boolean,
-    callback?: Function
+    callback?: Function,
+    questionId?: number
   ) => {
     if ((!examId && !callback) || !rollbackKey) return;
     const serverNow = getServerNow();
@@ -211,31 +225,23 @@ const useExamSolving = (props: Props) => {
 
     !isStar && handleNextQuestion()
 
-    const mappedQuestions = arrQuestionNew.map((i) => {
-      const isTextAnswer = isTextType(i.questionAnswerType);
-      const hasAnswer = isTextAnswer
-        ? (i.textualAnswers?.length ?? 0) > 0
-        : (i.selectedAnswers?.length ?? 0) > 0;
-      const answerTime = hasAnswer ? (i.answerTime && i.answerTime !== 0 ? i.answerTime : lastAnswerTimeNum) : 0;
-      const duration = hasAnswer ? Math.max(1, i.duration || 0) : (i.duration || 0);
-
-      return {
-        questionId: i.id,
-        ...(isTextAnswer
-          ? { textualAnswers: i.textualAnswers || [] }
-          : { selectedAnswers: i.selectedAnswers || [] }),
-        duration,
-        isStar: !!i.isStar,
-        answerTime,
-        ...(i.unit ? { unit: i.unit } : {})
-      };
-    });
+    const mappedQuestions = arrQuestionNew.map((i) => ({
+      questionId: i.id,
+      selectedAnswers: i.selectedAnswers,
+      textualAnswers: i.textualAnswers,
+      duration: i.duration,
+      isStar: !!i.isStar,
+      answerTime: i.answerTime,
+      unit: i.unit,
+      isActivelyAnswered: questionId === undefined ? true : i.id === questionId
+    }));
 
     const sumQuestionDuration = mappedQuestions.reduce((acc, q) => acc + (q.duration || 0), 0);
     const finalRunningTime = Math.max(runningTime || 0, sumQuestionDuration);
 
     const body: StudentAnswerRequest = {
       lastAnswerTime: lastAnswerTimeNum,
+      timezoneOffset: new Date().getTimezoneOffset(),
       runningTime: finalRunningTime,
       questions: mappedQuestions,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
@@ -246,10 +252,20 @@ const useExamSolving = (props: Props) => {
       delete apiTimeouts.current[rollbackKey];
     }
     if (!!callback) {
-      await updateAnswers(body, lastAnswerTime, callback);
+      if (isCallingApi.current) {
+        pendingApiCall.current = { body, lastAnswerTime, callback };
+      } else {
+        await updateAnswers(body, lastAnswerTime, callback);
+      }
     } else {
       apiTimeouts.current[rollbackKey] = setTimeout(
-        () => updateAnswers(body, lastAnswerTime),
+        () => {
+          if (isCallingApi.current) {
+            pendingApiCall.current = { body, lastAnswerTime };
+          } else {
+            updateAnswers(body, lastAnswerTime);
+          }
+        },
         500
       );
     }
@@ -312,19 +328,12 @@ const useExamSolving = (props: Props) => {
             break;
         }
 
-        const diff = getDiffTime(exam, now, totalRunningTime)
-        const isTextAnswerType = isTextType(item.questionAnswerType);
-        const hasAnswer = isTextAnswerType
-          ? (item.textualAnswers?.length ?? 0) > 0
-          : (item.selectedAnswers?.length ?? 0) > 0;
-
-        if (hasAnswer) {
-          item.answerTime = item.answerTime && item.answerTime !== 0 ? item.answerTime : nowTime;
-          item.duration = Math.max(1, (item.duration || 0) + diff);
-        } else {
-          item.answerTime = 0;
-          item.duration = (item.duration || 0) + diff;
-        }
+        const diff = getDiffTime(exam, now, totalRunningTime);
+        item.duration = (item.duration || 0) + diff;
+        item.answerTime =
+          item.answerTime && item.answerTime !== 0
+            ? item.answerTime
+            : nowTime;
       }
       return item;
     });
@@ -359,32 +368,25 @@ const useExamSolving = (props: Props) => {
         status: exam?.isLate ? exam?.lateStatus : exam?.status,
         studentExamSessionId: String(exam?.studentExamSessionId || ''),
       })
-      const mappedQuestionsCatch = arrQuestionNew.map((i) => {
-        const isTextAnswer = isTextType(i.questionAnswerType);
-        const hasAnswer = isTextAnswer
-          ? (i.textualAnswers?.length ?? 0) > 0
-          : (i.selectedAnswers?.length ?? 0) > 0;
-        const answerTime = hasAnswer ? (i.answerTime && i.answerTime !== 0 ? i.answerTime : nowTime) : 0;
-        const duration = hasAnswer ? Math.max(1, i.duration || 0) : (i.duration || 0);
-
-        return {
-          questionId: i.id,
-          ...(isTextAnswer
-            ? { textualAnswers: i.textualAnswers || [] }
-            : { selectedAnswers: i.selectedAnswers || [] }),
-          duration,
-          isStar: !!i.isStar,
-          answerTime,
-          ...(i.unit ? { unit: i.unit } : {})
-        };
-      });
+      const mappedQuestionsCatch = arrQuestionNew.map((i) => ({
+        questionId: i.id,
+        selectedAnswers: i.selectedAnswers,
+        textualAnswers: i.textualAnswers,
+        duration: i.duration,
+        isStar: !!i.isStar,
+        answerTime: i.answerTime,
+        unit: i.unit,
+        isActivelyAnswered: questionId === undefined ? true : i.id === questionId
+      }));
 
       const sumDurationCatch = mappedQuestionsCatch.reduce((acc, q) => acc + (q.duration || 0), 0);
 
       const body: StudentAnswerRequest = {
         lastAnswerTime: nowTime,
+        timezoneOffset: new Date().getTimezoneOffset(),
         runningTime: Math.max(totalRunningTime || 0, sumDurationCatch),
-        questions: mappedQuestionsCatch
+        questions: mappedQuestionsCatch,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
       };
       trackError(error, {
         resourceType: ActivityResource.Question,

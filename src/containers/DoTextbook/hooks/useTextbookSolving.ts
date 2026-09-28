@@ -8,7 +8,6 @@ import useAuthStore from "@/store/useAuthStore";
 import moment from "moment";
 import { diffFromNow, getErrorMessage, toast, toISOString } from "@/utils/helpers";
 import { DATE_TIME_MIN_VALUE } from "@/utils/constants";
-import { isTextType } from "@/utils/helpers/textbook";
 import { ActivityAction, ActivityResource, AppScreen, QuestionAnswerType } from "@/utils/enums";
 import { getDataStorage, removeDataStorage, setDataStorage } from "@/utils/storage";
 import useServerTime from '@/hooks/useServerTime';
@@ -61,8 +60,10 @@ const useTextbookSolving = (props: Props) => {
 
   const apiTimeouts = useRef<any>({});
 
-  const ltAnswerTime = useRef<string>();
-  const totalAnsweredTimeRef = useRef<number>();
+  const ltAnswerTime = useRef<string | undefined>(undefined);
+  const totalAnsweredTimeRef = useRef<number | undefined>(undefined);
+  const isCallingApi = useRef<boolean>(false);
+  const pendingApiCall = useRef<any>(null);
 
   const studentTextbookId = textbook?.studentTextbookId;
 
@@ -103,10 +104,19 @@ const useTextbookSolving = (props: Props) => {
     return diff;
   };
 
+  const processNextPendingCall = () => {
+    const pending = pendingApiCall.current;
+    if (pending) {
+      pendingApiCall.current = null;
+      updateAnswers(pending.body, pending.callback);
+    }
+  };
+
   const updateAnswers = async (
     body: StudentTextbookAnswerRequest,
     callback?: Function
   ) => {
+    isCallingApi.current = true;
     let res: any = null;
     let error: any = null;
     try {
@@ -148,6 +158,8 @@ const useTextbookSolving = (props: Props) => {
         await removeDataStorage(`${recoverKey}`);
       await removeDataStorage(`${rollbackKey}`);
       callback?.();
+      isCallingApi.current = false;
+      processNextPendingCall();
     }
   };
 
@@ -169,7 +181,7 @@ const useTextbookSolving = (props: Props) => {
 
     questionId && handleUpdateSlider?.(questionId);
 
-    callApiUpdateAnswers(questions, lastAnswerTime, lastAnswerTimeNum, isStar);
+    callApiUpdateAnswers(questions, lastAnswerTime, lastAnswerTimeNum, isStar, undefined, questionId);
   };
 
   const callApiUpdateAnswers = async (
@@ -177,7 +189,8 @@ const useTextbookSolving = (props: Props) => {
     lastAnswerTime: string,
     lastAnswerTimeNum: number,
     isStar?: boolean,
-    callback?: Function
+    callback?: Function,
+    questionId?: number
   ) => {
     if ((!textbookId && !callback) || !rollbackKey) return;
 
@@ -194,25 +207,17 @@ const useTextbookSolving = (props: Props) => {
 
     const body: StudentTextbookAnswerRequest = {
       lastAnswerTime: lastAnswerTimeNum,
-      questions: arrQuestionNew.map((i) => {
-        const isTextAnswer = isTextType(i.questionAnswerType);
-        const hasAnswer = isTextAnswer
-          ? (i.textualAnswers?.length ?? 0) > 0
-          : (i.selectedAnswers?.length ?? 0) > 0;
-        const answerTime = hasAnswer ? (i.answerTime && i.answerTime !== 0 ? i.answerTime : lastAnswerTimeNum) : 0;
-        const duration = hasAnswer ? Math.max(1000, i.duration || 0) : (i.duration || 0);
-
-        return {
-          questionId: i.id,
-          ...(isTextAnswer
-            ? { textualAnswers: i.textualAnswers || [] }
-            : { selectedAnswers: i.selectedAnswers || [] }),
-          duration,
-          isStar: !!i.isStar,
-          answerTime,
-          ...(i.unit ? { unit: i.unit } : {})
-        };
-      }),
+      timezoneOffset: new Date().getTimezoneOffset(),
+      questions: arrQuestionNew.map((i) => ({
+        questionId: i.id,
+        selectedAnswers: i.selectedAnswers,
+        textualAnswers: i.textualAnswers,
+        duration: i.duration,
+        isStar: !!i.isStar,
+        answerTime: i.answerTime,
+        unit: i.unit,
+        isActivelyAnswered: questionId === undefined ? true : i.id === questionId
+      })),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
     };
     const prevApiCall = apiTimeouts.current[rollbackKey];
@@ -221,10 +226,20 @@ const useTextbookSolving = (props: Props) => {
       delete apiTimeouts.current[rollbackKey];
     }
     if (!!callback) {
-      await updateAnswers(body, callback);
+      if (isCallingApi.current) {
+        pendingApiCall.current = { body, callback };
+      } else {
+        await updateAnswers(body, callback);
+      }
     } else {
       apiTimeouts.current[rollbackKey] = setTimeout(
-        () => updateAnswers(body),
+        () => {
+          if (isCallingApi.current) {
+            pendingApiCall.current = { body };
+          } else {
+            updateAnswers(body);
+          }
+        },
         500
       );
     }
@@ -275,18 +290,11 @@ const useTextbookSolving = (props: Props) => {
         }
 
         const diff = getDiffTime(now, nowTime);
-        const isTextAnswerType = isTextType(item.questionAnswerType);
-        const hasAnswer = isTextAnswerType
-          ? (item.textualAnswers?.length ?? 0) > 0
-          : (item.selectedAnswers?.length ?? 0) > 0;
-
-        if (hasAnswer) {
-          item.answerTime = item.answerTime && item.answerTime !== 0 ? item.answerTime : nowTime;
-          item.duration = Math.max(1000, (item.duration || 0) + +diff);
-        } else {
-          item.answerTime = 0;
-          item.duration = (item.duration || 0) + +diff;
-        }
+        item.duration = (item.duration || 0) + +diff;
+        item.answerTime =
+          item.answerTime && item.answerTime !== 0
+            ? item.answerTime
+            : nowTime;
       }
       return item;
     });
@@ -319,25 +327,18 @@ const useTextbookSolving = (props: Props) => {
       })
       const body: StudentTextbookAnswerRequest = {
         lastAnswerTime: nowTime,
-        questions: arrQuestionNew.map((i) => {
-          const isTextAnswer = isTextType(i.questionAnswerType);
-          const hasAnswer = isTextAnswer
-            ? (i.textualAnswers?.length ?? 0) > 0
-            : (i.selectedAnswers?.length ?? 0) > 0;
-          const answerTime = hasAnswer ? (i.answerTime && i.answerTime !== 0 ? i.answerTime : nowTime) : 0;
-          const duration = hasAnswer ? Math.max(1000, i.duration || 0) : (i.duration || 0);
-
-          return {
-            questionId: i.id,
-            ...(isTextAnswer
-              ? { textualAnswers: i.textualAnswers || [] }
-              : { selectedAnswers: i.selectedAnswers || [] }),
-            duration,
-            isStar: !!i.isStar,
-            answerTime,
-            ...(i.unit ? { unit: i.unit } : {})
-          };
-        })
+        timezoneOffset: new Date().getTimezoneOffset(),
+        questions: arrQuestionNew.map((i) => ({
+          questionId: i.id,
+          selectedAnswers: i.selectedAnswers,
+          textualAnswers: i.textualAnswers,
+          duration: i.duration,
+          isStar: !!i.isStar,
+          answerTime: i.answerTime,
+          unit: i.unit,
+          isActivelyAnswered: questionId === undefined ? true : i.id === questionId
+        })),
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
       };
       trackError(error, {
         resourceId: String(questionId),

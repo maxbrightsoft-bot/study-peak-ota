@@ -25,7 +25,7 @@ import { useTranslation } from "react-i18next";
 import { PauseOrResumeExamRequest, RestartTextbookRequest } from "@/utils/types";
 import { ActivityAction, ActivityResource, AppScreen, ExamStatus, SubjectType } from "@/utils/enums";
 import moment from "moment";
-import { formatMinutesToTime, getErrorMessage, toast } from "@/utils/helpers";
+import { formatMinutesToTime, getErrorMessage, pauseAndResumeWithConflictRetry, toast } from "@/utils/helpers";
 import _ from "lodash";
 import useCountDownTimer from "@/hooks/useCountDownTimer";
 import useTimers from "@/layouts/hooks/useTimer";
@@ -573,7 +573,14 @@ const useTextbook = ({
         pauseTime: nowTime
       };
 
-      const res = await pauseAndResumeTextbookApi(Number(textbook.id), req);
+      const res = await pauseAndResumeWithConflictRetry(
+        req,
+        (retryReq) => pauseAndResumeTextbookApi(Number(textbook.id), retryReq),
+        async () => {
+          const freshRes = await getTextbookByIdApi(textbook.id || 0);
+          return freshRes.data?.data?.rowVersion;
+        }
+      );
 
       if (alarmClockProps.panelProps.onPauseOrResume && alarm?.subject?.id === textbook.subject.id && alarm?.duration === textbook.duration * 60000) {
         alarmClockProps.panelProps.onPauseOrResume()
@@ -589,7 +596,7 @@ const useTextbook = ({
           startTime: data?.startTime,
           lastPausedAt: data?.lastPausedAt,
           lastResumedAt: data?.lastResumedAt,
-          rowVersion: data?.rowVersion
+          rowVersion: data?.rowVersion || prev.rowVersion
         });
       });
       track({
@@ -603,7 +610,7 @@ const useTextbook = ({
         }
       })
       toast.info(t(status === ExamStatus.Paused ? "textbook_has_been_paused" : "textbook_has_been_resumed"));
-    } catch (error) {
+    } catch (error: any) {
       toast.error(getErrorMessage(t, error));
       trackError(error, {
         resourceType: ActivityResource.Textbook,
@@ -615,8 +622,9 @@ const useTextbook = ({
           studentTextbookId: String(textbook?.studentTextbookId || ''),
         }
       });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleRestartTextbook = async () => {

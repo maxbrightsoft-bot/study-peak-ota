@@ -25,12 +25,16 @@ export type AnswerRequest = {
   answerTime: number
   textualAnswers?: string[]
   unit?: string
+  isActivelyAnswered?: boolean
 }
 
 export type StudentAnswerRequest = {
   lastAnswerTime: number
   questions: AnswerRequest[]
   totalAnswerTime?: number
+  runningTime?: number
+  timezoneOffset?: number
+  timezone?: string
 }
 
 export type Option = {

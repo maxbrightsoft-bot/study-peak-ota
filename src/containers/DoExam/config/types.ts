@@ -55,6 +55,7 @@ export type StudentAnswerRequest = {
     questions: AnswerRequest[]
     totalAnswerTime?: number
     runningTime: number
+    timezoneOffset?: number
     timezone?: string
 }
 

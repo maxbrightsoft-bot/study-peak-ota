@@ -17,7 +17,7 @@ import useExamSolving from "./useExamSolving";
 import { useTranslation } from "react-i18next";
 import moment from "moment";
 import { ActivityAction, ActivityResource, AppScreen, ExamEvent, ExamStatus, QuestionAnswerType } from "@/utils/enums";
-import { formatMinutesToTime, getErrorMessage, toast } from "@/utils/helpers";
+import { formatMinutesToTime, getErrorMessage, pauseAndResumeWithConflictRetry, toast } from "@/utils/helpers";
 import { isTextType } from "@/utils/helpers/textbook";
 import useCountDownTimer from "@/hooks/useCountDownTimer";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -463,7 +463,15 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
         pauseTime: nowTime
       };
 
-      const res = await pauseAndResumeExamApi(exam?.code || '', req);
+      const res = await pauseAndResumeWithConflictRetry(
+        req,
+        (retryReq) => pauseAndResumeExamApi(exam?.code || '', retryReq),
+        async () => {
+          const freshRes = await getQuestionExam(exam.code || '');
+          return freshRes.data?.data?.rowVersion;
+        }
+      );
+
       const data = res.data;
       const isCompleted = data?.status === ExamStatus.Completed;
 
@@ -506,54 +514,6 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
       })
       toast.info(t(status === ExamStatus.Paused ? "exam_has_been_paused" : "exam_has_been_resumed"));
     } catch (error: any) {
-      if (error?.response?.status === 409 || error?.status === 409) {
-        try {
-          const freshRes = await getQuestionExam(exam.code || '');
-          const freshExam = freshRes.data?.data;
-          if (freshExam?.rowVersion) {
-            const retryReq: PauseOrResumeExamRequest = {
-              status,
-              rowVersion: freshExam.rowVersion,
-              pauseTime: nowTime
-            };
-            const res = await pauseAndResumeExamApi(exam.code || '', retryReq);
-            const data = res.data;
-            const isCompleted = data?.status === ExamStatus.Completed;
-            setExam((prev) => {
-              if (!prev) return undefined;
-              return {
-                ...prev,
-                lateStatus: data?.status,
-                totalPausedTime: data?.totalPausedTime,
-                duration: data?.duration,
-                startTimeSession: data?.startTime,
-                lastPausedAt: data?.lastPausedAt,
-                lastResumedAt: data?.lastResumedAt,
-                rowVersion: data?.rowVersion || freshExam.rowVersion
-              };
-            });
-
-            if (isCompleted) {
-              handleStopAlarm();
-              getCheckStatus();
-              handleCloseAnswerSheet();
-              handleCloseConfirmDialog();
-              handleCloseFinishConfirmDialog();
-              handleCloseLeaveDialog();
-              handleCloseInfoExamDialog();
-              setLoading(false);
-              return;
-            }
-
-            toast.info(t(status === ExamStatus.Paused ? "exam_has_been_paused" : "exam_has_been_resumed"));
-            setLoading(false);
-            return;
-          }
-        } catch (retryErr) {
-          // fallback to error handling below
-        }
-      }
-
       trackError(error, {
         resourceType: ActivityResource.Exam,
         triggeredAt: new Date(nowTime).toISOString(),
@@ -573,8 +533,9 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
         studentExamSessionId: exam?.studentExamSessionId
       })
       toast.error(getErrorMessage(t, error));
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {

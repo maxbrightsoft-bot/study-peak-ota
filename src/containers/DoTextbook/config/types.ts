@@ -34,6 +34,7 @@ export enum ScrollType {
 export type StudentTextbookAnswerRequest = {
   lastAnswerTime: number
   questions: AnswerRequest[]
+  timezoneOffset?: number
   timezone?: string
 }
 

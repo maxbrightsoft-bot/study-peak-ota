@@ -10,6 +10,7 @@ import { getDataStorage } from '@/utils/storage'
 import { Platform, Text, StatusBar } from 'react-native'
 import { palette } from '@/theme'
 import { Language, Role } from '../enums'
+import { PauseOrResumeExamRequest } from '../types'
 import { trackErrorStandalone } from '@/hooks/useActivityTracking'
 
 import { initialWindowMetrics } from 'react-native-safe-area-context'
@@ -324,6 +325,31 @@ export const decodeJwtPayload = <T extends Record<string, unknown>>(token: strin
       .join('')
   )
   return JSON.parse(json) as T
+}
+
+export const pauseAndResumeWithConflictRetry = async <T = any>(
+  initialReq: PauseOrResumeExamRequest,
+  apiCall: (req: PauseOrResumeExamRequest) => Promise<T>,
+  fetchFreshRowVersion: () => Promise<string | undefined>
+): Promise<T> => {
+  try {
+    return await apiCall(initialReq)
+  } catch (error: any) {
+    if (error?.response?.status === 409 || error?.status === 409) {
+      try {
+        const freshRowVersion = await fetchFreshRowVersion()
+        if (freshRowVersion) {
+          return await apiCall({
+            ...initialReq,
+            rowVersion: freshRowVersion
+          })
+        }
+      } catch (retryErr) {
+        // fallback to throwing original error below
+      }
+    }
+    throw error
+  }
 }
 
 export const getPasswordStrength = (password: string): number => {
