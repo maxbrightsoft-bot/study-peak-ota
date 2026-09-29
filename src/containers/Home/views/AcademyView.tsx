@@ -1,7 +1,5 @@
 import ArrowRight from '@/assets/iconJSX/arrowRight'
-import Verify from '@/assets/iconJSX/verify'
 import CustomCard from '@/components/Card/CustomCard'
-import TextTooltip from '@/components/Tooltip/TextTooltip'
 import WaitingExamStart from '../components/Dialog/WaitingExamStart'
 import ConfirmExamCode from '../components/Dialog/ConfirmExamCode'
 import { timeSpanToLocalMoment } from '@/utils/helpers'
@@ -13,10 +11,16 @@ import CalendarSchedule from '../components/CalendarSchedule'
 import ModalExamCode from '../components/Dialog/ModalExamCode'
 import { palette } from '@/theme'
 import useProblemSolving from '../hooks/useProblemSolving'
+import useHomeNotice from '../hooks/useHomeNotice'
 import StudyTimerCard from '../components/StudyTimerCard'
+import Notice from '@/containers/Notice/view'
 import { ScaledSheet } from 'react-native-size-matters'
+import moment from 'moment'
+
+import useAuthStore from '@/store/useAuthStore'
 
 const AcademyView = () => {
+  const selectedAcademy = useAuthStore(state => state.selectedAcademy)
   const {
     t,
     open,
@@ -42,6 +46,37 @@ const AcademyView = () => {
     isCheckTeacherStart
   } = useProblemSolving()
 
+  const {
+    recentNotice,
+    unreadNoticeCount,
+    openNoticeDialog,
+    handleOpenNoticeDialog,
+    handleCloseNoticeDialog
+  } = useHomeNotice()
+
+  const scheduleTime = selectedSchedule
+    ? timeSpanToLocalMoment(selectedSchedule.startTime, selectedSchedule.date)?.format('HH:mm')
+    : ''
+  const classTitle = selectedSchedule
+    ? (scheduleTime && !selectedSchedule.title?.includes(scheduleTime)
+        ? `${scheduleTime} ${selectedSchedule.title}`
+        : selectedSchedule.title)
+    : t('no_class_today')
+
+  const teacherText = selectedSchedule?.teacherName
+    ? (t('teacher_n', { teacher: selectedSchedule.teacherName }) || `${selectedSchedule.teacherName} ${t('teacher')}`)
+    : ''
+
+  const scheduleSubtitle = selectedSchedule
+    ? [
+        selectedSchedule?.room || selectedSchedule?.classroom,
+        teacherText
+      ].filter(Boolean).join(' · ') ||
+      (selectedSchedule.startTime && selectedSchedule.endTime
+        ? `${timeSpanToLocalMoment(selectedSchedule.startTime, selectedSchedule.date)?.format('HH:mm')} ~ ${timeSpanToLocalMoment(selectedSchedule.endTime, selectedSchedule.date)?.format('HH:mm')}`
+        : '')
+    : ''
+
   return (
     <View style={{ flex: 1 }}>
       <ScrollView
@@ -51,139 +86,154 @@ const AcademyView = () => {
       >
         <View style={{ position: 'absolute', top: -1000, left: 0, right: 0, height: 1200, backgroundColor: palette.main[600] }} />
         <View style={styles.container}>
-          <View style={{ marginBottom: 28 }}>
+          <View style={{ marginBottom: 20 }}>
             <StudyTimerCard />
           </View>
-          <TouchableOpacity
-            onPress={handleToggleSchedule}
-            style={{
-              ...styles.card,
-              backgroundColor: palette.grey[100],
-              paddingVertical: 14,
-              paddingHorizontal: 15,
-              marginBottom: 24
-            }}
-          >
-            <View style={styles.rowBetween}>
-              <Text style={{ fontSize: 12, fontWeight: 500, color: palette.grey[900] }}>{t('today_schedule')}</Text>
-              <ArrowRight color={palette.grey[500]} />
-            </View>
 
-            {schedules?.map((schedule, index) => (
-              <View key={index} style={styles.scheduleRow}>
-                <View style={styles.titleContainer}>
-                  <View style={styles.dot} />
-                  <Text
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                    style={styles.bold}
-                  >
-                    {schedule.title || ''}
-                  </Text>
-                </View>
-                <Text style={styles.time}>
-                  {timeSpanToLocalMoment(schedule.startTime, schedule.date)?.format('HH:mm')} ~{' '}
-                  {timeSpanToLocalMoment(schedule.endTime, schedule.date)?.format('HH:mm')}
-                </Text>
-              </View>
-            ))}
-          </TouchableOpacity>
-
-          {user?.academyDomain && <View style={{ ...styles.row, marginBottom: 28, gap: 14 }}>
-            <CustomCard
-              containerStyle={[
-                styles.half,
-                {
-                  flex: 1
-                }
-              ]}
-              style={[
-                styles.card,
-                styles.half,
-                {
-                  flex: 1
-                }
-              ]}
-            >
-              <View
-                style={{
-                  paddingHorizontal: 15,
-                  paddingVertical: 16,
-                  flex: 1,
-                  justifyContent: 'space-between'
-                }}
-              >
-                <View style={{}}>
-                  <Text style={{ fontSize: 12, fontWeight: 400, marginBottom: 19, color: palette.grey[500] }}>{t('today_attendance')}</Text>
-                  <TextTooltip
-                    text={selectedSchedule ? selectedSchedule.title : t('no_class_today')}
-                    numberOfLines={2}
-                    placement="top"
-                    textStyle={{ fontWeight: '600', fontSize: 16, color: palette.grey[500], lineHeight: 22 }}
-                  />
-                  {selectedSchedule && (
-                    <Text style={styles.time}>
-                      {timeSpanToLocalMoment(selectedSchedule.startTime, selectedSchedule.date)?.format('HH:mm')} ~{' '}
-                      {timeSpanToLocalMoment(selectedSchedule.endTime, selectedSchedule.date)?.format('HH:mm')}
-                    </Text>
-                  )}
-                </View>
-                <TouchableOpacity
-                  style={[
-                    styles.attendBtn,
-                    {
-                      backgroundColor:
-                        selectedSchedule?.status === ScheduleStatus.Completed ? palette.grey[200] : palette.sub[400]
-                    }
-                  ]}
-                  onPress={handleCheckSchedule}
-                  disabled={!enableCheckSchedule}
+          {(user?.academyDomain || selectedAcademy?.domain) && (
+            <View style={{ marginBottom: 28 }}>
+              <View style={styles.cardsRow}>
+                {/* Attendance Card */}
+                <CustomCard
+                  onPress={handleToggleSchedule}
+                  containerStyle={styles.half}
+                  style={styles.cardBox}
+                  radius={18}
                 >
-                  <View style={{ flexDirection: 'row', gap: 4, justifyContent: 'center', alignItems: 'center' }}>
-                    <View style={{ padding: 4 }}>
-                      <Verify
-                        color={selectedSchedule?.status === ScheduleStatus.Completed ? palette.grey[400] : '#FFF'}
-                      />
+                  <View style={styles.attendCardContent}>
+                    <View style={{ flexShrink: 1 }}>
+                      <Text
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                        style={styles.classTitle}
+                      >
+                        {classTitle}
+                      </Text>
+                      {!!scheduleSubtitle && (
+                        <Text
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                          style={styles.classSubtitle}
+                        >
+                          {scheduleSubtitle}
+                        </Text>
+                      )}
                     </View>
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 500,
-                        color: selectedSchedule?.status === ScheduleStatus.Completed ? palette.grey[400] : '#FFF'
-                      }}
-                    >
-                      {t('check_in')}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
-            </CustomCard>
 
-            <View style={styles.half}>
-              <CustomCard style={{ ...styles.card, paddingHorizontal: 12, paddingVertical: 15, width: '100%' }}>
-                <Text style={{ fontSize: 12, color: palette.grey[500] }}>{t('new_exam')}</Text>
-                <TouchableOpacity
-                  style={{ backgroundColor: '#F6F6F6', padding: 12, borderRadius: 10, marginTop: 6 }}
+                    <TouchableOpacity
+                      style={[
+                        styles.attendBtn,
+                        {
+                          backgroundColor:
+                            selectedSchedule?.status === ScheduleStatus.Completed
+                              ? palette.success.lighter
+                              : '#36BFEC'
+                        }
+                      ]}
+                      onPress={selectedSchedule ? handleCheckSchedule : handleToggleSchedule}
+                      disabled={!enableCheckSchedule && !!selectedSchedule}
+                      activeOpacity={0.8}
+                    >
+                      <Text
+                        style={[
+                          styles.attendBtnText,
+                          selectedSchedule?.status === ScheduleStatus.Completed && {
+                            color: palette.success.darker
+                          }
+                        ]}
+                      >
+                        {selectedSchedule?.status === ScheduleStatus.Completed
+                          ? t('attendance_completed') || '출석 완료'
+                          : t('check_in') || '출석하기'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </CustomCard>
+
+                {/* Notice Card */}
+                <CustomCard
+                  onPress={handleOpenNoticeDialog}
+                  containerStyle={styles.half}
+                  style={styles.cardBox}
+                  radius={18}
+                >
+                  <View style={styles.noticeCardContent}>
+                    <View>
+                      <View style={styles.noticeHeader}>
+                        <View style={styles.noticeHeaderLeft}>
+                          <Text style={styles.noticeHeaderTitle}>
+                            {t('notice') || '공지사항'}
+                          </Text>
+                          {unreadNoticeCount > 0 && (
+                            <View style={styles.unreadBadge}>
+                              <Text style={styles.unreadBadgeText}>
+                                {unreadNoticeCount > 99 ? '99+' : unreadNoticeCount}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                        <ArrowRight width={20} height={20} color="#9CA3AF" />
+                      </View>
+
+                      <Text
+                        numberOfLines={2}
+                        ellipsizeMode="tail"
+                        style={styles.noticeTitle}
+                      >
+                        {recentNotice?.name || recentNotice?.content || t('no_notice')}
+                      </Text>
+                    </View>
+                    {recentNotice ? (
+                      <Text numberOfLines={1} style={styles.noticeFooter}>
+                        {moment(recentNotice.createdAt).format('M/D')}
+                        {unreadNoticeCount > 0
+                          ? ` · ${t('notices_left', { count: unreadNoticeCount })}`
+                          : ''}
+                      </Text>
+                    ) : null}
+                  </View>
+                </CustomCard>
+              </View>
+
+              <View style={styles.compactRow}>
+                <CustomCard
+                  containerStyle={styles.half}
+                  style={styles.compactCard}
+                  radius={16}
                   onPress={() => openCloseModal()}
                 >
-                  <Text style={{ fontSize: 14, fontWeight: 400, color: '#C0C0C0' }}>{t('enter_exam_code')}</Text>
-                </TouchableOpacity>
-              </CustomCard>
-              <View style={{ height: 12 }} />
+                  <View style={styles.examCodeBox}>
+                    <Text
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                      style={styles.examCodeText}
+                    >
+                      {t('enter_exam_code') || '시험 코드 입력'}
+                    </Text>
+                  </View>
+                </CustomCard>
 
-              <CustomCard style={[styles.card, { paddingHorizontal: 12, paddingVertical: 15, width: '100%' }]}>
-                <Text style={{ fontSize: 12, fontWeight: 400, color: '#2E2E2E', marginBottom: 6 }}>{t('past_exam')}</Text>
-                <TouchableOpacity onPress={handleOpenExamHistoryDialog}>
-                  <View style={{ justifyContent: 'space-between', alignItems: 'center', flexDirection: 'row' }}>
-                    <Text style={{ fontSize: 16, fontWeight: 600, color: '#36BFEC', lineHeight: 24, paddingVertical: 6 }}>
+                {/* Right Card: 지난 시험 풀기 */}
+                <CustomCard
+                  containerStyle={styles.half}
+                  style={styles.compactCard}
+                  radius={16}
+                  onPress={handleOpenExamHistoryDialog}
+                >
+                  <View style={styles.pastExamBox}>
+                    <Text
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                      style={[styles.pastExamText, { flexShrink: 1 }]}
+                    >
                       {t('solve_past_exam')}
                     </Text>
-                    <ArrowRight color="#E2F4FC" />
+                    <ArrowRight width={20} height={20} color="#36BFEC" />
                   </View>
-                </TouchableOpacity>
-              </CustomCard>
+                </CustomCard>
+              </View>
             </View>
-          </View>}
+          )}
 
           <View style={{ marginBottom: 28 }}>
             <RecentTextbook />
@@ -207,6 +257,7 @@ const AcademyView = () => {
       />
       {isCheckTeacherStart && <WaitingExamStart visible={isCheckTeacherStart} onClose={() => openCloseModal(false)} />}
       <ExamHistoryDialog t={t} open={openExamHistoryDialog} onClose={handleCloseExamHistoryDialog} />
+      <Notice open={openNoticeDialog} onClose={handleCloseNoticeDialog} />
     </View>
   )
 }
@@ -216,83 +267,149 @@ export default AcademyView
 const styles = ScaledSheet.create({
   container: {
     flex: 1,
-    paddingVertical: '24@ms',
+    paddingVertical: '20@ms',
     paddingHorizontal: '20@ms',
     backgroundColor: palette.grey[50],
     borderTopLeftRadius: '20@ms',
-    borderTopRightRadius: '20@ms',
-  },
-  card: {
-    borderRadius: '14@ms'
-  },
-  row: {
-    flexDirection: 'row',
-    gap: '12@ms'
-  },
-  rowBetween: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: '8@ms'
+    borderTopRightRadius: '20@ms'
   },
   half: {
     flex: 1
   },
-  scheduleRow: {
+  cardsRow: {
+    flexDirection: 'row',
+    gap: '12@ms'
+  },
+  cardBox: {
+    borderRadius: '18@ms',
+    backgroundColor: '#FFFFFF',
+    minHeight: '148@ms'
+  },
+  attendCardContent: {
+    paddingHorizontal: '14@ms',
+    paddingVertical: '16@ms',
+    flex: 1,
+    justifyContent: 'center',
+    gap: '12@ms',
+  },
+  noticeCardContent: {
+    paddingHorizontal: '14@ms',
+    paddingVertical: '16@ms',
+    flex: 1,
+  },
+  classTitle: {
+    fontSize: '16@ms',
+    fontWeight: 'bold',
+    color: '#000000',
+    lineHeight: '22@ms',
+    includeFontPadding: false
+  },
+  classSubtitle: {
+    fontSize: '12@ms',
+    fontWeight: '400',
+    color: '#6B7280',
+    marginTop: '4@ms',
+    includeFontPadding: false
+  },
+  attendBtn: {
+    alignSelf: 'center',
+    paddingVertical: '14@ms',
+    paddingHorizontal: '30@ms',
+    borderRadius: '22@ms',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  attendBtnText: {
+    fontSize: '15@ms',
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    includeFontPadding: false
+  },
+  noticeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  noticeHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: '6@ms'
+  },
+  noticeHeaderTitle: {
+    fontSize: '14@ms',
+    fontWeight: 'bold',
+    color: '#374151',
+    includeFontPadding: false
+  },
+  unreadBadge: {
+    backgroundColor: '#EB4D3D',
+    minWidth: '18@ms',
+    height: '18@ms',
+    borderRadius: '9@ms',
+    paddingHorizontal: '4@ms',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  unreadBadgeText: {
+    color: '#FFFFFF',
+    fontSize: '11@ms',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    includeFontPadding: false
+  },
+  noticeTitle: {
+    fontSize: '16@ms',
+    fontWeight: 'bold',
+    color: '#000000',
+    lineHeight: '22@ms',
+    marginTop: '10@ms',
+    includeFontPadding: false
+  },
+  noticeFooter: {
+    fontSize: '12@ms',
+    fontWeight: '400',
+    color: '#9CA3AF',
+    marginTop: '6@ms',
+    includeFontPadding: false
+  },
+  compactRow: {
+    flexDirection: 'row',
+    gap: '12@ms',
+    marginTop: '12@ms'
+  },
+  compactCard: {
+    borderRadius: '16@ms',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: '11@ms',
+    paddingVertical: '18@ms',
+    minHeight: '62@ms',
+    justifyContent: 'center'
+  },
+  examCodeBox: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: '10@ms',
+    height: '42@ms',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: '8@ms'
+  },
+  examCodeText: {
+    fontSize: '14@ms',
+    fontWeight: '400',
+    color: '#A0A0A0',
+    includeFontPadding: false
+  },
+  pastExamBox: {
+    height: '42@ms',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: '8@ms',
-    minHeight: '22@ms'
+    paddingHorizontal: '8@ms'
   },
-  titleContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: '12@ms',
-    gap: '6@ms'
-  },
-  dot: {
-    width: '4@ms',
-    height: '4@ms',
-    borderRadius: '2@ms',
-    backgroundColor: palette.main[300]
-  },
-  bold: {
-    fontWeight: '600',
-    fontSize: '14@ms',
-    color: '#222222',
-    flex: 1,
-    includeFontPadding: false,
-    textAlignVertical: 'center'
-  },
-  time: {
-    color: palette.grey[400],
-    fontSize: '13@ms',
-    fontWeight: '400',
-    flexShrink: 0,
-    includeFontPadding: false,
-    textAlignVertical: 'center'
-  },
-  attendBtn: {
-    alignSelf: 'flex-end',
-    borderRadius: '26@ms',
-    paddingVertical: '14@ms',
-    paddingHorizontal: '14@ms',
-    backgroundColor: palette.grey[200]
-  },
-  chip: {
-    alignSelf: 'flex-start',
-    marginBottom: '8@ms'
-  },
-  progressRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: '8@ms',
-    marginTop: '12@ms'
-  },
-  progress: {
-    flex: 1,
-    height: '6@ms',
-    borderRadius: '4@ms'
+  pastExamText: {
+    fontSize: '15@ms',
+    fontWeight: 'bold',
+    color: '#36BFEC',
+    includeFontPadding: false
   }
 })

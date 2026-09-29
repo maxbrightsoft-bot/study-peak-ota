@@ -2346,5 +2346,8 @@
   "sending": "Đang gửi...",
   "submitting": "Đang gửi...",
   "password_reset_warning_msg": "Mật khẩu của bạn đã được đặt lại. Để đảm bảo bảo mật, hãy đổi mật khẩu ngay.",
-  "change_later": "Thay đổi sau"
+  "change_later": "Thay đổi sau",
+  "notice": "Thông báo",
+  "no_notice": "Không có thông báo nào",
+  "notices_left": "và {{count}} tin khác"
 }

@@ -87,6 +87,9 @@ export type ScheduleResponse = {
   type?: ScheduleType
   status?: ScheduleStatus
   lessonId?: number
+  teacherName?: string
+  room?: string
+  classroom?: string
 };
 
 export type ScheduleFormData = {

@@ -312,39 +312,52 @@ const useAuthStore = create<AuthStore>()(
       },
 
       subscribeChannel: async (pusher, channelName, getEventHandlers) => {
-        const channel = await pusher.subscribe({
-          channelName,
-          onEvent: (event: PusherEvent) => {
-            try {
-              const eventHandlers = typeof getEventHandlers === 'function'
-                ? getEventHandlers()
-                : getEventHandlers;
+        try {
+          const existing = pusher?.getChannel?.(channelName);
+          if (existing) {
+            return existing;
+          }
 
-              // console.log("[Pusher] Event:", event.eventName, '| channel:', channelName);
-              const matched = eventHandlers.find(
-                (e) => e.eventName === event.eventName
-              );
+          const channel = await pusher.subscribe({
+            channelName,
+            onEvent: (event: PusherEvent) => {
+              try {
+                const eventHandlers = typeof getEventHandlers === 'function'
+                  ? getEventHandlers()
+                  : getEventHandlers;
 
-              if (!matched) {
-                if (__DEV__) {
-                  console.log("[Pusher] Unhandled:", event.eventName);
+                // console.log("[Pusher] Event:", event.eventName, '| channel:', channelName);
+                const matched = eventHandlers.find(
+                  (e) => e.eventName === event.eventName
+                );
+
+                if (!matched) {
+                  if (__DEV__) {
+                    console.log("[Pusher] Unhandled:", event.eventName);
+                  }
+                  return;
                 }
-                return;
+
+                const data = event.data ? JSON.parse(event.data) : null;
+                matched.handler(data);
+              } catch (err) {
+                console.error("[Pusher] Event error:", err);
               }
+            },
+          });
 
-              const data = event.data ? JSON.parse(event.data) : null;
-              matched.handler(data);
-            } catch (err) {
-              console.error("[Pusher] Event error:", err);
-            }
-          },
-        });
+          set((state) => {
+            state.channel = channel;
+          });
 
-        set((state) => {
-          state.channel = channel;
-        });
-
-        return channel;
+          return channel;
+        } catch (err) {
+          const existing = pusher?.getChannel?.(channelName);
+          if (existing) {
+            return existing;
+          }
+          throw err;
+        }
       },
 
       unsubscribeChannelSafe: async (
