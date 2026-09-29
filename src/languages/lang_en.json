@@ -2328,6 +2328,9 @@
   "sending": "Sending...",
   "submitting": "Submitting...",
   "password_reset_warning_msg": "Your password has been reset. Therefore, to ensure security, please change your password.",
-  "change_later": "Change later"
+  "change_later": "Change later",
+  "notice": "Notice",
+  "no_notice": "No notices available",
+  "notices_left": "{{count}} more"
 }
 

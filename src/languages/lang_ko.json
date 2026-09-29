@@ -1234,7 +1234,7 @@
   "mark_as_read": "읽은 것으로 표시",
   "view_notes": "노트 보기",
   "admin_n": "{{admin}} 관리자",
-  "teacher_n": "{{teacher}} 교사",
+  "teacher_n": "{{teacher}} 선생님",
   "sent_a_memo": "메모를 보냈습니다",
   "admin_to_admin": "관리자에서 관리자에게",
   "teacher_to_admin": "교사에서 관리자에게",
@@ -2323,6 +2323,9 @@
   "sending": "전송 중...",
   "submitting": "제출 중...",
   "password_reset_warning_msg": "비밀번호가 초기화되었습니다. 보안을 위해 비밀번호를 변경해 주세요.",
-  "change_later": "나중에 변경"
+  "change_later": "나중에 변경",
+  "notice": "공지사항",
+  "no_notice": "등록된 공지사항이 없습니다",
+  "notices_left": "외 {{count}}건"
 }
 
