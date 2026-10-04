@@ -12,6 +12,13 @@ export const getListExamApi = (query: any) =>
         }
     })
 
+// Unified history (exam + textbook), grouped by month
+export const getLiveHistoryGroupsApi = (query: any) =>
+    api.get(`${EXAM_SESSION_URL}/live-history/groups`, { params: query })
+
+export const getLiveHistoryDetailsApi = (query: any) =>
+    api.get(`${EXAM_SESSION_URL}/live-history/details`, { params: query })
+
 export const getExamResult = (examCode?: string) => api.get(`${EXAM_SESSION_URL}/${examCode}/results`)
 
 export const apiUploadImageFile = (file: FormData) =>

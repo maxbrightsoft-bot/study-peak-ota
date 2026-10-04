@@ -27,61 +27,80 @@ const ExamResultList = () => {
     loadingList
   } = useExamResultList()
 
-  const renderExamCard = (exam: ExamSessionResponse, highlight = false) => (
-    <TouchableOpacity onPress={() => handleViewResult(exam)} activeOpacity={0.85}>
-      <View style={styles.examCard}>
-        <View style={styles.examTopRow}>
-          <TextTooltip
-            text={(exam?.title || '').trim()}
-            numberOfLines={2}
-            textStyle={styles.examTitle}
-            containerStyle={{ flex: 1 }}
-          >
-            {highlight ? (
-              <Text numberOfLines={2} style={styles.examTitle}>
-                {highlightText((exam?.title || '').trim(), search)}
-              </Text>
-            ) : undefined}
-          </TextTooltip>
+  const renderExamCard = (exam: ExamSessionResponse, highlight = false) => {
+    const isTextbook = exam.historyType === 'Textbook' || !!exam.studentTextbookSessionId
+    const correctRate = (exam.totalQuestionsAttempted ?? 0) > 0
+      ? Math.round(((exam.totalCorrectAnswers ?? 0) / (exam.totalQuestionsAttempted ?? 1)) * 100)
+      : 0
 
-          {(exam.studentTotalAttemptTime || 0) > 1 && (
-            <View
-              style={[
-                styles.attemptBadge,
-                {
-                  backgroundColor: exam.isSelected ? palette.main[100] : palette.red[100]
-                }
-              ]}
+    return (
+      <TouchableOpacity onPress={() => handleViewResult(exam)} activeOpacity={0.85}>
+        <View style={styles.examCard}>
+          <View style={styles.examTopRow}>
+            <TextTooltip
+              text={(exam?.title || '').trim()}
+              numberOfLines={2}
+              textStyle={styles.examTitle}
+              containerStyle={{ flex: 1 }}
             >
-              <Text
+              {highlight ? (
+                <Text numberOfLines={2} style={styles.examTitle}>
+                  {highlightText((exam?.title || '').trim(), search)}
+                </Text>
+              ) : undefined}
+            </TextTooltip>
+
+            {isTextbook ? (
+              <View style={styles.textbookBadge}>
+                <Text style={styles.textbookBadgeText}>{t('textbook.text')}</Text>
+              </View>
+            ) : (exam.studentTotalAttemptTime || 0) > 1 && (
+              <View
                 style={[
-                  styles.attemptText,
+                  styles.attemptBadge,
                   {
-                    color: exam.isSelected ? palette.main[700] : palette.red[900]
+                    backgroundColor: exam.isSelected ? palette.main[100] : palette.red[100]
                   }
                 ]}
               >
-                {`#${exam.studentAttemptNumber + 1}/${exam.studentTotalAttemptTime}`}
-              </Text>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.examBottomRow}>
-          <Text style={styles.examDate}>
-            {utcToLocalTime(
-              isValidTime(exam.studentStartTime) ? exam.studentStartTime : exam.startTime,
-              t('date_format')
+                <Text
+                  style={[
+                    styles.attemptText,
+                    {
+                      color: exam.isSelected ? palette.main[700] : palette.red[900]
+                    }
+                  ]}
+                >
+                  {`#${exam.studentAttemptNumber + 1}/${exam.studentTotalAttemptTime}`}
+                </Text>
+              </View>
             )}
-          </Text>
+          </View>
 
-          <View style={styles.scoreBadge}>
-            <Text style={styles.scoreText}>{t('score_format', { score: exam?.score })}</Text>
+          <View style={styles.examBottomRow}>
+            <Text style={styles.examDate}>
+              {utcToLocalTime(
+                isValidTime(exam.studentStartTime) ? exam.studentStartTime : exam.startTime,
+                t('date_format')
+              )}
+            </Text>
+
+            {isTextbook ? (
+              <View style={styles.textbookScoreBadge}>
+                <Text style={styles.textbookScoreText}>
+                  {`${exam.totalCorrectAnswers ?? 0}/${exam.totalQuestionsAttempted ?? 0} (${correctRate}%)`}
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.scoreBadge}>
+                <Text style={styles.scoreText}>{t('score_format', { score: exam?.score })}</Text>
+              </View>
+            )}
           </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  )
+      </TouchableOpacity>
+    )
+  }
 
   const renderSearchItem = ({ item }: { item: ExamSessionResponse }) => renderExamCard(item, true)
 
@@ -155,9 +174,11 @@ const ExamResultList = () => {
       {!!selectedExam && (
         <ExamResult
           onClose={handleBack}
-          examCode={selectedExam?.code || ''}
+          examCode={selectedExam?.code || selectedExam?.examCode || ''}
           examSessionId={selectedExam.id}
           studentExamSessionId={selectedExam?.studentExamSessionId}
+          textbookId={selectedExam?.historyType === 'Textbook' || !!selectedExam?.studentTextbookSessionId ? selectedExam?.id : undefined}
+          date={selectedExam?.historyType === 'Textbook' || !!selectedExam?.studentTextbookSessionId ? (selectedExam?.studentStartTime || selectedExam?.startTime) : undefined}
         />
       )}
     </View>
@@ -279,5 +300,31 @@ const styles = ScaledSheet.create({
     fontSize: '13@ms',
     fontWeight: '600',
     color: palette.main[700]
+  },
+
+  textbookBadge: {
+    backgroundColor: '#E8F8EE',
+    paddingHorizontal: '8@ms',
+    paddingVertical: '4@ms',
+    borderRadius: '6@ms'
+  },
+
+  textbookBadgeText: {
+    color: '#178740',
+    fontSize: '11@ms',
+    fontWeight: '600'
+  },
+
+  textbookScoreBadge: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: '12@ms',
+    paddingVertical: '5@ms',
+    borderRadius: '20@ms'
+  },
+
+  textbookScoreText: {
+    fontSize: '12@ms',
+    fontWeight: '600',
+    color: palette.grey[800]
   }
 })

@@ -43,6 +43,18 @@ export const getChapterResultsCategoriesApi = (chapterId: number, studentId?: nu
         }
     })
 
+// Textbook-level results (used by history: aggregated by the day the student answered)
+export const getTextbookResultsApi = (textbookId: number, studentId?: number, date?: string) =>
+    api.get(`${TEXTBOOK_SESSION_URL}/textbook/${textbookId}/results`, { params: { studentId, date } })
+export const getTextbookResultsLongTimeSpendApi = (textbookId: number, studentId?: number, date?: string) =>
+    api.get(`${TEXTBOOK_SESSION_URL}/textbook/${textbookId}/results/longTimeSpend`, { params: { studentId, date } })
+export const getTextbookResultsEffectSizeApi = (textbookId: number, studentId?: number, date?: string) =>
+    api.get(`${TEXTBOOK_SESSION_URL}/textbook/${textbookId}/results/effectSize`, { params: { studentId, date } })
+export const getTextbookResultsTimeOrderQuestionApi = (textbookId: number, studentId?: number, date?: string) =>
+    api.get(`${TEXTBOOK_SESSION_URL}/textbook/${textbookId}/results/timelyOrderQuestion`, { params: { studentId, date } })
+export const getTextbookResultsCategoriesApi = (textbookId: number, studentId?: number, date?: string) =>
+    api.get(`${TEXTBOOK_SESSION_URL}/textbook/${textbookId}/results/categories`, { params: { studentId, date } })
+
 export const getOverallResultsApi = (code: string, studentExamSessionId?: number) => api.get(`${EXAM_SESSION_URL}/${code}/results/overall`, {
     params: {
         studentExamSessionId

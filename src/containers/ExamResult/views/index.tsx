@@ -37,12 +37,17 @@ type Props = {
   examSessionId?: any
   onClose?: () => void
   chapterId?: number
+  /** Textbook-level result opened from history (aggregated for `date`) */
+  textbookId?: number
+  date?: string
   studentId?: number
   studentExamSessionId?: any
   onViewQA?: (studentId: number, sessionId?: number, questionId?: number, isTextbook?: boolean) => void
 }
 
-const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, studentExamSessionId, onViewQA }: Props) => {
+const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapterIdProp, textbookId, date, studentExamSessionId, onViewQA }: Props) => {
+  // Both chapter and textbook results share the same textbook UI branches
+  const chapterId = chapterIdProp || textbookId
   const {
     t,
     contentRef,
@@ -60,6 +65,8 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
   } = useExamResult({
     examCode: examCode || code || '',
     chapterId,
+    textbookId: chapterIdProp ? undefined : textbookId,
+    date,
     examSessionId,
     studentExamSessionId,
     isPrint: false,
