@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 set -e
 
 VERSION=$1
@@ -18,6 +18,7 @@ fi
 set -a
 source "$SCRIPT_DIR/.env"
 set +a
+export GH_TOKEN="$GITHUB_TOKEN"
 
 CURRENT_IN_CODE=${EXPO_PUBLIC_CURRENT_BUNDLE_VERSION:-}
 
@@ -239,11 +240,13 @@ if [ "$PLATFORM" == "android" ]; then
   NEW_IOS_URL=$PREV_IOS_URL
 fi
 
+BUILD_TIME=$(date +%s)
 JSON_CONTENT="{
   \"version\": \"$VERSION\",
   \"versionCode\": $VERSION_CODE,
   \"downloadAndroidUrl\": \"$NEW_ANDROID_URL\",
-  \"downloadIosUrl\": \"$NEW_IOS_URL\"
+  \"downloadIosUrl\": \"$NEW_IOS_URL\",
+  \"buildTime\": $BUILD_TIME
 }"
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
