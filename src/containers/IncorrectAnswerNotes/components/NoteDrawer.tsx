@@ -22,10 +22,12 @@ interface Props {
   width?: number | string
   showStudentInfo?: boolean
   id?: string | number
+  onEdit?: (note: NoteResponse) => void
+  onDelete?: (note: NoteResponse) => void
 }
 
 const NoteDrawer: FC<Props> = (props) => {
-  const { open, student, onClose, data, showStudentInfo = true, id } = props
+  const { open, student, onClose, data, showStudentInfo = true, id, onEdit, onDelete } = props
 
   const { t } = useTranslation()
   const { language, selectedAcademy } = useAuthStore()
@@ -173,9 +175,22 @@ const NoteDrawer: FC<Props> = (props) => {
           <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />
         </TouchableOpacity>
         <View>
-          <Text style={{ fontSize: 16, fontWeight: 600, color: '#222222' }}>오답노트 상세</Text>
+          <Text style={{ fontSize: 16, fontWeight: 600, color: '#222222' }}>
+            {t('incorrect_answer_note_details')}
+          </Text>
         </View>
-        <View></View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+          {note && onEdit && (
+            <TouchableOpacity onPress={() => onEdit(note)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Ionicons name="create-outline" size={22} color={palette.grey[700]} />
+            </TouchableOpacity>
+          )}
+          {note && onDelete && (
+            <TouchableOpacity onPress={() => onDelete(note)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Ionicons name="trash-outline" size={22} color={palette.error.main} />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
       {showStudentInfo && (note?.type === NoteType.ToAcademy || note?.type === NoteType.ToStudent) && (
         <View style={styles.studentInfo}>

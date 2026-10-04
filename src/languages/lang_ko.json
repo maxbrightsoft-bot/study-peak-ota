@@ -2326,6 +2326,12 @@
   "change_later": "나중에 변경",
   "notice": "공지사항",
   "no_notice": "등록된 공지사항이 없습니다",
-  "notices_left": "외 {{count}}건"
+  "notices_left": "외 {{count}}건",
+  "attach_photo": "사진 첨부",
+  "take_photo": "카메라로 촬영",
+  "choose_from_gallery": "앨범에서 선택",
+  "camera_permission_required": "카메라 권한이 필요합니다.",
+  "select_image_source": "사진 선택",
+  "incorrect_answer_note_detail": "오답노트 상세"
 }
 

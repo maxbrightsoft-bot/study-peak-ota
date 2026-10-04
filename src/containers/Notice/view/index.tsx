@@ -25,7 +25,7 @@ const Notice = ({ open, onClose }: Props) => {
     openNoticeDetailDialog,
     handleOpenDetailDialog,
     handleCloseDetailDialog
-  } = useNotice(setNew)
+  } = useNotice(setNew, open)
 
   const renderItem = ({ item }: any) => {
     return (

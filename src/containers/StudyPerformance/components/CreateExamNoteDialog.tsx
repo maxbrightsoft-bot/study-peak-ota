@@ -19,12 +19,15 @@ import { Ionicons } from '@expo/vector-icons'
 import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 import TextField from '@/components/Input/TextField'
 import { ConversationQuestion } from '@/utils/types'
+import { getSafeUrl } from '@/utils/helpers'
 
 interface ExamNoteDialogProps {
   open: boolean
   imageUrl: string
   examList: any
-  handleUploadImage: () => Promise<void>
+  handleUploadImage?: () => Promise<void>
+  handleTakePhoto?: () => Promise<void>
+  handlePickFromGallery?: () => Promise<void>
   handleRemoveImage: () => void
   isLoadingNotes?: boolean
   onClose: () => void
@@ -68,12 +71,15 @@ const CreateExamNoteDialog: FC<ExamNoteDialogProps> = ({
   handleChangeExam,
   questionOptions,
   handleUploadImage,
+  handleTakePhoto,
+  handlePickFromGallery,
   handleRemoveImage,
   isLoadingNotes,
   onClose,
   onSaveNote
 }) => {
   const { t } = useTranslation()
+  const [showImagePicker, setShowImagePicker] = React.useState(false)
   const formikRef = React.useRef<any>(null)
 
   React.useEffect(() => {
@@ -204,9 +210,10 @@ const CreateExamNoteDialog: FC<ExamNoteDialogProps> = ({
                   <View style={{ marginTop: 20, marginBottom: 20 }}>
                     {imageUrl ? (
                       <View style={styles.imageContainer}>
-                        <TouchableOpacity onPress={handleUploadImage}>
+                        <TouchableOpacity onPress={() => setShowImagePicker(true)}>
                           <Image
-                            source={{ uri: imageUrl }}
+                            key={imageUrl}
+                            source={{ uri: getSafeUrl(imageUrl) }}
                             style={styles.image}
                             resizeMode="cover"
                           />
@@ -219,9 +226,12 @@ const CreateExamNoteDialog: FC<ExamNoteDialogProps> = ({
                         </TouchableOpacity>
                       </View>
                     ) : (
-                      <TouchableOpacity style={styles.uploadPlaceholder} onPress={handleUploadImage}>
-                        <Ionicons name="image" size={32} color={palette.grey[500]} />
-                        <Text style={styles.uploadText}>{t('add_image')}</Text>
+                      <TouchableOpacity
+                        style={styles.uploadPlaceholder}
+                        onPress={() => setShowImagePicker(true)}
+                      >
+                        <Ionicons name="camera-outline" size={28} color={palette.grey[600]} />
+                        <Text style={styles.uploadText}>{t('attach_photo')}</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -245,6 +255,61 @@ const CreateExamNoteDialog: FC<ExamNoteDialogProps> = ({
         </KeyboardAvoidingView>
 
       </View>
+
+      {showImagePicker && (
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalBackdrop}
+            activeOpacity={1}
+            onPress={() => setShowImagePicker(false)}
+          />
+          <View style={styles.sheetContainer}>
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>{t('select_image_source')}</Text>
+              <TouchableOpacity onPress={() => setShowImagePicker(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Ionicons name="close" size={22} color={palette.grey[600]} />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={styles.sheetOption}
+              onPress={() => {
+                setShowImagePicker(false)
+                setTimeout(() => {
+                  handleTakePhoto?.()
+                }, 200)
+              }}
+            >
+              <View style={[styles.optionIconCircle, { backgroundColor: '#EBF5FF' }]}>
+                <Ionicons name="camera" size={22} color={palette.main[500]} />
+              </View>
+              <Text style={styles.optionText}>{t('take_photo')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.sheetOption}
+              onPress={() => {
+                setShowImagePicker(false)
+                setTimeout(() => {
+                  handlePickFromGallery?.()
+                }, 200)
+              }}
+            >
+              <View style={[styles.optionIconCircle, { backgroundColor: '#F0FDF4' }]}>
+                <Ionicons name="images" size={22} color="#16a34a" />
+              </View>
+              <Text style={styles.optionText}>{t('choose_from_gallery')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.sheetCancelButton}
+              onPress={() => setShowImagePicker(false)}
+            >
+              <Text style={styles.sheetCancelText}>{t('cancel')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </SlideDrawerRoot>
   )
 }
@@ -371,5 +436,78 @@ const styles = ScaledSheet.create({
     alignItems: 'center',
     gap: '6@ms',
     marginBottom: '8@ms'
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'flex-end',
+    zIndex: 999
+  },
+  modalBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)'
+  },
+  sheetContainer: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: '20@ms',
+    borderTopRightRadius: '20@ms',
+    paddingHorizontal: '20@ms',
+    paddingTop: '20@ms',
+    paddingBottom: Platform.OS === 'ios' ? '36@ms' : '24@ms',
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8
+  },
+  sheetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '16@ms'
+  },
+  sheetTitle: {
+    fontSize: '16@ms',
+    fontWeight: '700',
+    color: '#222'
+  },
+  sheetOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: '14@ms',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    gap: '14@ms'
+  },
+  optionIconCircle: {
+    width: '42@ms',
+    height: '42@ms',
+    borderRadius: '21@ms',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  optionText: {
+    fontSize: '15@ms',
+    fontWeight: '600',
+    color: '#333'
+  },
+  sheetCancelButton: {
+    marginTop: '12@ms',
+    paddingVertical: '14@ms',
+    borderRadius: '10@ms',
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center'
+  },
+  sheetCancelText: {
+    fontSize: '15@ms',
+    fontWeight: '600',
+    color: '#666'
   }
 })

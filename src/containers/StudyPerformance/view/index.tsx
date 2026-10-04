@@ -31,6 +31,8 @@ const MyData = () => {
     examSessionIdSelected,
     handleChangeExam,
     handleUploadImage,
+    handleTakePhoto,
+    handlePickFromGallery,
     handleCloseCreateNote,
     handleOpenCreateNote,
     openCreateNote,
@@ -86,6 +88,8 @@ const MyData = () => {
         open={openCreateNote}
         onClose={handleCloseCreateNote}
         handleUploadImage={handleUploadImage}
+        handleTakePhoto={handleTakePhoto}
+        handlePickFromGallery={handlePickFromGallery}
         examList={examList}
         imageUrl={imageUrl}
         questions={questions}

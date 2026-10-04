@@ -17,14 +17,19 @@ export interface NotesContainerProps{
 
 export interface ExamNoteDialogProps {
     open: boolean
-    selectedNote?: NoteResponse
+    selectedNote?: NoteResponse | any
     selectedQuestion?: QuestionData
     questionOptions?: any[]
     onClose: () => void
     isLoadingNotes: boolean
     onSaveNote: (content: string, questionId: number) => void
     imageUrl: string
-    handleUploadImage: () => Promise<void>
+    handleUploadImage?: () => Promise<void>
+    handleRemoveImage?: () => void
+    handleTakePhoto?: () => Promise<void>
+    handlePickFromGallery?: () => Promise<void>
+    examResultData?: ExamResult
+    textbookResult?: TextbookResult
 }
 
 export interface ClassNoteDialogProps {

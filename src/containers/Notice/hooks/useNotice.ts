@@ -10,8 +10,10 @@ import { useTranslation } from "react-i18next"
 import { Notification, StudentNoteEvent, StudentNotificationEvent } from "../configs/types"
 import { TabList } from "../configs/constants"
 import { NoteResponse } from "@/utils/types"
+import { setDataStorage } from "@/utils/storage"
+import moment from "moment"
 
-const useNotice = (setNew: any) => {
+const useNotice = (setNew: any, open?: boolean) => {
   const { pusher, setLoading, user, selectedAcademy, subscribeChannel, unsubscribeChannelSafe } = useAuthStore()
   const userId = user?.id
   const [notifications, setNotifications] = useState<Array<Notification> | null>(null)
@@ -165,6 +167,19 @@ const useNotice = (setNew: any) => {
     }
   }
 
+  useEffect(() => {
+    if (open && (userId || academyDomain)) {
+      handleGetListNotification(typeSelected)
+      const academyKey = selectedAcademy?.id || academyDomain || user?.academyDomain || 'default'
+      setDataStorage(`LAST_READ_NOTICE_TIME_${userId || ''}_${academyKey}`, moment().toISOString())
+    }
+  }, [open])
+
+  useEffect(() => {
+    if (!userId || !academyDomain) return
+    handleGetListNotification(typeSelected)
+  }, [selectedAcademy?.id, academyDomain])
+
   useFocusEffect(
     useCallback(() => {
       if (!userId || !academyDomain) return
@@ -248,23 +263,21 @@ const useNotice = (setNew: any) => {
     generalNotifyChannel.current = undefined;
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      let isActive = true;
+  useEffect(() => {
+    let isActive = true;
 
-      const initPusher = async () => {
-        if (!isActive) return;
-        await handleListenerEvent();
-      };
+    const initPusher = async () => {
+      if (!isActive) return;
+      await handleListenerEvent();
+    };
 
-      initPusher();
+    initPusher();
 
-      return () => {
-        isActive = false;
-        cleanupPusher()
-      }
-    }, [academyDomain, pusher])
-  );
+    return () => {
+      isActive = false;
+      cleanupPusher()
+    }
+  }, [academyDomain, pusher, userId]);
 
   return { t, selected, handleChangeTab, selectedNotification, notifications, openNoticeDetailDialog, handleOpenDetailDialog, handleCloseDetailDialog }
 

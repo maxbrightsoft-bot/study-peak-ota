@@ -1,9 +1,10 @@
 import { palette } from '@/theme'
 import { Ionicons } from '@expo/vector-icons'
-import React, { FC, useState } from 'react'
+import React, { FC, useState, useEffect } from 'react'
 import { View, TouchableOpacity, Image, Dimensions } from 'react-native'
 import MathRender from '@/components/MathRender'
 import { ScaledSheet } from 'react-native-size-matters'
+import { getSafeUrl } from '@/utils/helpers'
 
 interface Props {
   content: string
@@ -16,6 +17,10 @@ const NoteContent: FC<Props> = ({ content, imageUrl }) => {
   const [isErrorImage, setErrorImage] = useState(false)
   const [showFullImage, setShowFullImage] = useState(false)
 
+  useEffect(() => {
+    setErrorImage(false)
+  }, [imageUrl])
+
   return (
     <View style={styles.container}>
       <MathRender
@@ -24,7 +29,7 @@ const NoteContent: FC<Props> = ({ content, imageUrl }) => {
         textColor="#414E62"
       />
 
-      {!isErrorImage && imageUrl && (
+      {!isErrorImage && !!imageUrl && (
         <>
           <TouchableOpacity
             onPress={() => setShowFullImage(true)}
@@ -32,10 +37,13 @@ const NoteContent: FC<Props> = ({ content, imageUrl }) => {
             style={styles.imageThumbnail}
           >
             <Image
-              source={{ uri: imageUrl }}
+              source={{ uri: getSafeUrl(imageUrl) }}
               style={styles.thumbnail}
               resizeMode="cover"
-              onError={() => setErrorImage(true)}
+              onError={(e) => {
+                console.log('[NoteContent] Failed to load image:', imageUrl, 'safeUrl:', getSafeUrl(imageUrl), e.nativeEvent);
+                setErrorImage(true);
+              }}
             />
           </TouchableOpacity>
 
@@ -49,7 +57,7 @@ const NoteContent: FC<Props> = ({ content, imageUrl }) => {
               </TouchableOpacity>
 
               <Image
-                source={{ uri: imageUrl }}
+                source={{ uri: getSafeUrl(imageUrl) }}
                 style={styles.fullImage}
                 resizeMode="contain"
               />

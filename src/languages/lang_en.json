@@ -2331,6 +2331,12 @@
   "change_later": "Change later",
   "notice": "Notice",
   "no_notice": "No notices available",
-  "notices_left": "{{count}} more"
+  "notices_left": "{{count}} more",
+  "attach_photo": "Attach Photo",
+  "take_photo": "Take Photo",
+  "choose_from_gallery": "Choose from Gallery",
+  "camera_permission_required": "Camera permission is required.",
+  "select_image_source": "Select Photo Source",
+  "incorrect_answer_note_detail": "Incorrect Answer Note Details"
 }
 

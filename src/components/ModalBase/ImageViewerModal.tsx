@@ -2,6 +2,7 @@ import React from 'react';
 import { Modal, View, Image, TouchableOpacity, Dimensions, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ScaledSheet } from 'react-native-size-matters'
+import { getSafeUrl } from '@/utils/helpers';
 
 const { width, height } = Dimensions.get('window');
 
@@ -26,7 +27,7 @@ const ImageViewerModal: React.FC<Props> = ({ visible, imageUrl, onClose }) => {
           <Ionicons name="close" size={32} color="#FFF" />
         </TouchableOpacity>
         <Image
-          source={{ uri: imageUrl }}
+          source={{ uri: getSafeUrl(imageUrl) }}
           style={styles.image}
           resizeMode="contain"
         />

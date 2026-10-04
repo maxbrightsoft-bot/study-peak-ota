@@ -30,6 +30,9 @@ export default function IncorrectNotes({ contentRef }: { contentRef?: React.RefO
     handleDeleteNote,
     handleSaveNote,
     handleUploadImage,
+    handleTakePhoto,
+    handlePickFromGallery,
+    handleRemoveImage,
     isLoadingNotes,
     handleLoadMore,
     isFilterVisible,
@@ -151,8 +154,11 @@ export default function IncorrectNotes({ contentRef }: { contentRef?: React.RefO
           selectedNote={selectedNote}
           isLoadingNotes={isLoadingNotes}
           onClose={handleCloseDialog}
-          imageUrl={selectedNote?.imageUrl || imageUrl}
+          imageUrl={imageUrl}
           handleUploadImage={handleUploadImage}
+          handleTakePhoto={handleTakePhoto}
+          handlePickFromGallery={handlePickFromGallery}
+          handleRemoveImage={handleRemoveImage}
         />
       )}
 

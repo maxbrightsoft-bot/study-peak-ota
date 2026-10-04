@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useState } from 'react'
-import { View, Text, Pressable, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import { FontAwesome6 } from '@expo/vector-icons'
+import { FontAwesome6, Ionicons } from '@expo/vector-icons'
 import { TooltipProps } from '../configs/types'
 import { palette } from '@/theme'
 import { ExamResult, NoteResponse } from '@/utils/types'
@@ -47,45 +47,9 @@ const NoteItem: FC<NoteItemProps> = ({
   }, [])
 
   return (
-    // <TouchableOpacity onPress={handleItemClick} style={styles.container}>
-    //   <View style={styles.row}>
-    //     <View style={styles.textContainer}>
-    //       <View style={styles.row}>
-    //         <Text style={styles.textLeft}>
-    //           {data.examSessionId ? `${t('article')} ${(data.questionGroupIndex ?? 0) + 1}` : `${data.fullName}`}
-    //         </Text>
-    //         <Text style={styles.textMiddle}>
-    //           {data.examSessionId
-    //             ? t('number_question', { number: (data.questionOrder || 0) + 1 })
-    //             : utcToLocalTime(data.createdAt, `${t('date_format')} HH:mm`)}
-    //         </Text>
-    //         {data.examSessionId && <Text style={styles.textRight}>{data.categoryName}</Text>}
-    //       </View>
-    //       <MathRender content={data.content} textColor={palette.grey[700]} />
-    //       {/* <Text numberOfLines={1} ellipsizeMode="tail" style={styles.contentText}>
-    //         {data.content?.replace(/<[^>]+>/g, '') || ''}
-    //       </Text> */}
-    //     </View>
-    //     {data.isOwned && (
-    //       <CustomTooltip
-    //         isVisible={tooltipVisible}
-    //         actions={actions}
-    //         data={data}
-    //         onClose={() => {
-    //           setTooltipVisible(false)
-    //           onClose?.()
-    //         }}
-    //       >
-    //         <TouchableOpacity onPress={handleMoreClick} style={styles.moreButton}>
-    //           <Ionicons name="ellipsis-horizontal-sharp" size={20} color={palette.grey[700]} />
-    //         </TouchableOpacity>
-    //       </CustomTooltip>
-    //     )}
-    //   </View>
-    // </TouchableOpacity>
-    <Pressable style={({ pressed }) => [styles.container, pressed && styles.pressed]} onPress={handleItemClick}>
+    <View style={styles.container}>
       {(examResultData?.title || data?.title) && (
-        <View style={styles.headerRow}>
+        <TouchableOpacity activeOpacity={0.7} onPress={handleItemClick} style={styles.headerRow}>
           <TextTooltip
             text={examResultData?.title || data?.title || ''}
             numberOfLines={1}
@@ -94,23 +58,43 @@ const NoteItem: FC<NoteItemProps> = ({
           />
           {(examResultData?.subjectName || data?.subjectName) && <View style={styles.separator} />}
           <Text style={styles.headerText} numberOfLines={1} ellipsizeMode="tail">{examResultData?.subjectName || data?.subjectName}</Text>
-        </View>
+        </TouchableOpacity>
       )}
       <View style={styles.metaRow}>
-        <View style={styles.metaLeft}>
+        <TouchableOpacity activeOpacity={0.7} onPress={handleItemClick} style={styles.metaLeft}>
           <Text style={styles.number}>
             {t('number_question', {
               number: (data?.questionOrder || 0) + 1
             })}
           </Text>
           <Text style={styles.metaText}>{data.categoryName}</Text>
+        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+          {actions && actions.map((action: any, index: number) => (
+            <TouchableOpacity
+              key={index}
+              onPress={() => action?.onPress?.(data)}
+              hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
+              style={{ padding: 2 }}
+            >
+              {action.startIcon ? (
+                action.startIcon
+              ) : (
+                <Text style={[{ fontSize: 13, fontWeight: '600', color: palette.grey[700] }, action.textStyle]}>
+                  {t(action.label) || action.label}
+                </Text>
+              )}
+            </TouchableOpacity>
+          ))}
+          <TouchableOpacity onPress={handleItemClick} hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}>
+            <FontAwesome6 name="angle-right" size={18} color={palette.grey[300]} />
+          </TouchableOpacity>
         </View>
-        <FontAwesome6 name="angle-right" size={20} color={palette.grey[300]} />
       </View>
-      <View style={styles.contentHighlight}>
+      <TouchableOpacity activeOpacity={0.7} onPress={handleItemClick} style={styles.contentHighlight}>
         <MathRender content={data.content} textColor={palette.grey[800]} maxLines={1} />
-      </View>
-      <View style={styles.bottomRow}>
+      </TouchableOpacity>
+      <TouchableOpacity activeOpacity={0.7} onPress={handleItemClick} style={styles.bottomRow}>
         {!!data?.questionTypeName && (
           <Text style={styles.childTitlePage}>{data.questionTypeName}</Text>
         )}
@@ -120,8 +104,8 @@ const NoteItem: FC<NoteItemProps> = ({
             <Text style={styles.metaText}>p.{data?.page}</Text>
           </>
         )}
-      </View>
-    </Pressable>
+      </TouchableOpacity>
+    </View>
   )
 }
 

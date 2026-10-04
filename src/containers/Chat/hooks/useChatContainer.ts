@@ -118,40 +118,100 @@ const useChatContainer = (props: Props) => {
 
   };
 
-  const handleUploadImage = async () => {
+  const handleUploadAsset = async (asset: ImagePicker.ImagePickerAsset) => {
+    setLoadingWithoutOverlay(true);
+    try {
+      let fileName = asset.fileName;
+      if (!fileName || !fileName.includes('.')) {
+        const ext = asset.mimeType?.includes('png') ? 'png' : 'jpg';
+        fileName = `photo_${Date.now()}.${ext}`;
+      }
+      const mimeType = asset.mimeType || (fileName.endsWith('.png') ? 'image/png' : 'image/jpeg');
+
+      const formData = new FormData();
+      formData.append("upload", {
+        uri: asset.uri,
+        type: mimeType,
+        name: fileName,
+      } as any);
+      const res = await apiUploadImageFile(formData);
+      await handleAddMessage(res?.data?.url);
+    } catch (error) {
+      setMessages((state: MessageResponse[]) => {
+        return [...state.filter(i => i?.id !== 0)]
+      });
+      toast.error(getErrorMessage(t, error));
+    } finally {
+      setLoadingWithoutOverlay(false);
+    }
+  };
+
+  const handlePickFromGallery = async () => {
     if (isDemoMode) {
       toast.demoBlocked();
       return;
     }
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsMultipleSelection: true,
-        quality: 0.8,
+        quality: 0.6,
       });
 
-      if (result.canceled || !result.assets.length) return;
+      if (result.canceled || !result.assets?.length) return;
 
-      setLoadingWithoutOverlay(true);
       for (const asset of result.assets) {
-        const formData = new FormData();
-        formData.append("upload", {
-          uri: asset.uri,
-          type: asset.mimeType || 'image/jpeg',
-          name: asset.fileName || `image_${Date.now()}.jpg`,
-        } as any);
-        const res = await apiUploadImageFile(formData);
-        await handleAddMessage(res?.data?.url);
+        await handleUploadAsset(asset);
       }
     } catch (error) {
-      setMessages((state: MessageResponse[]) => {
-        return [...state.filter(i => i?.id !== 0)]
-      })
-      toast.error(getErrorMessage(t, error))
-    } finally {
-      setLoadingWithoutOverlay(false);
+      toast.error(getErrorMessage(t, error));
     }
-  }
+  };
+
+  const handleTakePhoto = async () => {
+    if (isDemoMode) {
+      toast.demoBlocked();
+      return;
+    }
+    try {
+      const currentPerm = await ImagePicker.getCameraPermissionsAsync();
+      let isGranted = currentPerm.granted;
+      if (!isGranted) {
+        const requested = await ImagePicker.requestCameraPermissionsAsync();
+        isGranted = requested.granted;
+      }
+
+      if (!isGranted) {
+        toast.error(t('camera_permission_required') || '카메라 권한이 필요합니다');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.6,
+      });
+
+      let asset = (!result.canceled && result.assets?.length) ? result.assets[0] : null;
+
+      if (!asset) {
+        const pending = await ImagePicker.getPendingResultAsync();
+        if (pending && 'assets' in pending && pending.assets?.length && !pending.canceled) {
+          asset = pending.assets[0];
+        }
+      }
+
+      if (asset) {
+        await handleUploadAsset(asset);
+      }
+    } catch (error) {
+      console.log("[Chat handleTakePhoto] Error:", error);
+      toast.error(getErrorMessage(t, error));
+    }
+  };
+
+  const handleUploadImage = async () => {
+    await handlePickFromGallery();
+  };
 
   const saveBase64ToFile = async (base64Data: string, fileName = 'signature.png') => {
     const path = `${RNFS.DocumentDirectoryPath}/${fileName}`;
@@ -318,6 +378,8 @@ const useChatContainer = (props: Props) => {
       onChangeInput: handleChangeInput,
       onSubmit: handleAddMessage,
       handleUploadImage,
+      handleTakePhoto,
+      handlePickFromGallery,
       isCompleted: selectedConversation?.isCompleted,
       handleUploadImageCanvas,
       openSketchCanvasDialog,

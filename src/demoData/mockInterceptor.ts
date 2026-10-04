@@ -2,7 +2,7 @@ import { InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import { initDemoDatabase, getDb } from './database';
 
 // --- Import tất cả Mock API từ các Container ---
-import { getDemoNotes, getDemoGroupedNotes, getDemoNoteFilterOptions, createDemoNote, updateDemoNote, deleteDemoNote } from './containers/Notes/noteApi';
+import { getDemoNotes, getDemoGroupedNotes, getDemoNoteFilterOptions, createDemoNote, updateDemoNote, deleteDemoNote, getDemoNoteById } from './containers/Notes/noteApi';
 import { loginDemoMock, getInfoMock, getConsentStatusMock, agreeConsentMock, removeAccountMock, getAcademiesMock, getCoursesMock, getTimeMock } from './containers/Login/authApi';
 import { getListExamMock, getExamInfoMock, joinExamMock, getLessonsMock, getListNotificationMock, getNotificationByIdMock, getInfoAcademyMock, getSchedulesMock, createScheduleMock, updateScheduleMock, deleteScheduleMock, updateScheduleStatusMock, getScheduleCountMock, getTextbookListMock, getTextbookByIdMock, getListSocialLinkMock } from './containers/Home/homeApi';
 import { getQuestionExamMock, answerQuestionExamMock, finishExamMock, pauseAndResumeExamMock, restartExamMock, createConversationMock, getConversationMessagesMock } from './containers/DoExam/examApi';
@@ -372,6 +372,10 @@ const routeToMock = async (config: any, lang: string = 'ko'): Promise<any> => {
     }
     if (url.includes('/api/notes/group-notes')) {
         return { data: await getDemoNotes(params) };
+    }
+    if (url.match(/\/api\/notes\/\d+/) && method === 'get') {
+        const id = extractId(/\/api\/notes\/(\d+)/);
+        return await getDemoNoteById(id);
     }
     if (url.includes('/api/notes') && method === 'get') {
         const notes = await getDemoNotes(params);
