@@ -14,5 +14,6 @@ export const getListExamMock = async (query?: any) => {
 };
 
 export const uploadImageFileMock = async (_file: any) => {
-    return { data: "https://example.com/demo-uploaded-image.png" };
+    const demoUrl = "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=800";
+    return { data: { url: demoUrl }, url: demoUrl };
 };

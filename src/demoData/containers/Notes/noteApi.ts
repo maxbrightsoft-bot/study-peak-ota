@@ -226,6 +226,23 @@ export const getDemoNoteFilterOptions = async () => {
     };
 };
 
+export const getDemoNoteById = async (id: number) => {
+    const database = await getDb();
+    const row = await database.getFirstAsync('SELECT * FROM Notes WHERE id = ?', [id]) as any;
+    if (!row) return null;
+    return {
+        ...row,
+        sender: row.senderJson ? JSON.parse(row.senderJson) : null,
+        receiver: row.receiverJson ? JSON.parse(row.receiverJson) : null,
+        receivers: row.receiversJson ? JSON.parse(row.receiversJson) : [],
+        mentionUsers: row.mentionUsersJson ? JSON.parse(row.mentionUsersJson) : [],
+        isOwned: row.isOwned === 1,
+        isStudentNote: row.isStudentNote === 1,
+        hasIncorrectOrImage: row.hasIncorrectOrImage === 1,
+        isMentionAll: row.isMentionAll === 1,
+    };
+};
+
 export const createDemoNote = async (body: any) => {
     const database = await getDb();
     const result = await database.runAsync(
@@ -239,13 +256,22 @@ export const createDemoNote = async (body: any) => {
             body.type || 0
         ]
     );
-    return { id: result.lastInsertRowId };
+    const newNote = await getDemoNoteById(result.lastInsertRowId);
+    return newNote || { id: result.lastInsertRowId, ...body };
 };
 
 export const updateDemoNote = async (id: number, body: any) => {
     const database = await getDb();
-    await database.runAsync(`UPDATE Notes SET content = ? WHERE id = ?`, [body.content, id]);
-    return { success: true };
+    if (body.imageUrl !== undefined) {
+        await database.runAsync(
+            `UPDATE Notes SET content = ?, imageUrl = ?, hasIncorrectOrImage = ? WHERE id = ?`,
+            [body.content, body.imageUrl || null, body.imageUrl ? 1 : 0, id]
+        );
+    } else {
+        await database.runAsync(`UPDATE Notes SET content = ? WHERE id = ?`, [body.content, id]);
+    }
+    const updatedNote = await getDemoNoteById(id);
+    return updatedNote || { id, ...body, success: true };
 };
 
 export const deleteDemoNote = async (id: number) => {

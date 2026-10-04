@@ -1,6 +1,6 @@
 import { decode as base64Decode } from 'base-64'
 import { AxiosResponse } from 'axios'
-import { ACCESS_TOKEN, DATE_MIN_VALUE, DATE_TIME_MIN_VALUE, DefaultErrorMessage, ErrorMessages, UPDATE_REQUIRED } from '../constants'
+import { ACCESS_TOKEN, BASE_URL, DATE_MIN_VALUE, DATE_TIME_MIN_VALUE, DefaultErrorMessage, ErrorMessages, UPDATE_REQUIRED } from '../constants'
 import { TFunction } from 'i18next'
 import i18n from '@/languages/i18n'
 import moment from 'moment'
@@ -199,8 +199,31 @@ export const formatNumber = (value: number, fractionDigits?: number): string => 
 export const getSafeUrl = (url: string) => {
   if (!url) return ''
 
-  const base = url.replace('http://localhost', Platform.OS === 'android' ? 'http://10.0.2.2' : 'http://localhost')
-  return encodeURI(base)
+  let base = url.replace(/\\/g, '/')
+  // Rewrite localhost / 127.0.0.1 / 10.0.2.2 so physical Android devices can reach server via BASE_URL
+  if (base.includes('localhost') || base.includes('127.0.0.1') || base.includes('10.0.2.2')) {
+    if (BASE_URL) {
+      base = base.replace(/https?:\/\/(localhost|127\.0\.0\.1|10\.0\.2\.2)(:\d+)?/, BASE_URL)
+    }
+  }
+
+  if (base.startsWith('/')) {
+    base = `${BASE_URL}${base}`
+  } else if (
+    !base.startsWith('http://') &&
+    !base.startsWith('https://') &&
+    !base.startsWith('file://') &&
+    !base.startsWith('data:') &&
+    !base.startsWith('content://')
+  ) {
+    base = `${BASE_URL}/${base}`
+  }
+
+  try {
+    return encodeURI(decodeURI(base))
+  } catch (e) {
+    return encodeURI(base)
+  }
 }
 
 export const highlightText = (text: string, highlight: string) => {

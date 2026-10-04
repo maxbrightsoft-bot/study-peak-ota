@@ -1,4 +1,5 @@
 import { MouseEvent, useRef } from "react"
+import { Alert } from "react-native"
 import { useState, useEffect } from "react"
 import { DEFAULT_NOTE_FILTER } from "../../ExamResultList/configs/constants"
 import { NoteRequest, NoteResponse, NoteSearchQuery } from "../../../utils/types/note"
@@ -43,32 +44,131 @@ const useExamResultNote = ({
     const [openDeleteNoteDialog, setOpenDeleteNoteDialog] = useState<boolean>(false)
     const [noteIdContextMenu, setNoteIdContextMenu] = useState<number>()
     const [imageUrl, setImageUrl] = useState("")
+    const uploadedUrlRef = useRef("")
+    const uploadPromiseRef = useRef<Promise<any> | null>(null)
+    const [isUploadingImage, setIsUploadingImage] = useState(false)
 
-    const handleUploadImage = async () => {
+    const uploadAsset = async (asset: ImagePicker.ImagePickerAsset) => {
+        // Immediately show the image preview so user sees the photo right away
+        setImageUrl(asset.uri);
+        uploadedUrlRef.current = '';
+        setIsUploadingImage(true);
+        setLoadingWithoutOverlay(true);
+        const promise = (async () => {
+            try {
+                let fileName = asset.fileName;
+                if (!fileName || !fileName.includes('.')) {
+                    const ext = asset.mimeType?.includes('png') ? 'png' : 'jpg';
+                    fileName = `photo_${Date.now()}.${ext}`;
+                }
+                const mimeType = asset.mimeType || (fileName.endsWith('.png') ? 'image/png' : 'image/jpeg');
+
+                const formData = new FormData();
+                formData.append("upload", {
+                    uri: asset.uri,
+                    type: mimeType,
+                    name: fileName,
+                } as any);
+
+                const res = await apiUploadImageFile(formData);
+                const serverUrl = res?.data?.url || res?.data?.Url || (typeof res?.data === 'string' ? res.data : '') || (res as any)?.url;
+                if (serverUrl) {
+                    uploadedUrlRef.current = serverUrl;
+                }
+            } catch (error) {
+                console.log("Image upload error:", error);
+                toast.error(getErrorMessage(t, error));
+            } finally {
+                setIsUploadingImage(false);
+                setLoadingWithoutOverlay(false);
+            }
+        })();
+        uploadPromiseRef.current = promise;
+        await promise;
+    };
+
+    const handlePickFromGallery = async () => {
         try {
             const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ['images'],
-                quality: 0.8,
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                quality: 0.6,
             });
 
-            if (result.canceled || !result.assets.length) return;
-
-            setLoadingWithoutOverlay(true);
-            const asset = result.assets[0];
-            const formData = new FormData();
-            formData.append("upload", {
-                uri: asset.uri,
-                type: asset.mimeType || 'image/jpeg',
-                name: asset.fileName || `image_${Date.now()}.jpg`,
-            } as any);
-            const res = await apiUploadImageFile(formData);
-            setImageUrl(res?.data?.url);
+            if (!result.canceled && result.assets?.length) {
+                await uploadAsset(result.assets[0]);
+            }
         } catch (error) {
+            console.log("[PickGallery] Error:", error);
             toast.error(getErrorMessage(t, error));
-        } finally {
-            setLoadingWithoutOverlay(false);
         }
-    }
+    };
+
+    const handleTakePhoto = async () => {
+        try {
+            const currentPerm = await ImagePicker.getCameraPermissionsAsync();
+            let isGranted = currentPerm.granted;
+            if (!isGranted) {
+                const requested = await ImagePicker.requestCameraPermissionsAsync();
+                isGranted = requested.granted;
+            }
+
+            if (!isGranted) {
+                toast.error(t('camera_permission_required') || '카메라 권한이 필요합니다');
+                return;
+            }
+
+            const result = await ImagePicker.launchCameraAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                quality: 0.6,
+            });
+
+            let asset = (!result.canceled && result.assets?.length) ? result.assets[0] : null;
+
+            if (!asset) {
+                const pending = await ImagePicker.getPendingResultAsync();
+                if (pending && 'assets' in pending && pending.assets?.length && !pending.canceled) {
+                    asset = pending.assets[0];
+                }
+            }
+
+            if (asset) {
+                await uploadAsset(asset);
+            }
+        } catch (error) {
+            console.log("[TakePhoto] Error:", error);
+            toast.error(getErrorMessage(t, error));
+        }
+    };
+
+    const handleUploadImage = async () => {
+        Alert.alert(
+            t('attach_photo') || '사진 첨부',
+            '',
+            [
+                {
+                    text: t('take_photo') || '카메라로 촬영',
+                    onPress: handleTakePhoto,
+                },
+                {
+                    text: t('choose_from_gallery') || '앨범에서 선택',
+                    onPress: handlePickFromGallery,
+                },
+                {
+                    text: t('cancel') || '취소',
+                    style: 'cancel',
+                },
+            ]
+        );
+    };
+
+    const handleRemoveImage = () => {
+        setImageUrl("");
+        uploadedUrlRef.current = "";
+        uploadPromiseRef.current = null;
+        if (selectedNote) {
+            setSelectedNote({ ...selectedNote, imageUrl: '' });
+        }
+    };
 
     const {
         isLoadingNotes,
@@ -97,10 +197,15 @@ const useExamResultNote = ({
         setOpenNoteDialog(false)
         handleSelectQuestion(undefined)
         setImageUrl("")
+        uploadedUrlRef.current = ""
+        uploadPromiseRef.current = null
     }
 
     const handleOpenNoteDialog = (e: MouseEvent<HTMLButtonElement>, note: NoteResponse) => {
         setSelectedNote(note)
+        setImageUrl(note?.imageUrl || "")
+        uploadedUrlRef.current = note?.imageUrl || ""
+        uploadPromiseRef.current = null
         setOpenNoteDialog(true)
     }
 
@@ -111,6 +216,8 @@ const useExamResultNote = ({
         handleSelectQuestion(undefined)
         setSelectedNote(undefined)
         setImageUrl('')
+        uploadedUrlRef.current = ''
+        uploadPromiseRef.current = null
     }
 
     const handleSaveNote = async (content: string, questionId?: number) => {
@@ -119,9 +226,15 @@ const useExamResultNote = ({
 
             handleLoadChange(true)
 
+            if (uploadPromiseRef.current) {
+                await uploadPromiseRef.current
+            }
+
+            const finalImageUrl = uploadedUrlRef.current || (imageUrl && !imageUrl.startsWith('file://') && !imageUrl.startsWith('content://') ? imageUrl : '')
+
             const data: NoteRequest = {
                 content,
-                imageUrl
+                imageUrl: finalImageUrl || undefined
             }
 
             if (selectedNote) {
@@ -185,6 +298,8 @@ const useExamResultNote = ({
         note: NoteResponse
     ) => {
         setSelectedNote(note)
+        setImageUrl(note.imageUrl || '')
+        uploadedUrlRef.current = note.imageUrl || ''
         handleCloseTooltip()
         setOpenNoteDialog(true)
     }
@@ -212,8 +327,11 @@ const useExamResultNote = ({
         onClose: handleCloseNoteDialog,
         onSaveNote: handleSaveNote,
         imageUrl,
-        isLoadingNotes,
-        handleUploadImage
+        isLoadingNotes: isLoadingNotes || isUploadingImage,
+        handleUploadImage: handleUploadImage as any,
+        handleRemoveImage,
+        handleTakePhoto,
+        handlePickFromGallery
     }
 
     return {

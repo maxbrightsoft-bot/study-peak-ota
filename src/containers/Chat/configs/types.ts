@@ -42,6 +42,8 @@ export interface IInputChatProps {
     isCompleted?: boolean
     inputRef: React.RefObject<MathRichInputRef>
     handleUploadImage: () => void
+    handleTakePhoto?: () => void
+    handlePickFromGallery?: () => void
     handleUploadImageCanvas: (data: string, callback: any) => void,
     openSketchCanvasDialog: boolean,
     handleOpenSketchCanvasDialog: () => void,

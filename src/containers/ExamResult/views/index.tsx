@@ -199,22 +199,16 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
 
   const noteItemActions: Action<NoteResponse>[] = [
     {
-      label: t('ask_a_question'),
+      label: 'edit_note',
+      startIcon: <Ionicons name="create-outline" size={19} color={palette.grey[700]} />,
       textStyle: {
-        color: palette.success.main
-      },
-      onPress: handleOpenQuestionDialogFromNote
-    },
-    {
-      label: t('edit_note'),
-      textStyle: {
-        color: palette.warning.main
+        color: palette.grey[700]
       },
       onPress: (data: NoteResponse) => handleOpenEditNote(data)
     },
     {
-      label: t('delete_note'),
-      startIcon: <Ionicons name="trash" size={14} color={palette.error.main} />,
+      label: 'delete_note',
+      startIcon: <Ionicons name="trash-outline" size={19} color={palette.error.main} />,
       textStyle: {
         color: palette.error.main
       },
@@ -276,22 +270,10 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
         return <SolutionOrderChart data={timelyOrderQuestions} />
       case ExamStatusView.IncorrectAnswerNotes:
         return (
-          <>
-            <IncorrectAnswerNotes
-              notesContainerProps={notesContainerProps}
-              onCreateNote={handleOpenNoteDialogCreateNote}
-            />
-            <ConfirmDialog
-              open={openDeleteNoteDialog}
-              toggle={handleCloseDeleteDialog}
-              onConfirm={handleDeleteNote}
-              text={t('are_you_sure_you_want_to_delete_the_note')}
-              title={t('delete_note')}
-              okText={t('delete_note')}
-              cancelText={t('cancel')}
-              isDelete
-            />
-          </>
+          <IncorrectAnswerNotes
+            notesContainerProps={notesContainerProps}
+            onCreateNote={handleOpenNoteDialogCreateNote}
+          />
         )
       default:
         return
@@ -489,6 +471,14 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
           data={selectedNoteView}
           onClose={handleCloseNoteDrawer}
           showStudentInfo={false}
+          onEdit={(note) => {
+            handleCloseNoteDrawer()
+            handleOpenEditNote(note)
+          }}
+          onDelete={(note) => {
+            handleCloseNoteDrawer()
+            handleOpenDeleteNoteDialog(note)
+          }}
         />
       )}
       <CreateNewQuestionDialog
@@ -499,6 +489,16 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId, student
         onCloseCreateQuestion={handleCloseQuestionDialog}
         questionOptions={questionOptions}
         selectedQuestion={selectedQuestion}
+      />
+      <ConfirmDialog
+        open={openDeleteNoteDialog}
+        toggle={handleCloseDeleteDialog}
+        onConfirm={handleDeleteNote}
+        text={t('are_you_sure_you_want_to_delete_the_note')}
+        title={t('delete_note')}
+        okText={t('delete_note')}
+        cancelText={t('cancel')}
+        isDelete
       />
       <ConfirmDialog
         open={!!isOpenConfirmRestartExamDialog}

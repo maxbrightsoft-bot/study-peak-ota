@@ -2349,5 +2349,11 @@
   "change_later": "Thay đổi sau",
   "notice": "Thông báo",
   "no_notice": "Không có thông báo nào",
-  "notices_left": "và {{count}} tin khác"
+  "notices_left": "và {{count}} tin khác",
+  "attach_photo": "Đính kèm ảnh",
+  "take_photo": "Chụp ảnh",
+  "choose_from_gallery": "Chọn từ thư viện",
+  "camera_permission_required": "Cần cấp quyền truy cập máy ảnh.",
+  "select_image_source": "Chọn nguồn ảnh",
+  "incorrect_answer_note_detail": "Chi tiết ghi chú câu sai"
 }

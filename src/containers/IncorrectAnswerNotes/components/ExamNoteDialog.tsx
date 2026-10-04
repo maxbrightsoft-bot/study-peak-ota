@@ -1,5 +1,5 @@
-import React, { FC } from 'react'
-import { Image, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, View } from 'react-native'
+import React, { FC, useState } from 'react'
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { Text, useTheme } from 'react-native-paper'
 import { Formik } from 'formik'
 import * as Yup from 'yup'
@@ -11,21 +11,8 @@ import Loading from '@/components/Loading'
 import { Ionicons } from '@expo/vector-icons'
 import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 import TextField from '@/components/Input/TextField'
-import { ExamResult, QuestionData, TextbookResult } from '@/utils/types'
-
-interface ExamNoteDialogProps {
-  open: boolean
-  imageUrl: string
-  selectedNote?: any
-  handleUploadImage: () => Promise<void>
-  isLoadingNotes: boolean
-  selectedQuestion?: QuestionData
-  questionOptions?: { label: string; value: number }[]
-  onClose: () => void
-  examResultData?: ExamResult
-  textbookResult?: TextbookResult
-  onSaveNote: (content: string, questionId: number) => void
-}
+import { ExamNoteDialogProps } from '../configs/interfaces'
+import { getSafeUrl } from '@/utils/helpers'
 
 const schema = Yup.object().shape({
   content: Yup.string().required(),
@@ -36,6 +23,9 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
   open,
   imageUrl,
   handleUploadImage,
+  handleRemoveImage,
+  handleTakePhoto,
+  handlePickFromGallery,
   isLoadingNotes,
   selectedNote,
   examResultData,
@@ -47,6 +37,7 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
 }) => {
   const { t } = useTranslation()
   const theme = useTheme()
+  const [showImagePicker, setShowImagePicker] = useState(false)
 
   const initialQuestionId = selectedNote ? selectedNote.questionId || 0 : selectedQuestion ? selectedQuestion.id : 0
 
@@ -58,7 +49,7 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
         </TouchableOpacity>
         <View>
           <Text style={{ fontSize: 16, fontWeight: 600, color: '#222222' }}>
-            {t('write_a_note_of_incorrect_answers')}
+            {selectedNote ? (t('correct_incorrect_answer_notes') || t('edit_note')) : t('write_a_note_of_incorrect_answers')}
           </Text>
         </View>
         <View></View>
@@ -67,6 +58,7 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={80}>
 
         <Formik
+          enableReinitialize
           initialValues={{
             content: selectedNote?.content || '',
             questionId: initialQuestionId
@@ -75,7 +67,7 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
           onSubmit={(values) => onSaveNote(values.content, values.questionId)}
         >
           {({ handleChange, handleSubmit, values, setFieldValue }) => {
-            const question = examResultData?.questions?.find(i => i.id === values.questionId) || textbookResult?.studentQuestionResults?.find(i => i.id === values.questionId)
+            const question = examResultData?.questions?.find((i: any) => i.id === values.questionId) || textbookResult?.studentQuestionResults?.find((i: any) => i.id === values.questionId)
 
             return (
               <>
@@ -109,28 +101,75 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
                     />
                   </View>
                   <View style={{ marginTop: 20 }}>
-                    {imageUrl ? (
-                      <Image
-                        source={{ uri: imageUrl }}
-                        style={{
-                          width: 120,
-                          height: 120,
-                          borderRadius: 8,
-                          borderWidth: 1,
-                          borderColor: palette.grey[500]
-                        }}
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <TouchableOpacity onPress={handleUploadImage}>
-                        <Ionicons name="image" size={32} color={palette.grey[500]} />
-                      </TouchableOpacity>
-                    )}
+                    {(() => {
+                      const displayImageUrl = imageUrl || selectedNote?.imageUrl;
+                      return displayImageUrl ? (
+                        <View style={{ position: 'relative', width: 120 }}>
+                          <Image
+                            key={displayImageUrl}
+                            source={{ uri: getSafeUrl(displayImageUrl) }}
+                            style={{
+                              width: 120,
+                              height: 120,
+                              borderRadius: 8,
+                              borderWidth: 1,
+                              borderColor: palette.grey[400]
+                            }}
+                            resizeMode="cover"
+                          />
+                          {handleRemoveImage && (
+                            <TouchableOpacity
+                              onPress={handleRemoveImage}
+                              style={{
+                                position: 'absolute',
+                                top: -8,
+                                right: -8,
+                                backgroundColor: palette.error.main,
+                                borderRadius: 12,
+                                width: 24,
+                                height: 24,
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                              }}
+                            >
+                              <Ionicons name="close" size={16} color="#fff" />
+                            </TouchableOpacity>
+                          )}
+                        </View>
+                      ) : (
+                        <TouchableOpacity
+                          onPress={() => setShowImagePicker(true)}
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 8,
+                            paddingVertical: 10,
+                            paddingHorizontal: 16,
+                            borderRadius: 8,
+                            borderWidth: 1,
+                            borderColor: palette.grey[300],
+                            backgroundColor: '#F8F9FA',
+                            alignSelf: 'flex-start'
+                          }}
+                        >
+                          <Ionicons name="camera-outline" size={20} color={palette.grey[700]} />
+                          <Text style={{ fontSize: 13, color: palette.grey[700], fontWeight: '500' }}>
+                            {t('attach_photo')}
+                          </Text>
+                        </TouchableOpacity>
+                      )
+                    })()}
                   </View>
                 </ScrollView>
                 <View style={styles.footer}>
-                  <TouchableOpacity style={[styles.button, styles.confirmButton]} onPress={handleSubmit as any}>
-                    <Text style={styles.confirmButtonText}>{t('register')}</Text>
+                  <TouchableOpacity
+                    style={[styles.button, styles.confirmButton, (isLoadingNotes || !values.content.trim().length) && { opacity: 0.6 }]}
+                    onPress={handleSubmit as any}
+                    disabled={isLoadingNotes || !values.content.trim().length}
+                  >
+                    <Text style={styles.confirmButtonText}>
+                      {selectedNote ? (t('save') || t('edit')) : t('registration')}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </>
@@ -139,6 +178,60 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
         </Formik>
       </KeyboardAvoidingView>
 
+      {showImagePicker && (
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalBackdrop}
+            activeOpacity={1}
+            onPress={() => setShowImagePicker(false)}
+          />
+          <View style={styles.sheetContainer}>
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>{t('select_image_source')}</Text>
+              <TouchableOpacity onPress={() => setShowImagePicker(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Ionicons name="close" size={22} color={palette.grey[600]} />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={styles.sheetOption}
+              onPress={() => {
+                setShowImagePicker(false)
+                setTimeout(() => {
+                  handleTakePhoto?.()
+                }, 200)
+              }}
+            >
+              <View style={[styles.optionIconCircle, { backgroundColor: '#EBF5FF' }]}>
+                <Ionicons name="camera" size={22} color={palette.main[500]} />
+              </View>
+              <Text style={styles.optionText}>{t('take_photo')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.sheetOption}
+              onPress={() => {
+                setShowImagePicker(false)
+                setTimeout(() => {
+                  handlePickFromGallery?.()
+                }, 200)
+              }}
+            >
+              <View style={[styles.optionIconCircle, { backgroundColor: '#F0FDF4' }]}>
+                <Ionicons name="images" size={22} color="#16a34a" />
+              </View>
+              <Text style={styles.optionText}>{t('choose_from_gallery')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.sheetCancelButton}
+              onPress={() => setShowImagePicker(false)}
+            >
+              <Text style={styles.sheetCancelText}>{t('cancel')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </SlideDrawerRoot>
   )
 }
@@ -252,7 +345,71 @@ const styles = ScaledSheet.create({
   confirmButtonText: {
     ...TYPO.button2,
     color: 'white'
+  },
+  modalOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 999,
+    justifyContent: 'flex-end'
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)'
+  },
+  sheetContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: '20@ms',
+    borderTopRightRadius: '20@ms',
+    paddingHorizontal: '20@ms',
+    paddingTop: '16@ms',
+    paddingBottom: '32@ms',
+    gap: '10@ms'
+  },
+  sheetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: '12@ms',
+    borderBottomWidth: '1@ms',
+    borderColor: palette.grey[100]
+  },
+  sheetTitle: {
+    fontSize: '16@ms',
+    fontWeight: '600',
+    color: '#222222'
+  },
+  sheetOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: '14@ms',
+    paddingVertical: '12@ms',
+    paddingHorizontal: '8@ms',
+    borderRadius: '10@ms'
+  },
+  optionIconCircle: {
+    width: '42@ms',
+    height: '42@ms',
+    borderRadius: '21@ms',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  optionText: {
+    fontSize: '15@ms',
+    fontWeight: '500',
+    color: '#222222'
+  },
+  sheetCancelButton: {
+    marginTop: '6@ms',
+    paddingVertical: '12@ms',
+    borderRadius: '10@ms',
+    backgroundColor: palette.grey[100],
+    alignItems: 'center'
+  },
+  sheetCancelText: {
+    fontSize: '14@ms',
+    fontWeight: '600',
+    color: palette.grey[700]
   }
 })
 
+export type { ExamNoteDialogProps }
 export default ExamNoteDialog

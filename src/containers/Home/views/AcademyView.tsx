@@ -164,13 +164,21 @@ const AcademyView = () => {
                           <Text style={styles.noticeHeaderTitle}>
                             {t('notice') || '공지사항'}
                           </Text>
-                          {unreadNoticeCount > 0 && (
-                            <View style={styles.unreadBadge}>
-                              <Text style={styles.unreadBadgeText}>
-                                {unreadNoticeCount > 99 ? '99+' : unreadNoticeCount}
-                              </Text>
-                            </View>
-                          )}
+                          <View
+                            style={[
+                              styles.unreadBadge,
+                              unreadNoticeCount === 0 && styles.zeroBadge
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.unreadBadgeText,
+                                unreadNoticeCount === 0 && styles.zeroBadgeText
+                              ]}
+                            >
+                              {unreadNoticeCount > 99 ? '99+' : unreadNoticeCount}
+                            </Text>
+                          </View>
                         </View>
                         <ArrowRight width={20} height={20} color="#9CA3AF" />
                       </View>
@@ -356,6 +364,12 @@ const styles = ScaledSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     includeFontPadding: false
+  },
+  zeroBadge: {
+    backgroundColor: '#9CA3AF'
+  },
+  zeroBadgeText: {
+    color: '#FFFFFF'
   },
   noticeTitle: {
     fontSize: '16@ms',

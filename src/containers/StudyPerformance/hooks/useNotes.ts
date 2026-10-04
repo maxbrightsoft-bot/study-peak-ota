@@ -29,6 +29,8 @@ const useNotes = (
     const [selectedNote, setSelectedNote] = useState<NoteResponse>()
     const [open, setOpen] = useState<boolean>(false)
     const [imageUrl, setImageUrl] = useState("")
+    const uploadedUrlRef = useRef("")
+    const uploadPromiseRef = useRef<Promise<any> | null>(null)
     const [search, setSearch] = useState<string>("");
     const inputSearch = useRef<any>(null);
     const [openConfirm, setOpenConfirm] = useState<boolean>(false)
@@ -133,44 +135,127 @@ const useNotes = (
         };
     }, [search]);
 
-    const handleUploadImage = async () => {
+    const uploadAsset = async (asset: ImagePicker.ImagePickerAsset) => {
+        setImageUrl(asset.uri);
+        uploadedUrlRef.current = '';
+        setLoadingWithoutOverlay(true);
+        const promise = (async () => {
+            try {
+                let fileName = asset.fileName;
+                if (!fileName || !fileName.includes('.')) {
+                    const ext = asset.mimeType?.includes('png') ? 'png' : 'jpg';
+                    fileName = `photo_${Date.now()}.${ext}`;
+                }
+                const mimeType = asset.mimeType || (fileName.endsWith('.png') ? 'image/png' : 'image/jpeg');
+
+                const formData = new FormData();
+                formData.append("upload", {
+                    uri: asset.uri,
+                    type: mimeType,
+                    name: fileName,
+                } as any);
+
+                const res = await apiUploadImageFile(formData);
+                const serverUrl = res?.data?.url || res?.data?.Url || (typeof res?.data === 'string' ? res.data : '') || (res as any)?.url;
+                if (serverUrl) {
+                    uploadedUrlRef.current = serverUrl;
+                }
+            } catch (error) {
+                console.log("[useNotes uploadAsset] Error:", error);
+                toast.error(getErrorMessage(t, error));
+            } finally {
+                setLoadingWithoutOverlay(false);
+            }
+        })();
+        uploadPromiseRef.current = promise;
+        await promise;
+    };
+
+    const handlePickFromGallery = async () => {
         try {
             const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ['images'],
-                quality: 0.8,
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                quality: 0.6,
             });
 
-            if (result.canceled || !result.assets.length) return;
-
-            setLoadingWithoutOverlay(true);
-            const asset = result.assets[0];
-            const formData = new FormData();
-            formData.append("upload", {
-                uri: asset.uri,
-                type: asset.mimeType || 'image/jpeg',
-                name: asset.fileName || `image_${Date.now()}.jpg`,
-            } as any);
-            const res = await apiUploadImageFile(formData);
-            setImageUrl(res?.data?.url);
+            if (!result.canceled && result.assets?.length) {
+                await uploadAsset(result.assets[0]);
+            }
         } catch (error) {
             toast.error(getErrorMessage(t, error));
-        } finally {
-            setLoadingWithoutOverlay(false);
         }
-    }
+    };
+
+    const handleTakePhoto = async () => {
+        try {
+            const currentPerm = await ImagePicker.getCameraPermissionsAsync();
+            let isGranted = currentPerm.granted;
+            if (!isGranted) {
+                const requested = await ImagePicker.requestCameraPermissionsAsync();
+                isGranted = requested.granted;
+            }
+
+            if (!isGranted) {
+                toast.error(t('camera_permission_required') || '카메라 권한이 필요합니다');
+                return;
+            }
+
+            const result = await ImagePicker.launchCameraAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                quality: 0.6,
+            });
+
+            let asset = (!result.canceled && result.assets?.length) ? result.assets[0] : null;
+
+            if (!asset) {
+                const pending = await ImagePicker.getPendingResultAsync();
+                if (pending && 'assets' in pending && pending.assets?.length && !pending.canceled) {
+                    asset = pending.assets[0];
+                }
+            }
+
+            if (asset) {
+                await uploadAsset(asset);
+            }
+        } catch (error) {
+            console.log("[useNotes handleTakePhoto] Error:", error);
+            toast.error(getErrorMessage(t, error));
+        }
+    };
+
+    const handleRemoveImage = () => {
+        setImageUrl('');
+        uploadedUrlRef.current = '';
+        uploadPromiseRef.current = null;
+        if (selectedNote) {
+            setSelectedNote({ ...selectedNote, imageUrl: '' });
+        }
+    };
+
+    const handleUploadImage = async () => {
+        await handlePickFromGallery();
+    };
 
     const reset = () => {
         setSelectedNote(undefined)
         setImageUrl('')
+        uploadedUrlRef.current = ''
+        uploadPromiseRef.current = null
     }
 
     const handleOpenDialog = (item?: NoteResponse) => {
-        item && setSelectedNote(item)
+        if (item) {
+            setSelectedNote(item)
+            setImageUrl(item.imageUrl || '')
+            uploadedUrlRef.current = item.imageUrl || ''
+            uploadPromiseRef.current = null
+        }
         setOpen(true)
     }
 
     const handleCloseDialog = () => {
         setOpen(false)
+        reset()
     }
 
     const handleLoadChange = (bool: boolean) => {
@@ -282,9 +367,15 @@ const useNotes = (
         try {
             handleLoadChange(true)
 
+            if (uploadPromiseRef.current) {
+                await uploadPromiseRef.current
+            }
+
+            const finalImageUrl = uploadedUrlRef.current || (imageUrl && !imageUrl.startsWith('file://') && !imageUrl.startsWith('content://') ? imageUrl : '')
+
             const data: NoteRequest = {
                 content,
-                imageUrl
+                imageUrl: finalImageUrl || undefined
             }
 
             await updateNoteApi(selectedNote.id, data)
@@ -337,6 +428,9 @@ const useNotes = (
         toggleConfirmDialog,
         handleSaveNote,
         handleUploadImage,
+        handlePickFromGallery,
+        handleTakePhoto,
+        handleRemoveImage,
         handleOpenDialog,
         handleCloseDialog,
         handleLoadChange,
