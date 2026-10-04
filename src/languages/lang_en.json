@@ -1108,7 +1108,8 @@
   "textbook": {
     "contents": "Textbook contents",
     "owners": "Textbook owners",
-    "information": "Textbook information"
+    "information": "Textbook information",
+    "text": "Textbook"
   },
   "question_group": "Question group",
   "korean_question_group": "Question group",

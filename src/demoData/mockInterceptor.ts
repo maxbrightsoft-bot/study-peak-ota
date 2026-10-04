@@ -7,7 +7,7 @@ import { loginDemoMock, getInfoMock, getConsentStatusMock, agreeConsentMock, rem
 import { getListExamMock, getExamInfoMock, joinExamMock, getLessonsMock, getListNotificationMock, getNotificationByIdMock, getInfoAcademyMock, getSchedulesMock, createScheduleMock, updateScheduleMock, deleteScheduleMock, updateScheduleStatusMock, getScheduleCountMock, getTextbookListMock, getTextbookByIdMock, getListSocialLinkMock } from './containers/Home/homeApi';
 import { getQuestionExamMock, answerQuestionExamMock, finishExamMock, pauseAndResumeExamMock, restartExamMock, createConversationMock, getConversationMessagesMock } from './containers/DoExam/examApi';
 import { getExamResultMock, getExamResultPercentagesMock, getResultsLongTimeSpendMock, getResultsEffectSizeMock, getResultsTimeOrderQuestionMock, getResultsCategoriesMock, getOverallResultsMock, getOverallQuestionTypesResultsMock, getOverallCategoriesResultsMock, getQuestionTimeCategoriesResultsMock, getChapterResultsMock } from './containers/ExamResult/examResultApi';
-import { getListExamMock as getExamResultListMock, uploadImageFileMock } from './containers/ExamResultList/examResultListApi';
+import { getListExamMock as getExamResultListMock, getLiveHistoryGroupsMock, getLiveHistoryDetailsMock, uploadImageFileMock } from './containers/ExamResultList/examResultListApi';
 import { getStudyPerformanceDataMock, getSubjectDataMock, getRankingDataMock, getSubjectListMock as getStudySubjectListMock, getQuestionDataMock, getQuestionSubjectDataMock, getQuestionRankingDataMock, getQuestionOverallDataMock, getPerformanceSummaryMock, getPerformanceAnalysisMock, getPerformanceWeaknessMock } from './containers/StudyPerformance/studyPerformanceApi';
 import { studyTextbookMock, answerQuestionTextbookMock, getQuestionsTextbookMock, getPreparedTextbookMock, pauseOrFinishedTextbookMock, pauseAndResumeTextbookMock, restartTextbookMock } from './containers/Textbooks/textbookApi';
 import { getStudentHistoryMock, deleteStudentExamSessionMock, hideStudentExamSessionMock, selectStudentExamSessionMock } from './containers/StudentExamHistory/studentHistoryApi';
@@ -492,6 +492,15 @@ const routeToMock = async (config: any, lang: string = 'ko'): Promise<any> => {
     if (url.includes('/hide') && method === 'post') {
         const code = extractCode(/\/api\/examSession\/(.+)\/hide/);
         return await hideStudentExamSessionMock(code, body);
+    }
+    // Live history (groups and details)
+    if (url.includes('/api/examSession/live-history/groups') && method === 'get') {
+        const groups = await getLiveHistoryGroupsMock(params);
+        return { data: groups };
+    }
+    if (url.includes('/api/examSession/live-history/details') && method === 'get') {
+        const details = await getLiveHistoryDetailsMock(params);
+        return { items: details, totalCount: details.length };
     }
     // List exam sessions
     if (url.match(/\/api\/exam[Ss]ession\/?$/) && method === 'get') {

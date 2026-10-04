@@ -59,6 +59,11 @@ export type ExamSessionResponse = {
     totalAnsweredTime: number
     timestamp?: number
     studentName?: string
+    historyType?: 'Exam' | 'Textbook' | string
+    studentTextbookSessionId?: number
+    totalQuestionsAttempted?: number
+    totalCorrectAnswers?: number
+    examCode?: string
 };
 
 export type Category = {

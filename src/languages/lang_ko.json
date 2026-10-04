@@ -1103,7 +1103,8 @@
   "textbook": {
     "contents": "교과서 내용",
     "owners": "교과서 소유자",
-    "information": "교과서 정보"
+    "information": "교과서 정보",
+    "text": "교재"
   },
   "question_group": "질문 그룹",
   "korean_question_group": "지문/작품 추가",

@@ -8,7 +8,7 @@ import RNFS from 'react-native-fs';
 import { useTranslation } from "react-i18next"
 import useExamResultNote from "./useExamResultNote"
 import useCreateQuestionDialog from "./useQADialog"
-import { getChapterResultsApi, getChapterResultsCategoriesApi, getChapterResultsEffectSizeApi, getChapterResultsLongTimeSpendApi, getChapterResultsTimeOrderQuestionApi, getLatestSessionApi, getResults, getResultsCategories, getResultsEffectSize, getResultsLongTimeSpend, getResultsTimeOrderQuestion } from "../apiClients"
+import { getChapterResultsApi, getChapterResultsCategoriesApi, getChapterResultsEffectSizeApi, getChapterResultsLongTimeSpendApi, getChapterResultsTimeOrderQuestionApi, getLatestSessionApi, getResults, getResultsCategories, getResultsEffectSize, getResultsLongTimeSpend, getResultsTimeOrderQuestion, getTextbookResultsApi, getTextbookResultsCategoriesApi, getTextbookResultsEffectSizeApi, getTextbookResultsLongTimeSpendApi, getTextbookResultsTimeOrderQuestionApi } from "../apiClients"
 import { Platform, View } from "react-native"
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import { useFocusEffect } from "@react-navigation/native"
@@ -20,6 +20,8 @@ import _ from "lodash"
 
 type Props = {
   chapterId?: number
+  textbookId?: number
+  date?: string
   examCode: string
   isPrint: boolean
   examSessionId?: string
@@ -27,7 +29,7 @@ type Props = {
   onClose?: () => void
 }
 
-const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExamSessionId, onClose }: Props) => {
+const useExamResult = ({ chapterId, textbookId, date, examCode, isPrint, examSessionId, studentExamSessionId, onClose }: Props) => {
   const { t } = useTranslation()
   const contentRef = useRef<View>(null)
   const user = useAuthStore(state => state.user)
@@ -81,10 +83,14 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
     useCallback(() => {
       getData()
       return () => {
-        setExamStatusView(examStatusViewOptions(t)[0].value);
+        setExamStatusView(examStatusViewOptions(t, chapterId)[0].value);
       };
-    }, [])
+    }, [chapterId, textbookId])
   );
+
+  useEffect(() => {
+    setExamStatusView(examStatusViewOptions(t, chapterId)[0].value);
+  }, [chapterId, textbookId, t]);
 
   const handleChangeExamStatusView = (value: any) => {
     setExamStatusView(value)
@@ -104,7 +110,16 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
     if (!chapterId) return
     setLoading(true)
     try {
-      const result = await Promise.all([
+      // textbookId (history mode) -> textbook-level APIs filtered by the answered date;
+      // otherwise legacy chapter-level APIs.
+      const isTextbookMode = !!textbookId
+      const result = await Promise.all(isTextbookMode ? [
+        getTextbookResultsApi(chapterId, undefined, date),
+        getTextbookResultsLongTimeSpendApi(chapterId, undefined, date),
+        getTextbookResultsEffectSizeApi(chapterId, undefined, date),
+        getTextbookResultsTimeOrderQuestionApi(chapterId, undefined, date),
+        getTextbookResultsCategoriesApi(chapterId, undefined, date)
+      ] : [
         getChapterResultsApi(chapterId, undefined),
         getChapterResultsLongTimeSpendApi(chapterId, undefined),
         getChapterResultsEffectSizeApi(chapterId, undefined),
@@ -166,7 +181,7 @@ const useExamResult = ({ chapterId, examCode, isPrint, examSessionId, studentExa
   }
   useEffect(() => {
     getData()
-  }, [studentExamSessionId, examCode, user?.email, chapterId])
+  }, [studentExamSessionId, examCode, user?.email, chapterId, textbookId, date])
 
   const totalTime = useMemo(() => {
     let time = 0

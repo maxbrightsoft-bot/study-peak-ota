@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import _ from "lodash";
 import { useTranslation } from "react-i18next";
 import useAuthStore from "@/store/useAuthStore";
-import { getListExamApi } from "../apiClients";
+import { getListExamApi, getLiveHistoryDetailsApi } from "../apiClients";
 import { ExamStatus } from "@/utils/enums";
 import { ExamSessionResponse } from "@/utils/types";
 import { GroupExamSession } from "../configs/types";
@@ -16,6 +16,9 @@ const useExamResultList = () => {
   const paramCode = route?.params?.code
   const paramStudentExamSessionId = route?.params?.studentExamSessionId
   const paramExamSessionId = route?.params?.id
+  const paramTextbookId = route?.params?.textbookId
+  const paramStudentTextbookSessionId = route?.params?.studentTextbookSessionId || route?.params?.stbsId
+  const paramDate = route?.params?.date
 
   const user = useAuthStore(state => state.user)
   const setLoading = useAuthStore(state => state.setLoading)
@@ -49,7 +52,7 @@ const useExamResultList = () => {
   }, [])
 
   const handleSelectExamFromParams = (items: ExamSessionResponse[]) => {
-    if (!paramCode && !paramStudentExamSessionId && !paramExamSessionId) return
+    if (!paramCode && !paramStudentExamSessionId && !paramExamSessionId && !paramTextbookId) return
 
     const groups = groupMonthV2(items)
     if (!groups) return
@@ -62,9 +65,14 @@ const useExamResultList = () => {
     for (let index = 0; index < groupEntries.length; index++) {
       const [, exams] = groupEntries[index] as [string, ExamSessionResponse[]]
       const foundExam = exams.find((exam) => {
+        if (paramTextbookId) {
+          const matchTbId = String(exam.id) === String(paramTextbookId)
+          const matchStbsId = !paramStudentTextbookSessionId || String(exam.studentTextbookSessionId) === String(paramStudentTextbookSessionId)
+          return matchTbId && matchStbsId
+        }
         const matchStudentSessionId =
           paramStudentExamSessionId && String(exam.studentExamSessionId) === String(paramStudentExamSessionId)
-        return matchStudentSessionId
+        return matchStudentSessionId || (paramCode && (exam.code === paramCode || exam.examCode === paramCode))
       })
       if (foundExam) {
         targetExam = foundExam
@@ -76,8 +84,17 @@ const useExamResultList = () => {
     if (targetExam) {
       setExpandedId(targetGroupIndex)
       setSelectedExam(targetExam)
+    } else if (paramTextbookId) {
+      setSelectedExam({
+        historyType: 'Textbook',
+        id: Number(paramTextbookId),
+        studentTextbookSessionId: paramStudentTextbookSessionId ? Number(paramStudentTextbookSessionId) : undefined,
+        startTime: paramDate,
+        studentStartTime: paramDate,
+      } as ExamSessionResponse)
     } else {
       setSelectedExam({
+        historyType: 'Exam',
         code: paramCode,
         studentExamSessionId: paramStudentExamSessionId,
         id: paramExamSessionId,
@@ -89,37 +106,59 @@ const useExamResultList = () => {
     setLoadingList(true)
     let items: ExamSessionResponse[] = []
     try {
-      const res = await getListExamApi({
-        pageSize: 15,
-        sortColumnName: "StudentExamSession.StartTime",
-        sortColumnDirection: "DESC",
-        statuses: [ExamStatus.Completed],
-        hidden: false,
-        studentId: user?.id
+      const res = await getLiveHistoryDetailsApi({
+        pageSize: 100,
+        currentPage: 0,
+        studentId: user?.id,
       });
-      items = res.data?.items || [];
+      items = res.data?.items || res.data?.data?.items || [];
       setListExam(items);
     } catch (error) {
-      toast.error(getErrorMessage(t, error))
+      // Fallback to legacy exam list API if live-history fails
+      try {
+        const fallback = await getListExamApi({
+          pageSize: 50,
+          sortColumnName: "StudentExamSession.StartTime",
+          sortColumnDirection: "DESC",
+          statuses: [ExamStatus.Completed],
+          hidden: false,
+          studentId: user?.id
+        });
+        items = fallback.data?.items || [];
+        setListExam(items);
+      } catch (fallbackError) {
+        toast.error(getErrorMessage(t, error));
+      }
+    } finally {
+      setLoadingList(false);
     }
-    setLoadingList(false)
     return items
   }, [user?.id, setLoadingList, t]);
 
   const getResultExamSearch = async (search: string) => {
     try {
-      const res = await getListExamApi({
+      const res = await getLiveHistoryDetailsApi({
         textSearch: search,
-        pageSize: -1,
-        sortColumnName: "StudentExamSession.StartTime",
-        sortColumnDirection: "ASC",
-        statuses: [ExamStatus.Completed],
-        hidden: false,
-        studentId: user?.id
+        pageSize: 100,
+        currentPage: 0,
+        studentId: user?.id,
       });
-      setListExam(res.data?.items);
+      setListExam(res.data?.items || res.data?.data?.items || []);
     } catch (error) {
-      console.log({ error });
+      try {
+        const fallback = await getListExamApi({
+          textSearch: search,
+          pageSize: -1,
+          sortColumnName: "StudentExamSession.StartTime",
+          sortColumnDirection: "ASC",
+          statuses: [ExamStatus.Completed],
+          hidden: false,
+          studentId: user?.id
+        });
+        setListExam(fallback.data?.items || []);
+      } catch (e) {
+        console.log({ error });
+      }
     }
   };
 
