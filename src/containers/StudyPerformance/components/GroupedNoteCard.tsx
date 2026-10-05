@@ -7,6 +7,7 @@ import moment from 'moment'
 import { getNotesByGroupApi } from '../../ExamResultList/apiClients/noteService'
 import { ActivityIndicator } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
+import { stripHtml } from '@/utils/helpers'
 
 interface GroupedNoteCardProps {
   item: GroupedNoteResponse
@@ -31,7 +32,7 @@ const ChildNoteItem = ({ note, t, onOpenDialog }: { note: NoteResponse, t: any, 
             {note.page ? <Text style={styles.childTitlePage}> · p.{note.page}</Text> : null}
           </View>
           <View style={styles.contentHighlight}>
-            <Text style={styles.childSubtitle} numberOfLines={2}>{note.content?.replace(/<[^>]+>/g, '') || t('grouped_note_no_content')}</Text>
+            <Text style={styles.childSubtitle} numberOfLines={2}>{stripHtml(note.content) || t('grouped_note_no_content')}</Text>
           </View>
           {note.questionTypeName ? <Text style={styles.childTitlePage} numberOfLines={1}>{note.questionTypeName}</Text> : null}
         </View>

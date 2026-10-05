@@ -50,6 +50,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
   const [isLoadingQuestions, setIsLoadingQuestions] = useState<boolean>(true);
   const [questionListMapped, setQuestionListMapped] = useState<QuestionGroupResponse[]>([]);
   const [exam, setExam] = useState<ExamSessionResponse>();
+  const examRef = useRef(exam);
   const firstLoadRef = useRef<boolean>(true);
   const [endExam, setEndExam] = useState<boolean>();
   const [isEnding, setEnding] = useState<boolean>(false);
@@ -138,6 +139,10 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
   const handleCloseAnswerSheet = useCallback(() => {
     setOpenAnswerSheet(false);
   }, [])
+
+  useEffect(() => {
+    examRef.current = exam;
+  }, [exam]);
 
   const handleNextQuestion = (isError?: boolean) => {
     if (!questionList?.length) return
@@ -230,8 +235,6 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     );
   };
 
-
-
   useEffect(() => {
     if (!currentQuestionId) return
 
@@ -274,7 +277,6 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     handleCloseLiveResultDialog();
     handleCloseResultDialog();
     handleCloseInfoExamDialog();
-
     navigate(Routes.Auth.Home);
   };
 
@@ -349,14 +351,22 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
         }, []
       );
 
-      const questions = responseQuestions.map((i, index) => ({
-        ...i,
-        questionIndex: index,
-        answerTime:
-          i.answerTime !== DATE_MIN_VALUE && i.answerTime
-            ? moment.utc(i.answerTime).valueOf()
-            : 0,
-      }));
+      const questions = responseQuestions.map((i, index) => {
+        const hasValidTime =
+          i.answerTime &&
+          i.answerTime !== DATE_MIN_VALUE &&
+          i.answerTime !== DATE_TIME_MIN_VALUE &&
+          !String(i.answerTime).startsWith('0001-01-01');
+        const parsedTime = hasValidTime ? moment.utc(i.answerTime).valueOf() : 0;
+        const answerTime = parsedTime > 0 ? parsedTime : 0;
+        const duration = answerTime > 0 ? Math.max(1000, Math.round(i.duration || 0)) : 0;
+        return {
+          ...i,
+          questionIndex: index,
+          answerTime: duration > 0 && answerTime > 0 ? answerTime : 0,
+          duration: duration > 0 && answerTime > 0 ? duration : 0,
+        };
+      });
 
       setQuestionList(questions);
       setQuestionListMapped(questionGroupsResponse);
@@ -453,21 +463,24 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
 
   const handlePauseAndResumeExam = async (status: ExamStatus) => {
     if (!exam) return;
-    const nowTime = getServerNow();
-
+    let nowTime = getServerNow();
     setLoading(true);
     try {
+      await flushPendingAnswers();
+      nowTime = getServerNow();
+      const currentExam = examRef.current || exam;
+
       const req: PauseOrResumeExamRequest = {
         status,
-        rowVersion: exam.rowVersion,
+        rowVersion: currentExam.rowVersion,
         pauseTime: nowTime
       };
 
       const res = await pauseAndResumeWithConflictRetry(
         req,
-        (retryReq) => pauseAndResumeExamApi(exam?.code || '', retryReq),
+        (retryReq) => pauseAndResumeExamApi(currentExam?.code || examCode || '', retryReq),
         async () => {
-          const freshRes = await getQuestionExam(exam.code || '');
+          const freshRes = await getQuestionExam(currentExam?.code || examCode || '');
           return freshRes.data?.data?.rowVersion;
         }
       );
@@ -537,6 +550,23 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
       setLoading(false);
     }
   };
+
+  const [showResumeDialog, setShowResumeDialog] = useState(false);
+
+  const handleInteractionWhilePaused = useCallback(() => {
+    if (exam?.isLate && exam?.lateStatus === ExamStatus.Paused) {
+      setShowResumeDialog(true);
+    }
+  }, [exam?.isLate, exam?.lateStatus]);
+
+  const handleConfirmResume = useCallback(async () => {
+    setShowResumeDialog(false);
+    await handlePauseAndResumeExam(ExamStatus.InProgress);
+  }, [handlePauseAndResumeExam]);
+
+  const handleCancelResume = useCallback(() => {
+    setShowResumeDialog(false);
+  }, []);
 
   useEffect(() => {
     if (!exam?.id) return
@@ -668,14 +698,22 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
             }, []
           );
 
-          const questions = responseQuestions.map((i, index) => ({
-            ...i,
-            questionIndex: index,
-            answerTime:
-              i.answerTime !== DATE_MIN_VALUE && i.answerTime
-                ? moment.utc(i.answerTime).valueOf()
-                : 0,
-          }));
+          const questions = responseQuestions.map((i, index) => {
+            const hasValidTime =
+              i.answerTime &&
+              i.answerTime !== DATE_MIN_VALUE &&
+              i.answerTime !== DATE_TIME_MIN_VALUE &&
+              !String(i.answerTime).startsWith('0001-01-01');
+            const parsedTime = hasValidTime ? moment.utc(i.answerTime).valueOf() : 0;
+            const answerTime = parsedTime > 0 ? parsedTime : 0;
+            const duration = answerTime > 0 ? Math.max(1000, Math.round(i.duration || 0)) : 0;
+            return {
+              ...i,
+              questionIndex: index,
+              answerTime: duration > 0 && answerTime > 0 ? answerTime : 0,
+              duration: duration > 0 && answerTime > 0 ? duration : 0,
+            };
+          });
 
           setQuestionList(questions);
           setQuestionListMapped(questionGroupsResponse);
@@ -705,10 +743,11 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     });
   };
 
-  const { updateQuestionAnswer, updateQuestionStar, handleResetExamSolving, handleClearStorage } = useExamSolving({
+  const { updateQuestionAnswer, updateQuestionStar, handleResetExamSolving, handleClearStorage, flushPendingAnswers } = useExamSolving({
     examId: exam?.id,
     exam,
     examCode: examCode,
+    updateExam: setExam,
     questionList,
     isEnding,
     updateQuestionList: handleUpdateQuestionList,
@@ -899,20 +938,29 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     setOpenUnsolvedLeaveDialog(false)
     if (exam && exam.status !== ExamStatus.Paused && exam.lateStatus !== ExamStatus.Paused) {
       try {
+        await flushPendingAnswers();
         const nowTime = getServerNow()
-        await pauseAndResumeExamApi(examCode, {
-          status: ExamStatus.Paused,
-          rowVersion: exam.rowVersion,
-          pauseTime: nowTime
-        })
+        const currentExam = examRef.current || exam;
+        await pauseAndResumeWithConflictRetry(
+          {
+            status: ExamStatus.Paused,
+            rowVersion: currentExam.rowVersion,
+            pauseTime: nowTime
+          },
+          (req) => pauseAndResumeExamApi(currentExam.code || examCode || '', req),
+          async () => {
+            const freshRes = await getQuestionExam(currentExam.code || examCode || '');
+            return freshRes.data?.data?.rowVersion;
+          }
+        );
       } catch (err) {
         // ignore
       }
     }
     navigate(Routes.Auth.Home)
-  }, [exam, examCode])
+  }, [exam, examCode, flushPendingAnswers])
 
-    const handleConfirmLeave = useCallback(async () => {
+  const handleConfirmLeave = useCallback(async () => {
     setOpenLeaveDialog(false);
     await handleFinishExam();
   }, [handleFinishExam]);
@@ -994,7 +1042,11 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     handleCloseLiveResultDialog,
     handleOpenLiveResultDialog,
     isLoading: isLoading || isLoadingWithoutOverlay,
-    isLoadingQuestions
+    isLoadingQuestions,
+    showResumeDialog,
+    handleInteractionWhilePaused,
+    handleConfirmResume,
+    handleCancelResume
   };
 };
 

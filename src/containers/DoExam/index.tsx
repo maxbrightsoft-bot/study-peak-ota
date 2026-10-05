@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from 'react'
-import { View, Text, Platform, KeyboardAvoidingView, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native'
+import { View, Text, Platform, KeyboardAvoidingView, TouchableOpacity, FlatList, ActivityIndicator, Pressable } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -80,7 +80,11 @@ const DoExam = ({ examCode, reqTime }: Props) => {
     handleDetailExamResult,
     handleCloseLiveResultDialog,
     handleFinishExam,
-    isLoadingQuestions
+    isLoadingQuestions,
+    showResumeDialog,
+    handleInteractionWhilePaused,
+    handleConfirmResume,
+    handleCancelResume
   } = useExam({ examCode, reqTime })
 
   const currentQuestion = useMemo(
@@ -213,10 +217,26 @@ const DoExam = ({ examCode, reqTime }: Props) => {
           </View>
         )}
 
-        <FlatList
-          style={{ flex: 1 }}
-          ref={scrollViewRef}
-          data={groupedQuestions}
+        <View style={{ flex: 1, position: 'relative' }}>
+          {exam?.isLate && exam?.lateStatus === ExamStatus.Paused && (
+            <Pressable
+              onPress={handleInteractionWhilePaused}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 100,
+                backgroundColor: 'rgba(0,0,0,0.01)'
+              }}
+            />
+          )}
+
+          <FlatList
+            style={{ flex: 1 }}
+            ref={scrollViewRef}
+            data={groupedQuestions}
           keyExtractor={(item) => `group-${item.id}`}
           ListHeaderComponent={
             <View
@@ -286,6 +306,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
             </View>
           }
         />
+        </View>
 
         <View style={styles.footer}>
           <View
@@ -299,7 +320,11 @@ const DoExam = ({ examCode, reqTime }: Props) => {
             }}
           >
             <TouchableOpacity
-              onPress={disabled ? undefined : () => handleOpenAnswerSheet()}
+              onPress={
+                disabled
+                  ? (exam?.isLate && exam?.lateStatus === ExamStatus.Paused ? handleInteractionWhilePaused : undefined)
+                  : () => handleOpenAnswerSheet()
+              }
               style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -464,6 +489,14 @@ const DoExam = ({ examCode, reqTime }: Props) => {
           cancelText={t('exit_anyway')}
           onConfirm={handleSolveItLater}
           onCancel={handleConfirmExitAnyway}
+        />
+        <ConfirmDialog
+          open={showResumeDialog}
+          toggle={handleCancelResume}
+          text={t('do_you_want_to_continue_the_exam')}
+          cancelText={t('cancel')}
+          okText={t('confirm')}
+          onConfirm={handleConfirmResume}
         />
         <InfoExamCode open={openInfoExamDialog} onClose={handleCloseInfoExamDialog} examSession={examSession} />
         {currentQuestion && openAnswerSheet && (

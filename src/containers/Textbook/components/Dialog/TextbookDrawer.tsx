@@ -7,7 +7,7 @@ import useTextbookDrawer from '../../hooks/useTextbookDrawer'
 import { getSafeUrl, toast, utcToLocalTime } from '@/utils/helpers'
 import { ScaledSheet } from 'react-native-size-matters'
 import { formatTime } from '../../configs/helpers'
-import { TextbookTabList } from '../../configs/constants'
+import { ExamStatus, TextbookTabList } from '../../configs/constants'
 import ChapterDetail from '../ChapterDetail'
 import Statistic from '../Statistic'
 import RestartPageDialog from './RestartPageDialog'
@@ -53,6 +53,7 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props
 
   const progress = textbook?.progress ?? 0
   const isMockTextbook = !!textbook?.isMock
+  const isCompleted = isMockTextbook && (progress >= 100 || textbook?.status === ExamStatus.Completed)
   const isPlaceholder = textbook?.coverImage?.includes('placehold.co') || !textbook?.coverImage;
   const colors = ['#6C63FF', '#FF6B6B', '#4ECDC4', '#FFD93D', '#95E1D3', '#7C3AED'];
   const bgColor = textbook?.id ? colors[textbook.id % colors.length] : colors[0];
@@ -85,15 +86,33 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props
             )}
 
             <View style={{ flex: 1 }}>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{textbook?.subjectName}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{textbook?.subjectName}</Text>
+                </View>
+                {isCompleted && (
+                  <View style={styles.completedBadge}>
+                    <Text style={styles.completedBadgeText}>{t('completed')}</Text>
+                  </View>
+                )}
               </View>
 
-              <TextTooltip
-                text={textbook?.name || ''}
-                numberOfLines={2}
-                textStyle={styles.title}
-              />
+              <View style={styles.titleContainer}>
+                <TextTooltip
+                  text={textbook?.name || ''}
+                  numberOfLines={2}
+                  textStyle={styles.title}
+                  containerStyle={{ flexShrink: 1 }}
+                />
+                {isCompleted && (
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={20}
+                    color={palette.success.main}
+                    style={styles.completedIcon}
+                  />
+                )}
+              </View>
 
               <View style={styles.metaRow}>
                 <Text style={{ color: '#222222' }}>{t('publication_date')}</Text>
@@ -179,11 +198,13 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props
               </TouchableOpacity>
             )}
 
-            <TouchableOpacity style={[styles.button, styles.continueBtn]} onPress={handleDoTextbook}>
-              <Text style={styles.buttonText}>{t('do_exercises')}</Text>
-            </TouchableOpacity>
+            {!isCompleted && (
+              <TouchableOpacity style={[styles.button, styles.continueBtn]} onPress={handleDoTextbook}>
+                <Text style={styles.buttonText}>{t('do_exercises')}</Text>
+              </TouchableOpacity>
+            )}
 
-            {!!textbook && textbook.isStudying && (
+            {!!textbook && (textbook.isStudying || isCompleted) && (
               <TouchableOpacity
                 style={[styles.button, styles.outlineButton]}
                 onPress={() => (isMockTextbook ? handleOpenConfirmDialog() : handleOpenRestartTextbookDialog())}
@@ -276,7 +297,20 @@ const styles = ScaledSheet.create({
     paddingVertical: '4@ms',
     borderRadius: '12@ms',
     alignSelf: 'flex-start',
-    marginBottom: '6@ms'
+  },
+
+  completedBadge: {
+    backgroundColor: '#D7FFE7',
+    paddingHorizontal: '10@ms',
+    paddingVertical: '4@ms',
+    borderRadius: '12@ms',
+    alignSelf: 'flex-start',
+  },
+
+  completedBadgeText: {
+    fontSize: '12@ms',
+    fontWeight: '600',
+    color: '#3DC674',
   },
 
   badgeText: {
@@ -285,11 +319,22 @@ const styles = ScaledSheet.create({
     color: '#36BFEC'
   },
 
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: '6@ms',
+    marginBottom: '6@ms'
+  },
+
+  completedIcon: {
+    marginLeft: '2@ms',
+    alignSelf: 'center',
+  },
+
   title: {
     fontSize: '16@ms',
     fontWeight: '700',
     color: '#212121',
-    marginBottom: '6@ms'
   },
 
   metaRow: {

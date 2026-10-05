@@ -6,8 +6,42 @@ export const studyTextbookMock = async (_textbookId: number) => {
     return { success: true };
 };
 
-export const answerQuestionTextbookMock = async (_textbookId: number, _body: any) => {
-    return { success: true };
+export const answerQuestionTextbookMock = async (textbookId: number, body: any) => {
+    const database = await getDb();
+    let totalDuration = 0;
+    if (body?.questions?.length) {
+        for (const q of body.questions) {
+            totalDuration += (q.duration || 0);
+            if (q.selectedAnswers !== undefined) {
+                await database.runAsync(
+                    `UPDATE TextbookQuestions SET selectedAnswersJson = ?, duration = ?, isStar = ?, answerTime = ? WHERE id = ? AND textbookId = ?`,
+                    [JSON.stringify(q.selectedAnswers), q.duration || 0, q.isStar ? 1 : 0, q.answerTime || 0, q.questionId, textbookId]
+                );
+            }
+            if (q.textualAnswers !== undefined) {
+                await database.runAsync(
+                    `UPDATE TextbookQuestions SET textualAnswersJson = ?, duration = ?, isStar = ?, answerTime = ? WHERE id = ? AND textbookId = ?`,
+                    [JSON.stringify(q.textualAnswers), q.duration || 0, q.isStar ? 1 : 0, q.answerTime || 0, q.questionId, textbookId]
+                );
+            }
+        }
+    }
+    await database.runAsync(
+        `UPDATE Textbooks SET totalAnswerTime = ? WHERE id = ?`,
+        [totalDuration, textbookId]
+    );
+
+    const now = new Date().toISOString();
+    return {
+        status: 1,
+        data: {
+            questions: body?.questions || [],
+            totalAnswerTime: totalDuration,
+            lastAnswerTime: now,
+            totalPausedTime: 0,
+            rowVersion: `rv-tb${textbookId}-${Date.now()}`
+        }
+    };
 };
 
 export const getQuestionsTextbookMock = async (textbookId: number) => {

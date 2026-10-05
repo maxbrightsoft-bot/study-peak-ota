@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from 'react'
-import { View, Text, Platform, KeyboardAvoidingView, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native'
+import { View, Text, Platform, KeyboardAvoidingView, TouchableOpacity, FlatList, ActivityIndicator, Pressable } from 'react-native'
 import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
 import NotFoundExam from '@/components/NotFoundExam'
@@ -97,7 +97,13 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
     handleOpenRestartTextbookDialog,
     handlePauseAndResumeTextbook,
     isLoadingQuestions,
-    isMockTimeOut
+    isMockTimeOut,
+    isPaused,
+    isLocalPaused,
+    showResumeDialog,
+    handleInteractionWhilePaused,
+    handleConfirmResume,
+    handleCancelResume
   } = useTextbook({
     textbookId,
     page,
@@ -110,7 +116,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
     onStartAudio: handleStartSelectedSubjectAlarm,
     handleCloseDialog,
   })
-  const disabled = textbook?.status === ExamStatus.Completed || textbook?.status === ExamStatus.Paused || (remainTime !== undefined && remainTime <= 0) || isMockTimeOut
+  const disabled = textbook?.status === ExamStatus.Completed || isPaused || (remainTime !== undefined && remainTime <= 0)
 
   const currentQuestion = useMemo(
     () => questionList.find((q) => q.id === currentQuestionId),
@@ -143,7 +149,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
       onOpenAnswerSheet={handleOpenAnswerSheet}
       isEnd={textbook?.status === ExamStatus.Completed || isMockTimeOut}
       isMock={textbook?.isMock}
-      status={textbook?.status}
+      status={textbook?.isMock ? textbook?.status : isLocalPaused ? ExamStatus.Paused : textbook?.status}
       subjectType={textbook?.type}
       disabled={disabled}
     />
@@ -153,6 +159,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
     textbook?.type,
     textbook?.status,
     textbook?.isMock,
+    isLocalPaused,
     handleOpenExpiredQuestionDialog,
     currentQuestionId,
     handleOpenAnswerSheet,
@@ -210,7 +217,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
                 </Text>
               </View>
             )}
-            {(textbook?.status === ExamStatus.Paused && !isMockTimeOut) && (
+            {(isPaused && !isMockTimeOut) && (
               <View style={{ backgroundColor: '#FF9800', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, alignSelf: 'center', marginTop: 2 }}>
                 <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '600' }}>
                   {t('paused')}
@@ -240,8 +247,14 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
             />
             <FloatingActionButton
               t={t}
-              isOnlyRestart={!textbook?.isMock || isMockTimeOut}
-              status={textbook?.status}
+              isOnlyRestart={isMockTimeOut}
+              status={
+                textbook?.isMock
+                  ? textbook?.status
+                  : isLocalPaused
+                  ? ExamStatus.Paused
+                  : textbook?.status
+              }
               onTogglePauseResume={handlePauseAndResumeTextbook}
               onOpenConfirmDialog={textbook?.isMock ? handleOpenConfirmDialog : handleOpenRestartTextbookDialog}
               keys={{
@@ -279,29 +292,46 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
           </View>
         )}
 
-        <FlatList
-          data={groupedQuestions}
-          keyExtractor={(item) => `group-${item.id}`}
-          ref={scrollViewRef}
-          initialNumToRender={groupedQuestions.length || 50}
-          maxToRenderPerBatch={50}
-          windowSize={51}
-          renderItem={renderQuestionGroup}
-          ListEmptyComponent={
-            isLoadingWithoutOverlay ? null : (
-              <View style={{ paddingVertical: 60, alignItems: 'center', justifyContent: 'center' }}>
-                <ActivityIndicator size="large" color={palette.main[600]} />
-              </View>
-            )
-          }
-          ListFooterComponent={<View style={{ height: 300 }} />}
-          onScrollToIndexFailed={(info) => {
-            const offset = info.index * 400;
-            scrollViewRef.current?.scrollToOffset({ offset, animated: true });
-          }}
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-        />
+        <View style={{ flex: 1, position: 'relative' }}>
+          {isLocalPaused && !textbook?.isMock && (
+            <Pressable
+              onPress={handleInteractionWhilePaused}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 100,
+                backgroundColor: 'rgba(0,0,0,0.01)'
+              }}
+            />
+          )}
+
+          <FlatList
+            data={groupedQuestions}
+            keyExtractor={(item) => `group-${item.id}`}
+            ref={scrollViewRef}
+            initialNumToRender={groupedQuestions.length || 50}
+            maxToRenderPerBatch={50}
+            windowSize={51}
+            renderItem={renderQuestionGroup}
+            ListEmptyComponent={
+              isLoadingWithoutOverlay ? null : (
+                <View style={{ paddingVertical: 60, alignItems: 'center', justifyContent: 'center' }}>
+                  <ActivityIndicator size="large" color={palette.main[600]} />
+                </View>
+              )
+            }
+            ListFooterComponent={<View style={{ height: 300 }} />}
+            onScrollToIndexFailed={(info) => {
+              const offset = info.index * 400;
+              scrollViewRef.current?.scrollToOffset({ offset, animated: true });
+            }}
+            contentContainerStyle={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+          />
+        </View>
       </KeyboardAvoidingView>
 
         <View style={styles.footer}>
@@ -520,6 +550,14 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
             onStart={audioGuideModalProps.onStart}
           />
         )}
+        <ConfirmDialog
+          open={showResumeDialog}
+          toggle={handleCancelResume}
+          text={t('do_you_want_to_continue_the_exam')}
+          cancelText={t('cancel')}
+          okText={t('confirm')}
+          onConfirm={handleConfirmResume}
+        />
     </View>
   )
 }

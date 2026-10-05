@@ -33,7 +33,8 @@ export const diffFromNow = (
 };
 
 export const formatMinutesToTime = (minutes: number) => {
-  const totalSeconds = Math.floor(minutes * 60)
+  const safeMinutes = Math.max(0, minutes || 0)
+  const totalSeconds = Math.floor(safeMinutes * 60)
 
   const mins = Math.floor(totalSeconds / 60)
   const secs = totalSeconds % 60

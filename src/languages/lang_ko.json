@@ -1452,7 +1452,7 @@
   "are_you_sure_that_you_want_to_copy_this_exam": "이 시험을 복사하시겠습니까?",
   "are_you_sure_that_you_want_to_copy_the_exam.name": "시험 '{{name}}'을(를) 복사하시겠습니까?",
   "copy_action": "복사",
-  "subcategories_data": "하위 카테고리 데이터",
+  "subcategories_data": "유형별 데이터",
   "question_types_data": "문항 유형 데이터",
   "please_log_in_again": "다시 로그인해주세요",
   "mention_name": "멘션한 사람 이름",
@@ -2331,6 +2331,7 @@
   "choose_from_gallery": "앨범에서 선택",
   "camera_permission_required": "카메라 권한이 필요합니다.",
   "select_image_source": "사진 선택",
-  "incorrect_answer_note_detail": "오답노트 상세"
+  "incorrect_answer_note_detail": "오답노트 상세",
+  "do_you_want_to_continue_the_exam": "시험을 계속 진행하시겠습니까?"
 }
 

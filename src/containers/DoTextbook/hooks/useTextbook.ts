@@ -16,6 +16,7 @@ import {
 } from "../config/types";
 import useTextbookSolving from "./useTextbookSolving";
 import { useTextbookTimer } from "./useTextbookTimer";
+import useTextbookPause from "./useTextbookPause";
 import { findTargetQuestionForPageRange, isNull } from "../config/helpers";
 import { Routes } from "@/navigators/RouteName";
 import { navigate } from "@/navigators/NavigationHelpers";
@@ -89,6 +90,14 @@ const useTextbook = ({
     timeUpdateDialogProps,
     isTimerRunning,
   } = useTimers(openTimerDialog, handleTimerDialogToggle)
+
+  const {
+    isPaused: isLocalPaused,
+    totalLocalPausedMs,
+    pause: localPause,
+    resume: localResume,
+    resetPause
+  } = useTextbookPause(textbook?.isMock);
 
   const {
     audioGuideModalProps,
@@ -303,6 +312,7 @@ const useTextbook = ({
     setLoadingWithoutOverlay(true);
     setIsLoadingQuestions(true);
     setStartTime(undefined);
+    resetPause();
     const nowTime = getServerNow();
 
     try {
@@ -398,6 +408,23 @@ const useTextbook = ({
     setQuestionList(questions);
   };
 
+  const [showResumeDialog, setShowResumeDialog] = useState(false);
+
+  const handleInteractionWhilePaused = useCallback(() => {
+    if (isLocalPaused && !textbook?.isMock) {
+      setShowResumeDialog(true);
+    }
+  }, [isLocalPaused, textbook?.isMock]);
+
+  const handleConfirmResume = useCallback(() => {
+    localResume();
+    setShowResumeDialog(false);
+  }, [localResume]);
+
+  const handleCancelResume = useCallback(() => {
+    setShowResumeDialog(false);
+  }, []);
+
   const checkEndStatus = useCallback(() => {
     handleCloseAnswerSheet();
     if (textbook?.isMock && handleOpenDrawer) {
@@ -457,7 +484,8 @@ const useTextbook = ({
     startTime,
     studyTime: totalAnswerTime,
     textbookId: Number(textbookId),
-    status: textbook?.status
+    isPaused: isLocalPaused,
+    totalLocalPausedMs
   });
 
   const { updateQuestionAnswer, updateQuestionStar, recoverAnswers, handleResetTextbookSolving, handleClearStorage } =
@@ -469,6 +497,7 @@ const useTextbook = ({
       questionList,
       updateQuestionList: handleUpdateQuestionList,
       handleNextQuestion,
+      totalLocalPausedMs,
       isMockTimeOut
     });
 
@@ -563,6 +592,16 @@ const useTextbook = ({
 
   const handlePauseAndResumeTextbook = async (status: ExamStatus) => {
     if (!textbook || !textbookId || isMockTimeOut) return;
+
+    if (!textbook.isMock) {
+      if (status === ExamStatus.Paused) {
+        localPause();
+      } else {
+        localResume();
+      }
+      toast.info(t(status === ExamStatus.Paused ? "textbook_has_been_paused" : "textbook_has_been_resumed"));
+      return;
+    }
 
     setLoading(true);
     const nowTime = getServerNow();
@@ -662,6 +701,7 @@ const useTextbook = ({
 
       await handleClearStorage();
       handleResetTextbookSolving();
+      resetPause();
       await restartTextbookApi(Number(textbook.id), req);
       clearData(true);
       isJustRestartedRef.current = true;
@@ -699,6 +739,7 @@ const useTextbook = ({
     setRestartTextbookData({});
     handleResetTextbookSolving();
     triggerOfflineSync();
+    resetPause();
     setTextbook(undefined);
     setQuestionList([]);
     handleCloseExpiredQuestionDialog()
@@ -961,7 +1002,12 @@ const useTextbook = ({
     textbookId: textbookId,
     remainTime,
     isMockTimeOut,
-    isPaused: textbook?.status === ExamStatus.Paused,
+    isPaused: textbook?.isMock ? textbook?.status === ExamStatus.Paused : isLocalPaused,
+    isLocalPaused,
+    showResumeDialog,
+    handleInteractionWhilePaused,
+    handleConfirmResume,
+    handleCancelResume,
     isCompleted: textbook?.status === ExamStatus.Completed,
     isInProgress: textbook?.status === ExamStatus.InProgress,
     isLoadingQuestions

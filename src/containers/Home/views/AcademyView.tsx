@@ -2,7 +2,7 @@ import ArrowRight from '@/assets/iconJSX/arrowRight'
 import CustomCard from '@/components/Card/CustomCard'
 import WaitingExamStart from '../components/Dialog/WaitingExamStart'
 import ConfirmExamCode from '../components/Dialog/ConfirmExamCode'
-import { timeSpanToLocalMoment } from '@/utils/helpers'
+import { stripHtml, timeSpanToLocalMoment } from '@/utils/helpers'
 import ExamHistoryDialog from '../components/Dialog/ExamHistoryDialog'
 import { ScheduleStatus } from '../configs/type'
 import RecentTextbook from '../components/RecentTextbook'
@@ -188,9 +188,11 @@ const AcademyView = () => {
                         ellipsizeMode="tail"
                         style={styles.noticeTitle}
                       >
-                        {recentNotice?.isNote
-                          ? (recentNotice.content?.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim() || recentNotice.name)
-                          : (recentNotice?.name || recentNotice?.content || t('no_notice'))}
+                        {recentNotice
+                          ? (recentNotice.isNote
+                              ? (stripHtml(recentNotice.content) || recentNotice.name)
+                              : (stripHtml(recentNotice.name) || stripHtml(recentNotice.content))) || t('no_notice')
+                          : t('no_notice')}
                       </Text>
                     </View>
                     {recentNotice ? (

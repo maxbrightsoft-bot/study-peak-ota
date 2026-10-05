@@ -1,8 +1,9 @@
 import { palette, TYPO } from '@/theme'
 import { getSafeUrl } from '@/utils/helpers'
 import { Textbook } from '@/utils/types'
-import { Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native'
+import { Image, Text, View, TouchableOpacity } from 'react-native'
 import { formatTime } from '../configs/helpers'
+import { ExamStatus } from '../configs/constants'
 import moment from 'moment'
 import TextTooltip from '@/components/Tooltip/TextTooltip'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -17,6 +18,7 @@ const TextbookItem = ({ textbook, t, handleOpenDialog }: Props) => {
   const isPlaceholder = textbook?.coverImage?.includes('placehold.co') || !textbook?.coverImage;
   const colors = ['#6C63FF', '#FF6B6B', '#4ECDC4', '#FFD93D', '#95E1D3', '#7C3AED'];
   const bgColor = colors[textbook.id % colors.length];
+  const isCompleted = !!textbook?.isMock && ((textbook.progress ?? 0) >= 100 || textbook.status === ExamStatus.Completed);
 
   return (
     <View>
@@ -37,14 +39,22 @@ const TextbookItem = ({ textbook, t, handleOpenDialog }: Props) => {
               <Text style={styles.badgeText}>{textbook?.subject?.name}</Text>
             </View>
 
-            <Text style={styles.timeText}>{moment(textbook.createdAt).fromNow()}</Text>
+            <Text style={styles.timeText}>{textbook?.createdAt ? moment.utc(textbook.createdAt).fromNow() : ''}</Text>
           </View>
 
-          <TextTooltip
-            text={textbook.name}
-            numberOfLines={2}
-            textStyle={styles.title}
-          />
+          <View style={styles.titleContainer}>
+            <TextTooltip
+              text={textbook.name}
+              numberOfLines={2}
+              textStyle={styles.title}
+              containerStyle={{ flexShrink: 1 }}
+            />
+            {isCompleted && (
+              <View style={styles.completedBadge}>
+                <Text style={styles.completedBadgeText}>{t('completed')}</Text>
+              </View>
+            )}
+          </View>
 
           <View style={styles.progressRow}>
             <Text style={styles.progressText}>{textbook.progress || 0}%</Text>
@@ -104,11 +114,32 @@ const styles = ScaledSheet.create({
     color: palette.grey[500]
   },
 
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: '4@ms',
+    marginVertical: '6@ms'
+  },
+
+  completedBadge: {
+    backgroundColor: '#D7FFE7',
+    paddingHorizontal: '8@ms',
+    paddingVertical: '2@ms',
+    borderRadius: '10@ms',
+    alignSelf: 'center',
+    marginLeft: '2@ms',
+  },
+
+  completedBadgeText: {
+    fontSize: '11@ms',
+    fontWeight: '600',
+    color: '#3DC674',
+  },
+
   title: {
     ...TYPO.body1,
     fontWeight: '600',
     color: palette.grey[900],
-    marginVertical: '6@ms'
   },
 
   progressRow: {
