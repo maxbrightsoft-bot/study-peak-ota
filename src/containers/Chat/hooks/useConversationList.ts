@@ -16,7 +16,6 @@ const useConversationList = () => {
   const setLoading = useAuthStore(state => state.setLoading)
   const selectedAcademy = useAuthStore(state => state.selectedAcademy)
   const academyDomain = user?.academyDomain
-  const channel1 = useRef('')
   const channel2 = useRef('')
   const [loadingList, setLoadingList] = useState<boolean>(true);
   const [search, setSearch] = useState<string>("");
@@ -25,6 +24,9 @@ const useConversationList = () => {
   const [conversations, setConversations] = useState<ConversationsResponse[]>([])
   const [openFilterModal, setOpenFilterModal] = useState(false)
   const [conversationFilter, setConversationFilter] = useState<ConversationFilter>(CONVERSATION_DEFAULT_FILTER);
+  const [hasMore, setHasMore] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const currentPageRef = useRef(1)
   const [courses, setCourses] = useState<Array<Course>>()
   const [isVisibleCreateConversationDialog, setVisibleCreateConversationDialog] = useState(false)
   const { t } = useTranslation()
@@ -44,18 +46,76 @@ const useConversationList = () => {
     searchRef.current = value;
   }, []);
 
-  const getConversationList = useCallback(async (textSearch?: string) => {
-    setLoadingList(true)
-    try {
-      const res = await getListConversation({ ...conversationFilter, textSearch: textSearch || searchRef.current })
-      setConversations(res.data.items || [])
+  const sortConversations = useCallback((list: ConversationsResponse[]) => {
+    return [...list].sort((a, b) => {
+      const aCompleted = Boolean(a.isCompleted);
+      const bCompleted = Boolean(b.isCompleted);
+      if (!aCompleted && bCompleted) return -1;
+      if (aCompleted && !bCompleted) return 1;
 
+      const timeA = new Date(a.lastMessage?.createdAt || a.createdAt || 0).getTime();
+      const timeB = new Date(b.lastMessage?.createdAt || b.createdAt || 0).getTime();
+      return timeB - timeA;
+    });
+  }, []);
+
+  const sortedConversations = useMemo(() => {
+    return sortConversations(conversations);
+  }, [conversations, sortConversations]);
+
+  const getConversationList = useCallback(async (textSearch?: string, targetConversationId?: number, page?: number, append?: boolean) => {
+    if (!append) setLoadingList(true)
+    try {
+      const res = await getListConversation({
+        ...conversationFilter,
+        currentPage: page ?? conversationFilter.currentPage,
+        textSearch: textSearch !== undefined ? textSearch : searchRef.current
+      })
+      const items: ConversationsResponse[] = res.data.items || []
+      const totalPages = res.data.totalPages || 1
+      const currentP = page ?? conversationFilter.currentPage
+      setHasMore(currentP < totalPages)
+      if (append) {
+        setConversations(prev => [...prev, ...items])
+      } else {
+        currentPageRef.current = 1
+        setConversations(items)
+      }
+      if (targetConversationId) {
+        const found = items.find(c => c.id === targetConversationId)
+        if (found) {
+          setSelectedConversation(found)
+        }
+      }
+      return items
     } catch (error) {
       toast.error(getErrorMessage(t, error))
+      return []
     } finally {
-      setLoadingList(false)
+      if (!append) setLoadingList(false)
     }
-  }, [conversationFilter, t])
+  }, [conversationFilter, setLoadingList, t])
+
+  const handleLoadMore = useCallback(async () => {
+    if (!hasMore || loadingMore) return
+    setLoadingMore(true)
+    const nextPage = currentPageRef.current + 1
+    currentPageRef.current = nextPage
+    try {
+      const res = await getListConversation({
+        ...conversationFilter,
+        currentPage: nextPage,
+        textSearch: searchRef.current
+      })
+      const items = res.data.items || []
+      const totalPages = res.data.totalPages || 1
+      setHasMore(nextPage < totalPages)
+      setConversations(prev => [...prev, ...items])
+    } catch (error) {
+      toast.error(getErrorMessage(t, error))
+    }
+    setLoadingMore(false)
+  }, [hasMore, loadingMore, conversationFilter, t])
 
   useEffect(() => {
     if (inputSearch.current) {
@@ -101,13 +161,18 @@ const useConversationList = () => {
     }))
   }, [])
 
-  const handleChangeUnreadMessagesConversationCount = useCallback((data: string) => {
-    const conversationCount: any = JSON.parse(data)
-    setConversations((prev) => prev.map(i => 
-      conversationCount.conversationId === i.id 
-        ? { ...i, totalUnReadMessage: conversationCount.totalUnReadMessage } 
-        : i
-    ))
+  const handleChangeUnreadMessagesConversationCount = useCallback((data: any) => {
+    if (!data) return
+    try {
+      const conversationCount: any = typeof data === 'string' ? JSON.parse(data) : data
+      setConversations((prev) => prev.map(i => 
+        conversationCount.conversationId === i.id 
+          ? { ...i, totalUnReadMessage: conversationCount.totalUnReadMessage } 
+          : i
+      ))
+    } catch (e) {
+      console.error('Error in handleChangeUnreadMessagesConversationCount:', e)
+    }
   }, [])
 
   const checkSearchMatch = useCallback((item: any, searchText: string) => {
@@ -148,27 +213,41 @@ const useConversationList = () => {
     return true;
   }, []);
 
-  const handleNewMessageCount = useCallback((data: string) => {
-    const conversationCount: any = JSON.parse(data)
-    const searchText = searchRef.current?.trim() || "";
-    if (!checkSearchMatch(conversationCount, searchText) || !checkTabMatch(conversationCount, selectedTabRef.current)) return;
+  const handleNewMessageCount = useCallback((data: any) => {
+    if (!data) return
+    try {
+      const payload: any = typeof data === 'string' ? JSON.parse(data) : data
+      const convId = payload.conversationId || payload.id
+      if (!convId) return
 
-    setConversations((prev) => {
-      const index = prev.findIndex((i) => i.id === conversationCount.conversationId)
-      if (index < 0) return prev;
-      
+      const searchText = searchRef.current?.trim() || "";
+      if (!checkSearchMatch(payload, searchText) || !checkTabMatch(payload, selectedTabRef.current)) return;
+
+      setConversations((prev) => {
+        const index = prev.findIndex((i) => i.id === convId)
+        if (index < 0) return prev;
+        
         const updatedConversations = [...prev];
         const [conversation] = updatedConversations.splice(index, 1);
 
+        const lastMsg = payload.lastMessage || (payload.content ? {
+          content: payload.content,
+          createdAt: payload.createdAt,
+          isStudent: payload.isStudent
+        } : conversation.lastMessage)
+
         const updatedConversation = {
           ...conversation,
-          lastMessage: conversationCount.lastMessage || conversation.lastMessage,
-          totalUnReadMessage: conversationCount.totalUnReadMessage || 0,
-          isCompleted: conversationCount.isCompleted,
+          lastMessage: lastMsg,
+          totalUnReadMessage: payload.totalUnReadMessage ?? conversation.totalUnReadMessage,
+          isCompleted: payload.isCompleted !== undefined ? payload.isCompleted : conversation.isCompleted,
         }
         return [updatedConversation, ...updatedConversations];
-    })
-  }, [checkSearchMatch])
+      })
+    } catch (e) {
+      console.error('Error in handleNewMessageCount:', e)
+    }
+  }, [checkSearchMatch, checkTabMatch])
 
   const getListCourseByStudent = useCallback(async () => {
     setLoading(true)
@@ -182,13 +261,39 @@ const useConversationList = () => {
     setLoading(false)
   }, [user?.id, setLoading, t])
 
-  const handleCompletedConversation = useCallback((data: string) => {
+  const handleCompletedConversation = useCallback((data: any) => {
     if (!data) return
-    const item = JSON.parse(data)
-    setConversations((prev) => prev.map((conversation) => {
-      if (conversation.id === item.id) return {...conversation, isCompleted: item.isCompleted, completedAt: item.completedAt}
-      return conversation
-    }))
+    try {
+      const item = typeof data === 'string' ? JSON.parse(data) : data
+      const convId = item?.id ?? item?.conversationId
+      if (!convId) return
+
+      setConversations((prev) =>
+        prev.map((conversation) => {
+          if (conversation.id === convId) {
+            return {
+              ...conversation,
+              ...(typeof item === 'object' ? item : {}),
+              isCompleted: item.isCompleted ?? true,
+              completedAt: item.completedAt || conversation.completedAt,
+            }
+          }
+          return conversation
+        })
+      )
+      setSelectedConversation((prev) =>
+        prev?.id === convId
+          ? {
+              ...prev,
+              ...(typeof item === 'object' ? item : {}),
+              isCompleted: true,
+              completedAt: item?.completedAt || prev?.completedAt,
+            }
+          : prev
+      )
+    } catch (e) {
+      console.error('Error handling completed conversation in list:', e)
+    }
   }, [])
 
   useEffect(() => {
@@ -197,35 +302,49 @@ const useConversationList = () => {
   }, [user?.id, user?.academyDomain, getListCourseByStudent])
 
   useEffect(() => {
-    if (
-      academyDomain && socket
-    ) {
-      channel1.current = `presence-conversation-channel-${selectedConversation?.id}-${academyDomain.trim().toUpperCase()}`
-      channel2.current = `conversations-channel-${user.id}-${academyDomain.trim().toUpperCase()}`
-      socket.emit('subscribe', channel1.current);
-      socket.emit('subscribe', channel2.current);
-      socket.on("completed-conversation-event", handleCompletedConversation);
-      socket.on("unread-messages-count-event", handleChangeUnreadMessagesConversationCount);
-      socket.on("new-message-conversations-event", handleNewMessageCount);
+    if (!academyDomain || !user?.id) return
+
+    const socket = getSocket()
+    if (!socket) return
+
+    const normalizedDomain = academyDomain.trim().toUpperCase()
+    channel2.current = `conversations-channel-${user.id}-${normalizedDomain}`
+
+    const subscribeUserChannel = () => {
+      console.log('[Socket] Subscribing userChannel:', channel2.current, 'socket.id:', socket.id, 'connected:', socket.connected)
+      socket.emit('subscribe', channel2.current)
     }
+
+    if (socket.connected) {
+      subscribeUserChannel()
+    }
+    socket.on('connect', subscribeUserChannel)
+
+    socket.on("completed-conversation-event", handleCompletedConversation)
+    socket.on("unread-messages-count-event", handleChangeUnreadMessagesConversationCount)
+    socket.on("new-message-conversations-event", handleNewMessageCount)
+    socket.on("new-message-event", handleNewMessageCount)
+
     return () => {
-      socket?.emit('unsubscribe', channel1.current);
-      socket?.emit('unsubscribe', channel2.current);
-      socket?.off("completed-conversation-event", handleCompletedConversation);
-      socket?.off("unread-messages-count-event", handleChangeUnreadMessagesConversationCount);
-      socket?.off("new-message-conversations-event", handleNewMessageCount);
-    };
-  }, [selectedConversation?.id, academyDomain, user?.id, socket, handleCompletedConversation, handleChangeUnreadMessagesConversationCount, handleNewMessageCount]);
+      socket.off('connect', subscribeUserChannel)
+      if (socket.connected) {
+        socket.emit('unsubscribe', channel2.current)
+      }
+      socket.off("completed-conversation-event", handleCompletedConversation)
+      socket.off("unread-messages-count-event", handleChangeUnreadMessagesConversationCount)
+      socket.off("new-message-conversations-event", handleNewMessageCount)
+      socket.off("new-message-event", handleNewMessageCount)
+    }
+  }, [academyDomain, user?.id, handleCompletedConversation, handleChangeUnreadMessagesConversationCount, handleNewMessageCount]);
 
   useFocusEffect(
     useCallback(() => {
       getConversationList()
       return () => {
-        setSelectedConversation(undefined)
         setSearch('')
         searchRef.current = ''
       };
-    }, [getConversationList])
+    }, [])
   );
 
   useEffect(() => {
@@ -238,8 +357,10 @@ const useConversationList = () => {
     courses,
     conversationFilter,
     selectedConversation,
-    conversations,
+    conversations: sortedConversations,
     search,
+    hasMore,
+    loadingMore,
     loadingList,
     onChangeSearch,
     handleCloseFilterModal,
@@ -249,6 +370,7 @@ const useConversationList = () => {
     handleChangeSelectedConversation,
     setSelectedConversation,
     getConversationList,
+    handleLoadMore,
     isVisibleCreateConversationDialog,
     handleCloseCreateConversationDialog,
     handleVisibleCreateConversationDialog,
@@ -256,11 +378,12 @@ const useConversationList = () => {
     handleChangeTab,
 
   }), [
-    t, user, courses, conversationFilter, selectedConversation, conversations, search,
+    t, user, courses, conversationFilter, selectedConversation, sortedConversations, search,
+    hasMore, loadingMore,
     loadingList, onChangeSearch, handleCloseFilterModal, handleOpenFilterModal, handleChangeFilter,
     handleCompletedConversation, handleChangeSelectedConversation, getConversationList,
-    isVisibleCreateConversationDialog, handleCloseCreateConversationDialog, handleVisibleCreateConversationDialog,
-    selectedTab, handleChangeTab
+    handleLoadMore, isVisibleCreateConversationDialog, handleCloseCreateConversationDialog,
+    handleVisibleCreateConversationDialog, selectedTab, handleChangeTab
   ])
 }
 

@@ -8,16 +8,15 @@ const COURSE_URL = `${BASE_URL}/api/course`;
 export const getListExamByCourseApi = ({
   courseId
 }: {
-  courseId?: string;
+  courseId?: number | string;
 }) =>
   api.get(`${EXAM_URL}`, {
     params: {
-      courseId: courseId || undefined,
+      courseId: courseId ? Number(courseId) : undefined,
       currentPage: 1,
-      pageSize: -1,
+      pageSize: 10,
       sortColumnName: "ExamSession.StartTime",
-      sortColumnDirection: OrderBy.DESC,
-      statuses: [ExamStatus.Completed]
+      sortColumnDirection: OrderBy.DESC
     }
   });
 

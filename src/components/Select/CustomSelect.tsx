@@ -1,9 +1,9 @@
 import { palette } from '@/theme'
 import React, { forwardRef, useCallback, useMemo } from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
 import { Dropdown, IDropdownRef } from 'react-native-element-dropdown'
 import { useTranslation } from 'react-i18next'
-import Ionicons from '@expo/vector-icons/Ionicons'
+import { Ionicons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
@@ -23,6 +23,7 @@ type Props = {
   maxHeight?: number
   selectedTextStyle?: any
   placeholderStyle?: any
+  isClearable?: boolean
 }
 
 const DefaultIcon = ({ disabled }: { disabled?: boolean }) => (
@@ -51,13 +52,26 @@ const CustomSelect = forwardRef<IDropdownRef, Props>(
       emptyText,
       maxHeight = 300,
       selectedTextStyle,
-      placeholderStyle
+      placeholderStyle,
+      isClearable
     },
     ref
   ) => {
     const { t } = useTranslation()
 
-    const renderRightIcon = () => (icon ? icon() : <DefaultIcon disabled={disabled} />)
+    const renderRightIcon = () => {
+      if (isClearable && value != null && value !== '' && !disabled) {
+        return (
+          <TouchableOpacity
+            onPress={() => onValueChange?.(undefined)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="close-circle" size={16} color={palette.grey[400]} />
+          </TouchableOpacity>
+        )
+      }
+      return icon ? icon() : <DefaultIcon disabled={disabled} />
+    }
 
     const translatedSearchPlaceholder = searchPlaceholder ?? t('search_placeholder')
     const translatedPlaceholder = placeholder ?? t('select_placeholder')

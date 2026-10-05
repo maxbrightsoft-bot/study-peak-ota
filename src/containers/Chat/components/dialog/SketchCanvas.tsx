@@ -38,7 +38,7 @@ const SketchCanvas = ({ t, open, onClose, onSubmit }: Props) => {
   } = useSketchCanvas()
 
   return (
-    <CommonDialog isVisible={open} onClose={onClose} title={t('update_message')} disableInnerTouchable={true}>
+    <CommonDialog isVisible={open} onClose={onClose} title={t('sketch_canvas')} disableInnerTouchable={true}>
       <View style={{ flexDirection: 'row', gap: 12 }}>
         <TouchableOpacity style={styles.iconButton} onPress={handleUndo}>
           <Ionicons name="arrow-undo" size={15} color={palette.grey[500]} />

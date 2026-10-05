@@ -23,7 +23,12 @@ export const initSocket = async () => {
   return socket
 }
 
-export const getSocket = () => socket
+export const getSocket = () => {
+  if (!socket) {
+    socket = createSocket()
+  }
+  return socket
+}
 
 export const disconnectSocket = () => {
   socket?.disconnect()

@@ -28,6 +28,7 @@ import { AlarmResponse } from "@/utils/types/alarm";
 import { api } from "@/services/api/apiClient";
 import { autoReconnectPusher } from "@/utils/helpers/pusher";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { disconnectSocket } from "@/services/socket";
 import { toast } from "@/utils/helpers";
 import crashlytics from '@react-native-firebase/crashlytics'
 
@@ -431,6 +432,7 @@ const useAuthStore = create<AuthStore>()(
         await GoogleSignin.signOut();
 
         await disconnectPusher(pusher, channel);
+        disconnectSocket();
         toast.dismiss()
         clearCrashlyticsUser()
 
