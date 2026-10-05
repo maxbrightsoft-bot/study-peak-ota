@@ -12,7 +12,6 @@ import { useTranslation } from "react-i18next";
 import { diffFromNow, getErrorMessage, toast, toISOString } from "@/utils/helpers";
 import { ActivityAction, ActivityResource, AppScreen, ExamStatus, QuestionAnswerType } from "@/utils/enums";
 import moment from "moment";
-import { isTextType } from "@/utils/helpers/textbook";
 import { ExamSessionResponse } from "@/utils/types";
 import NetInfo from '@react-native-community/netinfo';
 import { getDataStorage, removeDataStorage, setDataStorage } from "@/utils/storage";
@@ -92,17 +91,13 @@ const useExamSolving = (props: Props) => {
     return `${rollBackQuestionList}.${academyId}.${examCode}.${userId}`;
   }, [academyDomain, academyId, examCode, userId]);
 
+  const latestScheduledCall = useRef<{ body: StudentAnswerRequest; lastAnswerTime: string } | null>(null);
+
   const getDiffTime = (exam: ExamSessionResponse, now: string, totalRunningTime: number) => {
-    let diff = 0;
-    if ((exam.runningTime != 0 || (!!runningTimeRef.current)) && !exam.isLate)
-      diff = totalRunningTime - (runningTimeRef.current ?? exam.runningTime);
-    else
-      diff = totalRunningTime - (totalAnsweredTimeRef.current ?? exam.totalAnsweredTime) - exam.totalPausedTime;
-    diff = Math.max(0, diff)
-    runningTimeRef.current = totalRunningTime;
+    const prevRunningTime = runningTimeRef.current ?? exam.runningTime ?? 0;
+    const diff = Math.max(1000, totalRunningTime - prevRunningTime);
+    runningTimeRef.current = Math.max(totalRunningTime, prevRunningTime + diff);
     ltAnswerTime.current = now;
-    if (!totalAnsweredTimeRef.current) totalAnsweredTimeRef.current = exam.totalAnsweredTime
-    totalAnsweredTimeRef.current += diff
     return diff;
   };
 
@@ -225,16 +220,27 @@ const useExamSolving = (props: Props) => {
 
     !isStar && handleNextQuestion()
 
-    const mappedQuestions = arrQuestionNew.map((i) => ({
-      questionId: i.id,
-      selectedAnswers: i.selectedAnswers,
-      textualAnswers: i.textualAnswers,
-      duration: i.duration,
-      isStar: !!i.isStar,
-      answerTime: i.answerTime,
-      unit: i.unit,
-      isActivelyAnswered: questionId === undefined ? true : i.id === questionId
-    }));
+    const mappedQuestions = arrQuestionNew.map((i) => {
+      let duration = Math.max(0, Math.round(i.duration || 0));
+      let answerTime = i.answerTime && i.answerTime > 0 ? i.answerTime : 0;
+
+      if (answerTime > 0 && duration === 0) {
+        duration = 1000;
+      } else if (duration > 0 && answerTime === 0) {
+        answerTime = lastAnswerTimeNum;
+      }
+
+      return {
+        questionId: i.id,
+        selectedAnswers: i.selectedAnswers,
+        textualAnswers: i.textualAnswers,
+        duration,
+        isStar: !!i.isStar,
+        answerTime,
+        unit: i.unit,
+        isActivelyAnswered: questionId === undefined ? true : i.id === questionId
+      };
+    });
 
     const sumQuestionDuration = mappedQuestions.reduce((acc, q) => acc + (q.duration || 0), 0);
     const finalRunningTime = Math.max(runningTime || 0, sumQuestionDuration);
@@ -258,8 +264,10 @@ const useExamSolving = (props: Props) => {
         await updateAnswers(body, lastAnswerTime, callback);
       }
     } else {
+      latestScheduledCall.current = { body, lastAnswerTime };
       apiTimeouts.current[rollbackKey] = setTimeout(
         () => {
+          latestScheduledCall.current = null;
           if (isCallingApi.current) {
             pendingApiCall.current = { body, lastAnswerTime };
           } else {
@@ -328,10 +336,10 @@ const useExamSolving = (props: Props) => {
             break;
         }
 
-        const diff = getDiffTime(exam, now, totalRunningTime);
-        item.duration = (item.duration || 0) + diff;
+        const diff = Math.max(0, getDiffTime(exam, now, totalRunningTime));
+        item.duration = Math.max(1000, (item.duration || 0) + diff);
         item.answerTime =
-          item.answerTime && item.answerTime !== 0
+          item.answerTime && item.answerTime > 0
             ? item.answerTime
             : nowTime;
       }
@@ -368,16 +376,25 @@ const useExamSolving = (props: Props) => {
         status: exam?.isLate ? exam?.lateStatus : exam?.status,
         studentExamSessionId: String(exam?.studentExamSessionId || ''),
       })
-      const mappedQuestionsCatch = arrQuestionNew.map((i) => ({
-        questionId: i.id,
-        selectedAnswers: i.selectedAnswers,
-        textualAnswers: i.textualAnswers,
-        duration: i.duration,
-        isStar: !!i.isStar,
-        answerTime: i.answerTime,
-        unit: i.unit,
-        isActivelyAnswered: questionId === undefined ? true : i.id === questionId
-      }));
+      const mappedQuestionsCatch = arrQuestionNew.map((i) => {
+        let duration = Math.max(0, Math.round(i.duration || 0));
+        let answerTime = i.answerTime && i.answerTime > 0 ? i.answerTime : 0;
+        if (answerTime > 0 && duration === 0) {
+          duration = 1000;
+        } else if (duration > 0 && answerTime === 0) {
+          answerTime = nowTime;
+        }
+        return {
+          questionId: i.id,
+          selectedAnswers: i.selectedAnswers,
+          textualAnswers: i.textualAnswers,
+          duration,
+          isStar: !!i.isStar,
+          answerTime,
+          unit: i.unit,
+          isActivelyAnswered: questionId === undefined ? true : i.id === questionId
+        };
+      });
 
       const sumDurationCatch = mappedQuestionsCatch.reduce((acc, q) => acc + (q.duration || 0), 0);
 
@@ -422,12 +439,13 @@ const useExamSolving = (props: Props) => {
     const arrQuestionNew = listQuestionNews.map((item: Question) => {
       if (item.id === questionId) {
         item.isStar = isStar;
-        const diff = getDiffTime(exam, now, totalRunningTime)
+        const diff = Math.max(0, getDiffTime(exam, now, totalRunningTime));
         item.duration = (item.duration || 0) + diff;
-        item.answerTime =
-          item.answerTime && item.answerTime !== 0
-            ? item.answerTime
-            : nowTime;
+        if (item.duration > 0 && (!item.answerTime || item.answerTime <= 0)) {
+          item.answerTime = nowTime;
+        } else if ((!item.duration || item.duration <= 0) && item.answerTime && item.answerTime > 0) {
+          item.duration = 1000;
+        }
       }
       return item;
     });
@@ -463,15 +481,24 @@ const useExamSolving = (props: Props) => {
       const body: StudentAnswerRequest = {
         lastAnswerTime: nowTime,
         runningTime: totalRunningTime,
-        questions: arrQuestionNew.map((i) => ({
-          questionId: i.id,
-          selectedAnswers: i.selectedAnswers,
-          duration: i.duration,
-          isStar: i.isStar,
-          answerTime: i.answerTime,
-          textualAnswers: i.textualAnswers,
-          unit: i.unit
-        }))
+        questions: arrQuestionNew.map((i) => {
+          let duration = Math.max(0, Math.round(i.duration || 0));
+          let answerTime = i.answerTime && i.answerTime > 0 ? i.answerTime : 0;
+          if (answerTime > 0 && duration === 0) {
+            duration = 1000;
+          } else if (duration > 0 && answerTime === 0) {
+            answerTime = nowTime;
+          }
+          return {
+            questionId: i.id,
+            selectedAnswers: i.selectedAnswers,
+            duration,
+            isStar: i.isStar,
+            answerTime,
+            textualAnswers: i.textualAnswers,
+            unit: i.unit
+          };
+        })
       };
       trackError(error, {
         resourceType: ActivityResource.Question,
@@ -603,6 +630,27 @@ const useExamSolving = (props: Props) => {
     totalAnsweredTimeRef.current = undefined
   }, [exam?.id])
 
+  const flushPendingAnswers = useCallback(async () => {
+    if (rollbackKey && apiTimeouts.current[rollbackKey]) {
+      clearTimeout(apiTimeouts.current[rollbackKey]);
+      delete apiTimeouts.current[rollbackKey];
+      const call = latestScheduledCall.current;
+      latestScheduledCall.current = null;
+      if (call) {
+        if (isCallingApi.current) {
+          pendingApiCall.current = call;
+        } else {
+          await updateAnswers(call.body, call.lastAnswerTime);
+        }
+      }
+    }
+
+    const startTime = Date.now();
+    while ((isCallingApi.current || pendingApiCall.current) && Date.now() - startTime < 3000) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+  }, [rollbackKey]);
+
   return {
     recoverExamCode,
     recoverKey,
@@ -610,7 +658,8 @@ const useExamSolving = (props: Props) => {
     updateQuestionStar,
     handleClearStorage,
     handleRecoverExamAnswer,
-    handleResetExamSolving
+    handleResetExamSolving,
+    flushPendingAnswers
   };
 };
 

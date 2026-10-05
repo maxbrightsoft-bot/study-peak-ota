@@ -25,7 +25,8 @@ interface Props {
   questionList?: PreparedQuestionResponse[];
   updateQuestionList?: (questions: PreparedQuestionResponse[]) => void;
   handleUpdateSlider?: (questionId: number) => void;
-  handleNextQuestion: (isError?: boolean) => void
+  handleNextQuestion: (isError?: boolean) => void;
+  totalLocalPausedMs?: number;
   isMockTimeOut?: boolean
 }
 const useTextbookSolving = (props: Props) => {
@@ -38,6 +39,7 @@ const useTextbookSolving = (props: Props) => {
     updateQuestionList,
     handleUpdateSlider,
     handleNextQuestion,
+    totalLocalPausedMs = 0,
     isMockTimeOut
   } = props;
   const user = useAuthStore(state => state.user)
@@ -62,6 +64,7 @@ const useTextbookSolving = (props: Props) => {
 
   const ltAnswerTime = useRef<string | undefined>(undefined);
   const totalAnsweredTimeRef = useRef<number | undefined>(undefined);
+  const pausedMsConsumedRef = useRef<number>(0);
   const isCallingApi = useRef<boolean>(false);
   const pendingApiCall = useRef<any>(null);
 
@@ -92,10 +95,18 @@ const useTextbookSolving = (props: Props) => {
     let diff = 0
 
     const totalRunningTime = +diffFromNow(textbook?.startTime || "", nowTime, now)
-    if (!textbook?.isMock)
+    if (!textbook?.isMock) {
       diff = +diffFromNow(moment(lastAnswerTime).format(DATE_TIME_FORMAT), nowTime, now)
-    else
+      if (totalLocalPausedMs > 0) {
+        const pausedSinceLastDiff = totalLocalPausedMs - pausedMsConsumedRef.current;
+        if (pausedSinceLastDiff > 0) {
+          diff -= pausedSinceLastDiff;
+          pausedMsConsumedRef.current = totalLocalPausedMs;
+        }
+      }
+    } else {
       diff = totalRunningTime - (totalAnsweredTimeRef.current ?? textbook.totalAnswerTime) - textbook.totalPausedTime;
+    }
     diff = Math.max(0, diff)
     ltAnswerTime.current = now;
     if (!totalAnsweredTimeRef.current) totalAnsweredTimeRef.current = textbook.totalAnswerTime
@@ -117,44 +128,53 @@ const useTextbookSolving = (props: Props) => {
     callback?: Function
   ) => {
     isCallingApi.current = true;
-    let res: any = null;
+    let resData: any = null;
     let error: any = null;
     try {
-      res = await answerQuestionTextbook(textbookId, body);
-      res = res.data.data;
-      if (res && !res.message) {
-        if (!totalAnsweredTimeRef.current || (res.totalAnswerTime && res.totalAnswerTime > totalAnsweredTimeRef.current))
-          totalAnsweredTimeRef.current = res.totalAnswerTime;
-        updateTextbook?.((prev: any) => {
-          return ({ ...prev, rowVersion: res?.rowVersion, questions: res.questions, lastAnswerTime: res.lastAnswerTime, totalAnswerTime: res.totalAnswerTime, totalPausedTime: res.totalPausedTime })
-        })
+      const axiosRes = await answerQuestionTextbook(textbookId, body);
+      resData = axiosRes.data;
+      const responseData = resData?.data;
+      if (resData && resData.status === 1 && responseData) {
+        if (!totalAnsweredTimeRef.current || (responseData.totalAnswerTime && responseData.totalAnswerTime > totalAnsweredTimeRef.current))
+          totalAnsweredTimeRef.current = responseData.totalAnswerTime;
+        updateTextbook?.((prev: any) => ({
+          ...prev,
+          rowVersion: responseData?.rowVersion,
+          questions: responseData.questions,
+          lastAnswerTime: responseData.lastAnswerTime,
+          totalPausedTime: responseData.totalPausedTime,
+          ...(textbook?.isMock && { totalAnswerTime: responseData.totalAnswerTime })
+        }));
       }
     } catch (err: any) {
       error = err;
     } finally {
       if (
         (error && error.code !== "ERR_NETWORK" && error.message !== "Network Error") ||
-        (res && res?.status === 0)
+        (resData && resData?.status === 0)
       ) {
         const rollBackQuestions = await getRollBackQuestionList();
         if (rollBackQuestions) {
           updateQuestionList?.(rollBackQuestions.questions);
-          const rollBackLastAnswerTime = rollBackQuestions.lastAnswerTime
-          const isValid = moment.invalid(rollBackLastAnswerTime)
+          const rollBackLastAnswerTime = rollBackQuestions.lastAnswerTime;
+          const isValid = moment.invalid(rollBackLastAnswerTime);
 
           if (ltAnswerTime.current && isValid && moment(rollBackLastAnswerTime).isAfter(startTime) && moment(rollBackLastAnswerTime).isAfter(ltAnswerTime.current))
-            ltAnswerTime.current = rollBackLastAnswerTime
+            ltAnswerTime.current = rollBackLastAnswerTime;
         }
         handleNextQuestion(true);
 
-        const errorMessage = res?.message || error?.response?.data?.title || error?.response?.data?.message;
+        const errorMessage = resData?.message || error?.response?.data?.title || error?.response?.data?.message;
         if (errorMessage && typeof errorMessage === "string" && !callback) {
           toast.error(errorMessage);
         } else if (!callback) {
           toast.error(getErrorMessage(t, error));
         }
       }
-      if (res?.status === 0)
+      if (resData?.status === 1) {
+        await handleClearStorage();
+      }
+      if (resData?.status === 0)
         await removeDataStorage(`${recoverKey}`);
       await removeDataStorage(`${rollbackKey}`);
       callback?.();
@@ -295,6 +315,9 @@ const useTextbookSolving = (props: Props) => {
           item.answerTime && item.answerTime !== 0
             ? item.answerTime
             : nowTime;
+        if (item.answerTime && item.answerTime > 0 && (!item.duration || item.duration <= 0)) {
+          item.duration = 1000;
+        }
       }
       return item;
     });
@@ -369,6 +392,13 @@ const useTextbookSolving = (props: Props) => {
         item.isStar = isStar;
         const diff = getDiffTime(now, nowTime);
         item.duration = (item.duration || 0) + +diff;
+        item.answerTime =
+          item.answerTime && item.answerTime !== 0
+            ? item.answerTime
+            : nowTime;
+        if (item.answerTime && item.answerTime > 0 && (!item.duration || item.duration <= 0)) {
+          item.duration = 1000;
+        }
       }
       return item;
     });
@@ -500,11 +530,13 @@ const useTextbookSolving = (props: Props) => {
     apiTimeouts.current = {};
     ltAnswerTime.current = undefined;
     totalAnsweredTimeRef.current = undefined;
+    pausedMsConsumedRef.current = 0;
   }, []);
 
   useEffect(() => {
     ltAnswerTime.current = undefined
     totalAnsweredTimeRef.current = undefined
+    pausedMsConsumedRef.current = 0;
   }, [textbook?.id])
 
   return {

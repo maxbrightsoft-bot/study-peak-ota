@@ -6,7 +6,7 @@ import * as React from 'react'
 import { ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native'
 import { Divider } from 'react-native-paper'
 import { ScaledSheet } from 'react-native-size-matters'
-import { utcToLocalTime } from '@/utils/helpers'
+import { utcToLocalTime, stripHtml } from '@/utils/helpers'
 import { TypeNotificationEnum } from '../configs/constants'
 import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 
@@ -51,7 +51,7 @@ const NoticeDrawer = ({ t, open, onClose, notification }: Props) => {
               ellipsizeMode="tail"
               style={{ ...TYPO.heading1, color: palette.grey[900], width: '60%' }}
             >
-              {notification?.name}
+              {stripHtml(notification?.name)}
             </Text>
             <Text style={{ ...TYPO.button3, color: palette.grey[700] }}>
               {t(`${TypeNotificationEnum[notification?.type || 0]?.toLocaleLowerCase()}`)}

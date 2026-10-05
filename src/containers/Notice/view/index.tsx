@@ -8,6 +8,7 @@ import moment from 'moment'
 import NoticeDetailDialog from '../components/NoticeDetailDialog'
 import { TabList } from '../configs/constants'
 import { useState } from 'react'
+import { stripHtml } from '@/utils/helpers'
 
 type Props = {
   open: boolean
@@ -27,14 +28,11 @@ const Notice = ({ open, onClose }: Props) => {
     handleCloseDetailDialog
   } = useNotice(setNew, open)
 
-  const stripHtml = (html?: string) => {
-    if (!html) return ''
-    return html.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim()
-  }
-
   const renderItem = ({ item }: any) => {
     const isNote = !!item?.isNote
-    const titleText = isNote ? (stripHtml(item?.content) || item?.name) : item?.name
+    const titleText = isNote
+      ? (stripHtml(item?.content) || item?.name)
+      : (stripHtml(item?.name) || stripHtml(item?.content))
     const authorName = isNote ? (item?.name || item?.teacherName) : item?.teacherName
 
     return (
