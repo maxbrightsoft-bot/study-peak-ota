@@ -1,5 +1,6 @@
 import { palette, TYPO } from '@/theme'
 import { ConversationsResponse } from '@/utils/types'
+import { ConversationType } from '@/utils/enums'
 import moment from 'moment'
 import React, { useMemo } from 'react'
 import { View, Text, TouchableOpacity } from 'react-native'
@@ -9,6 +10,7 @@ import useAuthStore from '@/store/useAuthStore'
 import Icon from '@expo/vector-icons/Ionicons'
 import TextTooltip from '@/components/Tooltip/TextTooltip'
 import { ScaledSheet } from 'react-native-size-matters'
+import { getCategoryTitle } from '../configs/constants'
 
 type Props = {
   conversation: ConversationsResponse
@@ -32,8 +34,11 @@ const ConversationItem = ({
     !conversation?.studentTextbookSessionId &&
     !conversation?.courseId &&
     !conversation?.examSessionId &&
-    !!conversation?.studentId &&
-    !!conversation.teacherId
+    (conversation?.type === ConversationType.StaffStudent ||
+      conversation?.type === ConversationType.TeacherStudent ||
+      !!conversation?.teacherId ||
+      !!conversation?.teacherName ||
+      !!(conversation as any)?.mainTeacherCourseName)
 
   const isActive = useMemo(() => {
     return selected?.id === conversation.id
@@ -66,7 +71,7 @@ const ConversationItem = ({
               <Icon name="person-outline" size={12} color={palette.main[700]} />
               <Text style={styles.teacherLabel}>{t('teacher')}</Text>
               <Text style={[styles.title, isActive && styles.activeText]} numberOfLines={1}>
-                {conversation.teacherName}
+                {conversation.teacherName || (conversation as any).mainTeacherCourseName || t('teacher')}
               </Text>
             </View>
           ) : (
@@ -76,7 +81,9 @@ const ConversationItem = ({
                 text={
                   conversation?.textbookName ||
                   conversation?.examTitle ||
-                  t(conversation.category || '')
+                  (conversation?.courseName && conversation?.category
+                    ? `${conversation.courseName} • ${getCategoryTitle(t, conversation.category)}`
+                    : conversation?.courseName || getCategoryTitle(t, conversation?.category) || t('general_inquiry'))
                 }
                 numberOfLines={1}
                 textStyle={[styles.title, isActive && styles.activeText]}

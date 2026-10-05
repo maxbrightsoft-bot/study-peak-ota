@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useRef, useState, useCallback, useEffect } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -11,7 +11,15 @@ import { WebView } from 'react-native-webview';
 import { ScaledSheet } from 'react-native-size-matters'
 import HandwritingInput from './HandwritingInput'
 
-const EDITOR_HTML = `<!DOCTYPE html><html>
+const getEditorHtml = ({
+  placeholder = '',
+  hideToolbar = false,
+  compact = false,
+}: {
+  placeholder?: string;
+  hideToolbar?: boolean;
+  compact?: boolean;
+} = {}) => `<!DOCTYPE html><html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
@@ -19,21 +27,51 @@ const EDITOR_HTML = `<!DOCTYPE html><html>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"><\/script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;background:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-body{display:flex;flex-direction:column}
-#toolbar{display:flex;align-items:center;padding:6px 10px;background:#f8fafc;border-bottom:1px solid #e2e8f0;flex-shrink:0;gap:8px}
+html,body{
+  height:100%;
+  margin:0;
+  padding:0;
+  background:${compact ? 'transparent' : '#fff'};
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  -webkit-text-size-adjust:100%;
+}
+body{
+  display:flex;
+  flex-direction:column;
+  justify-content:${compact ? 'center' : 'flex-start'};
+}
+#toolbar{display:${hideToolbar ? 'none' : 'flex'};align-items:center;padding:6px 10px;background:#f8fafc;border-bottom:1px solid #e2e8f0;flex-shrink:0;gap:8px}
 #sigmaBtn,#hwBtn{-webkit-appearance:none;appearance:none;width:34px;height:34px;min-width:34px;min-height:34px;padding:0;margin:0;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#334155;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent}
 #sigmaBtn:active,#hwBtn:active{background:#e2e8f0;color:#0f172a}
 #hwBtn{border-color:#a5b4fc;color:#4f46e5;font-size:16px;}
-#editor{flex:1;min-height:100px;padding:10px 12px;outline:none;font-size:16px;line-height:1.6;color:#1e293b;word-break:break-word;-webkit-user-select:text;user-select:text;-webkit-tap-highlight-color:transparent}
-.math-chip{display:inline-block;background:#eef2ff;border:1.5px solid #a5b4fc;border-radius:8px;padding:4px 10px;margin:3px 4px;cursor:pointer;-webkit-user-select:none;user-select:none;vertical-align:middle;font-size:16px;line-height:normal}
+#editor{
+  ${compact ? 'margin:auto 0;flex:0 0 auto;' : 'flex:1;'}
+  min-height:${compact ? '22px' : '100px'};
+  padding:${compact ? '0 4px' : '10px 12px'};
+  outline:none;
+  font-size:${compact ? '15px' : '16px'};
+  line-height:${compact ? '22px' : '1.4'};
+  color:#1e293b;
+  word-break:break-word;
+  -webkit-user-select:text;
+  user-select:text;
+  -webkit-tap-highlight-color:transparent;
+}
+#editor:empty:before{
+  content:attr(data-placeholder);
+  color:#94a3b8;
+  pointer-events:none;
+  display:block;
+  line-height:${compact ? '22px' : '1.4'};
+}
+.math-chip{display:inline-block;background:#eef2ff;border:1.5px solid #a5b4fc;border-radius:8px;padding:3px 8px;margin:2px 3px;cursor:pointer;-webkit-user-select:none;user-select:none;vertical-align:middle;font-size:15px;line-height:normal}
 </style>
 </head>
 <body>
-<div id="toolbar">
+${hideToolbar ? '' : `<div id="toolbar">
   <button id="hwBtn" type="button" onclick="openHandwriting()" title="Viết tay">✍️</button>
-</div>
-<div id="editor" contenteditable="true" spellcheck="false"></div>
+</div>`}
+<div id="editor" contenteditable="true" spellcheck="false" data-placeholder="${placeholder ? placeholder.replace(/"/g, '&quot;') : ''}"></div>
 <script>
 var editor=document.getElementById('editor');
 var chipCounter=0;
@@ -404,6 +442,8 @@ editor.addEventListener('selectionchange',saveSelection);
 
 export interface MathRichInputRef {
   clear: () => void;
+  blur: () => void;
+  openHandwriting?: () => void;
 }
 
 const MathRichInput = forwardRef<MathRichInputRef, {
@@ -411,12 +451,22 @@ const MathRichInput = forwardRef<MathRichInputRef, {
   onChange?: (v: string) => void;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
-}>(({ initialValue, onChange, disabled, style }, ref) => {
+  placeholder?: string;
+  hideToolbar?: boolean;
+  compact?: boolean;
+  onFocus?: () => void;
+  onBlur?: () => void;
+}>(({ initialValue, onChange, disabled, style, placeholder, hideToolbar, compact, onFocus, onBlur }, ref) => {
   const webviewRef = useRef<WebView>(null);
   const initialValueRef = useRef(initialValue);
   const [handwritingOpen, setHandwritingOpen] = useState(false);
   const [isHandwritingMode, setIsHandwritingMode] = useState(false);
   const editingChipIdRef = useRef<string | null>(null);
+
+  const editorHtml = useMemo(
+    () => getEditorHtml({ placeholder, hideToolbar, compact }),
+    [placeholder, hideToolbar, compact]
+  );
 
   const handleDismissKeyboard = useCallback(() => {
     webviewRef.current?.injectJavaScript(`if(window.blurEditor) window.blurEditor(); true;`);
@@ -426,7 +476,13 @@ const MathRichInput = forwardRef<MathRichInputRef, {
   const handleMessage = (e: any) => {
     try {
       const data = JSON.parse(e.nativeEvent.data);
-      if (data.type === 'openPicker') {
+      if (data.type === 'focus') {
+        onFocus?.();
+      }
+      else if (data.type === 'blur') {
+        onBlur?.();
+      }
+      else if (data.type === 'openPicker') {
         editingChipIdRef.current = null;
         setIsHandwritingMode(false);
         setHandwritingOpen(true);
@@ -463,16 +519,21 @@ const MathRichInput = forwardRef<MathRichInputRef, {
       );
     },
     blur: handleDismissKeyboard,
+    openHandwriting: () => {
+      editingChipIdRef.current = null;
+      setIsHandwritingMode(true);
+      setHandwritingOpen(true);
+    }
   }));
 
   return (
     <>
-      <View pointerEvents={disabled ? 'none' : 'auto'} style={[s.container, style]}>
+      <View pointerEvents={disabled ? 'none' : 'auto'} style={[s.container, compact && s.compactContainer, style]}>
         <WebView
           ref={webviewRef}
-          source={{ html: EDITOR_HTML }}
+          source={{ html: editorHtml }}
           onMessage={handleMessage}
-          scrollEnabled={false}
+          scrollEnabled={!compact ? false : true}
           style={{ flex: 1, backgroundColor: 'transparent' }}
           originWhitelist={['*']}
           javaScriptEnabled
@@ -526,6 +587,10 @@ const s = ScaledSheet.create({
     borderRadius: '8@ms',
     backgroundColor: '#fff',
     overflow: 'hidden',
+  },
+  compactContainer: {
+    backgroundColor: 'transparent',
+    borderRadius: 0,
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,

@@ -1,4 +1,5 @@
 import { MathRichInputRef } from "@/components/Input/MathRichInput"
+import { ConversationType } from "@/utils/enums"
 import { ConversationsResponse, MessageRequest, StudentsConversationResponse } from "@/utils/types"
 
 export type Course = {
@@ -32,6 +33,8 @@ export interface IChatItemProps {
 export interface IChatHeaderProps extends ConversationsResponse  {
     fullName?: string
     roles?: Array<string>
+    isOnlyConversationStudentWithTeacher?: boolean
+    type?: ConversationType | number | string
 }
 
 export interface IInputChatProps {
