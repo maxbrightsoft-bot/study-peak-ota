@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Text, TouchableOpacity, View, ScrollView } from 'react-native'
 import { Button } from 'react-native-paper'
 import useLiveResult from '../hooks/useLiveResult'
 import { utcToLocalTime } from '@/utils/helpers'
@@ -78,72 +78,78 @@ const LiveResultDialog = ({ open, onClose = () => {}, examCode, studentExamSessi
         <View></View>
       </View>
 
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={palette.main[600]} />
-          <Text style={styles.loadingTitle}>{t('calculating_exam_score')}</Text>
-          <Text style={styles.loadingSub}>{t('please_wait_a_moment')}</Text>
-        </View>
-      ) : isError || !examResult ? (
-        <View style={styles.loadingContainer}>
-          <Ionicons name="alert-circle-outline" size={48} color={palette.red[500]} />
-          <Text style={styles.loadingTitle}>{t('failed_to_load_exam_result')}</Text>
-          <Text style={styles.loadingSub}>{t('check_network_and_try_again')}</Text>
-          <View style={[styles.buttonContainer, { width: '100%', marginTop: 24 }]}>
-            <Button mode="contained" style={styles.filledButton} labelStyle={styles.filledText} onPress={refetch}>
-              {t('try_again')}
-            </Button>
-            <Button mode="outlined" style={styles.outlineButton} labelStyle={styles.outlineText} onPress={handleExamEnd}>
-              {t('exam_end')}
-            </Button>
+      <ScrollView
+        style={styles.scrollWrapper}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={palette.main[600]} />
+            <Text style={styles.loadingTitle}>{t('calculating_exam_score')}</Text>
+            <Text style={styles.loadingSub}>{t('please_wait_a_moment')}</Text>
           </View>
-        </View>
-      ) : (
-        <View style={styles.container}>
-          <TextTooltip
-            text={examResult?.title || ''}
-            numberOfLines={2}
-            textStyle={styles.examTitle}
-            placement='bottom'
-          />
-
-          <Text style={styles.score}>{t('score_format', { score: scoreDisplay })}</Text>
-
-          <Text style={styles.percentage}>{t('percentage_among_students')}: {percentageDisplay}%</Text>
-
-          <View style={styles.infoBlock}>
-            <InfoRow label={t('exam_date')} value={utcToLocalTime(examResult?.startTime, t('full_date_time_format'))} />
-            <InfoRow label={t('exam_duration')} value={totalTime} />
-            <InfoRow label={t('number_of_questions')} value={`${resultData?.questions?.length || 0} ${t('questions')}`} />
-          </View>
-
-          <View style={styles.buttonContainer}>
-            {hasUnsolved && (
-              <Button
-                mode="contained"
-                style={[styles.filledButton, { backgroundColor: palette.main[500] }]}
-                labelStyle={styles.filledText}
-                onPress={onClose}
-              >
-                {t('solve_undone_questions')}
+        ) : isError || !examResult ? (
+          <View style={styles.loadingContainer}>
+            <Ionicons name="alert-circle-outline" size={48} color={palette.red[500]} />
+            <Text style={styles.loadingTitle}>{t('failed_to_load_exam_result')}</Text>
+            <Text style={styles.loadingSub}>{t('check_network_and_try_again')}</Text>
+            <View style={[styles.buttonContainer, { width: '100%', marginTop: 24 }]}>
+              <Button mode="contained" style={styles.filledButton} labelStyle={styles.filledText} onPress={refetch}>
+                {t('try_again')}
               </Button>
-            )}
-
-            <Button
-              mode="outlined"
-              style={styles.outlineButton}
-              labelStyle={styles.outlineText}
-              onPress={handleDetailExamResult}
-            >
-              {t('view_details')}
-            </Button>
-
-            <Button mode="contained" style={styles.filledButton} labelStyle={styles.filledText} onPress={handleExamEnd}>
-              {t('exam_end')}
-            </Button>
+              <Button mode="outlined" style={styles.outlineButton} labelStyle={styles.outlineText} onPress={handleExamEnd}>
+                {t('exam_end')}
+              </Button>
+            </View>
           </View>
-        </View>
-      )}
+        ) : (
+          <View style={styles.container}>
+            <TextTooltip
+              text={examResult?.title || ''}
+              numberOfLines={2}
+              textStyle={styles.examTitle}
+              placement='bottom'
+            />
+
+            <Text style={styles.score}>{t('score_format', { score: scoreDisplay })}</Text>
+
+            <Text style={styles.percentage}>{t('percentage_among_students')}: {percentageDisplay}%</Text>
+
+            <View style={styles.infoBlock}>
+              <InfoRow label={t('exam_date')} value={utcToLocalTime(examResult?.startTime, t('full_date_time_format'))} />
+              <InfoRow label={t('exam_duration')} value={totalTime} />
+              <InfoRow label={t('number_of_questions')} value={`${resultData?.questions?.length || 0} ${t('questions')}`} />
+            </View>
+
+            <View style={styles.buttonContainer}>
+              {hasUnsolved && (
+                <Button
+                  mode="contained"
+                  style={[styles.filledButton, { backgroundColor: palette.main[500] }]}
+                  labelStyle={styles.filledText}
+                  onPress={onClose}
+                >
+                  {t('solve_undone_questions')}
+                </Button>
+              )}
+
+              <Button
+                mode="outlined"
+                style={styles.outlineButton}
+                labelStyle={styles.outlineText}
+                onPress={handleDetailExamResult}
+              >
+                {t('view_details')}
+              </Button>
+
+              <Button mode="contained" style={styles.filledButton} labelStyle={styles.filledText} onPress={handleExamEnd}>
+                {t('exam_end')}
+              </Button>
+            </View>
+          </View>
+        )}
+      </ScrollView>
     </SlideDrawerRoot>
   )
 }
@@ -156,10 +162,16 @@ const InfoRow = ({ label, value }: { label: string; value: string }) => (
 )
 
 const styles = ScaledSheet.create({
+  scrollWrapper: {
+    flex: 1
+  },
+  scrollContent: {
+    flexGrow: 1
+  },
   container: {
     paddingHorizontal: '24@ms',
     paddingTop: '24@ms',
-    paddingBottom: '16@ms'
+    paddingBottom: '32@ms'
   },
   loadingContainer: {
     paddingHorizontal: '24@ms',

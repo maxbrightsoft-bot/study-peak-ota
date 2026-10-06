@@ -8,7 +8,7 @@ import { Divider } from 'react-native-paper'
 import { ScaledSheet } from 'react-native-size-matters'
 import { utcToLocalTime } from '@/utils/helpers'
 import { TypeNotificationEnum } from '../configs/constants'
-import SlideDrawer from '@/components/ModalBase/SlideDrawer'
+import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 
 type Props = {
   t: any
@@ -82,7 +82,7 @@ const NoticeDrawer = ({ t, open, onClose, notification }: Props) => {
     )
   }
 
-  return <SlideDrawer visible={open} onClose={onClose}>{renderBodyModal()}</SlideDrawer>
+  return <SlideDrawerRoot visible={open} onClose={onClose}>{renderBodyModal()}</SlideDrawerRoot>
 }
 
 export default NoticeDrawer

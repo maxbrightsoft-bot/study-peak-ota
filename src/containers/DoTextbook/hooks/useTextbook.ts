@@ -19,7 +19,7 @@ import { useTextbookTimer } from "./useTextbookTimer";
 import { findTargetQuestionForPageRange, isNull } from "../config/helpers";
 import { Routes } from "@/navigators/RouteName";
 import { navigate } from "@/navigators/NavigationHelpers";
-import { Alert, findNodeHandle, FlatList, UIManager, View } from "react-native";
+import { Alert, findNodeHandle, FlatList, UIManager, View, BackHandler } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { PauseOrResumeExamRequest, RestartTextbookRequest } from "@/utils/types";
@@ -60,6 +60,7 @@ const useTextbook = ({
   const [questionList, setQuestionList] = useState<PreparedQuestionResponse[]>(
     []
   );
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState<boolean>(true);
   const navigation = useNavigation();
   const scrollViewRef = useRef<FlatList>(null)
   const questionRefs = useRef<Array<View | null>>([])
@@ -121,16 +122,12 @@ const useTextbook = ({
   }, [])
 
   const handleOpenLeaveDialog = useCallback(() => {
+    if (isLoadingQuestions) return;
     setOpenLeaveDialog(true)
-  }, [])
+  }, [isLoadingQuestions])
 
   const handleCloseLeaveDialog = useCallback(() => {
     setOpenLeaveDialog(false)
-  }, [])
-
-  const handleOpenAnswerSheet = useCallback((id?: number) => {
-    id && setCurrentQuestionId(id);
-    setOpenAnswerSheet(true);
   }, [])
 
   const handleCloseAnswerSheet = useCallback(() => {
@@ -304,6 +301,7 @@ const useTextbook = ({
 
     setNotFoundTextbook(false);
     setLoadingWithoutOverlay(true);
+    setIsLoadingQuestions(true);
     setStartTime(undefined);
     const nowTime = getServerNow();
 
@@ -383,16 +381,17 @@ const useTextbook = ({
           studentTextbookId: String(textbook?.studentTextbookId || ''),
         }
       });
+    } finally {
+      setLoadingWithoutOverlay(false);
+      setIsLoadingQuestions(false);
+      if (!page && !restartTextbookData?.startPage) {
+        scrollViewRef.current?.scrollToOffset({
+          offset: 0,
+          animated: true
+        });
+      }
+      if (firstLoadRef.current) firstLoadRef.current = false;
     }
-
-    setLoadingWithoutOverlay(false);
-    if (!page && !restartTextbookData?.startPage) {
-      scrollViewRef.current?.scrollToOffset({
-        offset: 0,
-        animated: true
-      });
-    }
-    if (firstLoadRef.current) firstLoadRef.current = false;
   };
 
   const handleUpdateQuestionList = (questions: PreparedQuestionResponse[]) => {
@@ -400,6 +399,7 @@ const useTextbook = ({
   };
 
   const checkEndStatus = useCallback(() => {
+    handleCloseAnswerSheet();
     if (textbook?.isMock && handleOpenDrawer) {
       handleOpenDrawer();
     }
@@ -408,7 +408,7 @@ const useTextbook = ({
       ...state,
       status: ExamStatus.Completed
     }));
-  }, [handleOpenDrawer, textbook?.isMock]);
+  }, [handleCloseAnswerSheet, handleOpenDrawer, textbook?.isMock]);
 
   const remainTime = useCountDownTimer({
     lastResumedAt: textbook?.lastResumedAt,
@@ -422,6 +422,25 @@ const useTextbook = ({
     textbookId: textbook?.id,
     onFinish: checkEndStatus
   });
+
+  const isMockTimeOut = useMemo(() => {
+    return Boolean(
+      textbook?.isMock &&
+      ((remainTime !== undefined && remainTime <= 0) || textbook?.status === ExamStatus.Completed)
+    );
+  }, [textbook?.isMock, remainTime, textbook?.status]);
+
+  useEffect(() => {
+    if (isMockTimeOut) {
+      handleCloseAnswerSheet();
+    }
+  }, [isMockTimeOut, handleCloseAnswerSheet]);
+
+  const handleOpenAnswerSheet = useCallback((id?: number) => {
+    if (isMockTimeOut) return;
+    id && setCurrentQuestionId(id);
+    setOpenAnswerSheet(true);
+  }, [isMockTimeOut]);
 
   const remainTimeString = useMemo(() => {
     return formatMinutesToTime((remainTime || 0) / 60);
@@ -449,7 +468,8 @@ const useTextbook = ({
       updateTextbook: setTextbook,
       questionList,
       updateQuestionList: handleUpdateQuestionList,
-      handleNextQuestion
+      handleNextQuestion,
+      isMockTimeOut
     });
 
   const questionPage = questionGroupList.length;
@@ -494,7 +514,7 @@ const useTextbook = ({
   }, [questionGroupList]);
 
   const onFinishedTextbook = async () => {
-    if (!textbook || !textbookId) return;
+    if (isLoadingQuestions || !textbook || !textbookId) return;
 
     setLoading(true);
     const nowTime = new Date(getServerNow()).toISOString();
@@ -542,7 +562,7 @@ const useTextbook = ({
   }, [questionList.length, page]);
 
   const handlePauseAndResumeTextbook = async (status: ExamStatus) => {
-    if (!textbook || !textbookId) return;
+    if (!textbook || !textbookId || isMockTimeOut) return;
 
     setLoading(true);
     const nowTime = getServerNow();
@@ -664,6 +684,7 @@ const useTextbook = ({
       setLoading(false);
       setLoadingWithoutOverlay(false);
     }
+    setIsLoadingQuestions(true);
     isJustRestartedRef.current = false;
     hasInitialScrolledRef.current = false;
     lastHandledPageParamRef.current = undefined;
@@ -811,6 +832,11 @@ const useTextbook = ({
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      if (isLoadingQuestions) {
+        e.preventDefault();
+        return;
+      }
+
       if (textbook?.status !== ExamStatus.InProgress) return;
 
       e.preventDefault();
@@ -830,7 +856,14 @@ const useTextbook = ({
     });
 
     return unsubscribe;
-  }, [navigation, textbook?.status, t]);
+  }, [navigation, textbook?.status, isLoadingQuestions, t]);
+
+  useEffect(() => {
+    if (!isLoadingQuestions) return;
+    const onBackPress = () => true;
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => sub.remove();
+  }, [isLoadingQuestions]);
 
   const navigateToPageRange = useCallback(
     (pageNum: number) => {
@@ -919,9 +952,11 @@ const useTextbook = ({
     getQuestionsTextbook,
     textbookId: textbookId,
     remainTime,
+    isMockTimeOut,
     isPaused: textbook?.status === ExamStatus.Paused,
     isCompleted: textbook?.status === ExamStatus.Completed,
     isInProgress: textbook?.status === ExamStatus.InProgress,
+    isLoadingQuestions
   };
 };
 

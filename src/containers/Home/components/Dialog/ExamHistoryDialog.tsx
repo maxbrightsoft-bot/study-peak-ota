@@ -125,6 +125,13 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
       }
     }
 
+    const metaItems = [
+      { key: 'date', text: dateStr || '' },
+      { key: 'course', text: t(item?.courseName || '', { defaultValue: item?.courseName || '' }) },
+      { key: 'subject', text: item?.subjectName || '' },
+      { key: 'teacher', text: item?.teacherName || '' }
+    ].filter((m) => !!m.text)
+
     return (
       <View style={styles.examCard}>
         <View style={styles.cardTopRow}>
@@ -133,33 +140,22 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
           </View>
           <Text style={styles.examCode}>{item?.examCode || ''}</Text>
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' }}>
-          <Text numberOfLines={1} style={[styles.examTitle, { flexShrink: 1 }]}>
-            {dateStr || ''}
-          </Text>
-          <View style={styles.divider} />
-          <TextTooltip
-            text={t(item?.courseName || '', { defaultValue: item?.courseName || '' })}
-            numberOfLines={1}
-            textStyle={styles.examTitle}
-            containerStyle={{ flexShrink: 1 }}
-          />
-          <View style={styles.divider} />
-          <TextTooltip
-            text={item?.subjectName || ''}
-            numberOfLines={1}
-            textStyle={styles.examTitle}
-            containerStyle={{ flexShrink: 1 }}
-          />
-          <View style={styles.divider} />
-          <TextTooltip
-            text={item?.title || ''}
-            numberOfLines={1}
-            textStyle={styles.examTitle}
-            containerStyle={{ flexShrink: 1 }}
-          />
+
+        <Text style={styles.examTitle}>{item?.title || ''}</Text>
+
+        <View style={styles.examMetaRow}>
+          {metaItems.map((meta, idx) => (
+            <React.Fragment key={meta.key}>
+              {idx > 0 && <View style={styles.divider} />}
+              <TextTooltip
+                text={meta.text}
+                numberOfLines={1}
+                textStyle={styles.examMeta}
+                containerStyle={{ flexShrink: 1 }}
+              />
+            </React.Fragment>
+          ))}
         </View>
-        <Text style={styles.examMeta}>{item?.teacherName || ''}</Text>
 
         <View style={styles.cardFooter}>
           <TouchableOpacity
@@ -266,10 +262,10 @@ const styles = ScaledSheet.create({
     borderBottomColor: palette.grey[100]
   },
   divider: {
-    height: '12@ms',
-    width: '1.5@ms',
+    height: '11@ms',
+    width: '1@ms',
     backgroundColor: palette.grey[300],
-    marginHorizontal: '8@ms'
+    marginHorizontal: '6@ms'
   },
   headerTitle: {
     fontSize: '17@ms',
@@ -375,9 +371,16 @@ const styles = ScaledSheet.create({
   },
   examTitle: {
     fontSize: '16@ms',
-    fontWeight: '600',
+    fontWeight: '700',
     color: palette.grey[900],
-    marginBottom: 0
+    marginBottom: '6@ms',
+    lineHeight: '22@ms'
+  },
+  examMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    rowGap: '4@ms'
   },
   examMeta: {
     fontSize: '12@ms',

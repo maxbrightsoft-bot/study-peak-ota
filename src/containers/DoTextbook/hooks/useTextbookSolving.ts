@@ -27,6 +27,7 @@ interface Props {
   updateQuestionList?: (questions: PreparedQuestionResponse[]) => void;
   handleUpdateSlider?: (questionId: number) => void;
   handleNextQuestion: (isError?: boolean) => void
+  isMockTimeOut?: boolean
 }
 const useTextbookSolving = (props: Props) => {
   const {
@@ -37,7 +38,8 @@ const useTextbookSolving = (props: Props) => {
     questionList = [],
     updateQuestionList,
     handleUpdateSlider,
-    handleNextQuestion
+    handleNextQuestion,
+    isMockTimeOut
   } = props;
   const user = useAuthStore(state => state.user)
   const selectedAcademy = useAuthStore(state => state.selectedAcademy)
@@ -248,7 +250,7 @@ const useTextbookSolving = (props: Props) => {
   };
 
   const updateQuestionAnswer = ({ questionId, textualAnswers = [], answer }: TextbookQuestion) => {
-    if (!textbook) return;
+    if (!textbook || isMockTimeOut) return;
     const { now, nowTime } = getServerTimeFormatted();
 
     const listQuestionNews = _.cloneDeep(questionList);

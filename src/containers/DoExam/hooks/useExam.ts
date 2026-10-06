@@ -20,9 +20,8 @@ import { ActivityAction, ActivityResource, AppScreen, ExamEvent, ExamStatus, Que
 import { formatMinutesToTime, getErrorMessage, toast } from "@/utils/helpers";
 import { isTextType } from "@/utils/helpers/textbook";
 import useCountDownTimer from "@/hooks/useCountDownTimer";
-import { useNavigation } from "@react-navigation/native";
-import { useFocusEffect } from "@react-navigation/native";
-import { findNodeHandle, UIManager, View, Alert, FlatList } from "react-native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { findNodeHandle, UIManager, View, Alert, FlatList, BackHandler } from "react-native";
 import { Routes } from "@/navigators/RouteName";
 import { navigate, currentScreen } from "@/navigators/NavigationHelpers";
 import { PusherChannel } from "@pusher/pusher-websocket-react-native";
@@ -48,6 +47,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
   const { t } = useTranslation();
   const navigation = useNavigation();
   const [questionList, setQuestionList] = useState<Question[]>([]);
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState<boolean>(true);
   const [questionListMapped, setQuestionListMapped] = useState<QuestionGroupResponse[]>([]);
   const [exam, setExam] = useState<ExamSessionResponse>();
   const firstLoadRef = useRef<boolean>(true);
@@ -84,16 +84,18 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
   useKeepAwake();
 
   const handleOpenLeaveDialog = useCallback(() => {
+    if (isLoadingQuestions) return;
     setOpenLeaveDialog(true)
-  }, [])
+  }, [isLoadingQuestions])
 
   const handleCloseLeaveDialog = useCallback(() => {
     setOpenLeaveDialog(false)
   }, [])
 
   const handleOpenUnsolvedLeaveDialog = useCallback(() => {
+    if (isLoadingQuestions) return;
     setOpenUnsolvedLeaveDialog(true)
-  }, [])
+  }, [isLoadingQuestions])
 
   const handleCloseUnsolvedLeaveDialog = useCallback(() => {
     setOpenUnsolvedLeaveDialog(false)
@@ -116,12 +118,13 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
   };
 
   const handleOpenFinishConfirmDialog = useCallback(() => {
+    if (isLoadingQuestions) return;
     if (questionList?.length && !isAllQuestionsAnswered(questionList)) {
       setOpenUnsolvedLeaveDialog(true);
     } else {
       setOpenConfirmFinishDialog(true);
     }
-  }, [questionList])
+  }, [questionList, isLoadingQuestions])
 
   const handleCloseFinishConfirmDialog = useCallback(() => {
     setOpenConfirmFinishDialog(false);
@@ -312,6 +315,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     setEnding(false);
     setNotFoundExam(false);
     setLoading(true);
+    setIsLoadingQuestions(true);
     const nowTime = getServerNow();
 
     try {
@@ -334,6 +338,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
         handleCloseLeaveDialog()
         handleCloseInfoExamDialog()
         setLoading(false);
+        setIsLoadingQuestions(false);
         return;
       }
 
@@ -377,6 +382,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
       })
     } finally {
       setLoading(false);
+      setIsLoadingQuestions(false);
       if (firstLoadRef.current) firstLoadRef.current = false;
     }
   };
@@ -779,6 +785,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
   const handleClear = () => {
     setLoading(false)
     setLoadingWithoutOverlay(false)
+    setIsLoadingQuestions(true)
     handleCloseLiveResultDialog()
     handleCloseResultDialog()
     handleCloseLeaveDialog()
@@ -805,6 +812,11 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
 
   useEffect(() => {
     const unsubscribe = navigation?.addListener('beforeRemove', (e) => {
+      if (isLoadingQuestions) {
+        e.preventDefault();
+        return;
+      }
+
       if (exam?.status !== ExamStatus.InProgress) return;
 
       e.preventDefault();
@@ -823,7 +835,14 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     });
 
     return unsubscribe;
-  }, [navigation, exam?.status, t]);
+  }, [navigation, exam?.status, isLoadingQuestions, t]);
+
+  useEffect(() => {
+    if (!isLoadingQuestions) return;
+    const onBackPress = () => true;
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => sub.remove();
+  }, [isLoadingQuestions]);
 
   const cleanupPusher = () => {
     if (!academyDomain || !userId || !pusher) return
@@ -1013,7 +1032,8 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     handleDetailExamResult,
     handleCloseLiveResultDialog,
     handleOpenLiveResultDialog,
-    isLoading: isLoading || isLoadingWithoutOverlay
+    isLoading: isLoading || isLoadingWithoutOverlay,
+    isLoadingQuestions
   };
 };
 
