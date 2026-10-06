@@ -10,7 +10,7 @@ import {
 } from "@/services/api/academyService"
 import { getSocket } from "@/services"
 import { Role } from "@/utils/enums"
-import { getErrorMessage, toast } from "@/utils/helpers"
+import { getCurrentRole, getErrorMessage, toast } from "@/utils/helpers"
 import { ErrorMessageCodes } from "@/utils/constants/error"
 import { LoginAccessTokenRequest } from "@/utils/types"
 import { MainRoutes, Routes } from "@/navigators/RouteName"
@@ -113,21 +113,21 @@ const useAcademyRequest = () => {
     const handleSwitchAcademy = async (isLearningSpace: boolean) => {
         if (!academyRequest || !academyRequest.academyId) return
         setGlobalLoading(true)
+        const selectedAcademy = {
+            id: academyRequest.academyId,
+            name: academyRequest.academyName,
+            image: academyRequest.academyImage ?? "",
+            domain: academyRequest.academyDomain ?? ""
+        }
+        const userRole = getCurrentRole(user?.roles);
         try {
-            const res = await switchAcademy(academyRequest.academyId, Role.Student, isLearningSpace)
+            const res = await switchAcademy(academyRequest.academyId, userRole, isLearningSpace)
             const data = res.data
             const requestBody: LoginAccessTokenRequest = {
                 accessToken: data.accessToken,
                 email: user?.email || "",
-                role: Role.Student,
+                role: userRole,
                 isMobile: true
-            }
-
-            const selectedAcademy = {
-                id: academyRequest.academyId,
-                name: academyRequest.academyName,
-                image: academyRequest.academyImage ?? "",
-                domain: academyRequest.academyDomain ?? ""
             }
 
             await handleLoginAccessToken(

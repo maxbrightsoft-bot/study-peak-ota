@@ -14,6 +14,8 @@ const useSocketConversation = ({
   conversationEvents
 }: Props) => {
   const user = useAuthStore(state => state.user)
+  const parentViewMode = useAuthStore(state => state.parentViewMode)
+  const isParentMode = !!parentViewMode?.isActive
   const socket = getSocket()
 
   const roles = user?.roles
@@ -32,8 +34,12 @@ const useSocketConversation = ({
     })
   }
 
+  const effectiveUserId = (isParentMode && parentViewMode?.studentAcademyUserId)
+    ? parentViewMode.studentAcademyUserId
+    : user?.id
+
   useEffect(() => {
-    if (!academyDomain || !user?.id) return
+    if (!academyDomain || !effectiveUserId) return
 
     const normalizedDomain = academyDomain.trim().toUpperCase()
 
@@ -47,7 +53,7 @@ const useSocketConversation = ({
 
     roleChannel = `conversations-channel-Student-${normalizedDomain}`
 
-    userChannel = `conversations-channel-${user.id}-${normalizedDomain}`
+    userChannel = `conversations-channel-${effectiveUserId}-${normalizedDomain}`
 
     conversationChannel && socket?.send('subscribe', { channel: conversationChannel })
     roleChannel && socket?.send('subscribe', { channel: roleChannel })
@@ -64,8 +70,9 @@ const useSocketConversation = ({
   }, [
     selectedConversation?.id,
     academyDomain,
-    user?.id,
-    isStudent
+    effectiveUserId,
+    isStudent,
+    isParentMode
   ])
 
   return {}

@@ -1,4 +1,10 @@
 export const ErrorMessages: any = {
+    InvalidOrExpiredCode: "invalid_or_expired_code",
+    AlreadyLinked: "already_linked",
+    AccountLinkNotFound: "account_link_not_found",
+    CannotLinkToYourself: "cannot_link_to_yourself",
+    LinkRequestExpired: "link_request_expired",
+    LinkRequestPending: "link_request_pending",
     SuperAdministratorsCannotCreateAcademyRequest: "super_administrators_cannot_create_academy_request",
     AcademyRequestRoleIsInvalid: "academy_request_role_is_invalid",
     TheUserAlreadyExistInTheAcademyWithRole: "user_already_exists_in_academy_with_role",
@@ -29,10 +35,16 @@ export const ErrorMessages: any = {
     StoppedTimeMustBeGreaterThanStartTime: "stopped_time_must_be_greater_than_start_time",
     TotalTimeMustBePositive: "total_time_must_be_positive",
     TotalTimeOutOfRange: "total_time_out_of_range",
-    ScheduleCannotBeCompletedBeforeStartTime: "schedule_cannot_be_completed_before_start_time"
-
+    ScheduleCannotBeCompletedBeforeStartTime: "schedule_cannot_be_completed_before_start_time",
+    TooManyRequests: "too_many_requests"
 }
 export enum ErrorMessageCodes {
+    InvalidOrExpiredCode = "InvalidOrExpiredCode",
+    AlreadyLinked = "AlreadyLinked",
+    AccountLinkNotFound = "AccountLinkNotFound",
+    CannotLinkToYourself = "CannotLinkToYourself",
+    LinkRequestExpired = "LinkRequestExpired",
+    LinkRequestPending = "LinkRequestPending",
     SuperAdministratorsCannotCreateAcademyRequest = "SuperAdministratorsCannotCreateAcademyRequest",
     AcademyRequestRoleIsInvalid = "AcademyRequestRoleIsInvalid",
     TheUserAlreadyExistInTheAcademyWithRole = "TheUserAlreadyExistInTheAcademyWithRole",
@@ -63,7 +75,8 @@ export enum ErrorMessageCodes {
     StoppedTimeMustBeGreaterThanStartTime = "StoppedTimeMustBeGreaterThanStartTime",
     TotalTimeMustBePositive = "TotalTimeMustBePositive",
     TotalTimeOutOfRange = "TotalTimeOutOfRange",
-    ScheduleCannotBeCompletedBeforeStartTime = "ScheduleCannotBeCompletedBeforeStartTime"
+    ScheduleCannotBeCompletedBeforeStartTime = "ScheduleCannotBeCompletedBeforeStartTime",
+    TooManyRequests = "TooManyRequests"
 }
 
 export const INVALID_CODE_FORMAT = "INVALID_CODE_FORMAT";

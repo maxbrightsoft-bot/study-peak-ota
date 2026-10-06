@@ -15,6 +15,7 @@ import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
 import StartPageDialog from './StartPageDialog'
 import TextbookChapterResultDialog from './TextbookChapterResultDialog'
 import TextTooltip from '@/components/Tooltip/TextTooltip'
+import useAuthStore from '@/store/useAuthStore'
 
 type Props = {
   isOpen: boolean
@@ -24,6 +25,7 @@ type Props = {
 }
 
 const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props) => {
+  const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
   const {
     t,
     loading,
@@ -61,16 +63,21 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props
     <SlideDrawerRoot visible={isOpen} onClose={onClose}>
       <View style={styles.wrapper}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={onClose}>
-            <Ionicons name="chevron-back" size={24} color="#B8B8B8" />
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={onClose}
+            activeOpacity={0.7}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <Ionicons name="chevron-back" size={24} color="#222222" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('textbook_detail')}</Text>
-          <View style={{ width: 24 }} />
+          <View style={{ width: 40 }} />
         </View>
 
         <ScrollView
           style={styles.container}
-          contentContainerStyle={{ paddingBottom: 120 }}
+          contentContainerStyle={{ paddingBottom: isParentMode ? 40 : 120 }}
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.bookCard}>
@@ -171,29 +178,31 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props
             )}
           </View>
         </ScrollView>
-        <View style={styles.bottomBar}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.bottomBarContent}>
-            {!isMockTextbook && (
-              <TouchableOpacity style={[styles.button, styles.pageBtn]} onPress={handleOpenStartPageDialog}>
-                <Text style={styles.outlineButtonText}>{t('navigate_page')}</Text>
-              </TouchableOpacity>
-            )}
+        {!isParentMode && (
+          <View style={styles.bottomBar}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.bottomBarContent}>
+              {!isMockTextbook && (
+                <TouchableOpacity style={[styles.button, styles.pageBtn]} onPress={handleOpenStartPageDialog}>
+                  <Text style={styles.outlineButtonText}>{t('navigate_page')}</Text>
+                </TouchableOpacity>
+              )}
 
-            <TouchableOpacity style={[styles.button, styles.continueBtn]} onPress={handleDoTextbook}>
-              <Text style={styles.buttonText}>{t('do_exercises')}</Text>
-            </TouchableOpacity>
-
-            {!!textbook && textbook.isStudying && (
-              <TouchableOpacity
-                style={[styles.button, styles.outlineButton]}
-                onPress={() => (isMockTextbook ? handleOpenConfirmDialog() : handleOpenRestartTextbookDialog())}
-              >
-                <Ionicons name="refresh" size={18} color={palette.main[500]} />
-                <Text style={styles.outlineButtonText}>{t('restart_textbook')}</Text>
+              <TouchableOpacity style={[styles.button, styles.continueBtn]} onPress={handleDoTextbook}>
+                <Text style={styles.buttonText}>{t('do_exercises')}</Text>
               </TouchableOpacity>
-            )}
-          </ScrollView>
-        </View>
+
+              {!!textbook && textbook.isStudying && (
+                <TouchableOpacity
+                  style={[styles.button, styles.outlineButton]}
+                  onPress={() => (isMockTextbook ? handleOpenConfirmDialog() : handleOpenRestartTextbookDialog())}
+                >
+                  <Ionicons name="refresh" size={18} color={palette.main[500]} />
+                  <Text style={styles.outlineButtonText}>{t('restart_textbook')}</Text>
+                </TouchableOpacity>
+              )}
+            </ScrollView>
+          </View>
+        )}
       </View>
       <StartPageDialog
         options={startPageOptions}
@@ -256,6 +265,13 @@ const styles = ScaledSheet.create({
     fontSize: '16@ms',
     fontWeight: '700',
     color: "#222222"
+  },
+
+  backButton: {
+    width: '40@ms',
+    height: '40@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   bookCard: {

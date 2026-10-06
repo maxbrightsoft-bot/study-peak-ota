@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import OnboardingScreen from '@/screens/Onboarding'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import Footer from '@/layouts/Footer'
 import LayoutApp from '@/layouts'
 import TextbookScreen from '@/screens/Textbook'
@@ -17,12 +18,23 @@ import StudyPerformanceScreen from '@/screens/StudyPerformance'
 import ProfileScreen from '@/screens/Profile'
 import useLayoutApp from '@/layouts/hooks/useLayoutApp'
 import QuestionScreen from '@/screens/Question'
-import { Platform } from 'react-native'
+import { Platform, StatusBar } from 'react-native'
 import StudentExamHistoryScreen from '@/screens/StudentExamHistory'
+import ParentAccountLinkingScreen from '@/screens/AccountLinking/ParentList'
+import StudentAccountLinkingScreen from '@/screens/AccountLinking/StudentList'
+import ParentLinkRequestScreen from '@/screens/AccountLinking/ParentLinkRequest'
+import StudentLinkShareScreen from '@/screens/AccountLinking/StudentLinkShare'
+import ParentQrScanScreen from '@/screens/AccountLinking/ParentQrScan'
+import ParentWaitingApprovalScreen from '@/screens/AccountLinking/ParentWaitingApproval'
+import StudentLinkApprovalScreen from '@/screens/AccountLinking/StudentLinkApproval'
+import RoleSelectionScreen from '@/screens/AccountLinking/AccountLinkRoleSelection'
+import PendingLinkRequestsScreen from '@/screens/AccountLinking/PendingLinkRequests'
+import ParentShareLinkConfirmScreen from '@/screens/AccountLinking/ParentShareLinkConfirm'
+import useAccountLinkingPusher from '@/containers/AccountLinking/hooks/useAccountLinkingPusher'
 import ConsentScreen from '@/containers/Setting/components/ConsentScreen'
 import { getConsentStatusApi, agreeConsentApi } from '@/containers/Setting/apiClients'
 import Loading from '@/components/Loading'
-import { toast, getErrorMessage } from '@/utils/helpers'
+import { toast, getErrorMessage, checkIsParent } from '@/utils/helpers'
 import { useTranslation } from 'react-i18next'
 import { CONSENT_POLICY_VERSION } from '@/utils/constants'
 import { startOfflineSyncListener } from '@/services/offlineSync'
@@ -39,6 +51,82 @@ const getActiveRouteName = (state: any): string => {
   }
   return route?.name || ''
 }
+const AuthStack = createNativeStackNavigator()
+const AccountLinkingStack = createNativeStackNavigator()
+
+const AccountLinkingNavigator = () => {
+  useAccountLinkingPusher()
+
+  return (
+    <AccountLinkingStack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <AccountLinkingStack.Screen name={Routes.Auth.ParentAccountLinking} component={ParentAccountLinkingScreen} />
+      <AccountLinkingStack.Screen name={Routes.Auth.StudentAccountLinking} component={StudentAccountLinkingScreen} />
+      <AccountLinkingStack.Screen name={Routes.Auth.ParentLinkRequest} component={ParentLinkRequestScreen} />
+      <AccountLinkingStack.Screen name={Routes.Auth.StudentLinkShare} component={StudentLinkShareScreen} />
+      <AccountLinkingStack.Screen name={Routes.Auth.ParentQrScan} component={ParentQrScanScreen} />
+      <AccountLinkingStack.Screen name={Routes.Auth.ParentWaitingApproval} component={ParentWaitingApprovalScreen} />
+      <AccountLinkingStack.Screen name={Routes.Auth.StudentLinkApproval} component={StudentLinkApprovalScreen} />
+      <AccountLinkingStack.Screen name={Routes.Auth.AccountLinkRoleSelection} component={RoleSelectionScreen} />
+      <AccountLinkingStack.Screen name={Routes.Auth.PendingLinkRequests} component={PendingLinkRequestsScreen} />
+      <AccountLinkingStack.Screen name={Routes.Auth.ParentShareLinkConfirm} component={ParentShareLinkConfirmScreen} />
+    </AccountLinkingStack.Navigator>
+  )
+}
+
+const MainTabNavigator = () => {
+  const isParentMode = !!useAuthStore((state) => state.parentViewMode?.isActive)
+  const linkedStudents = useAuthStore((state) => state.linkedStudents)
+  const isParent = checkIsParent()
+  const isParentNoChildren = isParent && linkedStudents?.length === 0
+
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        header: () => <></>,
+        tabBarStyle:
+          isParentNoChildren || hiddenTabBar.includes(route.name)
+            ? { display: 'none', height: 0, position: 'absolute' }
+            : undefined,
+      })}
+      tabBar={(props) => {
+        if (isParentNoChildren) {
+          return null
+        }
+
+        const topRouteName = navigationRef?.current?.isReady?.()
+          ? navigationRef?.current?.getCurrentRoute?.()?.name
+          : undefined
+        const currentTab = props.state.routes[props.state.index]
+        const activeRouteName = topRouteName || currentTab?.name || currentScreen()
+
+        if (hiddenTabBar.includes(activeRouteName)) {
+          return null
+        }
+        return <Footer {...props} />
+      }}
+    >
+      <Tab.Screen name={Routes.Auth.Home} component={HomeScreen} />
+      <Tab.Screen name={Routes.Auth.Textbook} component={TextbookScreen} />
+      {!isParentMode && (
+        <>
+          <Tab.Screen name={Routes.Auth.DoExam} component={DoExamScreen} />
+          <Tab.Screen name={Routes.Auth.DoTextbook} component={DoTextbookScreen} />
+        </>
+      )}
+      <Tab.Screen name={Routes.Auth.ExamList} component={ExamListScreen} />
+      <Tab.Screen name={Routes.Auth.ExamResult} component={ExamResultScreen} />
+      <Tab.Screen name={Routes.Auth.ExamResultList} component={ExamResultListScreen} />
+      <Tab.Screen name={Routes.Auth.StudyPerformance} component={StudyPerformanceScreen} />
+      <Tab.Screen name={Routes.Auth.Profile} component={ProfileScreen} />
+      <Tab.Screen name={Routes.Auth.Question} component={QuestionScreen} />
+      <Tab.Screen name={Routes.Auth.StudentExamHistory} component={StudentExamHistoryScreen} />
+    </Tab.Navigator>
+  )
+}
 
 const Authorized = ({ route }: { route: any }) => {
   const user = useAuthStore(state => state.user)
@@ -46,24 +134,21 @@ const Authorized = ({ route }: { route: any }) => {
   const hasConsented = useAuthStore(state => state.hasConsented)
   const setHasConsented = useAuthStore(state => state.setHasConsented)
   const [isCheckingConsent, setIsCheckingConsent] = useState(true)
-    const language = useAuthStore(state => state.language)
+  const language = useAuthStore(state => state.language)
   const isDemo = useAuthStore(state => state.isDemoMode)
   const languageKey = isDemo ? language?.code : undefined
-  
+  const isUserCustomLoaded = useAuthStore(state => state.isUserCustomLoaded)
+  const isParent = checkIsParent();
+
   const { headerProps } =
     useLayoutApp()
   const { t } = useTranslation()
 
   const mustChangePassword = !!user?.mustChangePassword
-  const [hasConfirmedWarning, setHasConfirmedWarning] = useState(false)
-  const [isMustChangePasswordDismissed, setIsMustChangePasswordDismissed] = useState(false)
-
-  useEffect(() => {
-    if (mustChangePassword) {
-      setHasConfirmedWarning(false)
-      setIsMustChangePasswordDismissed(false)
-    }
-  }, [mustChangePassword])
+  const hasConfirmedWarning = useAuthStore(state => state.hasConfirmedWarning)
+  const setHasConfirmedWarning = useAuthStore(state => state.setHasConfirmedWarning)
+  const isMustChangePasswordDismissed = useAuthStore(state => state.isMustChangePasswordDismissed)
+  const setIsMustChangePasswordDismissed = useAuthStore(state => state.setIsMustChangePasswordDismissed)
 
   const isNotEnoughStatements = useMemo(
     () => user?.email && user?.isNotEnoughStatements,
@@ -71,9 +156,10 @@ const Authorized = ({ route }: { route: any }) => {
   )
 
   useEffect(() => {
+    if (checkIsParent()) return
     const unsubscribeSync = startOfflineSyncListener()
     return () => {
-      unsubscribeSync()
+      unsubscribeSync?.()
     }
   }, [])
 
@@ -117,7 +203,7 @@ const Authorized = ({ route }: { route: any }) => {
     }
   }, [t, setLoading])
 
-  if (isCheckingConsent) {
+  if (isCheckingConsent || (isParent && !isUserCustomLoaded)) {
     return <Loading isOverlay />
   }
 
@@ -125,7 +211,7 @@ const Authorized = ({ route }: { route: any }) => {
     return <ConsentScreen onAgree={handleConsentAgree} />
   }
 
-  if (isNotEnoughStatements && Platform.OS !== 'ios')
+  if (isNotEnoughStatements && !isParent && Platform.OS !== 'ios')
     return (
       <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={() => null}>
         <Tab.Screen name={Routes.Auth.Onboarding} component={OnboardingScreen} />
@@ -134,36 +220,23 @@ const Authorized = ({ route }: { route: any }) => {
 
   return (
     <>
-      <LayoutApp headerProps={headerProps} key={languageKey}>
-        <Tab.Navigator
-          screenOptions={({ route }) => ({
-            header: () => <></>,
-            tabBarStyle: hiddenTabBar.includes(route.name) ? { display: 'none', height: 0, position: 'absolute' } : undefined
-          })}
-          tabBar={(props) => {
-            const topRouteName = navigationRef?.current?.isReady?.() ? navigationRef?.current?.getCurrentRoute?.()?.name : undefined
-            const currentTab = props.state.routes[props.state.index]
-            const activeRouteName = topRouteName || currentTab?.name || currentScreen()
-
-            if (hiddenTabBar.includes(activeRouteName)) {
-              return null
-            }
-            return <Footer {...props} />
-          }}
-        >
-          <Tab.Screen name={Routes.Auth.Home} component={HomeScreen} />
-          <Tab.Screen name={Routes.Auth.Textbook} component={TextbookScreen} />
-          <Tab.Screen name={Routes.Auth.DoExam} component={DoExamScreen} />
-          <Tab.Screen name={Routes.Auth.DoTextbook} component={DoTextbookScreen} />
-          <Tab.Screen name={Routes.Auth.ExamList} component={ExamListScreen} />
-          <Tab.Screen name={Routes.Auth.ExamResult} component={ExamResultScreen} />
-          <Tab.Screen name={Routes.Auth.ExamResultList} component={ExamResultListScreen} />
-          <Tab.Screen name={Routes.Auth.StudyPerformance} component={StudyPerformanceScreen} />
-          <Tab.Screen name={Routes.Auth.Profile} component={ProfileScreen} />
-          <Tab.Screen name={Routes.Auth.Question} component={QuestionScreen} />
-          <Tab.Screen name={Routes.Auth.StudentExamHistory} component={StudentExamHistoryScreen} />
-        </Tab.Navigator>
-      </LayoutApp>
+      <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+        <AuthStack.Screen name={Routes.Auth.MainTabs}>
+          {() => (
+            <LayoutApp headerProps={headerProps} key={languageKey}>
+              <MainTabNavigator />
+            </LayoutApp>
+          )}
+        </AuthStack.Screen>
+        <AuthStack.Screen name={Routes.Auth.AccountLinkingGroup}>
+          {() => (
+            <LayoutApp headerProps={headerProps} hideHeader={true} key={languageKey}>
+              <StatusBar barStyle="dark-content" backgroundColor="#FAFAFB" animated />
+              <AccountLinkingNavigator />
+            </LayoutApp>
+          )}
+        </AuthStack.Screen>
+      </AuthStack.Navigator>
       <ChangePasswordDialog
         visible={mustChangePassword && hasConfirmedWarning && !isMustChangePasswordDismissed}
         onClose={() => setIsMustChangePasswordDismissed(true)}
@@ -179,4 +252,5 @@ const Authorized = ({ route }: { route: any }) => {
 }
 
 export default Authorized
+
 

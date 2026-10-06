@@ -13,14 +13,28 @@ interface GroupedNoteCardProps {
   t: any
   filter?: any
   refreshGroup?: { subjectName?: string, categoryName?: string, key: number }
-  onOpenDialog: (item?: NoteResponse) => void
+  onOpenDialog?: (item?: NoteResponse) => void
   onRemoveGroup?: (subjectName?: string, categoryName?: string) => void
+  isParentMode?: boolean
 }
 
-const ChildNoteItem = ({ note, t, onOpenDialog }: { note: NoteResponse, t: any, onOpenDialog: (item?: NoteResponse) => void }) => {
-
+const ChildNoteItem = ({
+  note,
+  t,
+  onOpenDialog,
+  isParentMode
+}: {
+  note: NoteResponse
+  t: any
+  onOpenDialog?: (item?: NoteResponse) => void
+  isParentMode?: boolean
+}) => {
   return (
-    <Pressable style={({ pressed }) => [styles.childContainer, pressed && styles.pressed]} onPress={() => onOpenDialog(note)}>
+    <Pressable
+      style={({ pressed }) => [styles.childContainer, pressed && !isParentMode && styles.pressed]}
+      onPress={isParentMode || !onOpenDialog ? undefined : () => onOpenDialog(note)}
+      disabled={isParentMode || !onOpenDialog}
+    >
       <View style={styles.childLeft}>
         <View style={styles.questionNumberBox}>
           <Text style={styles.questionNumberText}>{t('number_question', { number: (note.questionOrder || 0) + 1 })}</Text>
@@ -41,7 +55,7 @@ const ChildNoteItem = ({ note, t, onOpenDialog }: { note: NoteResponse, t: any, 
   )
 }
 
-export default function GroupedNoteCard({ item, t, filter, refreshGroup, onOpenDialog, onRemoveGroup }: GroupedNoteCardProps) {
+export default function GroupedNoteCard({ item, t, filter, refreshGroup, onOpenDialog, onRemoveGroup, isParentMode }: GroupedNoteCardProps) {
   const [expanded, setExpanded] = useState(false)
   const [childNotes, setChildNotes] = useState<NoteResponse[]>(item.notes || [])
   const [loading, setLoading] = useState(false)
@@ -164,7 +178,7 @@ export default function GroupedNoteCard({ item, t, filter, refreshGroup, onOpenD
             <>
               {childNotes.map((note) => (
                 <View key={note.id}>
-                  <ChildNoteItem note={note} t={t} onOpenDialog={onOpenDialog} />
+                  <ChildNoteItem note={note} t={t} onOpenDialog={onOpenDialog} isParentMode={isParentMode} />
                   <View style={styles.divider} />
                 </View>
               ))}

@@ -4,7 +4,7 @@ import { navigate } from "@/navigators/NavigationHelpers"
 import { Routes } from "@/navigators/RouteName"
 import useAuthStore from "@/store/useAuthStore"
 import { Role } from "@/utils/enums"
-import { getErrorMessage, toast } from "@/utils/helpers"
+import { getCurrentRole, getErrorMessage, toast } from "@/utils/helpers"
 import { AcademyResponse, LoginAccessTokenRequest } from "@/utils/types"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -24,7 +24,7 @@ const useSelectAcademy = () => {
     if (!user) return
     isLoading && setLoading(true)
     try {
-      const res = await getUserAcademies(Role.Student, user.isLearningSpace)
+      const res = await getUserAcademies(getCurrentRole(user.roles), user.isLearningSpace)
       const items: AcademyResponse[] = res.data.items || []
       setAcademies(items)
     } catch (error) {
@@ -67,12 +67,13 @@ const useSelectAcademy = () => {
       const academyDomain = selectedAcademy
         ? selectedAcademy.domain
         : undefined
-      const res = await switchAcademy(academyId, Role.Student, isLearningSpace)
+      const userRole = selectedAcademy?.domain ? getCurrentRole(user?.roles || []) : Role.Student;
+      const res = await switchAcademy(academyId, userRole, isLearningSpace)
       const data = res.data
       const requestBody: LoginAccessTokenRequest = {
         accessToken: data.accessToken,
         email: user?.email || "",
-        role: Role.Student,
+        role: userRole,
         isMobile: true
       }
 

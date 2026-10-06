@@ -8,6 +8,7 @@ import { ScaledSheet } from 'react-native-size-matters'
 import AudioGuideModal from '@/layouts/components/AudioGuideModal'
 import SelectTimeDialog from '@/layouts/components/SelectTimeDialog'
 import TextTooltip from '@/components/Tooltip/TextTooltip'
+import useAuthStore from '@/store/useAuthStore'
 
 
 const styles = ScaledSheet.create({
@@ -135,6 +136,7 @@ const styles = ScaledSheet.create({
 })
 
 const RecentTextbook = () => {
+  const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
   const [enableAudio, setEnableAudio] = useState(true)
   const {
     t,
@@ -197,18 +199,20 @@ const RecentTextbook = () => {
                   <View style={styles.progressBarWrapper}>
                     <View style={[styles.progressBarFill, { width: `${percent}%` as any }]} />
                   </View>
-                  <TouchableOpacity
-                    style={styles.startButton}
-                    onPress={() => handleDoTextbook(textbook)}
-                  >
-                    <Text style={styles.startButtonText}>{textbook.isStudying ? t('continue') : t('start')}</Text>
-                    <ArrowRight color='#FFF' />
-                  </TouchableOpacity>
+                  {!isParentMode && (
+                    <TouchableOpacity
+                      style={styles.startButton}
+                      onPress={() => handleDoTextbook(textbook)}
+                    >
+                      <Text style={styles.startButtonText}>{textbook.isStudying ? t('continue') : t('start')}</Text>
+                      <ArrowRight color='#FFF' />
+                    </TouchableOpacity>
+                  )}
                 </View>
               </View>
             )
           })}
-          {textbookList?.length === 0 && (
+          {textbookList?.length === 0 && !isParentMode && (
             <View style={styles.ctaWrapper}>
               <TouchableOpacity style={styles.ctaButton} onPress={handleGoToTextbookList}>
                 <Text style={styles.ctaButtonText}>{t('start_your_textbook_now')}</Text>

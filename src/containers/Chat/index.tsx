@@ -17,6 +17,7 @@ import MathRender from '@/components/MathRender'
 import { Ionicons } from '@expo/vector-icons'
 import { useFocusEffect } from '@react-navigation/native'
 import TextTooltip from '@/components/Tooltip/TextTooltip'
+import useAuthStore from '@/store/useAuthStore'
 
 const getConversationTitle = (
   conversation: ConversationsResponse,
@@ -167,6 +168,7 @@ const Card = React.memo(({
 ))
 
 export default function Question() {
+  const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
   const {
     t,
     search,
@@ -238,10 +240,12 @@ export default function Question() {
             <Text style={styles.headerSub}>{t('chatbot')}</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.floatingButton} onPress={toggleQuestionConversationDialog}>
-          <AddChatIcon />
-          <Text style={styles.floatingButtonText}>{t('ask_question')}</Text>
-        </TouchableOpacity>
+        {!isParentMode && (
+          <TouchableOpacity style={styles.floatingButton} onPress={toggleQuestionConversationDialog}>
+            <AddChatIcon />
+            <Text style={styles.floatingButtonText}>{t('ask_question')}</Text>
+          </TouchableOpacity>
+        )}
       </View>
       <View style={{ backgroundColor: palette.bg[100], flex: 1, paddingHorizontal: 20, paddingTop: 30, gap: 16 }}>
         <View style={styles.tabsContainer}>

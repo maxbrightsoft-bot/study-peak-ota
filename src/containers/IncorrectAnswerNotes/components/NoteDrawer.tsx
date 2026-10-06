@@ -69,8 +69,10 @@ const NoteDrawer: FC<Props> = (props) => {
       margin: 0
     },
     backButton: {
-      flexDirection: 'row',
-      alignItems: 'center'
+      width: '40@ms',
+      height: '40@ms',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     header: {
       flexDirection: 'row',
@@ -171,8 +173,13 @@ const NoteDrawer: FC<Props> = (props) => {
   return (
     <SlideDrawer visible={open} onClose={onClose}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onClose}>
-          <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={onClose}
+          activeOpacity={0.7}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <Ionicons name="chevron-back-outline" size={24} color={palette.grey[800] || '#222'} />
         </TouchableOpacity>
         <View>
           <Text style={{ fontSize: 16, fontWeight: 600, color: '#222222' }}>

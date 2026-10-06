@@ -1,4 +1,5 @@
 import { BASE_URL, SUPER_ADMIN_BASE_URL } from "../../utils/constants";
+import { getIdLinkAccount } from "@/utils/helpers";
 import { ResumeOrPauseRequest, SaveTimerRequest, StopTimerRequest, SubjectTimerSearchQuery, UpdateSubjectTimerInfoRequest, UpdateSubjectTimersInfoRequest, UpdateSubjectTimersInfoRequestContent } from "../../utils/types/subjects";
 import { api } from "./apiClient";
 
@@ -15,26 +16,32 @@ export const getSubjectListAdminApi = async (textSearch: string, isStarted?: boo
     }
   });
 
-export const getSubjectListApi = async (textSearch: string, isStarted?: boolean) =>
-  api.get(`${SUBJECT_URL}/timers`, {
+export const getSubjectListApi = async (textSearch: string, isStarted?: boolean) => {
+  const idLinkAccount = getIdLinkAccount();
+  return api.get(`${SUBJECT_URL}/timers`, {
     params: {
       textSearch,
       isStarted,
       pageSize: 100,
-      currentPage: 1
+      currentPage: 1,
+      ...(idLinkAccount ? { idLinkAccount } : {})
     }
   });
+};
 
 
-export const getStudentSubjectListApi = async (pageSize: number = 100, currentPage: number = 1) =>
-  api.get(`${SUBJECT_URL}/timers`, {
+export const getStudentSubjectListApi = async (pageSize: number = 100, currentPage: number = 1) => {
+  const idLinkAccount = getIdLinkAccount();
+  return api.get(`${SUBJECT_URL}/timers`, {
     params: {
       sortColumnName: "SubjectTimer",
       sortColumnDirection: "DESC",
       pageSize,
-      currentPage
+      currentPage,
+      ...(idLinkAccount ? { idLinkAccount } : {})
     }
   });
+};
 
 export const startStudentSubjectTimerApi = async (subjectId: number) =>
   api.post(`${SUBJECT_URL}/${subjectId}/timers`);

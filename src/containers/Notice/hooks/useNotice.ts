@@ -17,7 +17,7 @@ const useNotice = (setNew: any, open?: boolean) => {
   const { pusher, setLoading, user, selectedAcademy, subscribeChannel, unsubscribeChannelSafe } = useAuthStore()
   const userId = user?.id
   const [notifications, setNotifications] = useState<Array<Notification> | null>(null)
-  const academyDomain = selectedAcademy?.domain
+  const academyDomain = user?.academyDomain || selectedAcademy?.domain
   const { t } = useTranslation()
   const [selected, setSelected] = useState(TabList[0].value)
   const [typeSelected, setTypeSelected] = useState(TabList[0].type)
@@ -184,7 +184,7 @@ const useNotice = (setNew: any, open?: boolean) => {
     useCallback(() => {
       if (!userId || !academyDomain) return
       handleGetListNotification(typeSelected)
-    }, [selectedAcademy?.id, userId, academyDomain])
+    }, [user?.academyDomain, userId])
   );
 
   const noteHandlersRef = useRef<{ [event: string]: (data: any) => void }>({})

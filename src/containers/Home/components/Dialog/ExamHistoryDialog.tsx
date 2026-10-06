@@ -13,6 +13,7 @@ import { CourseExamSession } from '../../configs/type'
 import TextTooltip from '@/components/Tooltip/TextTooltip'
 import _ from 'lodash'
 import moment from 'moment'
+import useAuthStore from '@/store/useAuthStore'
 
 interface Props {
   open: boolean
@@ -36,6 +37,7 @@ const STATUS_CONFIG: Record<string, { labelKey: string; color: string }> = {
 }
 
 const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
+  const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
   const {
     listExam,
     listCourses,
@@ -161,7 +163,7 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
         </View>
         <Text style={styles.examMeta}>{item?.teacherName || ''}</Text>
 
-        <View style={styles.cardFooter}>
+        {!isParentMode && <View style={styles.cardFooter}>
           <TouchableOpacity
             style={[styles.applyButton, isDone && styles.resultButton]}
             activeOpacity={0.85}
@@ -172,7 +174,7 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
             </Text>
             <Ionicons name="chevron-forward" size={16} color={isDone ? palette.main[600] : '#FFF'} />
           </TouchableOpacity>
-        </View>
+        </View>}
       </View>
     )
   }
@@ -180,11 +182,16 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
   return (
     <SlideDrawerRoot visible={open} onClose={onClose}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onClose}>
-          <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={onClose}
+          activeOpacity={0.7}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <Ionicons name="chevron-back-outline" size={24} color={palette.grey[800] || '#222'} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('exam_history')}</Text>
-        <View style={{ width: 22 }} />
+        <View style={{ width: 40 }} />
       </View>
       <View style={styles.container}>
         <View style={styles.tabsWrapper}>
@@ -291,7 +298,10 @@ const styles = ScaledSheet.create({
   },
   content: {},
   backButton: {
-    padding: '2@ms'
+    width: '40@ms',
+    height: '40@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tabsWrapper: {},
   tabsContainer: {

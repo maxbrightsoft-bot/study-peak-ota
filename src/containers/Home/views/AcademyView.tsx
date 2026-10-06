@@ -16,11 +16,11 @@ import StudyTimerCard from '../components/StudyTimerCard'
 import Notice from '@/containers/Notice/view'
 import { ScaledSheet } from 'react-native-size-matters'
 import moment from 'moment'
-
 import useAuthStore from '@/store/useAuthStore'
 
 const AcademyView = () => {
   const selectedAcademy = useAuthStore(state => state.selectedAcademy)
+  const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
   const {
     t,
     open,
@@ -119,7 +119,7 @@ const AcademyView = () => {
                         </Text>
                       )}
                     </View>
-
+                    {!isParentMode && (
                     <TouchableOpacity
                       style={[
                         styles.attendBtn,
@@ -147,6 +147,7 @@ const AcademyView = () => {
                           : t('check_in') || '출석하기'}
                       </Text>
                     </TouchableOpacity>
+                    )}
                   </View>
                 </CustomCard>
 
@@ -204,6 +205,7 @@ const AcademyView = () => {
               </View>
 
               <View style={styles.compactRow}>
+                {!isParentMode && (
                 <CustomCard
                   containerStyle={styles.half}
                   style={styles.compactCard}
@@ -220,7 +222,7 @@ const AcademyView = () => {
                     </Text>
                   </View>
                 </CustomCard>
-
+                )}
                 {/* Right Card: 지난 시험 풀기 */}
                 <CustomCard
                   containerStyle={styles.half}

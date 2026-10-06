@@ -1,6 +1,7 @@
 import { api } from "@/services/api/apiClient";
 import { BASE_URL } from "@/utils/constants";
 import { NoteType } from "@/utils/enums";
+import { getIdLinkAccount } from "@/utils/helpers";
 
 const COURSE_EXAM_SESSION_URL = `${BASE_URL}/api/course/exam-sessions`;
 const UNATTACHED_EXAM_SESSION_URL = `${BASE_URL}/api/course/unattached-exam-sessions`;
@@ -19,26 +20,48 @@ export const getCheckInLessonsApi = (lessonId: number) => api.post(`${LESSON_URL
 
 export const getListSocialLinkApi = () => api.get(`${SOCIAL_URL}`)
 
-export const getListNotificationApi = (query: any) => api.get(`${NOTIFICATION_URL}`, { params: query })
+export const getListNotificationApi = (query: any) => {
+  const idLinkAccount = getIdLinkAccount();
+  return api.get(`${NOTIFICATION_URL}`, {
+    params: {
+      ...query,
+      ...(idLinkAccount ? { idLinkAccount } : {})
+    }
+  });
+};
 
 export const getListNotificationByIdApi = (id: number) => api.get(`${NOTIFICATION_URL}/${id}`)
 
 export const getInfoAcademyApi = (startDate: string, endDate: string) => api.get(`${LESSON_URL}/total-count`, { params: { startDate, endDate } })
 
-export const getListNoteApi = (query: any) => api.get(`${NOTES_URL}`, {
+export const getListNoteApi = (query: any) => {
+  const idLinkAccount = getIdLinkAccount();
+  return api.get(`${NOTES_URL}`, {
     params: {
-        ...query,
-        type: NoteType.ToStudent
+      ...query,
+      type: NoteType.ToStudent,
+      ...(idLinkAccount ? { idLinkAccount } : {})
     }
-})
-export const getNoteByIdApi = (id: number) => api.get(`${NOTES_URL}/${id}`)
+  });
+};
+export const getNoteByIdApi = (id: number) => {
+  const idLinkAccount = getIdLinkAccount();
+  return api.get(`${NOTES_URL}/${id}`, {
+    params: {
+      ...(idLinkAccount ? { idLinkAccount } : {})
+    }
+  });
+};
 
-export const getListExamApi = (query: any) =>
-    api.get(`${COURSE_EXAM_SESSION_URL}`, {
-        params: {
-            ...query,
-        }
-    })
+export const getListExamApi = (query: any) => {
+  const idLinkAccount = getIdLinkAccount();
+  return api.get(`${COURSE_EXAM_SESSION_URL}`, {
+    params: {
+      ...query,
+      ...(idLinkAccount ? { idLinkAccount } : {})
+    }
+  });
+};
 
 export const getUnattachedExamApi = (query?: any) =>
     api.get(`${UNATTACHED_EXAM_SESSION_URL}`, {

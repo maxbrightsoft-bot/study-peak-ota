@@ -10,7 +10,7 @@ import { Routes } from "@/navigators/RouteName"
 import { removeDataStorage, setDataStorage } from "@/utils/storage"
 
 const useLoginPhoneNumber = () => {
-    const { user, setLoading, setUser, setHasEnteredSelectAcademy } = useAuthStore()
+    const { user, setLoading, setUserCustom, setHasEnteredSelectAcademy } = useAuthStore()
     const academyDomain = user?.academyDomain || ''
     const { t } = useTranslation()
     const [showPassword, setShowPassword] = useState<boolean>(false)
@@ -21,7 +21,7 @@ const useLoginPhoneNumber = () => {
         redirectUrl: string
     ) => {
 
-        setUser({
+        await setUserCustom({
             ...data,
         });
         await setDataStorage(ACCESS_TOKEN, token);

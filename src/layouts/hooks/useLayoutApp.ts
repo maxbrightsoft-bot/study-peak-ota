@@ -1,7 +1,8 @@
 import { getInfo, getSuperAdminInfoFromWeb } from '@/containers/Login/apiClients/accountService'
 import useAuthStore from '@/store/useAuthStore'
 import { Role } from '@/utils/enums'
-import { getAcademyDomain, getAccessToken, getErrorMessage, getLearningSpace, toast } from '@/utils/helpers'
+import useAccountLinkingStore from '@/store/useAccountLinkingStore'
+import { checkIsParent, checkIsStudent, getAcademyDomain, getAccessToken, getCurrentRole, getMessageFromError, getLearningSpace, toast } from '@/utils/helpers'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAcademyDetailApi, getUserAcademies, switchAcademy } from '../apiClients/academyServices'
@@ -12,7 +13,7 @@ import { ACADEMY_DOMAIN, ACCESS_TOKEN, LEARNING_SPACE } from '@/utils/constants'
 import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { AppState } from 'react-native'
 import { currentScreen, navigate } from '@/navigators/NavigationHelpers'
-import { MainRoutes, Routes } from '@/navigators/RouteName'
+import { MainRoutes, Routes, accountLinkingRoutes } from '@/navigators/RouteName'
 import { apiJoinExam } from '@/containers/DoExam/apiClients'
 import { PusherChannel } from '@pusher/pusher-websocket-react-native'
 
@@ -22,6 +23,7 @@ const useLayoutApp = () => {
   const user = useAuthStore(state => state.user)
   const academies = useAuthStore(state => state.academies)
   const setUser = useAuthStore(state => state.setUser)
+  const setUserCustom = useAuthStore(state => state.setUserCustom)
   const setLoadingWithoutOverlay = useAuthStore(state => state.setLoadingWithoutOverlay)
   const logout = useAuthStore(state => state.logout)
   const setAcademies = useAuthStore(state => state.setAcademies)
@@ -33,6 +35,7 @@ const useLayoutApp = () => {
   const redirectUrl = useAuthStore(state => state.redirectUrl)
   const redirectParams = useAuthStore(state => state.redirectParams)
   const clearRedirectUrl = useAuthStore(state => state.clearRedirectUrl)
+  const fetchPendingRequestsApi = useAccountLinkingStore(state => state.fetchPendingRequestsApi)
   const { handleLoginAccessToken } = useLogin()
   const superId = user?.superId
   const [academyMenuVisible, setAcademyMenuVisible] = useState(false)
@@ -77,7 +80,7 @@ const useLayoutApp = () => {
         return
       }
 
-      setUser(info.data)
+      await setUserCustom(info.data)
     } catch (err: any) {
       if (err?.response?.status === 401) {
         await logout()
@@ -92,11 +95,12 @@ const useLayoutApp = () => {
     if (!user) return
     isLoading && setLoadingWithoutOverlay(true)
     try {
-      const res = await getUserAcademies(Role.Student, user.isLearningSpace)
+      const userRole = getCurrentRole(user.roles)
+      const res = await getUserAcademies(userRole, user.isLearningSpace)
       const items: AcademyResponse[] = res.data.items || []
       setAcademies(items)
     } catch (error) {
-      toast.error(getErrorMessage(t, error))
+      toast.error(getMessageFromError(t, error))
     }
     isLoading && setLoadingWithoutOverlay(false)
   }
@@ -116,7 +120,7 @@ const useLayoutApp = () => {
       }
     } catch (err) {
       console.log({ err })
-      toast.error(getErrorMessage(t, err))
+      toast.error(getMessageFromError(t, err))
     }
     setLoadingWithoutOverlay(false)
   }
@@ -127,18 +131,43 @@ const useLayoutApp = () => {
   }, [user?.academyDomain, user?.email])
 
   useEffect(() => {
+    if (checkIsParent()) {
+      setUserCustom(user)
+    } else {
+      fetchPendingRequestsApi()
+    }
+  }, [])
+
+
+  useEffect(() => {
     if (redirectUrl) {
+      if (currentScreen() === redirectUrl) {
+        clearRedirectUrl()
+        return
+      }
+
       const timer = setTimeout(() => {
-        if (Object.values(Routes.Auth).includes(redirectUrl)) {
+        if (accountLinkingRoutes.includes(redirectUrl)) {
           (navigation as any).navigate(MainRoutes.AuthStack, {
-            screen: redirectUrl,
-            params: redirectParams,
+            screen: Routes.Auth.AccountLinkingGroup,
+            params: {
+              screen: redirectUrl,
+              params: redirectParams,
+            },
+          })
+        } else if (Object.values(Routes.Auth).includes(redirectUrl)) {
+          (navigation as any).navigate(MainRoutes.AuthStack, {
+            screen: Routes.Auth.MainTabs,
+            params: {
+              screen: redirectUrl,
+              params: redirectParams,
+            },
           })
         } else {
           (navigation as any).navigate(redirectUrl, redirectParams)
         }
         clearRedirectUrl()
-      }, 200)
+      }, 50)
 
       return () => clearTimeout(timer)
     }
@@ -172,7 +201,7 @@ const useLayoutApp = () => {
       await apiJoinExam(code, true);
       navigate(Routes.Auth.DoExam, { examCode: code });
     } catch (error: any) {
-      toast.error(getErrorMessage(t, error));
+      toast.error(getMessageFromError(t, error));
     }
     setLoadingWithoutOverlay(false)
   };
@@ -190,7 +219,7 @@ const useLayoutApp = () => {
       await apiJoinExam(code, true);
       navigate(Routes.Auth.DoExam, { examCode: code });
     } catch (error: any) {
-      toast.error(getErrorMessage(t, error));
+      toast.error(getMessageFromError(t, error));
     }
     setLoadingWithoutOverlay(false)
   };
@@ -226,12 +255,14 @@ const useLayoutApp = () => {
       const academyDomain = selectedAcademy
         ? selectedAcademy.domain
         : undefined
-      const res = await switchAcademy(academyId, Role.Student, isLearningSpace)
+      const userRole = selectedAcademy?.domain ? getCurrentRole(user?.roles || []) : Role.Student;
+      const res = await switchAcademy(academyId, userRole, isLearningSpace)
+      
       const data = res.data
       const requestBody: LoginAccessTokenRequest = {
         accessToken: data.accessToken,
         email: user?.email || "",
-        role: Role.Student,
+        role: userRole,
         isMobile: true
       }
 
@@ -245,11 +276,13 @@ const useLayoutApp = () => {
 
       setSelectAcademy(selectedAcademy)
     } catch (error) {
-      toast.error(getErrorMessage(t, error))
+      toast.error(getMessageFromError(t, error))
     }
     isLoading && setLoadingWithoutOverlay(false)
     closeAcademyMenu()
   }
+
+  const isStudent = checkIsStudent()
 
   const generalHandlersRef = useRef<{ [event: string]: (data: any) => void }>({})
 
@@ -257,6 +290,19 @@ const useLayoutApp = () => {
     "LOGOUT": logout,
     "start-exam": handleExamStart,
     "restart-exam": handleExamReStart,
+    ...(isStudent ? {
+      "link-requested": (data: any) => {
+        const parentDisplayName = data?.parentName || data?.parentEmail
+        const message = parentDisplayName
+          ? `${parentDisplayName}: ${t('received_link_request')}`
+          : t('received_link_request')
+        toast.info(message)
+        fetchPendingRequestsApi()
+      },
+      "parent-link-cancelled": (data: any) => {
+        fetchPendingRequestsApi()
+      }
+    } : {})
   }
 
   const handleGeneralListener = async () => {
@@ -287,12 +333,13 @@ const useLayoutApp = () => {
   ) => {
     setLoadingWithoutOverlay(true)
     try {
-      const res = await switchAcademy(0, Role.Student)
+      const userRole = getCurrentRole(user?.roles || [])
+      const res = await switchAcademy(0, userRole)
       const data = res.data
       const requestBody: LoginAccessTokenRequest = {
         accessToken: data.accessToken,
         email: user?.email || "",
-        role: Role.Student,
+        role: userRole,
         isMobile: true
       }
 
@@ -303,7 +350,7 @@ const useLayoutApp = () => {
         false
       )
     } catch (error) {
-      toast.error(getErrorMessage(t, error))
+      toast.error(getMessageFromError(t, error))
     }
     setLoadingWithoutOverlay(false)
     callback()
@@ -319,11 +366,9 @@ const useLayoutApp = () => {
   useEffect(() => {
     if (pusher) return
     const setupPusher = async () => {
-      const academyDomain = await getDataStorage(ACADEMY_DOMAIN) || user?.academyDomain
       const token = await getDataStorage(ACCESS_TOKEN)
-      if (!token || !academyDomain) return
-      const isLearningSpace = user?.isLearningSpace || false
-      await initializePusher(academyDomain, isLearningSpace)
+      if (!token) return
+      await initializePusher()
     };
 
     setupPusher();
@@ -331,7 +376,7 @@ const useLayoutApp = () => {
     return () => {
       cleanupPusherChannels();
     };
-  }, [pusher, user?.academyDomain]);
+  }, [pusher, user]);
 
   useFocusEffect(
     useCallback(() => {

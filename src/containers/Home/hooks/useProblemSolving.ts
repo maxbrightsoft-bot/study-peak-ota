@@ -22,6 +22,7 @@ import { ScrollView } from "react-native";
 
 const useProblemSolving = () => {
   const user = useAuthStore(state => state.user)
+  const parentViewMode = useAuthStore(state => state.parentViewMode)
   const academy = useAuthStore(state => state.selectedAcademy)
   const isDemoMode = useAuthStore(state => state.isDemoMode)
   const setLoading = useAuthStore(state => state.setLoading)
@@ -315,7 +316,7 @@ const useProblemSolving = () => {
         setOpen(false)
         handleCloseExamHistoryDialog()
       };
-    }, [user?.academyDomain, user?.isLearningSpace])
+    }, [user?.academyDomain, user?.isLearningSpace, parentViewMode?.linkId])
   );
 
   useEffect(() => {
