@@ -80,6 +80,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
     handleDetailExamResult,
     handleCloseLiveResultDialog,
     handleFinishExam,
+    isLoadingQuestions
   } = useExam({ examCode, reqTime })
 
   const currentQuestion = useMemo(
@@ -134,13 +135,18 @@ const DoExam = ({ examCode, reqTime }: Props) => {
       >
         <View style={styles.header}>
           <View style={{ zIndex: 10 }}>
-            <TouchableOpacity onPress={() => {
-              if (exam && !isAllQuestionsAnswered(questionList)) {
-                handleOpenUnsolvedLeaveDialog()
-              } else {
-                handleOpenLeaveDialog()
-              }
-            }}>
+            <TouchableOpacity
+              disabled={isLoadingQuestions}
+              onPress={() => {
+                if (isLoadingQuestions) return;
+                if (exam && !isAllQuestionsAnswered(questionList)) {
+                  handleOpenUnsolvedLeaveDialog()
+                } else {
+                  handleOpenLeaveDialog()
+                }
+              }}
+              style={{ opacity: isLoadingQuestions ? 0.3 : 1 }}
+            >
               <View style={{ transform: 'rotate(180deg)' }}>
                 <ArrowRight width={24} height={24} color={palette.grey[300]} />
               </View>
@@ -168,8 +174,8 @@ const DoExam = ({ examCode, reqTime }: Props) => {
                 status={exam?.lateStatus}
                 onTogglePauseResume={handlePauseAndResumeExam}
                 onOpenConfirmDialog={handleOpenConfirmDialog}
-                onSolveItLater={!isAllQuestionsAnswered(questionList) ? handleOpenUnsolvedLeaveDialog : undefined}
-                onEndExam={isAllQuestionsAnswered(questionList) ? handleOpenLeaveDialog : undefined}
+                onSolveItLater={!isLoadingQuestions && !isAllQuestionsAnswered(questionList) ? handleOpenUnsolvedLeaveDialog : undefined}
+                onEndExam={!isLoadingQuestions && isAllQuestionsAnswered(questionList) ? handleOpenLeaveDialog : undefined}
                 keys={{
                   pause: 'pause_exam',
                   resume: 'resume_exam',
@@ -311,14 +317,16 @@ const DoExam = ({ examCode, reqTime }: Props) => {
               </View>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={handleOpenFinishConfirmDialog}
+              disabled={isLoadingQuestions}
+              onPress={isLoadingQuestions ? undefined : handleOpenFinishConfirmDialog}
               style={{
                 paddingHorizontal: 10,
                 justifyContent: 'center',
-                alignItems: 'center'
+                alignItems: 'center',
+                opacity: isLoadingQuestions ? 0.3 : 1
               }}
             >
-              <Text style={{ color: 'red', fontWeight: '500', fontSize: 14 }}>{t('end_exam')}</Text>
+              <Text style={{ color: isLoadingQuestions ? palette.grey[400] : 'red', fontWeight: '500', fontSize: 14 }}>{t('end_exam')}</Text>
             </TouchableOpacity>
           </View>
           {exam?.isLate === false && (

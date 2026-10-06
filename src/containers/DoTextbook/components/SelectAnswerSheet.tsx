@@ -20,6 +20,7 @@ type Props = {
   scrollToQuestion: (type: ScrollType) => void
   onFishedExam: () => void
   currentQuestion: PreparedQuestionResponse
+  disabled?: boolean
 }
 const SelectAnswerSheet = ({
   visible,
@@ -29,7 +30,8 @@ const SelectAnswerSheet = ({
   updateQuestionAnswer,
   updateQuestionStar,
   scrollToQuestion,
-  onFishedExam
+  onFishedExam,
+  disabled
 }: Props) => {
   const { t } = useTranslation()
   const [isReady, setIsReady] = useState(false)
@@ -67,8 +69,9 @@ const SelectAnswerSheet = ({
     () => (
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <TouchableOpacity
+          disabled={disabled}
           onPress={() => {
-            if (!currentQuestion) return
+            if (disabled || !currentQuestion) return
             updateQuestionStar(currentQuestion?.id || 0, !(currentQuestion?.isStar || false))
           }}
         >
@@ -83,7 +86,7 @@ const SelectAnswerSheet = ({
         })}</Text>
       </View>
     ),
-    [currentQuestion, updateQuestionStar]
+    [currentQuestion, updateQuestionStar, disabled]
   )
 
   return (
@@ -93,7 +96,15 @@ const SelectAnswerSheet = ({
           <View style={styles.sheetContent}>
             <Text style={styles.title}>{t('answer_sheet_note')}</Text>
 
-            <TextbookAnswer key={currentQuestion?.id} t={t} isLastQuestion={currentQuestion?.id === questionList[questionList.length - 1]?.id} question={currentQuestion} updateQuestionAnswer={updateQuestionAnswer} onClose={onClose} />
+            <TextbookAnswer
+              key={currentQuestion?.id}
+              t={t}
+              isLastQuestion={currentQuestion?.id === questionList[questionList.length - 1]?.id}
+              question={currentQuestion}
+              updateQuestionAnswer={updateQuestionAnswer}
+              onClose={onClose}
+              disabled={disabled}
+            />
           </View>
           <View style={styles.navRow}>
             <View style={{ flexDirection: 'row', gap: 12 }}>

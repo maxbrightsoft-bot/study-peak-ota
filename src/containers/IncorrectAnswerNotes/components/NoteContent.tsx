@@ -1,17 +1,14 @@
-import { palette } from '@/theme'
-import { Ionicons } from '@expo/vector-icons'
 import React, { FC, useState, useEffect } from 'react'
-import { View, TouchableOpacity, Image, Dimensions } from 'react-native'
+import { View, TouchableOpacity, Image } from 'react-native'
 import MathRender from '@/components/MathRender'
 import { ScaledSheet } from 'react-native-size-matters'
 import { getSafeUrl } from '@/utils/helpers'
+import ImageViewerModal from '@/components/ModalBase/ImageViewerModal'
 
 interface Props {
   content: string
   imageUrl?: string
 }
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window')
 
 const NoteContent: FC<Props> = ({ content, imageUrl }) => {
   const [isErrorImage, setErrorImage] = useState(false)
@@ -47,22 +44,11 @@ const NoteContent: FC<Props> = ({ content, imageUrl }) => {
             />
           </TouchableOpacity>
 
-          {showFullImage && (
-            <View style={styles.fullImageOverlay}>
-              <TouchableOpacity
-                style={styles.closeFullImage}
-                onPress={() => setShowFullImage(false)}
-              >
-                <Ionicons name="close-outline" size={15} color={palette.grey[500]} />
-              </TouchableOpacity>
-
-              <Image
-                source={{ uri: getSafeUrl(imageUrl) }}
-                style={styles.fullImage}
-                resizeMode="contain"
-              />
-            </View>
-          )}
+          <ImageViewerModal
+            visible={showFullImage}
+            imageUrl={imageUrl}
+            onClose={() => setShowFullImage(false)}
+          />
         </>
       )}
     </View>
@@ -83,33 +69,6 @@ const styles = ScaledSheet.create({
   thumbnail: {
     width: '100%',
     height: '100%'
-  },
-  fullImageOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#000000',
-    zIndex: 1000,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  closeFullImage: {
-    position: 'absolute',
-    top: '40@ms',
-    right: '20@ms',
-    zIndex: 1001,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: '20@ms',
-    width: '40@ms',
-    height: '40@ms',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  fullImage: {
-    width: screenWidth,
-    height: screenHeight * 0.8
   }
 })
 

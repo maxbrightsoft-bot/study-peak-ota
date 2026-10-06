@@ -21,6 +21,7 @@ type Props = {
   onOpenAnswerSheet: (id?: number) => void
   currentQuestionId?: number
   subjectType?: SubjectType
+  disabled?: boolean
 }
 
 const QuestionRow = React.memo(({ 
@@ -113,11 +114,12 @@ const TextbookQuestionGroup = ({
   onOpenAnswerSheet,
   currentQuestionId,
   questionRefs,
-  subjectType
+  subjectType,
+  disabled: disabledProp
 }: Props) => {
   const { t } = useTranslation()
   const questions = data.questions
-  const disabled = isEnd || status === ExamStatus.Paused
+  const disabled = disabledProp !== undefined ? disabledProp : (isEnd || status === ExamStatus.Paused)
   const hasMoreThan5Answers = useMemo(() => questions.some(q => (q.answerCount || 0) > 5), [questions])
   const questionContent = useMemo(() => {
     const title = data.articles?.[0]?.title;

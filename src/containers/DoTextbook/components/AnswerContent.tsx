@@ -25,11 +25,12 @@ type Props = {
   question: PreparedQuestionResponse
   errors: any
   values: any
+  disabled?: boolean
 }
 
 const { height: SCREEN_H } = Dimensions.get('window')
 
-const AnswerContent = ({ t, question, errors, values }: Props) => {
+const AnswerContent = ({ t, question, errors, values, disabled }: Props) => {
   const [hwOpen, setHwOpen] = useState(false)
   const [hwTargetIndex, setHwTargetIndex] = useState<number>(0)
 
@@ -69,6 +70,7 @@ const AnswerContent = ({ t, question, errors, values }: Props) => {
                             value={field?.value || ''}
                             initialValue={field?.value || ''}
                             onChange={(text: string) => form.setFieldValue(`textualAnswers[${index}]`, text)}
+                            disabled={disabled}
                           />
                         )}
                       </Field>
@@ -78,8 +80,8 @@ const AnswerContent = ({ t, question, errors, values }: Props) => {
                       )}
 
                       <TouchableOpacity
-                        style={[styles.deleteButton, deletable && styles.disabledButton]}
-                        disabled={deletable}
+                        style={[styles.deleteButton, (deletable || disabled) && styles.disabledButton]}
+                        disabled={deletable || disabled}
                         onPress={() => remove(index)}
                       >
                         <TrashIcon width={12} height={14} color="#FFF" />
@@ -95,8 +97,8 @@ const AnswerContent = ({ t, question, errors, values }: Props) => {
 
               {isMultipleAnswer && (
                 <TouchableOpacity
-                  style={[styles.addButton, addable && styles.disabledButton]}
-                  disabled={addable}
+                  style={[styles.addButton, (addable || disabled) && styles.disabledButton]}
+                  disabled={addable || disabled}
                   onPress={() => push('')}
                 >
                   <PlusIcon width={24} height={24} color={palette.main[500]} />

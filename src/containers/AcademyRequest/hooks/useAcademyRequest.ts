@@ -10,7 +10,7 @@ import {
 } from "@/services/api/academyService"
 import { getSocket } from "@/services"
 import { Role } from "@/utils/enums"
-import { getErrorMessage, toast } from "@/utils/helpers"
+import { getMessageFromError, toast } from "@/utils/helpers"
 import { ErrorMessageCodes } from "@/utils/constants/error"
 import { LoginAccessTokenRequest } from "@/utils/types"
 import { MainRoutes, Routes } from "@/navigators/RouteName"
@@ -89,7 +89,14 @@ const useAcademyRequest = () => {
     }
 
     const sendAcademyRequest = async () => {
-        if (!user?.id || !academyDomain) return
+        if (!user?.id) {
+            toast.error(t("please_log_in_again"))
+            return
+        }
+        if (!academyDomain) {
+            toast.error(t("academy_not_found"))
+            return
+        }
         setRequestSending(true)
         try {
             const res = await createAcademyRequestApi(
@@ -103,7 +110,8 @@ const useAcademyRequest = () => {
             setAcademyRequest(res.data ?? null)
             toast.success(t("request_sent_successfully"))
         } catch (err: any) {
-            toast.error(getErrorMessage(t, err))
+            const message = getMessageFromError(t, err) || t("an_unexpected_error_has_occurred")
+            toast.error(message)
         }
         finally {
             setRequestSending(false)

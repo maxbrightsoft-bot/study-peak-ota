@@ -1,4 +1,4 @@
-import { Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
+import { Text, TouchableOpacity, View, useWindowDimensions, ScrollView } from 'react-native'
 import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 import { Ionicons } from '@expo/vector-icons'
 import { palette } from '@/theme'
@@ -47,21 +47,23 @@ const NoticeDetailDialog = ({ open, onClose, notification }: Props) => {
     <SlideDrawerRoot visible={open} onClose={onClose}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={onClose}>
-          <Ionicons name="chevron-back-outline" size={24} color={palette.grey[200]} />
+          <Ionicons name="chevron-back-outline" size={24} color={palette.grey[800]} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>{t('notice_detail')}</Text>
 
         <View style={{ width: 24 }} />
       </View>
-      <View style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={true}
+      >
         {renderHeaderContent(notification)}
-        <View style={{ padding: 20 }}>
-          <View>
-            <RenderHTML contentWidth={width - 40} source={htmlSource} baseStyle={baseStyle} />
-          </View>
+        <View style={styles.htmlWrapper}>
+          <RenderHTML contentWidth={width - 40} source={htmlSource} baseStyle={baseStyle} />
         </View>
-      </View>
+      </ScrollView>
     </SlideDrawerRoot>
   )
 }
@@ -76,11 +78,19 @@ const styles = ScaledSheet.create({
     paddingHorizontal: '20@ms',
     paddingVertical: '16@ms',
     borderBottomWidth: '1@ms',
-    borderBottomColor: '#eee'
+    borderBottomColor: '#eee',
+    backgroundColor: '#fff'
   },
   container: {
-    paddingTop: '20@ms',
+    flex: 1,
     backgroundColor: palette.bg[100]
+  },
+  scrollContent: {
+    paddingTop: '20@ms',
+    paddingBottom: '40@ms'
+  },
+  htmlWrapper: {
+    padding: '20@ms'
   },
 
   headerTitle: {

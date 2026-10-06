@@ -17,6 +17,7 @@ interface Props {
   isLastQuestion: boolean
   question: PreparedQuestionResponse
   updateQuestionAnswer: ({ questionId, textualAnswers, answer }: TextbookQuestion) => void
+  disabled?: boolean
 }
 
 const schema = (t: any) => {
@@ -28,7 +29,7 @@ const schema = (t: any) => {
   })
 }
 
-const TextbookAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer }: Props) => {
+const TextbookAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer, disabled }: Props) => {
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>(question?.selectedAnswers ?? [])
   const answers = question.textualAnswers?.length ? question.textualAnswers : ['']
 
@@ -37,6 +38,7 @@ const TextbookAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAn
   }, [question.id])
 
   const handleSelectAnswer = (num: number, type: QuestionAnswerType) => {
+    if (disabled) return
     let nextSelected: number[]
 
     if (type === QuestionAnswerType.MultipleChoice) {
@@ -66,6 +68,7 @@ const TextbookAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAn
             }}
             validationSchema={schema(t)}
             onSubmit={(values: any) => {
+              if (disabled) return
               updateQuestionAnswer({
                 questionId: question.id,
                 textualAnswers: values.textualAnswers
@@ -86,18 +89,22 @@ const TextbookAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAn
                   }
                   errors={errors}
                   values={values}
+                  disabled={disabled}
                 />
                 <TouchableOpacity
                   style={[
                     styles.button,
                     styles.confirmButton,
-                    !values.textualAnswers?.length ||
-                    (values.textualAnswers.some((i: string) => !i?.trim()?.length) && { opacity: 0.5 })
+                    (disabled ||
+                      !values.textualAnswers?.length ||
+                      values.textualAnswers.some((i: string) => !i?.trim()?.length)) && { opacity: 0.5 }
                   ]}
                   disabled={
-                    !values.textualAnswers?.length || values.textualAnswers.some((i: string) => !i?.trim()?.length)
+                    disabled ||
+                    !values.textualAnswers?.length ||
+                    values.textualAnswers.some((i: string) => !i?.trim()?.length)
                   }
-                  onPress={() => handleSubmit(values)}
+                  onPress={() => !disabled && handleSubmit(values)}
                 >
                   <Text style={styles.confirmButtonText}>{t('registration')}</Text>
                 </TouchableOpacity>
@@ -128,8 +135,14 @@ const TextbookAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAn
                   return (
                     <TouchableOpacity
                       key={num}
-                      style={[styles.answerButtonScroll, isSelected && styles.selectedAnswerButton]}
+                      disabled={disabled}
+                      style={[
+                        styles.answerButtonScroll,
+                        isSelected && styles.selectedAnswerButton,
+                        disabled && { opacity: 0.6 }
+                      ]}
                       onPress={() => {
+                        if (disabled) return
                         handleSelectAnswer(num + 1, question.questionAnswerType)
                         isLastQuestion && onClose()
                       }}
@@ -148,8 +161,14 @@ const TextbookAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAn
                   return (
                     <TouchableOpacity
                       key={num}
-                      style={[styles.answerButton, isSelected && styles.selectedAnswerButton]}
+                      disabled={disabled}
+                      style={[
+                        styles.answerButton,
+                        isSelected && styles.selectedAnswerButton,
+                        disabled && { opacity: 0.6 }
+                      ]}
                       onPress={() => {
+                        if (disabled) return
                         handleSelectAnswer(num + 1, question.questionAnswerType)
                         isLastQuestion && onClose()
                       }}

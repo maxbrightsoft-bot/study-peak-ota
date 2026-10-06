@@ -95,7 +95,9 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
     handleCloseRestartTextbookDialog,
     navigateToPageRange,
     handleOpenRestartTextbookDialog,
-    handlePauseAndResumeTextbook
+    handlePauseAndResumeTextbook,
+    isLoadingQuestions,
+    isMockTimeOut
   } = useTextbook({
     textbookId,
     page,
@@ -108,7 +110,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
     onStartAudio: handleStartSelectedSubjectAlarm,
     handleCloseDialog,
   })
-  const disabled = textbook?.status === ExamStatus.Completed || textbook?.status === ExamStatus.Paused || (remainTime !== undefined && remainTime <= 0)
+  const disabled = textbook?.status === ExamStatus.Completed || textbook?.status === ExamStatus.Paused || (remainTime !== undefined && remainTime <= 0) || isMockTimeOut
 
   const currentQuestion = useMemo(
     () => questionList.find((q) => q.id === currentQuestionId),
@@ -139,10 +141,11 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
       handleOpenExpiredQuestionDialog={handleOpenExpiredQuestionDialog}
       currentQuestionId={currentQuestionId}
       onOpenAnswerSheet={handleOpenAnswerSheet}
-      isEnd={textbook?.status === ExamStatus.Completed}
+      isEnd={textbook?.status === ExamStatus.Completed || isMockTimeOut}
       isMock={textbook?.isMock}
       status={textbook?.status}
       subjectType={textbook?.type}
+      disabled={disabled}
     />
   ), [
     t,
@@ -152,7 +155,9 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
     textbook?.isMock,
     handleOpenExpiredQuestionDialog,
     currentQuestionId,
-    handleOpenAnswerSheet
+    handleOpenAnswerSheet,
+    isMockTimeOut,
+    disabled
   ]);
 
   if (isNotFoundTextbook) {
@@ -182,14 +187,18 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
         keyboardVerticalOffset={100}
       >
         <View style={styles.header}>
-          <TouchableOpacity onPress={handleOpenLeaveDialog}>
+          <TouchableOpacity
+            disabled={isLoadingQuestions}
+            onPress={isLoadingQuestions ? undefined : handleOpenLeaveDialog}
+            style={{ opacity: isLoadingQuestions ? 0.3 : 1 }}
+          >
             <View style={{ transform: 'rotate(180deg)' }}>
               <ArrowRight width={24} height={24} color={palette.grey[300]} />
             </View>
           </TouchableOpacity>
           <View style={styles.titleContainer}>
-            <Text style={[styles.subtitle, { color: (remainTime || 0) < 10 && textbook?.isMock ? palette.red[900] : palette.grey[400] }]}>
-              {!textbook?.isMock ? formattedTime : remainTimeString}
+            <Text style={[styles.subtitle, { color: isMockTimeOut ? palette.red[900] : (remainTime || 0) < 10 && textbook?.isMock ? palette.red[900] : palette.grey[400] }]}>
+              {!textbook?.isMock ? formattedTime : isMockTimeOut ? t('completed') : remainTimeString}
             </Text>
             {!textbook?.isMock && (
               <View style={styles.timeContainer}>
@@ -201,7 +210,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
                 </Text>
               </View>
             )}
-            {(textbook?.status === ExamStatus.Paused) && (
+            {(textbook?.status === ExamStatus.Paused && !isMockTimeOut) && (
               <View style={{ backgroundColor: '#FF9800', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, alignSelf: 'center', marginTop: 2 }}>
                 <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '600' }}>
                   {t('paused')}
@@ -231,7 +240,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
             />
             <FloatingActionButton
               t={t}
-              isOnlyRestart={!textbook?.isMock}
+              isOnlyRestart={!textbook?.isMock || isMockTimeOut}
               status={textbook?.status}
               onTogglePauseResume={handlePauseAndResumeTextbook}
               onOpenConfirmDialog={textbook?.isMock ? handleOpenConfirmDialog : handleOpenRestartTextbookDialog}
@@ -300,7 +309,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
             <TouchableOpacity
               onPress={
                 disabled
-                  ? textbook?.status === ExamStatus.Completed
+                  ? (textbook?.status === ExamStatus.Completed || isMockTimeOut)
                     ? handleOpenExpiredQuestionDialog
                     : undefined
                   : () => handleOpenAnswerSheet()
@@ -322,14 +331,16 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
               </View>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={handleOpenLeaveDialog}
+              disabled={isLoadingQuestions}
+              onPress={isLoadingQuestions ? undefined : handleOpenLeaveDialog}
               style={{
                 paddingHorizontal: 10,
                 justifyContent: 'center',
-                alignItems: 'center'
+                alignItems: 'center',
+                opacity: isLoadingQuestions ? 0.3 : 1
               }}
             >
-              <Text style={{ color: 'red', fontWeight: '500', fontSize: 14 }}>{t('end_exam')}</Text>
+              <Text style={{ color: isLoadingQuestions ? palette.grey[400] : 'red', fontWeight: '500', fontSize: 14 }}>{t('end_exam')}</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.navRow}>
@@ -341,7 +352,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
                   currentQuestion?.id === questionList[0]?.id && { borderColor: palette.grey[300] }
                 ]}
                 onPress={disabled
-                  ? textbook?.status === ExamStatus.Completed
+                  ? (textbook?.status === ExamStatus.Completed || isMockTimeOut)
                     ? handleOpenExpiredQuestionDialog
                     : undefined
                   : () => scrollToQuestion(ScrollType.FIRST)}
@@ -357,7 +368,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
                   currentQuestion?.id === questionList[0]?.id && { borderColor: palette.grey[300] }
                 ]}
                 onPress={disabled
-                  ? textbook?.status === ExamStatus.Completed
+                  ? (textbook?.status === ExamStatus.Completed || isMockTimeOut)
                     ? handleOpenExpiredQuestionDialog
                     : undefined
                   : () => scrollToQuestion(ScrollType.PREV)}
@@ -385,7 +396,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
                   }
                 ]}
                 onPress={disabled
-                  ? textbook?.status === ExamStatus.Completed
+                  ? (textbook?.status === ExamStatus.Completed || isMockTimeOut)
                     ? handleOpenExpiredQuestionDialog
                     : undefined
                   : () => scrollToQuestion(ScrollType.NEXT)}
@@ -415,7 +426,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
                   }
                 ]}
                 onPress={disabled
-                  ? textbook?.status === ExamStatus.Completed
+                  ? (textbook?.status === ExamStatus.Completed || isMockTimeOut)
                     ? handleOpenExpiredQuestionDialog
                     : undefined
                   : () => scrollToQuestion(ScrollType.LAST)}
@@ -490,6 +501,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
             updateQuestionAnswer={updateQuestionAnswer}
             questionList={questionList}
             currentQuestion={currentQuestion}
+            disabled={disabled}
           />
         )}
         {audioTextbookProp && (

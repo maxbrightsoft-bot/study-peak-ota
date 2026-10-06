@@ -140,10 +140,11 @@ const AcademyRequest = () => {
                   <Button
                     mode="contained"
                     loading={isRequestSending}
+                    disabled={isRequestSending}
                     onPress={sendAcademyRequest}
                     style={styles.primaryButton}
                   >
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                    <View pointerEvents="none" style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                       <MaterialIcons name="send" size={18} color="#FFF" />
                       <Text style={{ color: "#FFF" }}>
                         {t(!!academyRequest?.id ? "send_new_request" : "send_request")}

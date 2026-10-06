@@ -8,11 +8,14 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
-  BackHandler
+  BackHandler,
+  StatusBar,
+  Platform
 } from 'react-native'
 import { Portal } from 'react-native-paper'
 import Loading from '../Loading'
 import { ScaledSheet } from 'react-native-size-matters'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
@@ -29,6 +32,10 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
   position = 'right',
   onClose
 }) => {
+  const insets = useSafeAreaInsets()
+  const statusBarHeight = Platform.OS === 'android' ? (StatusBar.currentHeight || 0) : 0
+  const topInset = Math.max(insets?.top || 0, statusBarHeight)
+  const bottomInset = insets?.bottom || 0
   const isLoading = useAuthStore(state => state.isLoading)
   const isLoadingWithoutOverlay = useAuthStore(state => state.isLoadingWithoutOverlay)
   const navigation = useContext(NavigationContext)
@@ -110,13 +117,16 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
             }
           ]}
         >
-          {navigation ? (
-            <NavigationContext.Provider value={navigation}>
-              {children}
-            </NavigationContext.Provider>
-          ) : (
-            children
-          )}
+          {visible && <StatusBar barStyle="dark-content" backgroundColor="#FFF" translucent={true} />}
+          <View style={[styles.safeArea, { paddingTop: topInset, paddingBottom: bottomInset }]}>
+            {navigation ? (
+              <NavigationContext.Provider value={navigation}>
+                {children}
+              </NavigationContext.Provider>
+            ) : (
+              children
+            )}
+          </View>
 
           {isLoading && <Loading fullScreen={false} />}
           {!isLoading && isLoadingWithoutOverlay && <Loading isOverlay={false} />}
@@ -138,5 +148,9 @@ const styles = ScaledSheet.create({
     backgroundColor: 'white',
     zIndex: 1000,
     elevation: '1000@ms'
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: 'white'
   }
 })

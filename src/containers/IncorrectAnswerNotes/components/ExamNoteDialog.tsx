@@ -11,6 +11,7 @@ import Loading from '@/components/Loading'
 import { Ionicons } from '@expo/vector-icons'
 import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 import TextField from '@/components/Input/TextField'
+import ImageViewerModal from '@/components/ModalBase/ImageViewerModal'
 import { ExamNoteDialogProps } from '../configs/interfaces'
 import { getSafeUrl } from '@/utils/helpers'
 
@@ -38,6 +39,7 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
   const { t } = useTranslation()
   const theme = useTheme()
   const [showImagePicker, setShowImagePicker] = useState(false)
+  const [viewerImageUrl, setViewerImageUrl] = useState<string | null>(null)
 
   const initialQuestionId = selectedNote ? selectedNote.questionId || 0 : selectedQuestion ? selectedQuestion.id : 0
 
@@ -105,18 +107,23 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
                       const displayImageUrl = imageUrl || selectedNote?.imageUrl;
                       return displayImageUrl ? (
                         <View style={{ position: 'relative', width: 120 }}>
-                          <Image
-                            key={displayImageUrl}
-                            source={{ uri: getSafeUrl(displayImageUrl) }}
-                            style={{
-                              width: 120,
-                              height: 120,
-                              borderRadius: 8,
-                              borderWidth: 1,
-                              borderColor: palette.grey[400]
-                            }}
-                            resizeMode="cover"
-                          />
+                          <TouchableOpacity
+                            onPress={() => setViewerImageUrl(displayImageUrl)}
+                            activeOpacity={0.8}
+                          >
+                            <Image
+                              key={displayImageUrl}
+                              source={{ uri: getSafeUrl(displayImageUrl) }}
+                              style={{
+                                width: 120,
+                                height: 120,
+                                borderRadius: 8,
+                                borderWidth: 1,
+                                borderColor: palette.grey[400]
+                              }}
+                              resizeMode="cover"
+                            />
+                          </TouchableOpacity>
                           {handleRemoveImage && (
                             <TouchableOpacity
                               onPress={handleRemoveImage}
@@ -232,6 +239,11 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
           </View>
         </View>
       )}
+      <ImageViewerModal
+        visible={!!viewerImageUrl}
+        imageUrl={viewerImageUrl || ''}
+        onClose={() => setViewerImageUrl(null)}
+      />
     </SlideDrawerRoot>
   )
 }

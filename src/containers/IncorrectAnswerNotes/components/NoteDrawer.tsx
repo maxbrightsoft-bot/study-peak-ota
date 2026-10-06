@@ -1,5 +1,5 @@
 import Loading from '@/components/Loading'
-import SlideDrawer from '@/components/ModalBase/SlideDrawer'
+import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 import { getNoteByIdApi } from '@/containers/Home/apiClients'
 import useAuthStore from '@/store/useAuthStore'
 import { palette, TYPO } from '@/theme'
@@ -169,7 +169,7 @@ const NoteDrawer: FC<Props> = (props) => {
   })
 
   return (
-    <SlideDrawer visible={open} onClose={onClose}>
+    <SlideDrawerRoot visible={open} onClose={onClose}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={onClose}>
           <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />
@@ -250,7 +250,7 @@ const NoteDrawer: FC<Props> = (props) => {
           )}
         </ScrollView>
       </View>
-    </SlideDrawer>
+    </SlideDrawerRoot>
   )
 }
 
