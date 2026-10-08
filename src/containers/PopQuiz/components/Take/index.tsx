@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform, BackHandler } from 'react-native';
 import { palette } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { ScaledSheet } from 'react-native-size-matters';
@@ -8,9 +8,12 @@ import { Routes } from '@/navigators/RouteName';
 import { answerQuestionExam, finishExam } from '@/containers/DoExam/apiClients';
 import { toast } from '@/utils/helpers';
 import { ExamStatus, QuestionAnswerType } from '@/utils/enums';
+import { isTextType } from '@/utils/helpers/textbook';
+import { StudentAnswerRequest } from '@/utils/types';
 import MathRichInput from '@/components/Input/MathRichInput';
 import usePopQuizTake from './hooks/usePopQuizTake';
 import { navigate } from '@/navigators/NavigationHelpers';
+import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog';
 
 const PopQuizTake = () => {
   const {
@@ -52,6 +55,17 @@ const PopQuizTake = () => {
     handleSaveAnswers,
   } = usePopQuizTake();
 
+  const [isOpenConfirmExit, setIsOpenConfirmExit] = useState(false);
+
+  useEffect(() => {
+    const onBackPress = () => {
+      setIsOpenConfirmExit(true);
+      return true;
+    };
+    const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => subscription.remove();
+  }, []);
+
   if (loading) {
     return (
       <View style={[styles.container, styles.center]}>
@@ -82,8 +96,7 @@ const PopQuizTake = () => {
   ].includes(currentQuestion?.questionAnswerType);
 
   const isMultiple =
-    currentQuestion?.questionAnswerType === QuestionAnswerType.MultipleChoice ||
-    currentQuestion?.questionAnswerType === QuestionAnswerType.MultipleCorrectAnswers;
+    currentQuestion?.questionAnswerType === QuestionAnswerType.MultipleChoice;
   const isSingleChoice = !isShortAnswer && !isMultiple;
 
   const optionCount = currentQuestion.answerCount || currentQuestion.numberOfAnswers || 5;
@@ -93,9 +106,6 @@ const PopQuizTake = () => {
 
   const getHeaderTag = () => {
     if (isShortAnswer) return t('shortanswer') || 'Câu trả lời ngắn';
-    if (currentQuestion?.questionAnswerType === QuestionAnswerType.MultipleCorrectAnswers) {
-      return t('multiplecorrectanswers') || 'Nhiều đáp án đúng';
-    }
     if (isMultiple) return t('multiplechoice') || 'Chọn nhiều đáp án';
     return t('singlechoice') || 'Chọn 1 đáp án';
   };
@@ -145,19 +155,14 @@ const PopQuizTake = () => {
 
         // Build the questions payload including all questions to satisfy backend validation
         const questionsPayload = questions.map((q) => {
-          const isQShort = [
-            QuestionAnswerType.ShortAnswer,
-            QuestionAnswerType.OrderMatters,
-            QuestionAnswerType.OrderDoesNotMatters,
-            QuestionAnswerType.SynonymProcessing,
-          ].includes(q.questionAnswerType);
+          const isQText = isTextType(q.questionAnswerType);
 
           const isCurrent = q.id === currentQuestion.id;
           const qSelected = isCurrent
-            ? (isQShort ? [] : selectedOptions)
+            ? (isQText ? [] : selectedOptions)
             : (answers[q.id] || []);
           const qTextual = isCurrent
-            ? (isQShort ? (textAnswers[currentQuestion.id] || []) : [])
+            ? (isQText ? (textAnswers[currentQuestion.id] || []) : [])
             : (textAnswers[q.id] || []);
 
           let qDuration = q.duration || 0;
@@ -168,7 +173,10 @@ const PopQuizTake = () => {
             qAnswerTime = now;
           }
 
-          const hasAnswer = (!isQShort && qSelected.length > 0) || (isQShort && qTextual.some(ans => ans.trim().length > 0));
+          const hasAnswer = isQText
+            ? (qTextual?.some(ans => (ans || '').trim().length > 0) ?? false)
+            : ((qSelected?.length ?? 0) > 0);
+
           if (!hasAnswer) {
             qDuration = 0;
             qAnswerTime = 0;
@@ -183,8 +191,9 @@ const PopQuizTake = () => {
 
           return {
             questionId: q.id,
-            selectedAnswers: qSelected,
-            textualAnswers: qTextual,
+            ...(isQText
+              ? { textualAnswers: qTextual || [] }
+              : { selectedAnswers: qSelected || [] }),
             duration: Math.round(qDuration),
             isStar: false,
             answerTime: qAnswerTime,
@@ -194,11 +203,11 @@ const PopQuizTake = () => {
         const totalAnsweredTime = questionsPayload.reduce((sum, q) => sum + q.duration, 0);
         const finalRunningTime = Math.max(currentRunningTime, totalAnsweredTime);
 
-        const body = {
+        const body: StudentAnswerRequest = {
           lastAnswerTime: now,
           runningTime: Math.round(finalRunningTime),
-          rowVersion,
           questions: questionsPayload,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
         };
 
         const res = await answerQuestionExam(code, body);
@@ -212,8 +221,8 @@ const PopQuizTake = () => {
           if (payloadQ) {
             return {
               ...q,
-              selectedAnswers: payloadQ.selectedAnswers,
-              textualAnswers: payloadQ.textualAnswers,
+              selectedAnswers: (payloadQ as any).selectedAnswers || q.selectedAnswers,
+              textualAnswers: (payloadQ as any).textualAnswers || q.textualAnswers,
               duration: payloadQ.duration,
               answerTime: payloadQ.answerTime > 0 ? new Date(payloadQ.answerTime).toISOString() : undefined,
             };
@@ -253,7 +262,7 @@ const PopQuizTake = () => {
         const errMsg =
           err?.response?.data?.detail || err?.response?.data?.message || err?.message || t('failed_to_save_answer') || '답변 저장에 실패했습니다';
         
-        if (err?.response?.status === 420 || (err?.response?.status === 400 && errMsg.toLowerCase().includes('finish'))) {
+        if (err?.response?.status === 420 || (err?.response?.status === 400 && String(errMsg).toLowerCase().includes('finish'))) {
           // toast.info(t('exam_has_been_finished_by_teacher'));
           navigate(Routes.Auth.PopQuizResult, { quizId, code, studentExamSessionId });
         } else {
@@ -273,8 +282,13 @@ const PopQuizTake = () => {
     }
   };
 
-  const isCreator = quizInfo && 
-    quizInfo.popQuizStatus !== ExamStatus.Completed && 
+  const isPopQuizCompleted =
+    quizInfo?.popQuizStatus === ExamStatus.Completed ||
+    quizInfo?.popQuizStatus === 'Completed' ||
+    quizInfo?.status === ExamStatus.Completed ||
+    quizInfo?.status === 'Completed';
+
+  const isCreator = !isPopQuizCompleted && quizInfo && 
     (quizInfo.createdById === user?.superId || quizInfo.createdBy?.id === user?.superId || quizInfo.createdBy?.superId === user?.superId);
 
   const isPreviewMode = !code && !!quizId;
@@ -284,13 +298,16 @@ const PopQuizTake = () => {
     : selectedOptions.length > 0);
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <SafeAreaView style={{ backgroundColor: palette.main[500] }} />
 
       {/* ── Header ── */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <TouchableOpacity onPress={() => navigate(Routes.Auth.PopQuiz)} style={styles.closeButton}>
+          <TouchableOpacity onPress={() => setIsOpenConfirmExit(true)} style={styles.closeButton}>
             <Ionicons name="close" size={24} color="#FFF" />
           </TouchableOpacity>
           <View style={styles.progressBarBg}>
@@ -573,7 +590,20 @@ const PopQuizTake = () => {
           </View>
         )
       )}
-    </View>
+
+      <ConfirmDialog
+        open={isOpenConfirmExit}
+        toggle={() => setIsOpenConfirmExit(false)}
+        onConfirm={() => {
+          setIsOpenConfirmExit(false);
+          navigate(Routes.Auth.PopQuiz);
+        }}
+        text={t('confirm_exit_quiz')}
+        title={t('confirmation')}
+        okText={t('yes')}
+        cancelText={t('no')}
+      />
+    </KeyboardAvoidingView>
   );
 };
 

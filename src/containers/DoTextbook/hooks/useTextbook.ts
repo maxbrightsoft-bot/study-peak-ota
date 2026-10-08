@@ -17,7 +17,7 @@ import {
 import useTextbookSolving from "./useTextbookSolving";
 import { useTextbookTimer } from "./useTextbookTimer";
 import useTextbookPause from "./useTextbookPause";
-import { findTargetQuestionForPageRange, isNull } from "../config/helpers";
+import { findTargetQuestionForPageRange, isNull, isQuestionAnswered } from "../config/helpers";
 import { Routes } from "@/navigators/RouteName";
 import { navigate } from "@/navigators/NavigationHelpers";
 import { Alert, findNodeHandle, FlatList, UIManager, View, BackHandler } from "react-native";
@@ -506,9 +506,7 @@ const useTextbook = ({
   const totalTasks = questionList.length;
 
   const completedTasks = useMemo(() => {
-    return questionList.filter(
-      (q) => q.selectedAnswers?.length || !isNull(q.textualAnswers)
-    ).length;
+    return questionList.filter(isQuestionAnswered).length;
   }, [questionList]);
 
   const startPageOptions = useMemo(() => {
@@ -585,7 +583,7 @@ const useTextbook = ({
 
   useEffect(() => {
     if (questionList.length > 0 && !page) {
-      const noAnswer = questionList.find(i => i.questionAnswerType < 2 ? !i.selectedAnswers?.length : !i.textualAnswers?.length)
+      const noAnswer = questionList.find(i => !isQuestionAnswered(i));
       setCurrentQuestionId(noAnswer?.id || questionList[0].id);
     }
   }, [questionList.length, page]);

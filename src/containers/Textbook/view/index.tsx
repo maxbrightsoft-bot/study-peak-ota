@@ -1,7 +1,8 @@
 import { palette, TYPO } from '@/theme'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { View, TouchableOpacity, Text } from 'react-native'
-import { TabList, DefaultTextbookFilter } from '../configs/constants'
+import { useNavigation, useRoute } from '@react-navigation/native'
+import { TabList, DefaultTextbookFilter, TEXTBOOK_TABS } from '../configs/constants'
 import useTab from '@/hooks/useTab'
 import { useTranslation } from 'react-i18next'
 import TabPanel from '@/components/Tab/TabPanel'
@@ -13,9 +14,19 @@ import PopQuiz from '@/containers/PopQuiz'
 
 const Textbook = () => {
   const { t } = useTranslation()
-  const { selected, handleChangeTab } = useTab(TabList)
+  const navigation = useNavigation<any>()
+  const route = useRoute<any>()
+  const routeTab = route?.params?.tab
+  const { selected, handleChangeTab } = useTab(TabList, routeTab)
   const [search, setSearch] = useState<string>('')
   const [textbookFilter, setTextbookFilter] = useState<TextbookQuery>(DefaultTextbookFilter)
+
+  useEffect(() => {
+    if (route?.params?.tab) {
+      handleChangeTab(route.params.tab)
+      navigation.setParams({ tab: undefined })
+    }
+  }, [route?.params?.tab, handleChangeTab, navigation])
 
   const handleTabChange = (value: any) => {
     handleChangeTab(value)
@@ -53,7 +64,7 @@ const Textbook = () => {
         })}
       </View>
 
-      <TabPanel value={selected} index={PreparedType.csat_past_questions} style={{ flex: 1 }}>
+      <TabPanel value={selected} index={TEXTBOOK_TABS.CSAT_PAST_QUESTIONS} style={{ flex: 1 }}>
         <TextbookList
           preparedType={PreparedType.csat_past_questions}
           search={search}
@@ -62,7 +73,7 @@ const Textbook = () => {
           setTextbookFilter={setTextbookFilter}
         />
       </TabPanel>
-      <TabPanel value={selected} index={PreparedType.official_mock_exam} style={{ flex: 1 }}>
+      <TabPanel value={selected} index={TEXTBOOK_TABS.OFFICIAL_MOCK_EXAM} style={{ flex: 1 }}>
         <TextbookList
           preparedType={PreparedType.official_mock_exam}
           search={search}
@@ -71,7 +82,7 @@ const Textbook = () => {
           setTextbookFilter={setTextbookFilter}
         />
       </TabPanel>
-      <TabPanel value={selected} index={PreparedType.private_mock_exam} style={{ flex: 1 }}>
+      <TabPanel value={selected} index={TEXTBOOK_TABS.PRIVATE_MOCK_EXAM} style={{ flex: 1 }}>
         <TextbookList
           preparedType={PreparedType.private_mock_exam}
           search={search}
@@ -80,10 +91,10 @@ const Textbook = () => {
           setTextbookFilter={setTextbookFilter}
         />
       </TabPanel>
-      <TabPanel value={selected} index="pop_quiz" style={{ flex: 1 }}>
+      <TabPanel value={selected} index={TEXTBOOK_TABS.POP_QUIZ} style={{ flex: 1 }}>
         <PopQuiz />
       </TabPanel>
-      <TabPanel value={selected} index={PreparedType.workbook} style={{ flex: 1 }}>
+      <TabPanel value={selected} index={TEXTBOOK_TABS.WORKBOOK} style={{ flex: 1 }}>
         <TextbookList
           preparedType={PreparedType.workbook}
           search={search}
@@ -92,7 +103,7 @@ const Textbook = () => {
           setTextbookFilter={setTextbookFilter}
         />
       </TabPanel>
-      <TabPanel value={selected} index={PreparedType.past_exam_questions} style={{ flex: 1 }}>
+      <TabPanel value={selected} index={TEXTBOOK_TABS.PAST_EXAM_QUESTIONS} style={{ flex: 1 }}>
         <TextbookList
           preparedType={PreparedType.past_exam_questions}
           search={search}
@@ -101,7 +112,7 @@ const Textbook = () => {
           setTextbookFilter={setTextbookFilter}
         />
       </TabPanel>
-      <TabPanel value={selected} index={PreparedFilterType.academy_questions} style={{ flex: 1 }}>
+      <TabPanel value={selected} index={TEXTBOOK_TABS.ACADEMY_QUESTIONS} style={{ flex: 1 }}>
         <TextbookList
           preparedFilterType={PreparedFilterType.academy_questions}
           search={search}

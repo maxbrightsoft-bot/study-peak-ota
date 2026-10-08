@@ -12,6 +12,7 @@ const usePopQuizIntro = () => {
   const { t } = useTranslation();
   const quizId = route.params?.quizId;
   const code = route.params?.code;
+  const routePopQuizStatus = route.params?.popQuizStatus;
   const [loading, setLoading] = useState(true);
   const [startLoading, setStartLoading] = useState(false);
   const [quizInfo, setQuizInfo] = useState<any>(null);
@@ -27,7 +28,19 @@ const usePopQuizIntro = () => {
           if (quizId) {
             const res = await getExamByIdApi(quizId);
             const data = res.data?.data || res.data;
-            setQuizInfo(data);
+            const questionCount = data?.questionCount ?? data?.totalQuestions ?? (data?.questionGroups?.reduce((acc: number, group: any) => acc + (group.questions?.length || 0), 0) || 0);
+            const totalScore = data?.totalScore ?? (data?.questionGroups?.reduce((acc: number, group: any) => acc + (group.questions || []).reduce((qAcc: number, q: any) => qAcc + (q.score || 0), 0), 0) || 0);
+
+            setQuizInfo({
+              ...data,
+              teacherName: data?.createdBy?.fullName || '',
+              teacherAvatar: data?.createdBy?.avatar || '',
+              subjectName: data?.subject?.name || '',
+              questionCount,
+              totalScore,
+              popQuizStatus: routePopQuizStatus ?? data?.popQuizStatus ?? data?.status,
+              solveTarget: route.params?.solveTarget ?? data?.solveTarget,
+            });
           } else if (code) {
             const res = await getExamInfoByCodeApi(code);
             const data = res.data?.data || res.data;
@@ -37,7 +50,16 @@ const usePopQuizIntro = () => {
               return;
             }
 
-            setQuizInfo(data);
+            setQuizInfo({
+              ...data,
+              teacherName: data?.teacherName || '',
+              teacherAvatar: data?.teacherAvatar || '',
+              subjectName: typeof data?.subject === 'string' ? data?.subject : (data?.subject?.name || ''),
+              questionCount: data?.questionCount ?? data?.totalQuestions ?? 0,
+              totalScore: data?.totalScore ?? 0,
+              popQuizStatus: routePopQuizStatus ?? data?.popQuizStatus ?? data?.status,
+              solveTarget: route.params?.solveTarget ?? data?.solveTarget,
+            });
           } else {
             setError(t('quiz_not_found'));
           }
@@ -51,10 +73,11 @@ const usePopQuizIntro = () => {
       };
 
       fetchInfo();
-    }, [quizId, code])
+    }, [quizId, code, routePopQuizStatus])
   );
 
   const handleStart = async () => {
+    const effectiveStatus = routePopQuizStatus ?? quizInfo?.popQuizStatus ?? quizInfo?.status;
     if (code) {
       if (quizInfo && quizInfo.studentExamSessionId && quizInfo.isSessionFinished) {
         navigation.navigate(Routes.Auth.PopQuizResult, {
@@ -68,6 +91,7 @@ const usePopQuizIntro = () => {
           code,
           studentExamSessionId: quizInfo.studentExamSessionId,
           quizId: quizInfo.examId || quizInfo.id || quizId,
+          popQuizStatus: effectiveStatus,
         });
         return;
       }
@@ -88,6 +112,7 @@ const usePopQuizIntro = () => {
           code,
           studentExamSessionId,
           quizId: responseData?.examId || quizId,
+          popQuizStatus: responseData?.status ?? effectiveStatus,
         });
       } catch (err: any) {
         console.error('Failed to join exam', err);
@@ -99,6 +124,7 @@ const usePopQuizIntro = () => {
     } else if (quizId) {
       navigation.navigate(Routes.Auth.PopQuizTake, {
         quizId,
+        popQuizStatus: effectiveStatus,
       });
     }
   };

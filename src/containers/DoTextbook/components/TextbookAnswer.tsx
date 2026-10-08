@@ -41,9 +41,7 @@ const TextbookAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAn
   const handleSelectAnswer = (num: number, type: QuestionAnswerType) => {
     if (disabled) return
     let nextSelected: number[]
-    const isMultiple =
-      type === QuestionAnswerType.MultipleChoice ||
-      type === QuestionAnswerType.MultipleCorrectAnswers
+    const isMultiple = type === QuestionAnswerType.MultipleChoice
     const maxAllowed = (question?.answerCount || 0) > 0 ? (question?.answerCount || 0) - 1 : 0
 
     if (isMultiple) {
@@ -57,7 +55,7 @@ const TextbookAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAn
         }
       }
     } else {
-      nextSelected = [num]
+      nextSelected = selectedAnswers.includes(num) ? [] : [num]
     }
 
     setSelectedAnswers(nextSelected)

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { getExamByIdApi, updatePopQuizAnswersApi } from '@/services/api/popQuizApi';
-import { ExamEvent, QuestionAnswerType } from '@/utils/enums/exam';
+import { getExamByIdApi, getRecentPopQuizzesApi, updatePopQuizAnswersApi } from '@/services/api/popQuizApi';
+import { ExamEvent, QuestionAnswerType, ExamStatus } from '@/utils/enums/exam';
 import useAuthStore from '@/store/useAuthStore';
 import { useNavigation, useRoute, useIsFocused } from '@react-navigation/native';
 import { useEffect, useState, useRef } from 'react';
@@ -26,10 +26,12 @@ const usePopQuizTake = () => {
   const studentExamSessionIdRef = useRef(studentExamSessionId);
   studentExamSessionIdRef.current = studentExamSessionId;
   
-  const pusher = useAuthStore(state => state.pusher)
-  const subscribeChannel = useAuthStore(state => state.subscribeChannel)
-  const unsubscribeChannelSafe = useAuthStore(state => state.unsubscribeChannelSafe)
-  const academyDomain = useAuthStore((state: any) => state.selectedAcademy?.domain);
+  const pusher = useAuthStore(state => state.pusher);
+  const subscribeChannel = useAuthStore(state => state.subscribeChannel);
+  const unsubscribeChannelSafe = useAuthStore(state => state.unsubscribeChannelSafe);
+  const selectedAcademy = useAuthStore((state: any) => state.selectedAcademy);
+  const user = useAuthStore(state => state.user);
+  const academyDomain = (selectedAcademy?.domain || user?.academyDomain || '').trim().toUpperCase();
 
   const [loading, setLoading] = useState(true);
   const [nextLoading, setNextLoading] = useState(false);
@@ -44,7 +46,6 @@ const usePopQuizTake = () => {
   const [restartSeq, setRestartSeq] = useState(0);
   const [rowVersion, setRowVersion] = useState<string>('');
 
-  const user = useAuthStore(state => state.user);
   const [quizInfo, setQuizInfo] = useState<any>(null);
   const [isEditingMode, setIsEditingMode] = useState(false);
   const [editAnswers, setEditAnswers] = useState<number[]>([]);
@@ -80,9 +81,12 @@ const usePopQuizTake = () => {
   };
 
   useEffect(() => {
-    if (!isFocused || !pusher || !code || !academyDomain) return;
+    if (!isFocused || !pusher || !code) return;
 
-    const channelName = `presence-exam-channel-${code}-${academyDomain.trim().toUpperCase()}`;
+    const resolvedDomain = (academyDomain || quizInfo?.academy?.domain || quizInfo?.academyDomain || '').trim().toUpperCase();
+    const channelName = resolvedDomain
+      ? `presence-exam-channel-${code}-${resolvedDomain}`
+      : `presence-exam-channel-${code}`;
     let isMounted = true;
     let didSubscribe = false;
 
@@ -140,7 +144,7 @@ const usePopQuizTake = () => {
         unsubscribeChannelSafe(pusher, channelName);
       }
     };
-  }, [pusher, code, academyDomain, isFocused]);
+  }, [pusher, code, academyDomain, isFocused, quizInfo?.academy?.domain, quizInfo?.academyDomain]);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -166,6 +170,7 @@ const usePopQuizTake = () => {
         let loadedQuestions: any[] = [];
         let runningTimeVal = 0;
         let examIdToFetch = route.params?.quizId;
+        let sessionStatusFromCode: any = undefined;
 
         if (code) {
           const res = await getQuestionExam(code);
@@ -173,6 +178,7 @@ const usePopQuizTake = () => {
           loadedQuestions = responseData?.questionGroups?.flatMap((qg: any) => qg.questions) || [];
           runningTimeVal = responseData?.runningTime || 0;
           setRowVersion(responseData?.rowVersion || '');
+          sessionStatusFromCode = responseData?.status;
 
           const activeSessionId = responseData?.studentExamSessionId || responseData?.id;
           if (activeSessionId) {
@@ -188,7 +194,8 @@ const usePopQuizTake = () => {
           }
 
           const hasFinished = responseData?.finishTime && !String(responseData.finishTime).startsWith(DATE_TIME_MIN_VALUE);
-          if (loadedQuestions.length === 0 && hasFinished) {
+          const isSessionCompleted = responseData?.status === ExamStatus.Completed || responseData?.status === 'Completed';
+          if ((loadedQuestions.length === 0 && hasFinished) || isSessionCompleted) {
              navigation.navigate(Routes.Auth.PopQuizResult, {
               quizId: examIdToFetch || route.params?.quizId,
               code,
@@ -202,7 +209,31 @@ const usePopQuizTake = () => {
           try {
             const infoRes = await getExamByIdApi(examIdToFetch);
             const infoData = infoRes.data?.data || infoRes.data;
-            setQuizInfo(infoData);
+
+            let resolvedStatus =
+              route.params?.popQuizStatus ??
+              sessionStatusFromCode ??
+              infoData?.popQuizStatus ??
+              infoData?.status;
+
+            if (resolvedStatus === undefined || resolvedStatus === ExamStatus.Default) {
+              try {
+                const recentRes = await getRecentPopQuizzesApi(50);
+                const recentList = recentRes.data?.items || recentRes.data || [];
+                const matched = recentList.find((q: any) => q.id === examIdToFetch || (code && q.code === code));
+                if (matched?.popQuizStatus !== undefined) {
+                  resolvedStatus = matched.popQuizStatus;
+                }
+              } catch (e) {
+                // ignore
+              }
+            }
+
+            setQuizInfo({
+              ...infoData,
+              popQuizStatus: resolvedStatus,
+              status: resolvedStatus,
+            });
             if (infoData?.id) {
               setCurrentQuizId(infoData.id);
             }
@@ -278,6 +309,20 @@ const usePopQuizTake = () => {
   }, [code, route.params?.quizId, route.params?.studentExamSessionId, routeRestartAt, restartSeq, isFocused]);
 
   const handleSaveAnswers = async () => {
+    const isPopQuizCompleted =
+      quizInfo?.popQuizStatus === ExamStatus.Completed ||
+      quizInfo?.popQuizStatus === 'Completed' ||
+      quizInfo?.status === ExamStatus.Completed ||
+      quizInfo?.status === 'Completed' ||
+      route.params?.popQuizStatus === ExamStatus.Completed ||
+      route.params?.popQuizStatus === 'Completed';
+
+    if (isPopQuizCompleted) {
+      toast.error(t('pop_quiz_status_completed') || '팝퀴즈가 이미 종료되었습니다.');
+      setIsEditingMode(false);
+      return;
+    }
+
     const activeQuizId = quizInfo?.id || currentQuizId || route.params?.quizId;
     if (!activeQuizId) return;
     const currentQuestion = questions[currentQuestionIndex];

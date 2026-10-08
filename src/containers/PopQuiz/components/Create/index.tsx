@@ -11,6 +11,7 @@ import CustomSelect from '@/components/Select/CustomSelect';
 import { toast } from '@/utils/helpers';
 import { navigate } from '@/navigators/NavigationHelpers';
 import { Routes } from '@/navigators/RouteName';
+import { getSolveTargetLabel } from '../../helpers';
 
 const PopQuizCreate = () => {
   const {
@@ -95,7 +96,9 @@ const PopQuizCreate = () => {
         onChangeText={setTitle}
       />
 
-      <Text style={[styles.label, { marginTop: 24 }]}>{t('subject')}</Text>
+      <Text style={[styles.label, { marginTop: 24 }]}>
+        {t('subject')} <Text style={{ color: '#E53E3E' }}>* {t('required_label', '필수')}</Text>
+      </Text>
       <View style={styles.subjectsContainer}>
         {loadingSubjects ? (
           <ActivityIndicator size="small" color={palette.main[500]} />
@@ -122,7 +125,9 @@ const PopQuizCreate = () => {
 
       {subject && (
         <>
-          <Text style={[styles.label, { marginTop: 24 }]}>{t('category') || 'Category'}</Text>
+          <Text style={[styles.label, { marginTop: 24 }]}>
+            {t('category') || 'Category'} <Text style={{ color: palette.grey[500], fontWeight: 'normal' }}>({t('optional_label', '선택')})</Text>
+          </Text>
           <CustomSelect
             value={category?.superId || category?.id}
             onValueChange={setCategory}
@@ -144,7 +149,9 @@ const PopQuizCreate = () => {
 
       {subject && (
         <>
-          <Text style={[styles.label, { marginTop: 24 }]}>{t('sub_category')}</Text>
+          <Text style={[styles.label, { marginTop: 24 }]}>
+            {t('sub_category')} <Text style={{ color: palette.grey[500], fontWeight: 'normal' }}>({t('optional_label', '선택')})</Text>
+          </Text>
           <CustomSelect
             value={subCategory?.superId || subCategory?.id}
             onValueChange={setSubCategory}
@@ -166,7 +173,9 @@ const PopQuizCreate = () => {
 
       {subject && (
         <>
-          <Text style={[styles.label, { marginTop: 24 }]}>{t('question_type')}</Text>
+          <Text style={[styles.label, { marginTop: 24 }]}>
+            {t('question_type')} <Text style={{ color: palette.grey[500], fontWeight: 'normal' }}>({t('optional_label', '선택')})</Text>
+          </Text>
           <CustomSelect
             value={questionType?.id}
             onValueChange={setQuestionType}
@@ -200,6 +209,34 @@ const PopQuizCreate = () => {
           onPress={() => setQuestionCount(questionCount + 1)}
         >
           <Ionicons name="add" size={20} color="#FFF" />
+        </TouchableOpacity>
+      </View>
+
+      <Text style={[styles.label, { marginTop: 24 }]}>{t('who_will_solve')}</Text>
+      <View style={styles.targetContainer}>
+        <TouchableOpacity
+          style={solveTarget === PopQuizSolveTarget.Child ? styles.targetBtnActive : styles.targetBtn}
+          onPress={() => setSolveTarget(PopQuizSolveTarget.Child)}
+        >
+          <Text style={solveTarget === PopQuizSolveTarget.Child ? styles.targetTextActive : styles.targetText}>{t('my_child')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={solveTarget === PopQuizSolveTarget.Friend ? styles.targetBtnActive : styles.targetBtn}
+          onPress={() => setSolveTarget(PopQuizSolveTarget.Friend)}
+        >
+          <Text style={solveTarget === PopQuizSolveTarget.Friend ? styles.targetTextActive : styles.targetText}>{t('friend')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={solveTarget === PopQuizSolveTarget.Group ? styles.targetBtnActive : styles.targetBtn}
+          onPress={() => setSolveTarget(PopQuizSolveTarget.Group)}
+        >
+          <Text style={solveTarget === PopQuizSolveTarget.Group ? styles.targetTextActive : styles.targetText}>{t('study_group')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={solveTarget === PopQuizSolveTarget.Myself ? styles.targetBtnActive : styles.targetBtn}
+          onPress={() => setSolveTarget(PopQuizSolveTarget.Myself)}
+        >
+          <Text style={solveTarget === PopQuizSolveTarget.Myself ? styles.targetTextActive : styles.targetText}>{t('myself')}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -449,32 +486,13 @@ const PopQuizCreate = () => {
       <Text style={styles.successTitle}>{t('pop_quiz_created_success')}</Text>
       <Text style={styles.successSubtitle}>{t('question_added_mock', { count: questions.length })}</Text>
 
-      <Text style={styles.label}>{t('who_will_solve')}</Text>
-      <View style={styles.targetContainer}>
-        <TouchableOpacity
-          style={solveTarget === PopQuizSolveTarget.Child ? styles.targetBtnActive : styles.targetBtn}
-          onPress={() => setSolveTarget(PopQuizSolveTarget.Child)}
-        >
-          <Text style={solveTarget === PopQuizSolveTarget.Child ? styles.targetTextActive : styles.targetText}>{t('my_child')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={solveTarget === PopQuizSolveTarget.Friend ? styles.targetBtnActive : styles.targetBtn}
-          onPress={() => setSolveTarget(PopQuizSolveTarget.Friend)}
-        >
-          <Text style={solveTarget === PopQuizSolveTarget.Friend ? styles.targetTextActive : styles.targetText}>{t('friend')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={solveTarget === PopQuizSolveTarget.Group ? styles.targetBtnActive : styles.targetBtn}
-          onPress={() => setSolveTarget(PopQuizSolveTarget.Group)}
-        >
-          <Text style={solveTarget === PopQuizSolveTarget.Group ? styles.targetTextActive : styles.targetText}>{t('study_group')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={solveTarget === PopQuizSolveTarget.Myself ? styles.targetBtnActive : styles.targetBtn}
-          onPress={() => setSolveTarget(PopQuizSolveTarget.Myself)}
-        >
-          <Text style={solveTarget === PopQuizSolveTarget.Myself ? styles.targetTextActive : styles.targetText}>{t('myself')}</Text>
-        </TouchableOpacity>
+      <View style={styles.targetBadgeRow}>
+        <Text style={styles.targetBadgeLabel}>{t('who_will_solve')}: </Text>
+        <View style={styles.targetBadge}>
+          <Text style={styles.targetBadgeText}>
+            {getSolveTargetLabel(solveTarget, t)}
+          </Text>
+        </View>
       </View>
 
       <View style={styles.codeContainer}>
@@ -885,7 +903,28 @@ const styles = ScaledSheet.create({
     fontSize: '14@ms',
     color: palette.grey[500],
     textAlign: 'center',
-    marginBottom: '32@ms',
+    marginBottom: '20@ms',
+  },
+  targetBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: '24@ms',
+  },
+  targetBadgeLabel: {
+    fontSize: '13@ms',
+    color: palette.grey[600],
+  },
+  targetBadge: {
+    backgroundColor: '#F3E8FF',
+    paddingHorizontal: '12@ms',
+    paddingVertical: '4@ms',
+    borderRadius: '12@ms',
+  },
+  targetBadgeText: {
+    color: palette.main[500],
+    fontWeight: 'bold',
+    fontSize: '13@ms',
   },
   targetContainer: {
     flexDirection: 'row',
