@@ -88,17 +88,16 @@ const MyAnswer: FC<Props> = ({ data, categories, effectSize, onCreateNote, onCre
         ? null
         : data.questionGroups?.[item.questionGroupIndex]
     const subcategory = questionGroup?.articles?.[0]?.subcategory
+    const hasSubcategory = Boolean(subcategory?.name && subcategory.name.trim() !== '')
 
     return (
       <View key={item.id}>
-        {subOverall?.length > 0 && isVisible && (
+        {subOverall?.length > 0 && isVisible && hasSubcategory && (
           <View style={styles.groupHeader}>
             <View style={styles.groupHeaderColumn1}>
-              {subcategory && (
-                <Text style={styles.subcategoryText}>
-                  {subcategory.name}
-                </Text>
-              )}
+              <Text style={styles.subcategoryText}>
+                {subcategory?.name}
+              </Text>
             </View>
             <View style={styles.groupHeaderColumn2} />
             <View style={styles.groupHeaderColumn3}>
@@ -111,19 +110,28 @@ const MyAnswer: FC<Props> = ({ data, categories, effectSize, onCreateNote, onCre
           </View>
         )}
 
-        {isMath && item?.questionTypeCategories && (
-          <View style={styles.questionTypeContainer}>
-            <View style={styles.questionTypeColumn}>
-              <Text style={styles.questionTypeText}>
-                {item?.questionTypeCategories?.map((i) => i?.questionType?.name).join(', ')}
-              </Text>
-            </View>
-            <View style={styles.questionTypeEmptyColumn} />
-            <View style={styles.questionTypeEmptyColumn} />
-            <View style={styles.questionTypeEmptyColumn} />
-            <View style={styles.questionTypeEmptyColumn} />
-          </View>
-        )}
+        {(() => {
+          const questionTypeNames = item?.questionTypeCategories
+            ?.map((i) => i?.questionType?.name)
+            ?.filter(Boolean)
+            ?.join(', ')
+          return (
+            isMath &&
+            Boolean(questionTypeNames) && (
+              <View style={styles.questionTypeContainer}>
+                <View style={styles.questionTypeColumn}>
+                  <Text style={styles.questionTypeText}>
+                    {questionTypeNames}
+                  </Text>
+                </View>
+                <View style={styles.questionTypeEmptyColumn} />
+                <View style={styles.questionTypeEmptyColumn} />
+                <View style={styles.questionTypeEmptyColumn} />
+                <View style={styles.questionTypeEmptyColumn} />
+              </View>
+            )
+          )
+        })()}
 
         <AnswerItem
           index={index}
@@ -195,14 +203,21 @@ const MyAnswer: FC<Props> = ({ data, categories, effectSize, onCreateNote, onCre
           newFormattedData.map((item, index) => (
             <View key={item.category.id} style={styles.categorySection}>
               {index == 0 && renderHeader()}
-              <View style={styles.categoryHeader}>
-                <View style={styles.categoryColumn}>
-                  <Text style={styles.categoryLabel}>{t('_category')}</Text>
-                  <Text style={styles.categoryName}>
-                    {item.category.name}
-                  </Text>
+              {Boolean(
+                item.category &&
+                item.category.id !== 0 &&
+                item.category.name &&
+                item.category.name.trim() !== ''
+              ) && (
+                <View style={styles.categoryHeader}>
+                  <View style={styles.categoryColumn}>
+                    <Text style={styles.categoryLabel}>{t('_category')}</Text>
+                    <Text style={styles.categoryName}>
+                      {item.category.name}
+                    </Text>
+                  </View>
                 </View>
-              </View>
+              )}
               <View style={[styles.questionsContainer, index == newFormattedData.length - 1 && { borderBottomLeftRadius: 14, borderBottomRightRadius: 14 }]}>
                 {item.questions.map((question, index) => renderAnswer(question, index, item.questions, item.overall))}
               </View>

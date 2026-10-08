@@ -16,17 +16,15 @@ import StudyTimerCard from '../components/StudyTimerCard'
 import { Ionicons } from '@expo/vector-icons'
 import { navigate } from '@/navigators/NavigationHelpers'
 import { Routes } from '@/navigators/RouteName'
+import { TEXTBOOK_TABS } from '@/containers/Textbook/configs/constants'
 
 const StudySpaceView = () => {
   const {
     t,
     user,
     scrollRef,
-    openSchedule,
     enableCheckSchedule,
     handleCheckSchedule,
-    handleToggleSchedule,
-    receivedPopQuiz,
     receivedPopQuizzes
   } = useProblemSolving()
 
@@ -156,7 +154,7 @@ const StudySpaceView = () => {
           <View style={styles.popQuizSectionContainer}>
             <View style={styles.popQuizHeaderRow}>
               <Text style={styles.popQuizHeaderTitle}>{t('received_pop_quiz')}</Text>
-              <TouchableOpacity onPress={() => navigate(Routes.Auth.PopQuiz as any)}>
+              <TouchableOpacity onPress={() => navigate(Routes.Auth.Textbook as any, { tab: TEXTBOOK_TABS.POP_QUIZ })}>
                 <Text style={styles.popQuizViewAll}>{t('view_all') || '전체보기'}</Text>
               </TouchableOpacity>
             </View>
@@ -167,7 +165,7 @@ const StudySpaceView = () => {
                   <TouchableOpacity
                     key={item.id || item.code || idx}
                     style={styles.popQuizItemCard}
-                    onPress={() => navigate(Routes.Auth.PopQuizIntro as any, { code: item.code })}
+                    onPress={() => navigate(Routes.Auth.PopQuizIntro as any, { code: item.code, popQuizStatus: item.popQuizStatus })}
                     activeOpacity={0.8}
                   >
                     <View style={styles.popQuizItemIconWrapper}>
@@ -197,7 +195,7 @@ const StudySpaceView = () => {
             ) : (
               <TouchableOpacity
                 style={[styles.popQuizItemCard, { marginTop: 10 }]}
-                onPress={() => navigate(Routes.Auth.PopQuiz as any)}
+                onPress={() => navigate(Routes.Auth.Textbook as any, { tab: TEXTBOOK_TABS.POP_QUIZ })}
                 activeOpacity={0.8}
               >
                 <View style={styles.popQuizItemIconWrapper}>

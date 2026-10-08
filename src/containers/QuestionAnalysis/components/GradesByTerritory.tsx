@@ -17,6 +17,14 @@ const GradesByTerritory = ({ data, isPrint }: Props) => {
   const { width } = useWindowDimensions()
   const tableWidth = width - 40
 
+  const validData = (data || []).filter(
+    item => item && item.id !== 0 && item.name && item.name.trim() !== ''
+  )
+
+  if (!validData.length) {
+    return null
+  }
+
   const styles = ScaledSheet.create({
     wrapper: {
       borderRadius: '14@ms',
@@ -129,7 +137,7 @@ const GradesByTerritory = ({ data, isPrint }: Props) => {
     <View style={styles.wrapper}>
       <View style={[styles.header, { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16 }]}>
         <Text style={styles.headerText}>{t('grades_by_area')}</Text>
-        {data.length > 0 && (
+        {validData.length > 0 && (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <Text style={{ fontSize: 11, color: palette.grey[500] }}>{t('scroll_horizontal', 'Vuốt ngang')}</Text>
             <Ionicons name="swap-horizontal" size={14} color={palette.grey[500]} />
@@ -138,7 +146,7 @@ const GradesByTerritory = ({ data, isPrint }: Props) => {
       </View>
 
       <View style={styles.contentContainer}>
-        {data.length ? (
+        {validData.length ? (
           <ScrollView horizontal showsHorizontalScrollIndicator={true}>
             <View>
               <View style={[styles.row, styles.headerRow]}>
@@ -153,7 +161,7 @@ const GradesByTerritory = ({ data, isPrint }: Props) => {
                 </View>
               </View>
 
-              <ScrollView showsVerticalScrollIndicator={true}>{renderTableRows(data)}</ScrollView>
+              <ScrollView showsVerticalScrollIndicator={true}>{renderTableRows(validData)}</ScrollView>
             </View>
           </ScrollView>
         ) : (

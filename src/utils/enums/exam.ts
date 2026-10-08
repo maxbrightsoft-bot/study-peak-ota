@@ -60,3 +60,14 @@ export enum PopQuizSolveTarget {
   Group,
   Myself
 }
+
+export enum ExamSessionType {
+  Default,
+  Merged,
+  PopQuiz
+}
+
+export enum ExamType {
+  Normal = 0,
+  PopQuiz = 1
+}
