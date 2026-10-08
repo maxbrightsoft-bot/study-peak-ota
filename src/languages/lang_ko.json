@@ -2451,5 +2451,9 @@
   "editing_correct_answer_hint": "선택한 답안이 새로운 정답으로 저장됩니다.",
   "update_success": "성공적으로 업데이트되었습니다",
   "multiplecorrectanswers": "복수 정답 처리",
-  "cannot_select_all_answers": "모든 선택지를 정답으로 선택할 수 없습니다."
+  "cannot_select_all_answers": "모든 선택지를 정답으로 선택할 수 없습니다.",
+  "required_label": "필수",
+  "optional_label": "선택",
+  "confirm_exit_quiz": "정말 팝퀴즈를 종료하고 나가시겠습니까?",
+  "failed_to_fetch_quiz_result": "결과를 불러오지 못했습니다."
 }

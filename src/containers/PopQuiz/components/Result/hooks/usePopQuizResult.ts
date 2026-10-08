@@ -32,7 +32,7 @@ const usePopQuizResult = () => {
       setResultData(res.data?.data || res.data);
     } catch (error: any) {
       console.error('Failed to fetch pop quiz result', error);
-      toast.error(t('failed_to_fetch_quiz_result'));
+      toast.error(t('failed_to_load_result'));
     } finally {
       setLoading(false);
     }
@@ -44,9 +44,10 @@ const usePopQuizResult = () => {
 
   const handleShare = async () => {
     try {
-      const calculatedScore = resultData?.studentExamSessionQuestions?.reduce((acc: number, curr: any) => {
+      const questions = resultData?.questions || resultData?.studentExamSessionQuestions || [];
+      const calculatedScore = questions.reduce((acc: number, curr: any) => {
         return acc + (curr.isCorrect ? (curr.score ?? 1) : 0);
-      }, 0) ?? 0;
+      }, 0);
       const rawScore = Number(resultData?.score ?? 0);
       const score = Math.round(rawScore > 0 ? rawScore : calculatedScore);
       const title = resultData.title || '';

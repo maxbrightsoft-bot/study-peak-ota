@@ -2419,7 +2419,7 @@
   "badge_math": "Toán",
   "badge_mom_parent": "Mẹ • Phụ huynh",
   "no_received_pop_quiz": "Không có bài kiểm tra đột xuất nào được gửi đến",
-  "pop_quiz": "Bài kiểm tra đột xuất",
+  "pop_quiz": "Pop Quiz",
   "pop_quiz_review": "Ôn tập Pop Quiz",
   "pop_quiz_review_desc": "Giải {{count}} câu do {{author}} gửi",
   "pop_quiz_review_desc_child": "Giải {{count}} câu hỏi phụ huynh gửi cho con",
@@ -2477,5 +2477,9 @@
   "editing_correct_answer_hint": "Chọn các đáp án đúng để lưu làm khóa đáp án mới.",
   "update_success": "Cập nhật thành công",
   "multiplecorrectanswers": "Nhiều đáp án đúng",
-  "cannot_select_all_answers": "Không thể chọn tất cả các đáp án làm đáp án đúng."
+  "cannot_select_all_answers": "Không thể chọn tất cả các đáp án làm đáp án đúng.",
+  "required_label": "Bắt buộc",
+  "optional_label": "Tùy chọn",
+  "confirm_exit_quiz": "Bạn có chắc chắn muốn thoát khỏi bài Pop Quiz này không?",
+  "failed_to_fetch_quiz_result": "Không tải được kết quả"
 }

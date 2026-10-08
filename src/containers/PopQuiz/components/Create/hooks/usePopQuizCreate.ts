@@ -109,21 +109,31 @@ const usePopQuizCreate = () => {
     }
   };
 
+  const fetchSubjects = async () => {
+    try {
+      setLoadingSubjects(true);
+      const res = await getSubjectListBaseApi("");
+      const items = res.data?.items || res.data || [];
+      setSubjects(items);
+    } catch (e) {
+      console.error("Failed to fetch subjects", e);
+    } finally {
+      setLoadingSubjects(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchSubjects = async () => {
-      try {
-        setLoadingSubjects(true);
-        const res = await getSubjectListBaseApi("");
-        const items = res.data?.items || res.data || [];
-        setSubjects(items);
-      } catch (e) {
-        console.error("Failed to fetch subjects", e);
-      } finally {
-        setLoadingSubjects(false);
-      }
-    };
     fetchSubjects();
   }, []);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      if (subjects.length === 0) {
+        fetchSubjects();
+      }
+    });
+    return unsubscribe;
+  }, [navigation, subjects.length]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('blur', () => {
@@ -148,10 +158,10 @@ const usePopQuizCreate = () => {
     return unsubscribe;
   }, [navigation]);
 
-  const fetchCategories = async (subjId: number, textSearch?: string) => {
+  const fetchCategories = async (subjId: number, textSearch?: string, subjType?: SubjectType) => {
     try {
       setLoadingCategories(true);
-      const isMath = subject?.type === SubjectType.Math;
+      const isMath = (subjType ?? subject?.type) === SubjectType.Math;
       const categoryTextSearch = textSearch?.trim();
       const res = isMath
         ? await getCategoryQuestionTypeListApi({
@@ -263,6 +273,9 @@ const usePopQuizCreate = () => {
     setCategories([]);
     setSubCategories([]);
     setQuestionTypes([]);
+    if (subject?.id) {
+      fetchCategories(subject.id, undefined, subject?.type);
+    }
   }, [subject?.id]);
 
   const categoryOptions = React.useMemo(() => {
@@ -316,10 +329,10 @@ const usePopQuizCreate = () => {
   const debounceFetchCategories = React.useMemo(
     () => _.debounce((text: string) => {
       if (subject?.id) {
-        fetchCategories(subject.id, text);
+        fetchCategories(subject.id, text, subject?.type);
       }
     }, 300),
-    [subject?.id]
+    [subject?.id, subject?.type]
   );
 
   const debounceFetchSubCategories = React.useMemo(
@@ -347,6 +360,9 @@ const usePopQuizCreate = () => {
     if (subCategory && Number(subCategory.parentCategoryId) !== Number(c?.id)) {
       setSubCategory(null);
     }
+    if (subject?.id && c?.id) {
+      fetchSubCategories(subject.id, c.id);
+    }
   };
 
   const handleSelectSubCategory = (id: any) => {
@@ -356,6 +372,9 @@ const usePopQuizCreate = () => {
     if (!category && sc?.parentCategoryId) {
       const parent = categories.find(c => Number(c.id) === Number(sc.parentCategoryId)) || { id: sc.parentCategoryId };
       setCategory(parent);
+    }
+    if (subject?.id && sc?.id) {
+      fetchQuestionTypes(subject.id, category?.id, sc.id);
     }
   };
 
@@ -427,14 +446,6 @@ const usePopQuizCreate = () => {
       }
       if (!subject?.id) {
         toast.error(t('subject_required'));
-        return;
-      }
-      if (!category?.id) {
-        toast.error(t('category_required'));
-        return;
-      }
-      if (!subCategory?.id && subCategories?.length > 0) {
-        toast.error(t('subcategory_required'));
         return;
       }
       if (questions?.length !== questionCount) {
@@ -562,13 +573,13 @@ const usePopQuizCreate = () => {
                   score: q.score ?? defaultScore,
                   questionOrder: idx,
                   questionAnswerType: answerType,
-                  questionTypeCategories: [
+                  questionTypeCategories: (category?.id && subCategory?.id) ? [
                     {
-                      categoryId: category?.id ? Number(category.id) : undefined,
-                      subcategoryId: subCategory?.id ? Number(subCategory.id) : undefined,
+                      categoryId: Number(category.id),
+                      subcategoryId: Number(subCategory.id),
                       questionTypeId: questionType?.id ? Number(questionType.id) : undefined
                     }
-                  ]
+                  ] : []
                 };
               })
             }

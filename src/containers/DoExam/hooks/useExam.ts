@@ -43,6 +43,25 @@ type Props = {
   onExamEnded?: (examCode?: string) => void;
 };
 
+export const isQuestionAnswered = (q: Question): boolean => {
+  if (!q) return false;
+  const type = q.questionAnswerType !== undefined ? Number(q.questionAnswerType) : undefined;
+
+  if (type !== undefined && isTextType(type)) {
+    return !!q.textualAnswers?.length && q.textualAnswers.some(a => typeof a === 'string' && a.trim() !== '');
+  }
+
+  if (q.selectedAnswers?.length) {
+    return q.selectedAnswers.some(a => a !== undefined && a !== null && Number(a) >= 0);
+  }
+
+  if (q.textualAnswers?.length) {
+    return q.textualAnswers.some(a => typeof a === 'string' && a.trim() !== '');
+  }
+
+  return false;
+};
+
 const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
   const { t } = useTranslation();
   const navigation = useNavigation();
@@ -604,7 +623,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
 
   useEffect(() => {
     if (questionList.length > 0) {
-      const noAnswer = questionList.find(i => i.questionAnswerType < 2 ? !i.selectedAnswers?.length : !i.textualAnswers?.length)
+      const noAnswer = questionList.find(i => !isQuestionAnswered(i));
       setCurrentQuestionId(noAnswer?.id || questionList[0].id);
     }
   }, [questionList]);
@@ -907,25 +926,6 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     duration: convertHHMMSStoSeconds(exam?.duration),
     onFinish: getCheckStatus
   });
-
-  const isQuestionAnswered = (q: Question): boolean => {
-    if (!q) return false;
-    const type = q.questionAnswerType !== undefined ? Number(q.questionAnswerType) : undefined;
-
-    if (type !== undefined && isTextType(type)) {
-      return !!q.textualAnswers?.length && q.textualAnswers.some(a => typeof a === 'string' && a.trim() !== '');
-    }
-
-    if (q.selectedAnswers?.length) {
-      return q.selectedAnswers.some(a => a !== undefined && a !== null && Number(a) >= 0);
-    }
-
-    if (q.textualAnswers?.length) {
-      return q.textualAnswers.some(a => typeof a === 'string' && a.trim() !== '');
-    }
-
-    return false;
-  };
 
   const isAllQuestionsAnswered = (
     questionList: Question[]

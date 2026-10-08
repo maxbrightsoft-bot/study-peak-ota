@@ -41,9 +41,7 @@ const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer
   const handleSelectAnswer = (num: number, type: QuestionAnswerType) => {
     if (disabled) return
     let nextSelected: number[]
-    const isMultiple =
-      type === QuestionAnswerType.MultipleChoice ||
-      type === QuestionAnswerType.MultipleCorrectAnswers
+    const isMultiple = type === QuestionAnswerType.MultipleChoice
     const maxAllowed = (question?.answerCount || 0) > 0 ? (question?.answerCount || 0) - 1 : 0
 
     if (isMultiple) {
@@ -57,7 +55,7 @@ const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer
         }
       }
     } else {
-      nextSelected = [num]
+      nextSelected = selectedAnswers.includes(num) ? [] : [num]
     }
 
     setSelectedAnswers(nextSelected)
@@ -119,7 +117,9 @@ const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer
         )
 
       case QuestionAnswerType.MultipleChoice:
-      case QuestionAnswerType.SingleChoice:
+      case QuestionAnswerType.MultipleCorrectAnswers:
+      case QuestionAnswerType.SingleChoice: {
+        const isManyAnswers = (question?.answerCount || 0) > 5
         return (
           <View>
             {isManyAnswers && (

@@ -2391,6 +2391,7 @@
   "question_added_mock": "Added • Total {{count}} questions",
   "avatar_m": "M",
   "avatar_s": "S",
+  "quiz_mock_title_2": "Reading comprehension...",
   "avatar_k": "K",
   "quiz_mock_title_3": "Late Joseon history...",
   "quiz_mock_subtitle_3": "Mr. Kim • 8 questions • 1 hour ago",
@@ -2455,5 +2456,9 @@
   "editing_correct_answer_hint": "Selected options will be saved as the new correct answer keys.",
   "update_success": "Update successful",
   "multiplecorrectanswers": "Multiple Correct Answers",
-  "cannot_select_all_answers": "Cannot select all choices as correct answers."
+  "cannot_select_all_answers": "Cannot select all choices as correct answers.",
+  "required_label": "Required",
+  "optional_label": "Optional",
+  "confirm_exit_quiz": "Are you sure you want to exit this Pop Quiz?",
+  "failed_to_fetch_quiz_result": "Failed to load result"
 }

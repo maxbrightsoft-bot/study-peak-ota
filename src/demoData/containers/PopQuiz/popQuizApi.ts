@@ -32,7 +32,7 @@ export const getCategoryListMock = async (query?: any) => {
         const parentCat = categories.find((cat, idx) => (subjectId * 100 + idx + 1) === parentCategoryId) || categories[0] || 'General';
         
         const items = [1, 2, 3].map(i => ({
-            id: parentCategoryId * 10 + i,
+            id: (parentCategoryId ?? 0) * 10 + i,
             name: `${parentCat} Sub-${i}`,
             title: `${parentCat} Sub-${i}`,
             parentCategoryId: parentCategoryId,

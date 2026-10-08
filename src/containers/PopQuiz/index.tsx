@@ -12,6 +12,8 @@ import * as Clipboard from 'expo-clipboard';
 import { toast } from '@/utils/helpers';
 import { STUDENT_URL } from '@/utils/constants';
 import { ExamStatus } from '@/utils/enums';
+import { getSolveTargetLabel } from './helpers';
+import TextField from '@/components/Input/TextField';
 
 const PopQuiz = () => {
   const {
@@ -36,7 +38,7 @@ const PopQuiz = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       {!user?.academyDomain && (
         <View style={styles.bannerContainer}>
           <View style={styles.bannerHeader}>
@@ -65,19 +67,26 @@ const PopQuiz = () => {
           <Text style={styles.joinTitle}>{t('join_with_code')}</Text>
         </View>
         <View style={styles.inputRow}>
-          <TextInput
-            style={styles.input}
-            placeholder={t('enter_5_digit_code') as string}
-            placeholderTextColor={palette.grey[400]}
-            value={code}
-            onChangeText={setCode}
-            maxLength={5}
-          />
+          <View style={{ flex: 1, marginRight: 8 }}>
+            <TextField
+              value={code}
+              onChangeText={setCode}
+              isExamCode
+              maxLength={5}
+              placeholder={t('enter_5_digit_code') as string}
+              placeholderTextColor={palette.grey[400]}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              containerInputStyle={styles.textInputContainer}
+              textInputStyle={styles.textInputStyle}
+            />
+          </View>
           <TouchableOpacity
-            style={[styles.joinButton, code.length >= 5 ? {} : { opacity: 0.5 }]}
+            style={[styles.joinButton, code.trim().length >= 5 ? {} : { opacity: 0.5 }]}
             onPress={() => {
-              if (code.length >= 5) {
-                navigation.navigate(Routes.Auth.PopQuizIntro, { code });
+              const formattedCode = code.trim().toUpperCase();
+              if (formattedCode.length >= 5) {
+                navigation.navigate(Routes.Auth.PopQuizIntro, { code: formattedCode });
               }
             }}
           >
@@ -121,8 +130,15 @@ const PopQuiz = () => {
                       <View style={styles.quizInfo}>
                         <View style={styles.quizTitleRow}>
                           <Text style={styles.quizItemTitle} numberOfLines={1}>
-                            {quiz.title || quiz.name}
+                            {quiz.title}
                           </Text>
+                          {!!getSolveTargetLabel(quiz.solveTarget, t) && (
+                            <View style={styles.targetBadge}>
+                              <Text style={styles.targetBadgeText}>
+                                {getSolveTargetLabel(quiz.solveTarget, t)}
+                              </Text>
+                            </View>
+                          )}
                           <View style={styles.dotRed} />
                         </View>
                         <Text style={styles.quizItemSubtitle}>
@@ -149,7 +165,7 @@ const PopQuiz = () => {
                         )}
                         <TouchableOpacity
                           style={styles.playButton}
-                          onPress={() => navigation.navigate(Routes.Auth.PopQuizIntro, { code: quiz.code })}
+                          onPress={() => navigation.navigate(Routes.Auth.PopQuizIntro, { code: quiz.code, solveTarget: quiz.solveTarget })}
                         >
                           <Ionicons name="play" size={16} color={palette.main[500]} />
                         </TouchableOpacity>
@@ -183,8 +199,15 @@ const PopQuiz = () => {
                         <View style={styles.quizInfo}>
                           <View style={styles.quizTitleRow}>
                             <Text style={styles.quizItemTitle} numberOfLines={1}>
-                              {quiz.title || quiz.name}
+                              {quiz.title}
                             </Text>
+                            {!!getSolveTargetLabel(quiz.solveTarget, t) && (
+                              <View style={styles.targetBadge}>
+                                <Text style={styles.targetBadgeText}>
+                                  {getSolveTargetLabel(quiz.solveTarget, t)}
+                                </Text>
+                              </View>
+                            )}
                             {quiz.popQuizStatus === ExamStatus.InProgress && <View style={styles.dotActive} />}
                           </View>
                           <Text style={styles.quizItemSubtitle}>
@@ -238,7 +261,16 @@ const PopQuiz = () => {
               </Text>
             </View>
             <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text style={styles.sheetTitle} numberOfLines={2}>{selectedQuiz?.title || selectedQuiz?.name}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' }}>
+                <Text style={styles.sheetTitle} numberOfLines={2}>{selectedQuiz?.title}</Text>
+                {!!getSolveTargetLabel(selectedQuiz?.solveTarget, t) && (
+                  <View style={[styles.targetBadge, { marginBottom: 4 }]}>
+                    <Text style={styles.targetBadgeText}>
+                      {getSolveTargetLabel(selectedQuiz?.solveTarget, t)}
+                    </Text>
+                  </View>
+                )}
+              </View>
               <Text style={styles.sheetSubtitle}>
                 {selectedQuiz?.questionCount || selectedQuiz?.totalQuestions || 0} {t('quiz_count_unit')}
                 {' • '}
@@ -301,7 +333,12 @@ const PopQuiz = () => {
                 style={styles.sheetAction}
                 onPress={() => {
                   setSelectedQuiz(null);
-                  navigation.navigate(Routes.Auth.PopQuizIntro, { quizId: selectedQuiz?.id });
+                  navigation.navigate(Routes.Auth.PopQuizIntro, {
+                    quizId: selectedQuiz?.id,
+                    code: selectedQuiz?.code,
+                    popQuizStatus: selectedQuiz?.popQuizStatus,
+                    solveTarget: selectedQuiz?.solveTarget,
+                  });
                 }}
               >
                 <View style={[styles.sheetActionIcon, { backgroundColor: '#EFF6FF' }]}>
@@ -459,22 +496,29 @@ const styles = ScaledSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  input: {
-    flex: 1,
+  textInputContainer: {
     borderWidth: 1,
     borderColor: '#E5E7EB',
     borderRadius: '8@ms',
-    paddingHorizontal: '16@ms',
-    paddingVertical: '12@ms',
-    fontSize: '16@ms',
-    marginRight: '8@ms',
+    height: '52@ms',
+    backgroundColor: '#FAFAFA',
+    justifyContent: 'center',
+  },
+  textInputStyle: {
+    fontSize: '15@ms',
     color: '#333',
+    paddingHorizontal: '12@ms',
+    paddingVertical: 0,
+    textAlignVertical: 'center',
+    height: '100%',
   },
   joinButton: {
     backgroundColor: palette.main[600],
     paddingHorizontal: '20@ms',
-    paddingVertical: '14@ms',
+    height: '52@ms',
     borderRadius: '8@ms',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   joinButtonText: {
     color: '#FFF',
@@ -536,12 +580,25 @@ const styles = ScaledSheet.create({
   quizTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: '4@ms',
   },
   quizItemTitle: {
     fontSize: '14@ms',
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: '4@ms',
+    flexShrink: 1,
+  },
+  targetBadge: {
+    backgroundColor: '#F3E8FF',
+    paddingHorizontal: '6@ms',
+    paddingVertical: '2@ms',
+    borderRadius: '4@ms',
+    marginLeft: '6@ms',
+  },
+  targetBadgeText: {
+    fontSize: '10@ms',
+    color: palette.main[500],
+    fontWeight: 'bold',
   },
   dotRed: {
     width: '6@ms',

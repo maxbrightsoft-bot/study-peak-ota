@@ -8,6 +8,7 @@ import Svg, { Circle } from 'react-native-svg';
 import usePopQuizResult from './hooks/usePopQuizResult';
 import { ExamStatus } from '@/utils/enums';
 import { navigate } from '@/navigators/NavigationHelpers';
+import { getSolveTargetLabel } from '../../helpers';
 
 const PopQuizResult = () => {
   const {
@@ -38,7 +39,7 @@ const PopQuizResult = () => {
     );
   }
 
-  const questionsList = resultData.questions || [];
+  const questionsList = resultData.questions || resultData.studentExamSessionQuestions || [];
   const correctAnswersCount = questionsList.filter((q: any) => q.isCorrect).length;
   const totalQuestions = questionsList.length;
   const calculatedScore = questionsList.reduce((sum: number, q: any) => {
@@ -70,7 +71,16 @@ const PopQuizResult = () => {
             <View/>
           </View>
           <Text style={styles.title}>{t('practice_more') || 'Practice more'}</Text>
-          <Text style={styles.subtitle}>{title}</Text>
+          <View style={styles.subtitleRow}>
+            <Text style={styles.subtitle}>{title}</Text>
+            {!!getSolveTargetLabel(resultData?.solveTarget, t) && (
+              <View style={styles.targetBadge}>
+                <Text style={styles.targetBadgeText}>
+                  {getSolveTargetLabel(resultData?.solveTarget, t)}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
 
         <View style={styles.scoreChartContainer}>
@@ -143,7 +153,7 @@ const PopQuizResult = () => {
       </ScrollView>
 
       <View style={styles.footer}>
-        {resultData.status !== ExamStatus.Completed && (
+        {(resultData?.popQuizStatus ? (resultData.popQuizStatus !== ExamStatus.Completed && resultData.popQuizStatus !== 'Completed') : true) && (
           <TouchableOpacity style={styles.retryBtn} onPress={handleRetry}>
             <Ionicons name="refresh-outline" size={16} color={palette.grey[700]} />
             <Text style={styles.retryBtnText}>{t('retry_quiz')}</Text>
@@ -198,10 +208,28 @@ const styles = ScaledSheet.create({
     marginBottom: '8@ms',
     textAlign: 'center',
   },
+  subtitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+  },
   subtitle: {
     fontSize: '14@ms',
     color: palette.grey[500],
     textAlign: 'center',
+  },
+  targetBadge: {
+    backgroundColor: '#F3E8FF',
+    paddingHorizontal: '8@ms',
+    paddingVertical: '2@ms',
+    borderRadius: '4@ms',
+    marginLeft: '6@ms',
+  },
+  targetBadgeText: {
+    fontSize: '11@ms',
+    color: palette.main[500],
+    fontWeight: 'bold',
   },
   scoreChartContainer: {
     width: '160@ms',

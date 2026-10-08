@@ -8,16 +8,40 @@ export const getOverallColor = (correctRate: number): string => {
 };
 
 export const formatDataMyAnswer = (inputData: ExamResult, categories: CategoryResponse[]) => {
-  const questionsByCategory = categories.map(
+  const validCategories = (categories || []).filter(
+    (c: CategoryResponse) => c && c.id !== 0 && c.name && c.name.trim() !== ""
+  );
+  const assignedQuestionIds = new Set<number>();
+  const questionsByCategory: FormatDataMyAnswer[] = validCategories.map(
     (category: CategoryResponse): FormatDataMyAnswer => {
+      const questions = (inputData.questions || []).filter((question: Question) => {
+        const matches = category.questionIds?.includes(question.id);
+        if (matches) assignedQuestionIds.add(question.id);
+        return matches;
+      });
       return {
         category,
-        questions: inputData.questions.filter((question: Question) => {
-          return category.questionIds.includes(question.id);
-        }),
+        questions,
       };
     }
+  ).filter(group => group.questions.length > 0);
+
+  const uncategorizedQuestions = (inputData.questions || []).filter(
+    (q: Question) => !assignedQuestionIds.has(q.id)
   );
+
+  if (uncategorizedQuestions.length > 0) {
+    questionsByCategory.push({
+      category: {
+        id: 0,
+        name: "",
+        questionIds: uncategorizedQuestions.map(q => q.id),
+        percentageAmongStudents: 0
+      } as any,
+      questions: uncategorizedQuestions,
+    });
+  }
+
   return questionsByCategory;
 };
 

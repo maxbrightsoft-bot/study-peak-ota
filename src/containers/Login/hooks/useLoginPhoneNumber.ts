@@ -10,7 +10,7 @@ import { Routes } from "@/navigators/RouteName"
 import { removeDataStorage, setDataStorage } from "@/utils/storage"
 
 const useLoginPhoneNumber = () => {
-    const { user, setLoading, setUser, setHasEnteredSelectAcademy } = useAuthStore()
+    const { user, setLoading, setUser, setHasEnteredSelectAcademy, setRedirectUrl } = useAuthStore()
     const academyDomain = user?.academyDomain || ''
     const { t } = useTranslation()
     const [showPassword, setShowPassword] = useState<boolean>(false)
@@ -18,12 +18,9 @@ const useLoginPhoneNumber = () => {
     const handleRedirectAfterSuccess = async (
         data: any,
         token: string,
-        redirectUrl: string
+        redirectUrl: string,
+        redirectParams?: any
     ) => {
-
-        setUser({
-            ...data,
-        });
         await setDataStorage(ACCESS_TOKEN, token);
         await setDataStorage(KEEP_LOGIN, 'true');
         !data.academyDomain && await removeDataStorage(ACADEMY_DOMAIN);
@@ -31,7 +28,10 @@ const useLoginPhoneNumber = () => {
         data.isLearningSpace
             ? await setDataStorage(LEARNING_SPACE, "true")
             : await removeDataStorage(LEARNING_SPACE);
-        await setDataStorage(REDIRECT_URL, redirectUrl)
+        setRedirectUrl(redirectUrl, redirectParams);
+        setUser({
+            ...data,
+        });
     };
 
     const handleClickShowPassword = () => {
@@ -52,9 +52,16 @@ const useLoginPhoneNumber = () => {
             const { isFirstLogin, token, user } = loginResponse
             const isAcademy = !!user?.academyDomain || !!user?.isLearningSpace
             const needToRegister = isFirstLogin && isAcademy;
-            let redirectUrl;
 
-            if (needToRegister) {
+            const pendingRedirectUrl = useAuthStore.getState().pendingRedirectUrl;
+            const pendingRedirectParams = useAuthStore.getState().pendingRedirectParams;
+            let redirectUrl: string;
+            let redirectParams: any;
+
+            if (pendingRedirectUrl) {
+                redirectUrl = pendingRedirectUrl;
+                redirectParams = pendingRedirectParams;
+            } else if (needToRegister) {
                 redirectUrl = Routes.Auth.Onboarding;
             } else if (isAcademy) {
                 redirectUrl = Routes.Auth.Home;
@@ -67,7 +74,8 @@ const useLoginPhoneNumber = () => {
                     isNotEnoughStatements: isFirstLogin
                 },
                 token,
-                redirectUrl
+                redirectUrl,
+                redirectParams
             )
         } catch (error: any) {
             if (error?.response?.status === 500 && error?.response?.data?.title === "PhoneNumberIsDuplicated")

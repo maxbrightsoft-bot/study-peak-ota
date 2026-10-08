@@ -1,4 +1,4 @@
-import { getRecentPopQuizzesApi, startPopQuizSessionApi, endPopQuizSessionApi } from '@/services/api/popQuizApi';
+import { getRecentPopQuizzesApi, startPopQuizSessionApi, endPopQuizSessionApi, getExamByIdApi } from '@/services/api/popQuizApi';
 import { getReceivedPopQuizzesApi } from '@/services/api/examService';
 import { useState, useCallback } from 'react';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -23,7 +23,24 @@ const usePopQuiz = () => {
   const fetchMyQuizzes = useCallback(async () => {
     try {
       const res = await getRecentPopQuizzesApi();
-      setRecentQuizzes(res.data?.items || res.data || []);
+      const rawList = res.data?.items || res.data || [];
+      const enrichedList = await Promise.all(
+        rawList.map(async (q: any) => {
+          if ((!q.title || q.title.trim() === '') && q.id) {
+            try {
+              const examRes = await getExamByIdApi(q.id);
+              const examData = examRes.data?.data || examRes.data;
+              if (examData?.title) {
+                return { ...q, title: examData.title };
+              }
+            } catch (e) {
+              // ignore
+            }
+          }
+          return q;
+        })
+      );
+      setRecentQuizzes(enrichedList);
     } catch (err) {
     }
   }, [user?.academyDomain]);

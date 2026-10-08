@@ -29,6 +29,7 @@ const ExamResultList = () => {
 
   const renderExamCard = (exam: ExamSessionResponse, highlight = false) => {
     const isTextbook = exam.historyType === 'Textbook' || !!exam.studentTextbookSessionId
+    const isPopQuiz = exam.isPopQuiz === true || (exam as any).isPopQuiz === 1 || (exam as any).examType === 1 || exam.historyType === 'PopQuiz' || (exam as any).examSessionType === 2
     const correctRate = (exam.totalQuestionsAttempted ?? 0) > 0
       ? Math.round(((exam.totalCorrectAnswers ?? 0) / (exam.totalQuestionsAttempted ?? 1)) * 100)
       : 0
@@ -53,6 +54,10 @@ const ExamResultList = () => {
             {isTextbook ? (
               <View style={styles.textbookBadge}>
                 <Text style={styles.textbookBadgeText}>{t('textbook.text')}</Text>
+              </View>
+            ) : isPopQuiz ? (
+              <View style={styles.popQuizBadge}>
+                <Text style={styles.popQuizBadgeText}>{t('pop_quiz')}</Text>
               </View>
             ) : (exam.studentTotalAttemptTime || 0) > 1 && (
               <View
@@ -311,6 +316,19 @@ const styles = ScaledSheet.create({
 
   textbookBadgeText: {
     color: '#178740',
+    fontSize: '11@ms',
+    fontWeight: '600'
+  },
+
+  popQuizBadge: {
+    backgroundColor: '#F3E8FF',
+    paddingHorizontal: '8@ms',
+    paddingVertical: '4@ms',
+    borderRadius: '6@ms'
+  },
+
+  popQuizBadgeText: {
+    color: palette.main[600],
     fontSize: '11@ms',
     fontWeight: '600'
   },

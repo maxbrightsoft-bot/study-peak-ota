@@ -64,6 +64,8 @@ export type ExamSessionResponse = {
     totalQuestionsAttempted?: number
     totalCorrectAnswers?: number
     examCode?: string
+    isPopQuiz?: boolean
+    examType?: number
 };
 
 export type Category = {
@@ -121,6 +123,8 @@ export type ExamResult = {
     startTime: string
     studentStartTime: string
     status: number
+    isLate?: boolean
+    lateStatus?: ExamStatus
     student: Student
     teacherAvatar: string
     teacherId: number

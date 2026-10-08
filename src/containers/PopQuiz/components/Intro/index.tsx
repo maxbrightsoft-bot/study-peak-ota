@@ -6,6 +6,7 @@ import { ScaledSheet } from 'react-native-size-matters';
 import usePopQuizIntro from './hooks/usePopQuizIntro';
 import { navigate } from '@/navigators/NavigationHelpers';
 import { Routes } from '@/navigators/RouteName';
+import { getSolveTargetLabel } from '../../helpers';
 
 const PopQuizIntro = () => {
   const {
@@ -57,24 +58,6 @@ const PopQuizIntro = () => {
     );
   }
 
-  const title = quizInfo.title || quizInfo.name || '';
-  const subjectName = typeof quizInfo.subject === 'object' ? quizInfo.subject?.name : (quizInfo.subject || '');
-  const creatorName = quizInfo.createdBy?.fullName || quizInfo.teacherName || '';
-  const creatorAvatar = quizInfo.createdBy?.avatar || quizInfo.teacherAvatar || '';
-  const avatarChar = creatorName ? creatorName.charAt(0) : 'T';
-  let questionCount = quizInfo.questionCount ?? quizInfo.totalQuestions ?? 0;
-  let totalScore = quizInfo.totalScore ?? 0;
-
-  if (!questionCount && quizInfo.questionGroups) {
-    questionCount = quizInfo.questionGroups.reduce((acc: number, group: any) => acc + (group.questions?.length || 0), 0);
-  }
-
-  if (!totalScore && quizInfo.questionGroups) {
-    totalScore = quizInfo.questionGroups.reduce((acc: number, group: any) => {
-      return acc + (group.questions || []).reduce((qAcc: number, q: any) => qAcc + (q.score || 0), 0);
-    }, 0);
-  }
-
   return (
     <View style={styles.container}>
       <SafeAreaView />
@@ -85,31 +68,38 @@ const PopQuizIntro = () => {
       </View>
 
       <View style={styles.content}>
-        {creatorAvatar ? (
-          <Image source={{ uri: creatorAvatar }} style={styles.avatar} />
+        {quizInfo.teacherAvatar ? (
+          <Image source={{ uri: quizInfo.teacherAvatar }} style={styles.avatar} />
         ) : (
           <View style={styles.avatarPlaceholder}>
-            <Text style={styles.avatarText}>{avatarChar}</Text>
+            <Text style={styles.avatarText}>
+              {(quizInfo.teacherName || '?').charAt(0)}
+            </Text>
           </View>
         )}
 
         <View style={styles.badges}>
-          {!!subjectName && (
+          {!!quizInfo.subjectName && (
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>{subjectName}</Text>
+              <Text style={styles.badgeText}>{quizInfo.subjectName}</Text>
             </View>
           )}
-          {!!creatorName && (
+          {!!quizInfo.teacherName && (
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>{creatorName}</Text>
+              <Text style={styles.badgeText}>{quizInfo.teacherName}</Text>
+            </View>
+          )}
+          {!!getSolveTargetLabel(quizInfo.solveTarget, t) && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{getSolveTargetLabel(quizInfo.solveTarget, t)}</Text>
             </View>
           )}
         </View>
 
-        <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">{title}</Text>
+        <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">{quizInfo.title}</Text>
         
         <Text style={styles.info}>
-          {t('pop_quiz_info_format', { count: questionCount, score: totalScore })}
+          {t('pop_quiz_info_format', { count: quizInfo.questionCount || 0, score: quizInfo.totalScore || 0 })}
         </Text>
 
         <Text style={styles.subtitle}>

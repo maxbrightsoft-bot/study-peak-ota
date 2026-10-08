@@ -296,13 +296,13 @@ const useExamSolving = (props: Props) => {
       if (item.id === questionId) {
         switch (item.questionAnswerType) {
           case QuestionAnswerType.SingleChoice:
+          case QuestionAnswerType.MultipleCorrectAnswers:
             if (answer === undefined) break;
             item.selectedAnswers = item.selectedAnswers?.includes(answer)
               ? item.selectedAnswers.filter((i: number) => i != answer)
               : [answer];
             break;
           case QuestionAnswerType.MultipleChoice:
-          case QuestionAnswerType.MultipleCorrectAnswers:
             if (answer === undefined) break;
             if (item.selectedAnswers?.includes(answer)) {
               item.selectedAnswers = item.selectedAnswers.filter((i: number) => i != answer);
