@@ -1,6 +1,6 @@
 import { palette } from '@/theme'
 import React, { forwardRef, useCallback, useMemo } from 'react'
-import { View, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet } from 'react-native'
 import { Dropdown, IDropdownRef } from 'react-native-element-dropdown'
 import { useTranslation } from 'react-i18next'
 import Ionicons from '@expo/vector-icons/Ionicons'
@@ -18,6 +18,9 @@ type Props = {
   onChangeText?: (keyword: string) => void
   searchPlaceholder?: string
   searchQuery?: ((keyword: string, labelValue: string) => boolean)
+  onFocus?: () => void
+  emptyText?: string
+  maxHeight?: number
   selectedTextStyle?: any
   placeholderStyle?: any
 }
@@ -44,6 +47,9 @@ const CustomSelect = forwardRef<IDropdownRef, Props>(
       onChangeText,
       searchPlaceholder,
       searchQuery,
+      onFocus,
+      emptyText,
+      maxHeight = 300,
       selectedTextStyle,
       placeholderStyle
     },
@@ -55,6 +61,13 @@ const CustomSelect = forwardRef<IDropdownRef, Props>(
 
     const translatedSearchPlaceholder = searchPlaceholder ?? t('search_placeholder')
     const translatedPlaceholder = placeholder ?? t('select_placeholder')
+    const translatedEmptyText = emptyText ?? t('no_data')
+
+    const renderEmpty = () => (
+      <View style={{ padding: 16, alignItems: 'center' }}>
+        <Text style={{ color: palette.grey[500] }}>{translatedEmptyText}</Text>
+      </View>
+    )
 
     return (
       <Dropdown
@@ -68,11 +81,13 @@ const CustomSelect = forwardRef<IDropdownRef, Props>(
         valueField="value"
         value={value ?? null}
         disable={disabled}
+        maxHeight={maxHeight}
         onChange={(item) => onValueChange?.(item.value)}
         onFocus={() => {
           if (search && onChangeText) {
             onChangeText('')
           }
+          onFocus?.()
         }}
         placeholder={translatedPlaceholder}
         style={[styles.dropdown, style, disabled && styles.disabledDropdown]}
@@ -85,7 +100,8 @@ const CustomSelect = forwardRef<IDropdownRef, Props>(
         renderRightIcon={renderRightIcon}
         dropdownPosition="auto"
         flatListProps={{
-          keyboardShouldPersistTaps: 'handled'
+          keyboardShouldPersistTaps: 'handled',
+          ListEmptyComponent: renderEmpty
         }}
       />
     )
