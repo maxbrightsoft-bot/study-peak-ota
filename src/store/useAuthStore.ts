@@ -60,6 +60,7 @@ interface StoreState {
   hasSeenTutorial: boolean;
   isDemoMode: boolean;
   isWeakPassword: boolean;
+  activeEventHandlers: Record<string, EventHandler[]>;
 }
 
 interface StoreActions {
@@ -137,6 +138,7 @@ const useAuthStore = create<AuthStore>()(
       hasSeenTutorial: false,
       isDemoMode: false,
       isWeakPassword: false,
+      activeEventHandlers: {},
 
       setUser: (user) => {
         set((state) => {

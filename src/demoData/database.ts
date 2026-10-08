@@ -37,7 +37,7 @@ export const getDb = async (lang?: string): Promise<SQLite.SQLiteDatabase> => {
     return openPromise;
 };
 
-const SCHEMA_VERSION = 11; // v8: Add id to LONG_TIME_SPEND chart data
+const SCHEMA_VERSION = 12; // v12: Add pop quiz fields to ExamSessions
 const DEMO_SEED_VERSION = 'faker-seed-v7-limit-chat';
 const DEMO_TABLES = [
     'DemoUser', 'Subjects', 'SubjectTimers', 'ExamSessions', 'ExamQuestionGroups',
@@ -160,7 +160,8 @@ const createTables = async (db: SQLite.SQLiteDatabase) => {
             teacherAvatar TEXT, coursesJson TEXT, rowVersion TEXT, numberOfQuestion INTEGER,
             startTimeSession TEXT, studentStartTime TEXT, lastAnswerTime TEXT, lastPausedAt TEXT,
             lastResumedAt TEXT, totalPausedTime INTEGER DEFAULT 0, runningTime INTEGER DEFAULT 0,
-            totalAnsweredTime INTEGER DEFAULT 0, studentName TEXT
+            totalAnsweredTime INTEGER DEFAULT 0, studentName TEXT, isPopQuiz INTEGER DEFAULT 0,
+            popQuizStatus INTEGER DEFAULT 0, authorName TEXT
         );
         CREATE TABLE IF NOT EXISTS ExamQuestionGroups (
             id INTEGER PRIMARY KEY, examSessionCode TEXT, articlesJson TEXT

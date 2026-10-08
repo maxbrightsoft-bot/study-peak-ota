@@ -7,4 +7,15 @@ export const getCheckStatusExam = (examCode: string, studentExamSessionId?: numb
     params: {
         studentExamSessionId
     }
-})
+});
+
+export const getExamInfoByCodeApi = (code: string) =>
+    api.get(`${EXAM_SESSION_URL}/${code}/info`);
+
+export const joinExamByCodeApi = (code: string, auto: boolean = true) =>
+    api.post(`${EXAM_SESSION_URL}/${code}/join`, null, {
+        params: { auto }
+    });
+
+export const getReceivedPopQuizzesApi = () => 
+    api.get(`${BASE_URL}/api/pop-quiz/received`);

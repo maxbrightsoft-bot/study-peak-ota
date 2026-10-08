@@ -53,3 +53,10 @@ export enum ProblemKey {
   GradesByTerritory,
   Vulnerable
 }
+
+export enum PopQuizSolveTarget {
+  Child,
+  Friend,
+  Group,
+  Myself
+}

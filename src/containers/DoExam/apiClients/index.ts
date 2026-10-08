@@ -8,10 +8,15 @@ export const getQuestionExam = (code?: string) => api.get(`${EXAM_SESSION_URL}/$
 
 export const answerQuestionExam = (examCode: string, body: StudentAnswerRequest) => api.post(`${EXAM_SESSION_URL}/${examCode}/answer`, body);
 
+export const getExamResult = (examCode?: string, studentExamSessionId?: number | string) =>
+  api.get(`${EXAM_SESSION_URL}/${examCode}/results`, {
+    params: studentExamSessionId ? { studentExamSessionId } : undefined,
+  });
+
 export const getStudentExamResultPercentages = (examCode: string, studentExamSessionId?: number | string) =>
   api.get(`${EXAM_SESSION_URL}/${examCode}/results/percentages`, {
     params: { studentExamSessionId }
-  })
+  });
 
 export const finishExam = (code?: string) => api.post(`${EXAM_SESSION_URL}/${code}/finish`)
 export const getResults = (code: string, studentExamSessionId?: number | string) =>

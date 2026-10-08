@@ -21,6 +21,7 @@ const Footer = ({ navigation }: BottomTabBarProps) => {
   const language = useAuthStore(state => state.language)
   const { t, i18n } = useTranslation()
   const insets = useSafeAreaInsets()
+  const isKorean = i18n.language === 'ko'
 
   const currentLang = language?.code || i18n.language
   const isEnOrVi = currentLang === Language.en || currentLang === Language.vi || currentLang === 'en' || currentLang === 'vi'
@@ -36,6 +37,13 @@ const Footer = ({ navigation }: BottomTabBarProps) => {
       name: Routes.Auth.Textbook,
       iconJSX: (isFocused: boolean) => <BookIcon color={isFocused ? palette.main[600] : palette.grey[300]} />,
       label: t('question_bank')
+    },
+    {
+      name: Routes.Auth.PopQuiz,
+      iconJSX: (isFocused: boolean) => (
+        <Ionicons name="bulb" size={24} color={isFocused ? palette.main[600] : palette.grey[300]} />
+      ),
+      label: t('pop_quiz')
     },
     {
       name: Routes.Auth.StudyPerformance,
@@ -73,9 +81,22 @@ const Footer = ({ navigation }: BottomTabBarProps) => {
     }
   ]
 
+  const isStudent = user?.roles?.includes('Student')
+
+  const filteredStudySpaceTabItems = studySpaceTabItems.filter(item => {
+    if (item.name === Routes.Auth.StudyPerformance && !isStudent) return false
+    return true
+  })
+
+  const filteredTabItems = tabItems.filter(item => {
+    if (item.name === Routes.Auth.ExamResultList && !isStudent) return false
+    if (item.name === Routes.Auth.StudyPerformance && !isStudent) return false
+    return true
+  })
+
   return (
     <View style={[styles.tabBar, insets.bottom > 12 && { paddingBottom: insets.bottom }]}>
-      {(user?.academyDomain ? tabItems : studySpaceTabItems).map((item) => {
+      {(user?.academyDomain ? filteredTabItems : filteredStudySpaceTabItems).map((item) => {
         const isFocused = currentScreen() == item.name
         const shouldShowText = !isEnOrVi || isFocused
 
@@ -109,11 +130,11 @@ const styles = ScaledSheet.create({
     backgroundColor: 'white',
     paddingTop: '12@ms',
     paddingBottom: '12@ms',
-    paddingHorizontal: '24@ms',
+    paddingHorizontal: '4@ms',
     minHeight: '66@ms',
   },
   tabItem: {
-    paddingHorizontal: '5@ms',
+    flex: 1,
     alignItems: 'center',
     gap: '6@ms',
     height: '42@ms',
@@ -129,3 +150,4 @@ const styles = ScaledSheet.create({
     textAlign: 'center'
   }
 })
+
