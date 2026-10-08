@@ -6,6 +6,7 @@
 import * as SQLite from 'expo-sqlite';
 import { faker } from './fakeUtils';
 import { getLocale, DemoLocale } from './demoLocales';
+import { ExamStatus } from '@/utils/enums';
 
 // Là biến module-level để các hàm seed dùng chung
 let LOCALE: DemoLocale = getLocale('ko');
@@ -692,6 +693,186 @@ const seedConversations = async (db: SQLite.SQLiteDatabase) => {
 };
 
 // ================================================================
+// 9. POP QUIZZES (SEEDED RECEIVED & CREATED)
+// ================================================================
+const seedPopQuizzes = async (db: SQLite.SQLiteDatabase) => {
+    const subjects = LOCALE.subjects;
+    const ANSWER_LABELS = ['A', 'B', 'C', 'D', 'E'];
+
+    // 1. Seed 2 Received Pop Quizzes (Active)
+    const receivedQuizzes = [
+        {
+            id: 8001,
+            code: 'PQ101',
+            title: LOCALE.subjects[0].name + ' 팝퀴즈 - ' + LOCALE.mockQuestionTypes[0],
+            subjectName: LOCALE.subjects[0].name,
+            questionCount: 5,
+            authorName: LOCALE.demoTeacherSuffix,
+            popQuizStatus: ExamStatus.InProgress, // Active
+        },
+        {
+            id: 8002,
+            code: 'PQ102',
+            title: LOCALE.subjects[1].name + ' 팝퀴즈 - ' + LOCALE.mockQuestionTypes[1],
+            subjectName: LOCALE.subjects[1].name,
+            questionCount: 5,
+            authorName: LOCALE.demoTeacherSuffix,
+            popQuizStatus: ExamStatus.InProgress, // Active
+        }
+    ];
+
+    for (const quiz of receivedQuizzes) {
+        await db.runAsync(
+            `INSERT OR IGNORE INTO ExamSessions (id, code, title, subjectName, status, score, totalScore,
+             startTime, finishTime, duration, questionCount, type, attemptNumber,
+             studentExamSessionId, totalStudentsJoined, teacherName, coursesJson, rowVersion,
+             numberOfQuestion, startTimeSession, studentStartTime, isPopQuiz, popQuizStatus, authorName)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                quiz.id, quiz.code, quiz.title, quiz.subjectName, 0, 0, 100,
+                isoDate(1), isoDate(1), '1800', quiz.questionCount, 0, 1,
+                9000 + quiz.id, 1, quiz.authorName, '[]', `rv-${quiz.code}`,
+                quiz.questionCount, isoDate(1), isoDate(1), 1, quiz.popQuizStatus, quiz.authorName
+            ]
+        );
+
+        // Seed questions for these quizzes
+        const categories = subjects.find(s => s.name === quiz.subjectName)?.categories || ['General'];
+        for (let q = 0; q < quiz.questionCount; q++) {
+            const correctIdx = q % 5;
+            const catName = categories[q % categories.length];
+            const duration = 20;
+
+            await db.runAsync(
+                `INSERT OR IGNORE INTO ExamQuestions (id, examSessionCode, questionGroupId, questionOrder,
+                 isCorrect, score, categoryName, questionGroupIndex,
+                 selectedAnswersJson, correctAnswersJson, correctTextualAnswersJson,
+                 textualAnswersJson, duration, topDuration, overallCorrectRate, skipRate,
+                 questionAnswerType, questionTypeCategoriesJson, answerResponseSignal, answerTime,
+                 classAverageTime, parentQuestionId, parentQuestionOrder)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    60000 + quiz.id * 10 + q,
+                    quiz.code, 0, q,
+                    0, 20, catName, 0,
+                    '[]',
+                    JSON.stringify([{ id: correctIdx + 1, content: ANSWER_LABELS[correctIdx], order: correctIdx, isCorrect: true }]),
+                    '[]', '[]',
+                    0, duration, 70, 5,
+                    0, JSON.stringify([{ id: q + 1, name: catName }]),
+                    null, '00:00:00', 30, 0, 0
+                ]
+            );
+        }
+
+        // Seed ExamQuestionGroups
+        await db.runAsync(
+            `INSERT OR IGNORE INTO ExamQuestionGroups (id, examSessionCode, articlesJson) VALUES (?, ?, ?)`,
+            [
+                quiz.id,
+                quiz.code,
+                JSON.stringify([{
+                    title: "",
+                    author: "",
+                    tag: "",
+                    categoryId: 1,
+                    subcategoryId: 1,
+                    questionTypeId: 1,
+                    categoryOptions: [],
+                    questionGroupId: 0
+                }])
+            ]
+        );
+    }
+
+    // 2. Seed 2 My Created Pop Quizzes
+    const myCreatedQuizzes = [
+        {
+            id: 8003,
+            code: 'PQ103',
+            title: LOCALE.subjects[0].name + ' 팝퀴즈 - ' + LOCALE.mockQuestionTypes[2],
+            subjectName: LOCALE.subjects[0].name,
+            questionCount: 5,
+            authorName: 'Me',
+            popQuizStatus: ExamStatus.InProgress, // Active
+        },
+        {
+            id: 8004,
+            code: 'PQ104',
+            title: LOCALE.subjects[1].name + ' 팝퀴즈 - ' + LOCALE.mockQuestionTypes[3],
+            subjectName: LOCALE.subjects[1].name,
+            questionCount: 5,
+            authorName: 'Me',
+            popQuizStatus: ExamStatus.Completed, // Completed
+        }
+    ];
+
+    for (const quiz of myCreatedQuizzes) {
+        await db.runAsync(
+            `INSERT OR IGNORE INTO ExamSessions (id, code, title, subjectName, status, score, totalScore,
+             startTime, finishTime, duration, questionCount, type, attemptNumber,
+             studentExamSessionId, totalStudentsJoined, teacherName, coursesJson, rowVersion,
+             numberOfQuestion, startTimeSession, studentStartTime, isPopQuiz, popQuizStatus, authorName)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                quiz.id, quiz.code, quiz.title, quiz.subjectName, 0, 0, 100,
+                isoDate(1), isoDate(1), '1800', quiz.questionCount, 0, 1,
+                9000 + quiz.id, 1, quiz.authorName, '[]', `rv-${quiz.code}`,
+                quiz.questionCount, isoDate(1), isoDate(1), 1, quiz.popQuizStatus, quiz.authorName
+            ]
+        );
+
+        // Seed questions for these quizzes
+        const categories = subjects.find(s => s.name === quiz.subjectName)?.categories || ['General'];
+        for (let q = 0; q < quiz.questionCount; q++) {
+            const correctIdx = q % 5;
+            const catName = categories[q % categories.length];
+            const duration = 20;
+
+            await db.runAsync(
+                `INSERT OR IGNORE INTO ExamQuestions (id, examSessionCode, questionGroupId, questionOrder,
+                 isCorrect, score, categoryName, questionGroupIndex,
+                 selectedAnswersJson, correctAnswersJson, correctTextualAnswersJson,
+                 textualAnswersJson, duration, topDuration, overallCorrectRate, skipRate,
+                 questionAnswerType, questionTypeCategoriesJson, answerResponseSignal, answerTime,
+                 classAverageTime, parentQuestionId, parentQuestionOrder)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    60000 + quiz.id * 10 + q,
+                    quiz.code, 0, q,
+                    0, 20, catName, 0,
+                    '[]',
+                    JSON.stringify([{ id: correctIdx + 1, content: ANSWER_LABELS[correctIdx], order: correctIdx, isCorrect: true }]),
+                    '[]', '[]',
+                    0, duration, 70, 5,
+                    0, JSON.stringify([{ id: q + 1, name: catName }]),
+                    null, '00:00:00', 30, 0, 0
+                ]
+            );
+        }
+
+        // Seed ExamQuestionGroups
+        await db.runAsync(
+            `INSERT OR IGNORE INTO ExamQuestionGroups (id, examSessionCode, articlesJson) VALUES (?, ?, ?)`,
+            [
+                quiz.id,
+                quiz.code,
+                JSON.stringify([{
+                    title: "",
+                    author: "",
+                    tag: "",
+                    categoryId: 1,
+                    subcategoryId: 1,
+                    questionTypeId: 1,
+                    categoryOptions: [],
+                    questionGroupId: 0
+                }])
+            ]
+        );
+    }
+};
+
+// ================================================================
 // MAIN EXPORT: Chỉ seed nếu chưa có data
 // ================================================================
 export const fakerSeedAll = async (db: SQLite.SQLiteDatabase, lang: string = 'ko') => {
@@ -708,6 +889,7 @@ export const fakerSeedAll = async (db: SQLite.SQLiteDatabase, lang: string = 'ko
     await seedTextbooks(db);
     await seedHomeData(db);
     await seedStudyPerformance(db);
+    await seedPopQuizzes(db);
 
     console.log('✅ All fake data generated successfully!');
 };

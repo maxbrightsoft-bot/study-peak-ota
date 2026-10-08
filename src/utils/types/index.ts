@@ -1,3 +1,4 @@
+import { JSX } from 'react'
 import { OrderBy } from '../enums'
 
 export type PagingResponse = {
@@ -81,7 +82,9 @@ export * from './pusher'
 export * from './login'
 export * from './user'
 export * from './textbook'
+export * from './chat'
 export * from './exam'
 export * from './note'
-export * from './chat'
 export * from './subjects'
+
+export { QuestionResponse, QuestionGroupResponse, ArticleResponse } from './exam'
