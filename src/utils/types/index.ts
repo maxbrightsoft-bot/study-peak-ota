@@ -14,6 +14,7 @@ export type Notification = {
   type?: number;
   createdAt: string;
   notificationTypes: any;
+  isNote?: boolean;
 };
 
 export type AnswerRequest = {

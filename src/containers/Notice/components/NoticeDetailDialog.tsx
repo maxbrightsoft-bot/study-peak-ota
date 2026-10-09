@@ -9,6 +9,8 @@ import RenderHTML from 'react-native-render-html'
 import { Notification } from '../configs/types'
 import { useMemo } from 'react'
 
+import NoteComments from './NoteComments'
+
 type Props = {
   open: boolean
   onClose: () => void
@@ -18,16 +20,24 @@ type Props = {
 const NoticeDetailDialog = ({ open, onClose, notification }: Props) => {
   const { t } = useTranslation()
   const { width } = useWindowDimensions()
+  const stripHtml = (html?: string) => {
+    if (!html) return ''
+    return html.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim()
+  }
 
   const renderHeaderContent = (item: any) => {
+    const isNote = !!item?.isNote
+    const titleText = isNote ? (stripHtml(item?.content) || item?.name) : item?.name
+    const authorName = isNote ? (item?.name || item?.teacherName) : item?.teacherName
+
     return (
       <View style={styles.item}>
         <View style={styles.itemContent}>
           <Text style={styles.title}>
-            {item?.name}
+            {titleText}
           </Text>
 
-          <Text style={styles.teacher}>{item?.teacherName}</Text>
+          {authorName ? <Text style={styles.teacher}>{authorName}</Text> : null}
 
           <Text style={styles.date}>{moment(item?.createdAt).format('YY.MM.DD')}</Text>
         </View>
@@ -35,9 +45,12 @@ const NoticeDetailDialog = ({ open, onClose, notification }: Props) => {
     )
   }
 
-  const htmlSource = useMemo(() => ({
-    html: notification?.content || ''
-  }), [notification?.content])
+  const htmlSource = useMemo(() => {
+    const rawContent = notification?.content || ''
+    const hasHtmlTags = /<[a-z][\s\S]*>/i.test(rawContent)
+    const formattedHtml = hasHtmlTags ? rawContent : `<p style="font-size:15px;line-height:22px;color:#222;">${rawContent.replace(/\n/g, '<br/>')}</p>`
+    return { html: formattedHtml }
+  }, [notification?.content])
 
   const baseStyle = useMemo(() => ({
     color: "#222222"
@@ -50,20 +63,38 @@ const NoticeDetailDialog = ({ open, onClose, notification }: Props) => {
           <Ionicons name="chevron-back-outline" size={24} color={palette.grey[800]} />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>{t('notice_detail')}</Text>
+        <Text style={styles.headerTitle}>
+          {notification?.isNote ? t('student_notice_notes') : t('notice_detail')}
+        </Text>
 
         <View style={{ width: 24 }} />
       </View>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={true}
-      >
-        {renderHeaderContent(notification)}
-        <View style={styles.htmlWrapper}>
-          <RenderHTML contentWidth={width - 40} source={htmlSource} baseStyle={baseStyle} />
-        </View>
-      </ScrollView>
+      {notification?.isNote ? (
+        <NoteComments
+          noteId={notification?.id}
+          visible={open}
+          t={t}
+          headerContent={
+            <>
+              {renderHeaderContent(notification)}
+              <View style={styles.htmlWrapper}>
+                <RenderHTML contentWidth={width - 40} source={htmlSource} baseStyle={baseStyle} />
+              </View>
+            </>
+          }
+        />
+      ) : (
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={true}
+        >
+          {renderHeaderContent(notification)}
+          <View style={styles.htmlWrapper}>
+            <RenderHTML contentWidth={width - 40} source={htmlSource} baseStyle={baseStyle} />
+          </View>
+        </ScrollView>
+      )}
     </SlideDrawerRoot>
   )
 }

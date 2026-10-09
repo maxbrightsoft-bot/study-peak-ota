@@ -27,22 +27,35 @@ const Notice = ({ open, onClose }: Props) => {
     handleCloseDetailDialog
   } = useNotice(setNew, open)
 
+  const stripHtml = (html?: string) => {
+    if (!html) return ''
+    return html.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim()
+  }
+
   const renderItem = ({ item }: any) => {
+    const isNote = !!item?.isNote
+    const titleText = isNote ? (stripHtml(item?.content) || item?.name) : item?.name
+    const authorName = isNote ? (item?.name || item?.teacherName) : item?.teacherName
+
     return (
       <TouchableOpacity style={styles.item} onPress={() => handleOpenDetailDialog(item)} activeOpacity={0.8}>
-        <View style={styles.itemIconContainer}>
-          <Ionicons name="notifications-outline" size={24} color={palette.main[500]} />
+        <View style={[styles.itemIconContainer, isNote && styles.noteIconContainer]}>
+          <Ionicons
+            name={isNote ? "chatbox-ellipses-outline" : "notifications-outline"}
+            size={22}
+            color={palette.main[500]}
+          />
         </View>
         <View style={styles.itemContent}>
           <Text numberOfLines={1} style={styles.title}>
-            {item?.name}
+            {titleText}
           </Text>
-          {item.teacherName && (
+          {authorName ? (
             <View style={styles.teacherRow}>
               <Ionicons name="person-outline" size={14} color={palette.grey[500]} />
-              <Text style={styles.teacher}>{item.teacherName}</Text>
+              <Text style={styles.teacher}>{authorName}</Text>
             </View>
-          )}
+          ) : null}
           <View style={styles.dateRow}>
             <Ionicons name="calendar-outline" size={14} color={palette.grey[500]} />
             <Text style={styles.date}>{moment(item.createdAt).format('YYYY.MM.DD')}</Text>
@@ -205,6 +218,9 @@ const styles = ScaledSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: '12@ms'
+  },
+  noteIconContainer: {
+    backgroundColor: '#EEF2FF',
   },
 
   itemContent: {

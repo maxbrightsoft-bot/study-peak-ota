@@ -27,11 +27,23 @@ export const getInfoAcademyApi = (startDate: string, endDate: string) => api.get
 
 export const getListNoteApi = (query: any) => api.get(`${NOTES_URL}`, {
     params: {
-        ...query,
-        type: NoteType.ToStudent
+        types: [NoteType.ToStudent],
+        ...query
     }
 })
 export const getNoteByIdApi = (id: number) => api.get(`${NOTES_URL}/${id}`)
+
+export const getListCommentApi = (noteId: number, params?: any) =>
+    api.get(`${NOTES_URL}/${noteId}/comments`, { params })
+
+export const postCommentApi = (noteId: number, data: any) =>
+    api.post(`${NOTES_URL}/${noteId}/comments`, data)
+
+export const updateCommentApi = (noteId: number, commentId: number, data: any) =>
+    api.put(`${NOTES_URL}/${noteId}/comments/${commentId}`, data)
+
+export const deleteCommentApi = (noteId: number, commentId: number) =>
+    api.delete(`${NOTES_URL}/${noteId}/comments/${commentId}`)
 
 export const getListExamApi = (query: any) =>
     api.get(`${COURSE_EXAM_SESSION_URL}`, {
