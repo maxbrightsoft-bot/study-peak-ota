@@ -336,4 +336,13 @@ export const getPasswordStrength = (password: string): number => {
   return score
 }
 
+export const parseEventData = <T = any>(data: any): T | null => {
+  try {
+    if (!data) return null
+    return typeof data === 'string' ? JSON.parse(data) : data
+  } catch {
+    return null
+  }
+}
+
 export * from './times'

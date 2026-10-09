@@ -3,7 +3,7 @@ import { EVENT_DELETED_STUDENT_NOTE, EVENT_DELETED_STUDENT_NOTIFICATION, EVENT_N
 import { getListNoteApi, getListNotificationApi } from "../apiClients"
 import { Notification } from "@/utils/types"
 import useAuthStore from "@/store/useAuthStore"
-import { getErrorMessage, toast } from "@/utils/helpers"
+import { getErrorMessage, parseEventData, toast } from "@/utils/helpers"
 import moment from "moment"
 import { PusherChannel } from "@pusher/pusher-websocket-react-native"
 import { useTranslation } from "react-i18next"
@@ -18,18 +18,19 @@ const filterDefault = {
 }
 const useNotice = (setNew: any) => {
   const { selectedAcademy, user, pusher, subscribeChannel, unsubscribeChannelSafe } = useAuthStore()
+  const academyDomain = (selectedAcademy?.domain || user?.academyDomain)?.trim()?.toUpperCase()
   const [isLoading, setLoading] = useState<boolean>(false)
   const [selected, setSelected] = useState(TabList[0].value)
   const [typeSelected, setTypeSelected] = useState(TabList[0].type)
   const [notifications, setNotifications] = useState<Array<Notification> | null>(null)
   const userId = user?.id
   const { t } = useTranslation()
-  const channel = useRef<PusherChannel>()
-  const notiChannel = useRef<PusherChannel>()
-  const generalNotiChannel = useRef<PusherChannel>()
-  const channelName = useRef<string>();
-  const notificationChannelName = useRef<string>();
-  const generalNotificationChannelName = useRef<string>();
+  const channel = useRef<PusherChannel | undefined>(undefined)
+  const notiChannel = useRef<PusherChannel | undefined>(undefined)
+  const generalNotiChannel = useRef<PusherChannel | undefined>(undefined)
+  const channelName = useRef<string | undefined>(undefined)
+  const notificationChannelName = useRef<string | undefined>(undefined)
+  const generalNotificationChannelName = useRef<string | undefined>(undefined)
 
   const handleGetListNotification = async (type: number[]) => {
     setLoading(true)
@@ -74,9 +75,10 @@ const useNotice = (setNew: any) => {
     }, [])
   );
 
-  const handleNoteReceived = (data: string) => {
+  const handleNoteReceived = (data: any) => {
     try {
-      const receivedData: NoteResponse = JSON.parse(data)
+      const receivedData = parseEventData<NoteResponse>(data)
+      if (!receivedData) return
       setNew((state: any) => ({
         ...state,
         [2]: true
@@ -97,10 +99,10 @@ const useNotice = (setNew: any) => {
     } catch (_error) {
     }
   }
-  const handleNotificationReceived = (data: string) => {
+  const handleNotificationReceived = (data: any) => {
     try {
-
-      const receivedData: Notification = JSON.parse(data)
+      const receivedData = parseEventData<Notification>(data)
+      if (!receivedData) return
       const type = (receivedData.type ?? 0) - 1
       setNew((state: any) => ({
         ...state,
@@ -115,9 +117,10 @@ const useNotice = (setNew: any) => {
     } catch (_error) {
     }
   }
-  const handleNoteUpdated = (data: string) => {
+  const handleNoteUpdated = (data: any) => {
     try {
-      const receivedData: NoteResponse = JSON.parse(data)
+      const receivedData = parseEventData<NoteResponse>(data)
+      if (!receivedData) return
 
       if (typeSelected.includes(TypeNotificationEnum.Student)) {
         setNotifications((state) => {
@@ -136,9 +139,10 @@ const useNotice = (setNew: any) => {
     } catch (_error) {
     }
   }
-  const handleNotificationUpdated = (data: string) => {
+  const handleNotificationUpdated = (data: any) => {
     try {
-      const receivedData: Notification = JSON.parse(data)
+      const receivedData = parseEventData<Notification>(data)
+      if (!receivedData) return
       const type = (receivedData.type ?? 0) - 1
       if (type === selected) {
         setNotifications((state) => {
@@ -161,8 +165,8 @@ const useNotice = (setNew: any) => {
 
   const handleNotificationDeleted = (data: any) => {
     try {
-      const receivedData: Notification = JSON.parse(data)
-      const type = (receivedData.type ?? 0) - 1
+      const receivedData = parseEventData<Notification>(data)
+      const type = ((receivedData?.type ?? 0) - 1)
       if (type == selected) {
         handleGetListNotification(typeSelected)
       }
@@ -190,11 +194,11 @@ const useNotice = (setNew: any) => {
 
   const handleListenerEvent = async () => {
     try {
-      if (!selectedAcademy?.domain || !userId || !pusher) return
+      if (!academyDomain || !userId || !pusher) return
 
-      channelName.current = `NOTES-${selectedAcademy.domain.trim().toUpperCase()}-${userId}-CHANNEL`
-      notificationChannelName.current = `NOTIFICATIONS-${selectedAcademy.domain.trim().toUpperCase()}-${userId}-CHANNEL`
-      generalNotificationChannelName.current = `NOTIFICATIONS-${selectedAcademy.domain.trim().toUpperCase()}-GENERAL-CHANNEL`
+      channelName.current = `NOTES-${academyDomain}-${userId}-CHANNEL`
+      notificationChannelName.current = `NOTIFICATIONS-${academyDomain}-${userId}-CHANNEL`
+      generalNotificationChannelName.current = `NOTIFICATIONS-${academyDomain}-GENERAL-CHANNEL`
 
       channel.current = await subscribeChannel(
         pusher,
@@ -222,9 +226,19 @@ const useNotice = (setNew: any) => {
     if (channelName.current && pusher) {
       unsubscribeChannelSafe(pusher, channelName.current);
     }
+    if (notificationChannelName.current && pusher) {
+      unsubscribeChannelSafe(pusher, notificationChannelName.current);
+    }
+    if (generalNotificationChannelName.current && pusher) {
+      unsubscribeChannelSafe(pusher, generalNotificationChannelName.current);
+    }
 
     channel.current = undefined;
     channelName.current = undefined;
+    notiChannel.current = undefined;
+    notificationChannelName.current = undefined;
+    generalNotiChannel.current = undefined;
+    generalNotificationChannelName.current = undefined;
   }
 
   useFocusEffect(
@@ -246,7 +260,7 @@ const useNotice = (setNew: any) => {
       }
     }, [
       userId,
-      selectedAcademy?.domain,
+      academyDomain,
       pusher,
     ])
   );

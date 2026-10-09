@@ -188,7 +188,9 @@ const AcademyView = () => {
                         ellipsizeMode="tail"
                         style={styles.noticeTitle}
                       >
-                        {recentNotice?.name || recentNotice?.content || t('no_notice')}
+                        {recentNotice?.isNote
+                          ? (recentNotice.content?.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim() || recentNotice.name)
+                          : (recentNotice?.name || recentNotice?.content || t('no_notice'))}
                       </Text>
                     </View>
                     {recentNotice ? (

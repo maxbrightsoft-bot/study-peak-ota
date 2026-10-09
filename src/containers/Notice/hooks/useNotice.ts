@@ -1,8 +1,8 @@
-import { getListNotificationApi } from "@/containers/Home/apiClients"
+import { getListNoteApi, getListNotificationApi } from "@/containers/Home/apiClients"
 import { SortBy, TypeNotificationEnum } from "@/containers/Home/configs/constants"
 import useAuthStore from "@/store/useAuthStore"
 import { OrderBy } from "@/utils/enums"
-import { getErrorMessage, toast } from "@/utils/helpers"
+import { getErrorMessage, parseEventData, toast } from "@/utils/helpers"
 import { PusherChannel } from "@pusher/pusher-websocket-react-native"
 import { useFocusEffect } from "@react-navigation/native"
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -17,16 +17,16 @@ const useNotice = (setNew: any, open?: boolean) => {
   const { pusher, setLoading, user, selectedAcademy, subscribeChannel, unsubscribeChannelSafe } = useAuthStore()
   const userId = user?.id
   const [notifications, setNotifications] = useState<Array<Notification> | null>(null)
-  const academyDomain = selectedAcademy?.domain
+  const academyDomain = (selectedAcademy?.domain || user?.academyDomain)?.trim()?.toUpperCase()
   const { t } = useTranslation()
   const [selected, setSelected] = useState(TabList[0].value)
   const [typeSelected, setTypeSelected] = useState(TabList[0].type)
-  const channel = useRef<PusherChannel>()
-  const channelName = useRef<string>()
-  const notifyChannel = useRef<PusherChannel>()
-  const notifyChannelName = useRef<string>()
-  const generalNotifyChannel = useRef<PusherChannel>()
-  const generalNotifyChannelName = useRef<string>()
+  const channel = useRef<PusherChannel | undefined>(undefined)
+  const channelName = useRef<string | undefined>(undefined)
+  const notifyChannel = useRef<PusherChannel | undefined>(undefined)
+  const notifyChannelName = useRef<string | undefined>(undefined)
+  const generalNotifyChannel = useRef<PusherChannel | undefined>(undefined)
+  const generalNotifyChannelName = useRef<string | undefined>(undefined)
   const [openNoticeDetailDialog, setOpenNoticeDetailDialog] = useState(false)
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null)
 
@@ -64,6 +64,21 @@ const useNotice = (setNew: any, open?: boolean) => {
     try {
       const res = await getListNotificationApi({ ...filterDefault, type });
       let notices: Notification[] = res.data?.items ?? []
+
+      if (type.includes(TypeNotificationEnum.Student)) {
+        const noteResult = await getListNoteApi({ ...filterDefault });
+        const noteItems: NoteResponse[] = noteResult.data?.items ?? []
+        const notes: Notification[] = noteItems.map(i => ({
+          id: i.id,
+          content: i.content,
+          name: i.fullName,
+          createdAt: i.createdAt ?? "",
+          notificationTypes: [],
+          isNote: true
+        }))
+        notices = ([...notes, ...notices]).sort((a, b) => moment(a.createdAt).isBefore(moment(b.createdAt)) ? 1 : -1);
+      }
+
       setNotifications(notices)
     } catch (error: any) {
       toast.error(getErrorMessage(t, error))
@@ -71,21 +86,23 @@ const useNotice = (setNew: any, open?: boolean) => {
     setLoading(false)
   }
 
-  const handleNoteReceived = (data: string) => {
+  const handleNoteReceived = (data: any) => {
     try {
-      const receivedData: NoteResponse = JSON.parse(data)
+      const receivedData = parseEventData<NoteResponse>(data)
+      if (!receivedData) return
       setNew((state: any) => ({
         ...state,
         [2]: true
       }))
       if (typeSelected.includes(TypeNotificationEnum.Student)) {
         setNotifications((state) => {
-          const noteData = {
+          const noteData: Notification = {
             id: receivedData.id,
             content: receivedData.content,
             name: receivedData.fullName,
             createdAt: receivedData.createdAt ?? "",
-            notificationTypes: []
+            notificationTypes: [],
+            isNote: true
           }
           if (state === null) return [noteData]
           return [noteData, ...state]
@@ -94,10 +111,11 @@ const useNotice = (setNew: any, open?: boolean) => {
     } catch (_error) {
     }
   }
-  const handleNotificationReceived = (data: string) => {
-    try {
 
-      const receivedData: Notification = JSON.parse(data)
+  const handleNotificationReceived = (data: any) => {
+    try {
+      const receivedData = parseEventData<Notification>(data)
+      if (!receivedData) return
       const type = (receivedData.type ?? 0) - 1
       setNew((state: any) => ({
         ...state,
@@ -112,19 +130,22 @@ const useNotice = (setNew: any, open?: boolean) => {
     } catch (_error) {
     }
   }
-  const handleNoteUpdated = (data: string) => {
+
+  const handleNoteUpdated = (data: any) => {
     try {
-      const receivedData: NoteResponse = JSON.parse(data)
+      const receivedData = parseEventData<NoteResponse>(data)
+      if (!receivedData) return
 
       if (typeSelected.includes(TypeNotificationEnum.Student)) {
         setNotifications((state) => {
           if (state === null) return []
           return state.map(i => {
-            if (i.type === undefined && i.id === receivedData.id)
+            if ((i.type === undefined || i.isNote) && i.id === receivedData.id)
               return ({
                 ...i,
                 content: receivedData.content,
-                name: receivedData.fullName
+                name: receivedData.fullName,
+                isNote: true
               })
             return i
           })
@@ -133,9 +154,11 @@ const useNotice = (setNew: any, open?: boolean) => {
     } catch (_error) {
     }
   }
-  const handleNotificationUpdated = (data: string) => {
+
+  const handleNotificationUpdated = (data: any) => {
     try {
-      const receivedData: Notification = JSON.parse(data)
+      const receivedData = parseEventData<Notification>(data)
+      if (!receivedData) return
       const type = (receivedData.type ?? 0) - 1
       if (type === selected) {
         setNotifications((state) => {
@@ -150,6 +173,7 @@ const useNotice = (setNew: any, open?: boolean) => {
     } catch (_error) {
     }
   }
+
   const handleNoteDeleted = () => {
     if (typeSelected.includes(TypeNotificationEnum.Student)) {
       handleGetListNotification(typeSelected)
@@ -158,8 +182,8 @@ const useNotice = (setNew: any, open?: boolean) => {
 
   const handleNotificationDeleted = (data: any) => {
     try {
-      const receivedData: Notification = JSON.parse(data)
-      const type = (receivedData.type ?? 0) - 1
+      const receivedData = parseEventData<Notification>(data)
+      const type = ((receivedData?.type ?? 0) - 1)
       if (type == selected) {
         handleGetListNotification(typeSelected)
       }
@@ -205,7 +229,7 @@ const useNotice = (setNew: any, open?: boolean) => {
   const handleListenerEvent = async () => {
     try {
       if (!pusher || !userId || !academyDomain) return;
-      channelName.current = `NOTES-${academyDomain.trim().toUpperCase()}-${userId}-CHANNEL`
+      channelName.current = `NOTES-${academyDomain}-${userId}-CHANNEL`
       notifyChannelName.current = `NOTIFICATIONS-${academyDomain}-${userId}-CHANNEL`
       generalNotifyChannelName.current = `NOTIFICATIONS-${academyDomain}-GENERAL-CHANNEL`
 

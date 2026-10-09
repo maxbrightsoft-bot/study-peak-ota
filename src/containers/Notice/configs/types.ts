@@ -19,3 +19,24 @@ export enum StudentNotificationEvent {
   Updated = "updated-student-notification-event",
   Deleted = "deleted-student-notification-event",
 }
+
+export type CommentUser = {
+  id: number
+  email?: string
+  fullName?: string
+  avatar?: string
+}
+
+export type NoteComment = {
+  id: number
+  noteId: number
+  content?: string
+  imageUrl?: string
+  createBy: CommentUser
+  parentCommentId?: number | null
+  replies?: NoteComment[]
+  replyCount?: number
+  isEdited?: boolean
+  createdAt: string
+  updatedAt?: string
+}

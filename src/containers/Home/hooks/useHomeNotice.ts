@@ -1,17 +1,20 @@
-import { useCallback, useEffect, useState } from 'react'
-import { getListNotificationApi } from '../apiClients'
+import { getListNoteApi, getListNotificationApi } from '../apiClients'
 import { OrderBy, SortBy } from '../configs/constants'
-import { Notification } from '@/utils/types'
+import { Notification, NoteResponse } from '@/utils/types'
 import { getDataStorage, setDataStorage } from '@/utils/storage'
 import { useFocusEffect } from '@react-navigation/native'
 import useAuthStore from '@/store/useAuthStore'
 import moment from 'moment'
+import { useCallback, useEffect, useState } from 'react'
 
 const LAST_READ_NOTICE_TIME_PREFIX = 'LAST_READ_NOTICE_TIME'
 
 export const useHomeNotice = () => {
   const selectedAcademy = useAuthStore(state => state.selectedAcademy)
   const user = useAuthStore(state => state.user)
+  const pusher = useAuthStore(state => state.pusher)
+  const subscribeChannel = useAuthStore(state => state.subscribeChannel)
+  const unsubscribeChannelSafe = useAuthStore(state => state.unsubscribeChannelSafe)
 
   const [recentNotice, setRecentNotice] = useState<Notification | undefined>(undefined)
   const [unreadNoticeCount, setUnreadNoticeCount] = useState<number>(0)
@@ -37,13 +40,37 @@ export const useHomeNotice = () => {
     }
 
     try {
-      const res = await getListNotificationApi({
-        sortColumnDirection: OrderBy.DESC,
-        sortColumnName: SortBy.CreatedAt,
-        pageSize: 20,
-        currentPage: 1
-      })
-      const items: Notification[] = res.data?.items ?? []
+      const [noticesRes, notesRes] = await Promise.allSettled([
+        getListNotificationApi({
+          sortColumnDirection: OrderBy.DESC,
+          sortColumnName: SortBy.CreatedAt,
+          pageSize: 20,
+          currentPage: 1
+        }),
+        getListNoteApi({
+          sortColumnDirection: OrderBy.DESC,
+          sortColumnName: SortBy.CreatedAt,
+          pageSize: 20,
+          currentPage: 1
+        })
+      ])
+
+      const notiItems: Notification[] =
+        noticesRes.status === 'fulfilled' ? (noticesRes.value.data?.items ?? []) : []
+
+      const noteRawItems: NoteResponse[] =
+        notesRes.status === 'fulfilled' ? (notesRes.value.data?.items ?? []) : []
+
+      const noteItems: Notification[] = noteRawItems.map(i => ({
+        id: i.id,
+        content: i.content,
+        name: i.fullName,
+        createdAt: i.createdAt ?? "",
+        notificationTypes: [],
+        isNote: true
+      }))
+
+      const items: Notification[] = [...notiItems, ...noteItems]
 
       if (items.length > 0) {
         // Luôn sắp xếp từ mới nhất đến cũ nhất theo thời gian createdAt
@@ -72,17 +99,44 @@ export const useHomeNotice = () => {
     fetchNotices()
   }
 
-  // Tải lại khi thay đổi academy
   useEffect(() => {
     fetchNotices()
   }, [selectedAcademy?.id, selectedAcademy?.domain, user?.academyDomain, fetchNotices])
 
-  // Tải lại khi quay lại màn Home
   useFocusEffect(
     useCallback(() => {
       fetchNotices()
     }, [fetchNotices])
   )
+
+  useEffect(() => {
+    const domain = (selectedAcademy?.domain || user?.academyDomain)?.trim()?.toUpperCase()
+    const userId = user?.id
+    if (!domain || !userId || !pusher) return
+
+    const notesChannelName = `NOTES-${domain}-${userId}-CHANNEL`
+    const notifyChannelName = `NOTIFICATIONS-${domain}-${userId}-CHANNEL`
+    const generalNotifyChannelName = `NOTIFICATIONS-${domain}-GENERAL-CHANNEL`
+
+    const getHandlers = () => [
+      { eventName: 'new-student-notification-event', handler: () => fetchNotices() },
+      { eventName: 'updated-student-notification-event', handler: () => fetchNotices() },
+      { eventName: 'deleted-student-notification-event', handler: () => fetchNotices() },
+      { eventName: 'new-student-note-event', handler: () => fetchNotices() },
+      { eventName: 'updated-student-note-event', handler: () => fetchNotices() },
+      { eventName: 'deleted-student-note-event', handler: () => fetchNotices() },
+    ]
+
+    subscribeChannel(pusher, notesChannelName, getHandlers)
+    subscribeChannel(pusher, notifyChannelName, getHandlers)
+    subscribeChannel(pusher, generalNotifyChannelName, getHandlers)
+
+    return () => {
+      unsubscribeChannelSafe(pusher, notesChannelName, getHandlers)
+      unsubscribeChannelSafe(pusher, notifyChannelName, getHandlers)
+      unsubscribeChannelSafe(pusher, generalNotifyChannelName, getHandlers)
+    }
+  }, [selectedAcademy?.domain, user?.academyDomain, user?.id, pusher, fetchNotices])
 
   return {
     recentNotice,

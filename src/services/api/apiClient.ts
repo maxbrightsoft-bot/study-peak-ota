@@ -113,7 +113,7 @@ export const apiUpload: AxiosInstance = axios.create({
           return Promise.reject(error);
         }
 
-        const skipStatuses = [401, 403, 404, 400, 422, 426]
+        const skipStatuses = [401, 403, 404, 400, 422, 426, 512]
         if (!skipStatuses.includes(status)) {
           trackErrorStandalone(error, {
             metaData: {

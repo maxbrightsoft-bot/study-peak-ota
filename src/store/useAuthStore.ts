@@ -36,6 +36,8 @@ interface EventHandler<T = any> {
   handler: (data: T) => void;
 }
 
+const channelHandlersRegistry = new Map<string, Set<any>>();
+
 interface StoreState {
   isLoading: boolean;
   redirectUrl: string | null,
@@ -97,7 +99,8 @@ interface StoreActions {
 
   unsubscribeChannelSafe: (
     pusher: Pusher,
-    channelName: string
+    channelName: string,
+    getEventHandlers?: EventHandler[] | (() => EventHandler[])
   ) => Promise<void>;
 
   disconnectPusher: (
@@ -322,6 +325,13 @@ const useAuthStore = create<AuthStore>()(
 
       subscribeChannel: async (pusher, channelName, getEventHandlers) => {
         try {
+          if (!channelHandlersRegistry.has(channelName)) {
+            channelHandlersRegistry.set(channelName, new Set());
+          }
+          if (getEventHandlers) {
+            channelHandlersRegistry.get(channelName)!.add(getEventHandlers);
+          }
+
           const existing = pusher?.getChannel?.(channelName);
           if (existing) {
             return existing;
@@ -331,26 +341,32 @@ const useAuthStore = create<AuthStore>()(
             channelName,
             onEvent: (event: PusherEvent) => {
               try {
-                const eventHandlers = typeof getEventHandlers === 'function'
-                  ? getEventHandlers()
-                  : getEventHandlers;
+                const handlerGetters = channelHandlersRegistry.get(channelName);
+                if (!handlerGetters || handlerGetters.size === 0) return;
 
-                // console.log("[Pusher] Event:", event.eventName, '| channel:', channelName);
-                const matched = eventHandlers.find(
-                  (e) => e.eventName === event.eventName
-                );
-
-                if (!matched) {
-                  if (__DEV__) {
-                    console.log("[Pusher] Unhandled:", event.eventName);
+                let data: any = null;
+                if (event.data) {
+                  try {
+                    data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                  } catch {
+                    data = event.data;
                   }
-                  return;
                 }
 
-                const data = event.data ? JSON.parse(event.data) : null;
-                matched.handler(data);
+                for (const getter of Array.from(handlerGetters)) {
+                  try {
+                    const eventHandlers = typeof getter === 'function' ? getter() : getter;
+                    if (!Array.isArray(eventHandlers)) continue;
+                    const matched = eventHandlers.find((e: any) => e.eventName === event.eventName);
+                    if (matched) {
+                      matched.handler(data);
+                    }
+                  } catch (handlerErr) {
+                    console.error("[Pusher] Handler execution error:", handlerErr);
+                  }
+                }
               } catch (err) {
-                console.error("[Pusher] Event error:", err);
+                console.error("[Pusher] Event parsing error:", err);
               }
             },
           });
@@ -371,16 +387,21 @@ const useAuthStore = create<AuthStore>()(
 
       unsubscribeChannelSafe: async (
         pusher?: any,
-        channelName?: string
+        channelName?: string,
+        getEventHandlers?: any
       ) => {
         if (!pusher || !channelName) return;
 
         try {
-          await pusher.unsubscribe({ channelName });
+          const handlersSet = channelHandlersRegistry.get(channelName);
+          if (handlersSet && getEventHandlers) {
+            handlersSet.delete(getEventHandlers);
+          }
 
-          // if (__DEV__) {
-          //   console.log(`[Pusher] Unsubscribed: ${channelName}`);
-          // }
+          if (!getEventHandlers || !handlersSet || handlersSet.size === 0) {
+            channelHandlersRegistry.delete(channelName);
+            await pusher.unsubscribe({ channelName });
+          }
         } catch (err) {
           if (__DEV__) {
             console.warn("[Pusher] Unsubscribe failed:", err);
@@ -390,6 +411,7 @@ const useAuthStore = create<AuthStore>()(
 
       disconnectPusher: async (pusher, channel) => {
         try {
+          channelHandlersRegistry.clear();
           if (pusher && channel?.channelName) {
             await pusher.unsubscribe({ channelName: channel.channelName });
           }
