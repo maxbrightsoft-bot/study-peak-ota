@@ -11,8 +11,13 @@ import { toast, getMessageFromError } from '@/utils/helpers'
 import Navbar from '../components/Navbar'
 import CodeInput from '../components/CodeInput'
 import ParentLinkTabs from '../components/ParentLinkTabs'
-import { verifyCodeLinkAccountApi } from '../apiClients'
-import useAccountLinkingStore from '@/store/useAccountLinkingStore'
+import { verifyCodeLinkAccountApi, AccountLinkMethod } from '../apiClients'
+import useAccountLinkingStore, {
+  buildAccountLinkingChannelName,
+  waitForPusherSubscribed,
+  isStudentSubscribedToChannel,
+} from '@/store/useAccountLinkingStore'
+import useAuthStore from '@/store/useAuthStore'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -74,6 +79,28 @@ const ParentLinkRequest = () => {
       setStudentEmail(trimmedEmail)
 
       abortControllerRef.current = new AbortController()
+
+      // Pusher must be subscribed before calling the API so no event is missed
+      const channelName = buildAccountLinkingChannelName(
+        trimmedEmail,
+        AccountLinkMethod.Code,
+        true,
+        useAuthStore.getState().user?.superId
+      )
+      const subscribed = await waitForPusherSubscribed(channelName)
+      if (!subscribed) {
+        setStudentEmail(null)
+        toast.error(t('pusher_not_ready'))
+        return
+      }
+
+      const hasStudent = isStudentSubscribedToChannel(channelName, trimmedEmail)
+      if (!hasStudent) {
+        setStudentEmail(null)
+        Alert.alert(t('warning'), t('student_must_be_in_code_screen'))
+        return
+      }
+
       const response = await verifyCodeLinkAccountApi(trimmedCode, trimmedEmail, abortControllerRef.current.signal)
       if (response.data?.data) {
         toast.success(t('link_request_sent'))

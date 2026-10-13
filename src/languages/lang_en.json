@@ -1,6 +1,8 @@
 {
   "link_account": "Link Account",
   "pending_link_requests": "Link requests",
+  "pusher_not_ready": "Could not connect to the notification channel. Please try again.",
+  "student_must_be_in_code_screen": "The student must be on the link code screen to connect.",
   "no_pending_link_requests": "No pending link requests",
   "no_pending_link_requests_desc": "When a parent sends a link request, it will appear here.",
   "parent": "Parent",

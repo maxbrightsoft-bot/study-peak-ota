@@ -8,6 +8,8 @@ import {
 } from "@/containers/AccountLinking/apiClients";
 import { toast, getMessageFromError, checkIsStudent } from "@/utils/helpers";
 import i18n from "@/languages/i18n";
+import useAuthStore from "@/store/useAuthStore";
+import { PusherMember } from "@pusher/pusher-websocket-react-native";
 
 export interface ParentRequestLink {
   linkId: number;
@@ -32,6 +34,7 @@ interface AccountLinkingState {
   linkedAccounts: AccountLinkResponse[];
   pendingRequests: AccountLinkResponse[];
   isCancelledByStudent: boolean;
+  subscribedChannel: string | null;
 }
 
 interface AccountLinkingActions {
@@ -45,6 +48,7 @@ interface AccountLinkingActions {
   fetchPendingRequestsApi: () => Promise<AccountLinkResponse[]>;
   clearPendingRequests: () => void;
   setIsCancelledByStudent: (val: boolean) => void;
+  setSubscribedChannel: (channelName: string | null) => void;
   setLinkData: (data: { key: string; code: string; image: string; expiredTime: string }, studentEmail?: string) => void;
   clearLinkData: () => void;
 }
@@ -52,6 +56,19 @@ interface AccountLinkingActions {
 type AccountLinkingStore = AccountLinkingState & AccountLinkingActions;
 
 let pendingRequestsAbortController: AbortController | null = null;
+
+export const buildAccountLinkingChannelName = (
+  email: string,
+  method: AccountLinkMethod,
+  isParent: boolean,
+  superId?: string | number | null,
+) => {
+  let channelName = `presence-account-linking-${email.trim()}-${method}`;
+  if (method === AccountLinkMethod.ShareLink && isParent && superId) {
+    channelName += `-${superId}`;
+  }
+  return channelName;
+};
 
 const useAccountLinkingStore = create<AccountLinkingStore>()(
   immer((set, get) => ({
@@ -68,6 +85,13 @@ const useAccountLinkingStore = create<AccountLinkingStore>()(
     linkedAccounts: [],
     pendingRequests: [],
     isCancelledByStudent: false,
+    subscribedChannel: null,
+
+    setSubscribedChannel: (channelName) => {
+      set((state) => {
+        state.subscribedChannel = channelName;
+      });
+    },
 
     setLinkKey: (key) => {
       set((state) => {
@@ -188,5 +212,78 @@ const useAccountLinkingStore = create<AccountLinkingStore>()(
     },
   }))
 );
+
+/**
+ * Resolves true once the given presence channel is subscribed, false on timeout.
+ */
+export const waitForPusherSubscribed = (channelName: string, timeoutMs = 8000): Promise<boolean> =>
+  new Promise((resolve) => {
+    const target = channelName.toLowerCase();
+    const isMatch = (name: string | null) => name?.toLowerCase() === target;
+    if (isMatch(useAccountLinkingStore.getState().subscribedChannel)) {
+      resolve(true);
+      return;
+    }
+    const timer = setTimeout(() => {
+      stopListening();
+      resolve(false);
+    }, timeoutMs);
+    // Zustand store listener (not the Pusher channel); stopListening() only removes this listener
+    const stopListening = useAccountLinkingStore.subscribe((state) => {
+      if (isMatch(state.subscribedChannel)) {
+        clearTimeout(timer);
+        stopListening();
+        resolve(true);
+      }
+    });
+  });
+
+/**
+ * Checks if the presence channel currently has a student subscribed with studentEmail.
+ * Returns false if the channel has no members, or only has the current user (Parent).
+ */
+export const isStudentSubscribedToChannel = (
+  channelName: string,
+  studentEmail: string
+): boolean => {
+  const pusher = useAuthStore.getState().pusher;
+  if (!pusher) return false;
+
+  const channel = pusher.getChannel?.(channelName);
+  if (!channel || !channel.members) return false;
+
+  const targetEmail = studentEmail.trim().toLowerCase();
+  const currentUser = useAuthStore.getState().user;
+  const currentUserId = currentUser?.id != null ? String(currentUser.id) : null;
+  const currentUserEmail = currentUser?.email?.trim().toLowerCase();
+
+  const membersList: PusherMember[] = channel.members instanceof Map
+    ? Array.from(channel.members.values())
+    : [];
+
+  if (__DEV__) {
+    console.log('[Pusher] Channel members count:', channel.members instanceof Map ? channel.members.size : 0);
+    console.log('[Pusher] Members list:', membersList.map((m) => ({ userId: m.userId, userInfo: m.userInfo })));
+  }
+
+  // Filter out the current user (Parent)
+  const otherMembers = membersList.filter((m: PusherMember) => {
+    if (channel.me && m.userId === channel.me.userId) return false;
+    if (currentUserId && m.userId === currentUserId) return false;
+    const memberEmail = (m.userInfo?.email || m.userInfo?.Email || '').trim().toLowerCase();
+    if (currentUserEmail && memberEmail === currentUserEmail) return false;
+    return true;
+  });
+
+  if (otherMembers.length === 0) {
+    return false;
+  }
+
+  // Check if any other member has student's email
+  return otherMembers.some((m: PusherMember) => {
+    const memberEmail = (m.userInfo?.email || m.userInfo?.Email || '').trim().toLowerCase();
+    return memberEmail === targetEmail;
+  });
+};
 
 export default useAccountLinkingStore;

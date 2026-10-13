@@ -8,8 +8,8 @@ import { palette, TYPO } from '@/theme'
 import { toast, getMessageFromError } from '@/utils/helpers'
 import Navbar from '../components/Navbar'
 import CodeInput from '../components/CodeInput'
-import { generateLinkCodeApi } from '../apiClients'
-import useAccountLinkingStore from '@/store/useAccountLinkingStore'
+import { generateLinkCodeApi, AccountLinkMethod } from '../apiClients'
+import useAccountLinkingStore, { buildAccountLinkingChannelName, waitForPusherSubscribed } from '@/store/useAccountLinkingStore'
 import useAuthStore from '@/store/useAuthStore'
 import moment from 'moment'
 
@@ -29,6 +29,22 @@ const StudentLinkShare = () => {
   const fetchCode = useCallback(async (signal?: AbortSignal) => {
     try {
       setLoading(true)
+
+      // Pusher must be subscribed before generating the code so no parent request is missed
+      if (user?.email) {
+        if (useAccountLinkingStore.getState().studentEmail !== user.email.trim()) {
+          setStudentEmail(user.email)
+        }
+        const subscribed = await waitForPusherSubscribed(
+          buildAccountLinkingChannelName(user.email, AccountLinkMethod.Code, false, user.superId)
+        )
+        if (signal?.aborted) return
+        if (!subscribed) {
+          toast.error(t('pusher_not_ready'))
+          return
+        }
+      }
+
       const response = await generateLinkCodeApi(signal)
       const data = response.data?.data
       if (data) {

@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PusherMember } from '@pusher/pusher-websocket-react-native'
 import useAuthStore from '@/store/useAuthStore'
-import useAccountLinkingStore, { ParentRequestLink } from '@/store/useAccountLinkingStore'
+import useAccountLinkingStore, { ParentRequestLink, buildAccountLinkingChannelName } from '@/store/useAccountLinkingStore'
 import { navigate, goBack, resetToHome } from '@/navigators/NavigationHelpers'
 import { toast, getMessageFromError, checkIsParent } from '@/utils/helpers'
 import { Role } from '@/utils/enums'
@@ -10,6 +10,9 @@ import { setDataStorage } from '@/utils/storage'
 import { ACCESS_TOKEN } from '@/utils/constants'
 import { completeParentRoleIfPendingApi, AccountLinkMethod } from '../apiClients'
 import { Routes } from '@/navigators/RouteName'
+
+// Serialize unsubscribe -> subscribe so a late unsubscribe never kills a fresh subscription
+let pendingUnsubscribe: Promise<unknown> = Promise.resolve()
 
 export const useAccountLinkingPusher = () => {
   const { t } = useTranslation()
@@ -153,14 +156,15 @@ export const useAccountLinkingPusher = () => {
     const method = methodLink ?? AccountLinkMethod.Code;
     const isParent = determinedRole === Role.Parent || checkIsParent();
 
-    let channelName = `presence-account-linking-${targetEmail}-${method}`;
-    if (method === AccountLinkMethod.ShareLink && isParent && user?.superId) {
-      channelName += `-${user.superId}`;
-    }
+    const channelName = buildAccountLinkingChannelName(targetEmail, method, isParent, user?.superId);
+
+    let cancelled = false
 
     const handleSubscribe = async () => {
       try {
-        await subscribeChannel(
+        await pendingUnsubscribe
+        if (cancelled) return
+        const channel = await subscribeChannel(
           pusher,
           channelName,
           () => Object.entries(handlersRef.current).map(([eventName, handler]) => ({
@@ -168,12 +172,22 @@ export const useAccountLinkingPusher = () => {
             handler,
           })),
           {
+            onSubscriptionSucceeded: () => {
+              if (cancelled) return;
+              useAccountLinkingStore.getState().setSubscribedChannel(channelName);
+              if (__DEV__) {
+                console.log(`[Pusher] [${determinedRole.toUpperCase()}] Subscription succeeded & members ready: ${channelName}`);
+              }
+            },
             onMemberRemoved: (member: PusherMember) => {
-              onMemberRemovedRef.current?.(member)
+              onMemberRemovedRef.current?.(member);
             },
           }
-        )
-        console.log(`[Pusher] [${determinedRole.toUpperCase()}] Subscribed to presence channel: ${channelName}`)
+        );
+        if (cancelled) return;
+        if (channel?.members instanceof Map && channel.members.size > 0) {
+          useAccountLinkingStore.getState().setSubscribedChannel(channelName);
+        }
       } catch (err) {
         console.error('[Pusher] Account linking subscription failed:', err)
       }
@@ -182,9 +196,13 @@ export const useAccountLinkingPusher = () => {
     handleSubscribe()
 
     return () => {
-      unsubscribeChannelSafe(pusher, channelName)
+      cancelled = true
+      if (useAccountLinkingStore.getState().subscribedChannel === channelName) {
+        useAccountLinkingStore.getState().setSubscribedChannel(null)
+      }
+      pendingUnsubscribe = unsubscribeChannelSafe(pusher, channelName)
     }
-  }, [pusher, studentEmail])
+  }, [pusher, studentEmail, methodLink, user?.superId])
 }
 
 export default useAccountLinkingPusher

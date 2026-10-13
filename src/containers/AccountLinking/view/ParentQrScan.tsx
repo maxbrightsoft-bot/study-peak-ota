@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, Animated, Dimensions, Linking, AppState } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, Animated, Dimensions, Linking, AppState, Alert } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -9,9 +9,13 @@ import { palette } from '@/theme'
 import { Routes } from '@/navigators/RouteName'
 import Navbar from '../components/Navbar'
 import ParentLinkTabs from '../components/ParentLinkTabs'
-import { verifyCodeLinkAccountApi } from '../apiClients'
+import { verifyCodeLinkAccountApi, AccountLinkMethod } from '../apiClients'
 import { toast, getMessageFromError } from '@/utils/helpers'
-import useAccountLinkingStore from '@/store/useAccountLinkingStore'
+import useAccountLinkingStore, {
+  buildAccountLinkingChannelName,
+  waitForPusherSubscribed,
+  isStudentSubscribedToChannel,
+} from '@/store/useAccountLinkingStore'
 import useAuthStore from '@/store/useAuthStore'
 
 const SCAN_FRAME_SIZE = 260
@@ -186,6 +190,32 @@ const ParentQrScan = () => {
       setStudentEmail(trimmedEmail)
 
       abortControllerRef.current = new AbortController()
+
+      // Pusher must be subscribed before calling the API so no event is missed
+      const channelName = buildAccountLinkingChannelName(
+        trimmedEmail,
+        AccountLinkMethod.Code,
+        true,
+        useAuthStore.getState().user?.superId
+      )
+      const subscribed = await waitForPusherSubscribed(channelName)
+      if (!subscribed) {
+        setStudentEmail(null)
+        toast.error(t('pusher_not_ready'))
+        lastFailedQrRef.current = { data, timestamp: Date.now() }
+        setScanned(false)
+        return
+      }
+
+      const hasStudent = isStudentSubscribedToChannel(channelName, trimmedEmail)
+      if (!hasStudent) {
+        setStudentEmail(null)
+        lastFailedQrRef.current = { data, timestamp: Date.now() }
+        Alert.alert(t('warning'), t('student_must_be_in_code_screen'))
+        setScanned(false)
+        return
+      }
+
       const response = await verifyCodeLinkAccountApi(trimmedCode, trimmedEmail, abortControllerRef.current.signal)
       if (response.data?.status === 200 || response.status === 200) {
         lastFailedQrRef.current = null

@@ -1,6 +1,8 @@
 {
   "link_account": "Liên kết tài khoản",
   "pending_link_requests": "Yêu cầu kết nối",
+  "pusher_not_ready": "Chưa kết nối được kênh thông báo, vui lòng thử lại.",
+  "student_must_be_in_code_screen": "Học sinh phải đang ở màn hình tạo mã liên kết để thực hiện kết nối.",
   "no_pending_link_requests": "Không có yêu cầu kết nối nào đang chờ",
   "no_pending_link_requests_desc": "Khi phụ huynh gửi yêu cầu kết nối, thông tin sẽ xuất hiện tại đây.",
   "parent": "Phụ huynh",

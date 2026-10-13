@@ -9,7 +9,7 @@ import { toast, getMessageFromError } from '@/utils/helpers'
 import { resetToHome } from '@/navigators/NavigationHelpers'
 import Navbar from '../components/Navbar'
 import { AccountLinkMethod, requestLinkByStudentIdApi, AccountLinkStatus } from '../apiClients'
-import useAccountLinkingStore from '@/store/useAccountLinkingStore'
+import useAccountLinkingStore, { buildAccountLinkingChannelName, waitForPusherSubscribed } from '@/store/useAccountLinkingStore'
 import useAuthStore from '@/store/useAuthStore'
 
 const ParentShareLinkConfirm = () => {
@@ -42,6 +42,20 @@ const ParentShareLinkConfirm = () => {
 
     try {
       setLoading(true)
+
+      // Pusher must be subscribed before calling the API so no event is missed
+      if (studentEmail) {
+        setStudentEmail(studentEmail.trim(), AccountLinkMethod.ShareLink)
+        const subscribed = await waitForPusherSubscribed(
+          buildAccountLinkingChannelName(studentEmail, AccountLinkMethod.ShareLink, true, useAuthStore.getState().user?.superId)
+        )
+        if (!subscribed) {
+          setStudentEmail(null)
+          toast.error(t('pusher_not_ready'))
+          return
+        }
+      }
+
       const res = await requestLinkByStudentIdApi(Number(idSuperStudent))
       const linkData = res?.data?.data
 
@@ -62,9 +76,6 @@ const ParentShareLinkConfirm = () => {
           redirectParams: route.params?.redirectParams,
         })
       } else {
-        if (studentEmail) {
-          setStudentEmail(studentEmail.trim(), AccountLinkMethod.ShareLink)
-        }
 
         navigation.push(Routes.Auth.ParentWaitingApproval, {
           linkData,
@@ -74,6 +85,9 @@ const ParentShareLinkConfirm = () => {
         })
       }
     } catch (error: any) {
+      if (studentEmail) {
+        setStudentEmail(null)
+      }
       toast.error(getMessageFromError(t, error))
     } finally {
       setLoading(false)

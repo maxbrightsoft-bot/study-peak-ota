@@ -39,6 +39,7 @@ interface EventHandler<T = any> {
 
 export interface SubscribeOptions {
   onMemberRemoved?: (member: PusherMember) => void;
+  onSubscriptionSucceeded?: (data?: any) => void;
 }
 
 export interface ParentViewModeState {
@@ -444,6 +445,12 @@ const useAuthStore = create<AuthStore>()(
         try {
           const existing = pusher?.getChannel?.(channelName);
           if (existing) {
+            if (options?.onSubscriptionSucceeded) {
+              existing.onSubscriptionSucceeded = options.onSubscriptionSucceeded;
+              if (existing.members?.size > 0) {
+                options.onSubscriptionSucceeded(existing);
+              }
+            }
             return existing;
           }
 

@@ -21,7 +21,7 @@ import useAuthStore from '@/store/useAuthStore';
 import useAppStore from '@/store/useAppStore';
 import { applyMockAdapter } from '@/demoData/mockInterceptor';
 import { trackErrorStandalone } from '@/hooks/useActivityTracking';
-import { reset } from '@/navigators/NavigationHelpers';
+import { currentScreen, reset } from '@/navigators/NavigationHelpers';
 import { Routes } from '@/navigators/RouteName';
 
 export const api: AxiosInstance = axios.create({
