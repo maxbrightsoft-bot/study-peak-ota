@@ -1,5 +1,10 @@
 {
   "link_account": "계정 연결",
+  "pending_link_requests": "연결 요청",
+  "no_pending_link_requests": "대기 중인 연결 요청이 없습니다",
+  "no_pending_link_requests_desc": "학부모가 연결 요청을 보내면 여기에 표시됩니다.",
+  "parent": "학부모",
+  "qna": "Q&A",
   "select_timer_limit": "시험 시간 선택",
   "result_will_be_displayed_after_doing_exam": "문제 풀이를 진행해야 결과를 볼 수 있습니다.",
   "please_enter_timer_limit": "시험 시간을 입력해 주세요",

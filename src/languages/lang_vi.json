@@ -1,5 +1,10 @@
 {
   "link_account": "Liên kết tài khoản",
+  "pending_link_requests": "Yêu cầu kết nối",
+  "no_pending_link_requests": "Không có yêu cầu kết nối nào đang chờ",
+  "no_pending_link_requests_desc": "Khi phụ huynh gửi yêu cầu kết nối, thông tin sẽ xuất hiện tại đây.",
+  "parent": "Phụ huynh",
+  "qna": "Hỏi đáp",
   "select_timer_limit": "Chọn thời gian làm bài",
   "please_enter_timer_limit": "Vui lòng nhập thời gian làm bài",
   "result_will_be_displayed_after_doing_exam": "Cần tiến hành giải bài tập mới có thể xem kết quả.",

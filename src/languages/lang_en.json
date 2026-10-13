@@ -1,5 +1,10 @@
 {
   "link_account": "Link Account",
+  "pending_link_requests": "Link requests",
+  "no_pending_link_requests": "No pending link requests",
+  "no_pending_link_requests_desc": "When a parent sends a link request, it will appear here.",
+  "parent": "Parent",
+  "qna": "Q&A",
   "select_timer_limit": "Select timer limit",
   "please_enter_timer_limit": "Please enter timer limit",
   "result_will_be_displayed_after_doing_exam": "Result will be displayed after doing the exam.",
