@@ -2475,5 +2475,7 @@
   "too_many_requests": "Request limit exceeded. Please try again in a few minutes.",
   "link_account_request": "Account Link Request",
   "confirm_link_student_desc": "Would you like to request to link with student {{name}} to view their exam results?",
-  "connect": "Connect"
+  "connect": "Connect",
+  "choose_exam": "Select exam",
+  "no_exams_found": "No exams found"
 }

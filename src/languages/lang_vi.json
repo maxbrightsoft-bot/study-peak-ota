@@ -2492,5 +2492,7 @@
   "too_many_requests": "Đã vượt quá số lượng yêu cầu quy định. Vui lòng thử lại sau ít phút.",
   "link_account_request": "Yêu cầu kết nối tài khoản",
   "confirm_link_student_desc": "Bạn có muốn yêu cầu kết nối với học sinh {{name}} để xem thông tin bài kiểm tra của học sinh đó không?",
-  "connect": "Kết nối"
+  "connect": "Kết nối",
+  "choose_exam": "Chọn bài kiểm tra",
+  "no_exams_found": "Không tìm thấy bài kiểm tra"
 }

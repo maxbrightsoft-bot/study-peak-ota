@@ -44,9 +44,10 @@ type Props = {
   studentId?: number
   studentExamSessionId?: any
   onViewQA?: (studentId: number, sessionId?: number, questionId?: number, isTextbook?: boolean) => void
+  customHeader?: React.ReactNode
 }
 
-const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapterIdProp, textbookId, date, studentExamSessionId, onViewQA }: Props) => {
+const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapterIdProp, textbookId, date, studentExamSessionId, onViewQA, customHeader }: Props) => {
   const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
   // Both chapter and textbook results share the same textbook UI branches
   const chapterId = chapterIdProp || textbookId
@@ -291,96 +292,45 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapter
 
   return (
     <SlideDrawerRoot visible={!!resultData || !!textbookResult} onClose={onClose}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={onClose}
-          activeOpacity={0.7}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-        >
-          <Ionicons name="chevron-back-outline" size={24} color={palette.grey[800] || '#222'} />
-        </TouchableOpacity>
-        <View>
-          <Text style={{ fontSize: 16, fontWeight: '600', color: '#222222' }}>{t('exam_results')}</Text>
-        </View>
-        <View>
-          {resultData && <Menu
-            visible={openActionMenu}
-            onDismiss={handleCloseActionMenu}
-            anchorPosition="bottom"
-            anchor={
-              <TouchableOpacity
-                onPress={handleOpenActionMenu}
-                hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
-                style={{ padding: 10, margin: -10, justifyContent: 'center', alignItems: 'center' }}
-                activeOpacity={0.7}
-              >
-                <MaterialCommunityIcons name="dots-vertical" size={26} color={palette.grey[700]} />
-              </TouchableOpacity>
-            }
-            contentStyle={{
-              backgroundColor: '#FFF',
-              paddingVertical: 4,
-              borderRadius: 12,
-              overflow: 'hidden',
-              minWidth: 250,
-              top: Platform.OS === 'ios' ? -50 : 10
-            }}
+      {customHeader ? (
+        customHeader
+      ) : (
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={onClose}
+            activeOpacity={0.7}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
-            <TouchableRipple
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                borderColor: '#E0E0E0'
-              }}
-              onPress={() => {
-                handleCloseActionMenu()
-                onClose?.()
-                navigate(Routes.Auth.StudentExamHistory, { examCode, examSessionId })
+            <Ionicons name="chevron-back-outline" size={24} color={palette.grey[800] || '#222'} />
+          </TouchableOpacity>
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontSize: 16, fontWeight: '600', color: '#222222' }}>{t('exam_results')}</Text>
+          </View>
+          <View>
+            {resultData && <Menu
+              visible={openActionMenu}
+              onDismiss={handleCloseActionMenu}
+              anchorPosition="bottom"
+              anchor={
+                <TouchableOpacity
+                  onPress={handleOpenActionMenu}
+                  hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                  style={{ padding: 10, margin: -10, justifyContent: 'center', alignItems: 'center' }}
+                  activeOpacity={0.7}
+                >
+                  <MaterialCommunityIcons name="dots-vertical" size={26} color={palette.grey[700]} />
+                </TouchableOpacity>
+              }
+              contentStyle={{
+                backgroundColor: '#FFF',
+                paddingVertical: 4,
+                borderRadius: 12,
+                overflow: 'hidden',
+                minWidth: 250,
+                top: Platform.OS === 'ios' ? -50 : 10
               }}
             >
-              <View
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  paddingVertical: 12,
-                  gap: 12
-                }}
-              >
-                <FontAwesome5 name="history" size={18} color={palette.main[600]} />
-                <Text style={{ fontWeight: '600', color: palette.main[600] }}>{t('history')}</Text>
-              </View>
-            </TouchableRipple>
-            {!isParentMode && (
-              <TouchableRipple
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  borderColor: '#E0E0E0'
-                }}
-                onPress={(e) => {
-                  handleCloseActionMenu()
-                  handleOpenQuestionDialog(e);
-                }}
-              >
-                <View
-                  style={{
-                    flex: 1,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    paddingVertical: 12,
-                    gap: 12
-                  }}
-                >
-                  <Ionicons name="chatbubble-ellipses" size={18} color={palette.main[600]} />
-                  <Text style={{ fontWeight: '600', color: palette.main[600] }}>{t('ask_a_question2')}</Text>
-                </View>
-              </TouchableRipple>
-            )}
-            {!isParentMode && (
               <TouchableRipple
                 style={{
                   flexDirection: 'row',
@@ -389,7 +339,8 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapter
                 }}
                 onPress={() => {
                   handleCloseActionMenu()
-                  handleOpenConfirmRestartExamDialog()
+                  onClose?.()
+                  navigate(Routes.Auth.StudentExamHistory, { examCode, examSessionId })
                 }}
               >
                 <View
@@ -402,41 +353,95 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapter
                     gap: 12
                   }}
                 >
-                <FontAwesome name="refresh" size={18} color="#3498db" />
-                <Text style={{ fontWeight: '600', color: '#3498db' }}>{t('restart_exam')}</Text>
-              </View>
-            </TouchableRipple>
-            )}
-            {isLatestSessionUnfinished && !isParentMode && (
-              <TouchableRipple
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  borderColor: '#E0E0E0'
-                }}
-                onPress={() => {
-                  handleCloseActionMenu()
-                  handleSolveExam()
-                }}
-              >
-                <View
-                  style={{
-                    flex: 1,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    paddingVertical: 12,
-                    gap: 12
-                  }}
-                >
-                  <FontAwesome5 name="edit" size={18} color="#3498db" />
-                  <Text style={{ fontWeight: '600', color: '#3498db' }}>{t('solve_undone_questions')}</Text>
+                  <FontAwesome5 name="history" size={18} color={palette.main[600]} />
+                  <Text style={{ fontWeight: '600', color: palette.main[600] }}>{t('history')}</Text>
                 </View>
               </TouchableRipple>
-            )}
-          </Menu>}
+              {!isParentMode && (
+                <TouchableRipple
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    borderColor: '#E0E0E0'
+                  }}
+                  onPress={(e) => {
+                    handleCloseActionMenu()
+                    handleOpenQuestionDialog(e);
+                  }}
+                >
+                  <View
+                    style={{
+                      flex: 1,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      paddingVertical: 12,
+                      gap: 12
+                    }}
+                  >
+                    <Ionicons name="chatbubble-ellipses" size={18} color={palette.main[600]} />
+                    <Text style={{ fontWeight: '600', color: palette.main[600] }}>{t('ask_a_question2')}</Text>
+                  </View>
+                </TouchableRipple>
+              )}
+              {!isParentMode && (
+                <TouchableRipple
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    borderColor: '#E0E0E0'
+                  }}
+                  onPress={() => {
+                    handleCloseActionMenu()
+                    handleOpenConfirmRestartExamDialog()
+                  }}
+                >
+                  <View
+                    style={{
+                      flex: 1,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      paddingVertical: 12,
+                      gap: 12
+                    }}
+                  >
+                  <FontAwesome name="refresh" size={18} color="#3498db" />
+                  <Text style={{ fontWeight: '600', color: '#3498db' }}>{t('restart_exam')}</Text>
+                </View>
+              </TouchableRipple>
+              )}
+              {isLatestSessionUnfinished && !isParentMode && (
+                <TouchableRipple
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    borderColor: '#E0E0E0'
+                  }}
+                  onPress={() => {
+                    handleCloseActionMenu()
+                    handleSolveExam()
+                  }}
+                >
+                  <View
+                    style={{
+                      flex: 1,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      paddingVertical: 12,
+                      gap: 12
+                    }}
+                  >
+                    <FontAwesome5 name="edit" size={18} color="#3498db" />
+                    <Text style={{ fontWeight: '600', color: '#3498db' }}>{t('solve_undone_questions')}</Text>
+                  </View>
+                </TouchableRipple>
+              )}
+            </Menu>}
+          </View>
         </View>
-      </View>
+      )}
       <View style={styles.container}>
         <View style={styles.tabs}>
           {examStatusViewOptions(t, chapterId).map(({ label, value }, index) => {

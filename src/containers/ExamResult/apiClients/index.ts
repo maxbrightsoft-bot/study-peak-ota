@@ -158,3 +158,17 @@ export const getLatestSessionApi = (code: string) => {
         }
     });
 };
+
+export const getStudentExamSessionsByIdsApi = (
+    studentExamSessionIds: number[],
+    params?: { page?: number; limit?: number }
+) => {
+    const idLinkAccount = getIdLinkAccount();
+    return api.post(`${EXAM_SESSION_URL}/student-sessions/by-ids`, studentExamSessionIds, {
+        params: {
+            ...params,
+            ...(idLinkAccount ? { idLinkAccount } : {})
+        }
+    });
+};
+

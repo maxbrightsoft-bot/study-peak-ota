@@ -2470,5 +2470,7 @@
   "too_many_requests": "요청 한도를 초과했습니다. 잠시 후 다시 시도해 주세요.",
   "link_account_request": "계정 연동 요청",
   "confirm_link_student_desc": "{{name}} 학생의 시험 결과를 확인하기 위해 연동을 요청하시겠습니까?",
-  "connect": "연동하기"
+  "connect": "연동하기",
+  "choose_exam": "시험 선택",
+  "no_exams_found": "시험을 찾을 수 없습니다"
 }

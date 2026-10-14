@@ -98,7 +98,7 @@ const PendingLinkRequests = () => {
 
   const renderItem = ({ item }: { item: AccountLinkResponse }) => {
     const isProcessing = processingId === item.id
-    const timeFormatted = item.createdAt ? moment(item.createdAt).fromNow() : ''
+    const timeFormatted = item.createdAt ? moment.utc(item.createdAt).local().fromNow() : ''
 
     return (
       <View style={styles.card}>

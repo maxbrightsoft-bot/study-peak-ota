@@ -50,6 +50,7 @@ const linking: any = {
           [Routes.Auth.MainTabs]: {
             screens: {
               [Routes.Auth.ExamResultList]: 'student/exam-results/:domain',
+              [Routes.Auth.ExamResult]: 'student/exam-results/details/:domain',
             },
           },
         },
@@ -86,13 +87,16 @@ const linking: any = {
         }],
       }
     }
-    if (path.includes('student/exam-results')) {
+    if (path.includes('student/exam-results') || path.includes('student/exam-result')) {
       const user = useAuthStore.getState().user
       const state = defaultGetStateFromPath(path, options)
       const authRoute = state?.routes?.find((r: any) => r.name === MainRoutes.AuthStack)
       const mainTabsRoute = (authRoute?.state as any)?.routes?.find((r: any) => r.name === Routes.Auth.MainTabs)
-      const examRoute = (mainTabsRoute?.state as any)?.routes?.find((r: any) => r.name === Routes.Auth.ExamResultList)
-        || (authRoute?.state as any)?.routes?.find((r: any) => r.name === Routes.Auth.ExamResultList)
+
+      const isExamResultRoute = path.includes('student/exam-results/details') || path.includes('student/exam-result')
+      const targetScreen = isExamResultRoute ? Routes.Auth.ExamResult : Routes.Auth.ExamResultList
+
+      const examRoute = (mainTabsRoute?.state as any)?.routes?.find((r: any) => r.name === targetScreen)
       const params = examRoute?.params
       const targetDomain = params?.domain
 
@@ -101,8 +105,8 @@ const linking: any = {
       const isCheckLinkAccount =
         params?.isCheckLinkAccount === 'true' || params?.isCheckLinkAccount === true
         
-        if (!user?.id) {
-        useAuthStore.getState().setPendingRedirectUrl(Routes.Auth.ExamResultList, params)
+      if (!user?.id) {
+        useAuthStore.getState().setPendingRedirectUrl(targetScreen, params)
         const hasSeenTutorial = useAuthStore.getState().hasSeenTutorial
 
         return {
@@ -133,7 +137,7 @@ const linking: any = {
               name: Routes.Auth.MainTabs,
               state: {
                 routes: [{
-                  name: Routes.Auth.ExamResultList,
+                  name: targetScreen,
                   params,
                 }],
               },
