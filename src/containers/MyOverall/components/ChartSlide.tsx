@@ -4,8 +4,6 @@ import WebView from 'react-native-webview'
 import { palette } from '@/theme'
 import Loading from '@/components/Loading'
 import { useTranslation } from 'react-i18next'
-import useAuthStore from '@/store/useAuthStore'
-import { Language } from '@/utils/enums'
 
 interface Props {
   title: string
@@ -38,7 +36,7 @@ export const CHART_HTML = (t: any) => `<!DOCTYPE html>
       vertical-align: middle !important;
     }
     .apexcharts-legend-text {
-      font-size: 14px !important;
+      font-size: 13px !important;
       font-weight: 600 !important;
       font-family: sans-serif !important;
       vertical-align: middle !important;
@@ -47,7 +45,7 @@ export const CHART_HTML = (t: any) => `<!DOCTYPE html>
     .apexcharts-xaxis-label,
     .apexcharts-xaxis text {
       font-family: sans-serif !important;
-      font-size: 14px !important;
+      font-size: 11px !important;
       fill: #667085 !important;
     }
   </style>
@@ -63,6 +61,53 @@ export const CHART_HTML = (t: any) => `<!DOCTYPE html>
       var r = arr.slice(0, size);
       while (r.length < size) r.push(fill);
       return r;
+    }
+
+    function formatCategoryLabel(label) {
+      if (!label) return '';
+      if (Array.isArray(label)) return label;
+
+      var clean = String(label).trim();
+      if (clean.length <= 4) return clean;
+
+      var isCJK = /[\uac00-\ud7a3]/.test(clean);
+      var maxLine = isCJK ? 8 : 13;
+
+      var words = clean.split(/\s+/);
+      if (words.length > 1) {
+        var bestDiff = Infinity;
+        var bestMid = 1;
+        for (var i = 1; i < words.length; i++) {
+          var l1 = words.slice(0, i).join(' ');
+          var l2 = words.slice(i).join(' ');
+          var diff = Math.abs(l1.length - l2.length);
+          if (diff <= bestDiff) {
+            bestDiff = diff;
+            bestMid = i;
+          }
+        }
+        var line1 = words.slice(0, bestMid).join(' ');
+        var line2 = words.slice(bestMid).join(' ');
+        if (line1.length > maxLine) line1 = line1.slice(0, maxLine - 1) + '…';
+        if (line2.length > maxLine) line2 = line2.slice(0, maxLine - 1) + '…';
+        return [line1, line2];
+      }
+
+      if (clean.length > maxLine) {
+        var midIdx = Math.ceil(clean.length / 2);
+        var p1 = clean.slice(0, midIdx);
+        var p2 = clean.slice(midIdx);
+        if (p1.length > maxLine) p1 = p1.slice(0, maxLine - 1) + '…';
+        if (p2.length > maxLine) p2 = p2.slice(0, maxLine - 1) + '…';
+        return [p1, p2];
+      }
+
+      if (isCJK && clean.length > 5) {
+        var m = Math.ceil(clean.length / 2);
+        return [clean.slice(0, m), clean.slice(m)];
+      }
+
+      return clean;
     }
 
     function postRN(payload) {
@@ -89,8 +134,9 @@ export const CHART_HTML = (t: any) => `<!DOCTYPE html>
     function renderChart(data) {
       if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
 
-      var height   = data.height || 300;
-      var cats     = normalizeArray(data.categories, 6, '');
+      var height   = data.height || 340;
+      var rawCats  = normalizeArray(data.categories, 6, '');
+      var cats     = rawCats.map(formatCategoryLabel);
       var myData   = normalizeArray(data.myData,  6, 0);
       var avgData  = normalizeArray(data.avgData, 6, 0);
       var myLabel  = data.myLabel  || "${t('my_data')}";
@@ -136,7 +182,7 @@ export const CHART_HTML = (t: any) => `<!DOCTYPE html>
           labels: {
             show: true,
             style: {
-              fontSize:   '14px',
+              fontSize:   '11px',
               fontFamily: 'sans-serif',
               colors: [GREY_700, GREY_700, GREY_700, GREY_700, GREY_700, GREY_700]
             }
@@ -145,9 +191,10 @@ export const CHART_HTML = (t: any) => `<!DOCTYPE html>
         legend: {
           show: true,
           position: 'bottom',
+          offsetY: 0,
           markers:  { width: 24, height: 2, radius: 0 },
           labels:   { useSeriesColors: true },
-          fontSize:   '14px',
+          fontSize:   '13px',
           fontWeight: 600
         },
         tooltip: {
@@ -155,7 +202,9 @@ export const CHART_HTML = (t: any) => `<!DOCTYPE html>
           followCursor: true,
           custom: function(opt) {
             var dpi   = opt.dataPointIndex;
-            var label = cats[dpi] || '';
+            var label = (data.tooltipData && data.tooltipData[dpi] && data.tooltipData[dpi].label) ||
+                        (rawCats && rawCats[dpi]) ||
+                        (Array.isArray(cats[dpi]) ? cats[dpi].join(' ') : cats[dpi]) || '';
             if (data.tooltipData && data.tooltipData[dpi]) {
               var row     = data.tooltipData[dpi];
               var myV     = row.myValue || 0;
@@ -450,7 +499,7 @@ const ChartSlide = memo(({ title, isTimeChart, payload }: Props) => {
   const hasRendered = useRef(false)
   const isReady = useRef(false)
   const pendingPayload = useRef<any>(null)
-  const loadingTimeout = useRef<NodeJS.Timeout | null>(null)
+  const loadingTimeout = useRef<any>(null)
 
   useEffect(() => {
     if (loading && !hasRendered.current) {
@@ -477,12 +526,12 @@ const ChartSlide = memo(({ title, isTimeChart, payload }: Props) => {
     <View
       style={{
         borderRadius: 14,
-        backgroundColor: '#FFFF',
+        backgroundColor: '#FFFFFF',
         marginBottom: 22,
         overflow: 'hidden'
       }}
     >
-      {loading && !hasRendered.current && <Loading isOverlay={false} />}
+      {loading && !hasRendered.current ? <Loading isOverlay={false} /> : null}
       <View
         style={{
           backgroundColor: palette.grey[50],
@@ -492,7 +541,7 @@ const ChartSlide = memo(({ title, isTimeChart, payload }: Props) => {
           width: '100%'
         }}
       >
-        <Text style={{ color: '#222222', fontSize: 14, fontWeight: 600, textAlign: 'center' }}>{title}</Text>
+        <Text style={{ color: '#222222', fontSize: 14, fontWeight: '600', textAlign: 'center' }}>{title}</Text>
       </View>
       <View style={{ height: HEIGHT }}>
         <WebView

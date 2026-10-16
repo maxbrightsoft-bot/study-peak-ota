@@ -82,10 +82,11 @@ const useCategoriesOverallChartContainer = (
         isLoading,
         myData,
         avgData,
-        categories: isKorean ? categories : shortCategories,
+        categories,
+        shortCategories,
         xAxisLabels,
         tooltipData,
-    }), [isLoading, myData, avgData, categories, shortCategories, xAxisLabels, tooltipData, isKorean])
+    }), [isLoading, myData, avgData, categories, shortCategories, xAxisLabels, tooltipData])
 }
 
 export default useCategoriesOverallChartContainer
