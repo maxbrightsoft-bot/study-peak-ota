@@ -2622,5 +2622,8 @@
   "confirm_link_student_desc": "Bạn có muốn yêu cầu kết nối với học sinh {{name}} để xem thông tin bài kiểm tra của học sinh đó không?",
   "connect": "Kết nối",
   "choose_exam": "Chọn bài kiểm tra",
-  "no_exams_found": "Không tìm thấy bài kiểm tra"
+  "no_exams_found": "Không tìm thấy bài kiểm tra",
+  "common_comment": "Nhận xét chung",
+  "special_comment": "Nhận xét riêng",
+  "teacher_comment": "Nhận xét của giáo viên"
 }

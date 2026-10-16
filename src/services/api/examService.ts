@@ -1,5 +1,6 @@
 import { BASE_URL } from "../../utils/constants";
 import { api } from "./apiClient";
+import { getIdLinkAccount } from "../../utils/helpers";
 
 const EXAM_SESSION_URL = `${BASE_URL}/api/examSession`;
 
@@ -17,5 +18,11 @@ export const joinExamByCodeApi = (code: string, auto: boolean = true) =>
         params: { auto }
     });
 
-export const getReceivedPopQuizzesApi = () => 
-    api.get(`${BASE_URL}/api/pop-quiz/received`);
+export const getReceivedPopQuizzesApi = () => {
+    const idLinkAccount = getIdLinkAccount();
+    return api.get(`${BASE_URL}/api/pop-quiz/received`, {
+        params: {
+            ...(idLinkAccount ? { idLinkAccount } : {})
+        }
+    });
+};

@@ -9,13 +9,14 @@ import usePopQuiz from './hooks/usePopQuiz';
 import BottomSheet from '@/components/ModalBase/BottomSheet';
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog';
 import * as Clipboard from 'expo-clipboard';
-import { toast } from '@/utils/helpers';
+import { toast, checkIsParent } from '@/utils/helpers';
 import { STUDENT_URL } from '@/utils/constants';
 import { ExamStatus } from '@/utils/enums';
 import { getSolveTargetLabel } from './helpers';
 import TextField from '@/components/Input/TextField';
 
 const PopQuiz = () => {
+  const isParent = checkIsParent();
   const {
     t,
     navigation,
@@ -39,7 +40,7 @@ const PopQuiz = () => {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      {!user?.academyDomain && (
+      {(!user?.academyDomain || isParent) && (
         <View style={styles.bannerContainer}>
           <View style={styles.bannerHeader}>
             <Text style={styles.bannerTag}>{t('pop_quiz_banner_tag')}</Text>
@@ -177,7 +178,7 @@ const PopQuiz = () => {
             </View>
           </View>
 
-          {!user?.academyDomain && (
+          {(!user?.academyDomain || isParent) && (
             <View style={[styles.sectionContainer, { paddingBottom: 40 }]}>
               <Text style={styles.sectionTitle}>{t('my_pop_quiz')}</Text>
               <View style={styles.quizList}>

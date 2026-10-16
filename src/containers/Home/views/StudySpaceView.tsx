@@ -158,7 +158,9 @@ const StudySpaceView = () => {
           <View style={styles.popQuizSectionContainer}>
             <View style={styles.popQuizHeaderRow}>
               <Text style={styles.popQuizHeaderTitle}>{t('received_pop_quiz')}</Text>
-              <TouchableOpacity onPress={() => navigate(Routes.Auth.Textbook as any, { tab: TEXTBOOK_TABS.POP_QUIZ })}>
+              <TouchableOpacity onPress={() => {
+                navigate(Routes.Auth.PopQuiz as any);
+              }}>
                 <Text style={styles.popQuizViewAll}>{t('view_all') || '전체보기'}</Text>
               </TouchableOpacity>
             </View>
@@ -169,7 +171,9 @@ const StudySpaceView = () => {
                   <TouchableOpacity
                     key={item.id || item.code || idx}
                     style={styles.popQuizItemCard}
-                    onPress={() => navigate(Routes.Auth.PopQuizIntro as any, { code: item.code, popQuizStatus: item.popQuizStatus })}
+                    onPress={() => {
+                      navigate(Routes.Auth.PopQuizIntro as any, { code: item.code, popQuizStatus: item.popQuizStatus });
+                    }}
                     activeOpacity={0.8}
                   >
                     <View style={styles.popQuizItemIconWrapper}>
@@ -199,7 +203,9 @@ const StudySpaceView = () => {
             ) : (
               <TouchableOpacity
                 style={[styles.popQuizItemCard, { marginTop: 10 }]}
-                onPress={() => navigate(Routes.Auth.Textbook as any, { tab: TEXTBOOK_TABS.POP_QUIZ })}
+                onPress={() => {
+                  navigate(Routes.Auth.PopQuiz as any);
+                }}
                 activeOpacity={0.8}
               >
                 <View style={styles.popQuizItemIconWrapper}>

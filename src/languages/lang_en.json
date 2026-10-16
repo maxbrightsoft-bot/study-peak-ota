@@ -2605,5 +2605,8 @@
   "confirm_link_student_desc": "Would you like to request to link with student {{name}} to view their exam results?",
   "connect": "Connect",
   "choose_exam": "Select exam",
-  "no_exams_found": "No exams found"
+  "no_exams_found": "No exams found",
+  "common_comment": "Common Comment",
+  "special_comment": "Special Comment",
+  "teacher_comment": "Teacher's Comment"
 }
