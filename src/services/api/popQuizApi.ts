@@ -1,19 +1,21 @@
 import { api } from '@/services/api/apiClient';
-import { getIdLinkAccount } from '@/utils/helpers';
+import { getIdLinkAccountForPopQuiz } from '@/utils/helpers';
 
 const EXAM_URL = '/api/exam';
 const POP_QUIZ_URL = '/api/pop-quiz';
 
 export const getRecentPopQuizzesApi = (pageSize?: number) => {
+    const idLinkAccount = getIdLinkAccountForPopQuiz();
     return api.get(`${POP_QUIZ_URL}/recent`, {
         params: {
-            pageSize
+            pageSize,
+            ...(idLinkAccount ? { idLinkAccount } : {})
         }
     });
 };
 
 export const getPopQuizLiveStatusApi = () => {
-    const idLinkAccount = getIdLinkAccount();
+    const idLinkAccount = getIdLinkAccountForPopQuiz();
     return api.get(`${POP_QUIZ_URL}/live-status`, {
         params: {
             ...(idLinkAccount ? { idLinkAccount } : {})
@@ -25,7 +27,12 @@ export const joinPopQuizApi = (code: string) =>
     api.post(`${EXAM_URL}/pop-quiz/join`, { code });
 
 export const getMyPopQuizzesApi = () => {
-    return api.get(`${POP_QUIZ_URL}/my`);
+    const idLinkAccount = getIdLinkAccountForPopQuiz();
+    return api.get(`${POP_QUIZ_URL}/my`, {
+        params: {
+            ...(idLinkAccount ? { idLinkAccount } : {})
+        }
+    });
 };
 
 export const createPopQuizApi = (data: any) =>

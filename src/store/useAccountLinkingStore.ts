@@ -33,8 +33,8 @@ interface AccountLinkingState {
   acceptedLinkId: number | null;
   linkedAccounts: AccountLinkResponse[];
   pendingRequests: AccountLinkResponse[];
-  isCancelledByStudent: boolean;
   subscribedChannel: string | null;
+  requestByLinkId: boolean;
 }
 
 interface AccountLinkingActions {
@@ -47,8 +47,8 @@ interface AccountLinkingActions {
   setLinkedAccounts: (accounts: AccountLinkResponse[]) => void;
   fetchPendingRequestsApi: () => Promise<AccountLinkResponse[]>;
   clearPendingRequests: () => void;
-  setIsCancelledByStudent: (val: boolean) => void;
   setSubscribedChannel: (channelName: string | null) => void;
+  setRequestByLinkId: (val: boolean) => void;
   setLinkData: (data: { key: string; code: string; image: string; expiredTime: string }, studentEmail?: string) => void;
   clearLinkData: () => void;
 }
@@ -92,6 +92,7 @@ const useAccountLinkingStore = create<AccountLinkingStore>()(
         state.subscribedChannel = channelName;
       });
     },
+    requestByLinkId: true,
 
     setLinkKey: (key) => {
       set((state) => {
@@ -143,6 +144,12 @@ const useAccountLinkingStore = create<AccountLinkingStore>()(
     setIsCancelledByStudent: (val) => {
       set((state) => {
         state.isCancelledByStudent = val;
+      });
+    },
+
+    setRequestByLinkId: (val) => {
+      set((state) => {
+        state.requestByLinkId = val;
       });
     },
 
@@ -208,6 +215,7 @@ const useAccountLinkingStore = create<AccountLinkingStore>()(
         state.acceptedLinkId = null;
         state.linkedAccounts = [];
         state.isCancelledByStudent = false;
+        state.requestByLinkId = true;
       });
     },
   }))

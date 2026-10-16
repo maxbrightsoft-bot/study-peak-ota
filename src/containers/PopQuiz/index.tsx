@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Modal, ActivityIndicator, Alert, Share } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
 import { palette } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { ScaledSheet } from 'react-native-size-matters';
@@ -14,9 +13,17 @@ import { STUDENT_URL } from '@/utils/constants';
 import { ExamStatus } from '@/utils/enums';
 import { getSolveTargetLabel } from './helpers';
 import TextField from '@/components/Input/TextField';
-
+import useAccountLinkingStore from '@/store/useAccountLinkingStore';
 const PopQuiz = () => {
   const isParent = checkIsParent();
+  const requestByLinkId = useAccountLinkingStore(state => state.requestByLinkId);
+  const setRequestByLinkId = useAccountLinkingStore(state => state.setRequestByLinkId);
+
+  useEffect(() => {
+    return () => {
+      setRequestByLinkId(true);
+    };
+  }, []);
   const {
     t,
     navigation,
@@ -35,12 +42,12 @@ const PopQuiz = () => {
     isOpenConfirmEnd,
     setIsOpenConfirmEnd,
     proceedOpenModalAndCompleteLive
-  } = usePopQuiz()
+  } = usePopQuiz();
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      {(!user?.academyDomain || isParent) && (
+      {!user?.academyDomain && (!isParent || !requestByLinkId) && (
         <View style={styles.bannerContainer}>
           <View style={styles.bannerHeader}>
             <Text style={styles.bannerTag}>{t('pop_quiz_banner_tag')}</Text>
@@ -62,39 +69,41 @@ const PopQuiz = () => {
         </View>
       )}
 
-      <View style={styles.joinContainer}>
-        <View style={styles.joinHeader}>
-          <Ionicons name="flash" size={16} color="#3B82F6" />
-          <Text style={styles.joinTitle}>{t('join_with_code')}</Text>
-        </View>
-        <View style={styles.inputRow}>
-          <View style={{ flex: 1, marginRight: 8 }}>
-            <TextField
-              value={code}
-              onChangeText={setCode}
-              isExamCode
-              maxLength={5}
-              placeholder={t('enter_5_digit_code') as string}
-              placeholderTextColor={palette.grey[400]}
-              autoCapitalize="characters"
-              autoCorrect={false}
-              containerInputStyle={styles.textInputContainer}
-              textInputStyle={styles.textInputStyle}
-            />
+      {!isParent && (
+        <View style={styles.joinContainer}>
+          <View style={styles.joinHeader}>
+            <Ionicons name="flash" size={16} color="#3B82F6" />
+            <Text style={styles.joinTitle}>{t('join_with_code')}</Text>
           </View>
-          <TouchableOpacity
-            style={[styles.joinButton, code.trim().length >= 5 ? {} : { opacity: 0.5 }]}
-            onPress={() => {
-              const formattedCode = code.trim().toUpperCase();
-              if (formattedCode.length >= 5) {
-                navigation.navigate(Routes.Auth.PopQuizIntro, { code: formattedCode });
-              }
-            }}
-          >
-            <Text style={styles.joinButtonText}>{t('join')}</Text>
-          </TouchableOpacity>
+          <View style={styles.inputRow}>
+            <View style={{ flex: 1, marginRight: 8 }}>
+              <TextField
+                value={code}
+                onChangeText={setCode}
+                isExamCode
+                maxLength={5}
+                placeholder={t('enter_5_digit_code') as string}
+                placeholderTextColor={palette.grey[400]}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                containerInputStyle={styles.textInputContainer}
+                textInputStyle={styles.textInputStyle}
+              />
+            </View>
+            <TouchableOpacity
+              style={[styles.joinButton, code.trim().length >= 5 ? {} : { opacity: 0.5 }]}
+              onPress={() => {
+                const formattedCode = code.trim().toUpperCase();
+                if (formattedCode.length >= 5) {
+                  navigation.navigate(Routes.Auth.PopQuizIntro, { code: formattedCode });
+                }
+              }}
+            >
+              <Text style={styles.joinButtonText}>{t('join')}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      )}
 
       {loading ? (
         <View style={{ paddingVertical: 40, alignItems: 'center' }}>
@@ -168,7 +177,7 @@ const PopQuiz = () => {
                           style={styles.playButton}
                           onPress={() => navigation.navigate(Routes.Auth.PopQuizIntro, { code: quiz.code, solveTarget: quiz.solveTarget })}
                         >
-                          <Ionicons name="play" size={16} color={palette.main[500]} />
+                          <Ionicons name={!isParent ? "play" : "eye-outline"} size={16} color={palette.main[500]} />
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -178,7 +187,7 @@ const PopQuiz = () => {
             </View>
           </View>
 
-          {(!user?.academyDomain || isParent) && (
+          {!user?.academyDomain && (!isParent || !requestByLinkId) && (
             <View style={[styles.sectionContainer, { paddingBottom: 40 }]}>
               <Text style={styles.sectionTitle}>{t('my_pop_quiz')}</Text>
               <View style={styles.quizList}>

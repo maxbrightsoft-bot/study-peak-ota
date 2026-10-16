@@ -12,16 +12,23 @@ import CupIcon from '@/assets/iconJSX/cup'
 import ChatIcon from '@/assets/iconJSX/chat'
 import BookIcon from '@/assets/iconJSX/book'
 import useAuthStore from '@/store/useAuthStore'
+import useAccountLinkingStore from '@/store/useAccountLinkingStore'
 import { useTranslation } from 'react-i18next'
 import { ScaledSheet } from 'react-native-size-matters'
 import { Language } from '@/utils/enums'
+import { checkIsParent } from '@/utils/helpers'
 
-const Footer = ({ navigation }: BottomTabBarProps) => {
+const Footer = ({ navigation, state }: BottomTabBarProps) => {
   const user = useAuthStore(state => state.user)
   const language = useAuthStore(state => state.language)
+  const requestByLinkId = useAccountLinkingStore(state => state.requestByLinkId)
+  const setRequestByLinkId = useAccountLinkingStore(state => state.setRequestByLinkId)
   const { t, i18n } = useTranslation()
   const insets = useSafeAreaInsets()
-  const isKorean = i18n.language === 'ko'
+
+  const linkedStudents = useAuthStore((state) => state.linkedStudents)
+  const isParent = checkIsParent()
+  const isParentNoChildren = isParent && linkedStudents?.length === 0
 
   const currentLang = language?.code || i18n.language
   const isEnOrVi = currentLang === Language.en || currentLang === Language.vi || currentLang === 'en' || currentLang === 'vi'
@@ -84,27 +91,36 @@ const Footer = ({ navigation }: BottomTabBarProps) => {
   const isStudent = user?.roles?.includes('Student')
 
   const filteredStudySpaceTabItems = studySpaceTabItems.filter(item => {
-    if (item.name === Routes.Auth.StudyPerformance && !isStudent) return false
+    if (isParentNoChildren && item.name !== Routes.Auth.PopQuiz && item.name !== Routes.Auth.Home) return false
     return true
   })
 
   const filteredTabItems = tabItems.filter(item => {
-    if (item.name === Routes.Auth.ExamResultList && !isStudent) return false
-    if (item.name === Routes.Auth.StudyPerformance && !isStudent) return false
+    if (item.name === Routes.Auth.Question && !isStudent) return false
     return true
   })
 
   return (
     <View style={[styles.tabBar, insets.bottom > 12 && { paddingBottom: insets.bottom }]}>
       {(user?.academyDomain ? filteredTabItems : filteredStudySpaceTabItems).map((item) => {
-        const isFocused = currentScreen() == item.name
+        let isFocused = currentScreen() == item.name
+        if (!user?.academyDomain && isParent && requestByLinkId && item.name === Routes.Auth.PopQuiz) {
+          isFocused = false
+        }
         const shouldShowText = !isEnOrVi || isFocused
 
         return (
           <TouchableOpacity
             key={item.name}
             style={styles.tabItem}
-            onPress={() => navigation.navigate(item.name)}
+            onPress={() => {
+              if (item.name === Routes.Auth.PopQuiz && !user?.academyDomain && isParent) {
+                setRequestByLinkId(false);
+              } else {
+                setRequestByLinkId(true);
+              }
+              navigation.navigate(item.name);
+            }}
           >
             <View style={{ height: 20}}>
               {item?.iconJSX ? (

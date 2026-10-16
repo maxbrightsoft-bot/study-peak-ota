@@ -13,6 +13,7 @@ import { Language, Role } from '../enums'
 import { PauseOrResumeExamRequest } from '../types'
 import { trackErrorStandalone } from '@/hooks/useActivityTracking'
 import useAuthStore from '@/store/useAuthStore'
+import useAccountLinkingStore from '@/store/useAccountLinkingStore'
 
 import { initialWindowMetrics } from 'react-native-safe-area-context'
 
@@ -413,6 +414,12 @@ export const checkIsStudent = (roles?: string[]): boolean => {
 export const getIdLinkAccount = (): number | undefined => {
   const parentViewMode = useAuthStore.getState().parentViewMode
   return (parentViewMode?.isActive && parentViewMode?.linkId) ? parentViewMode.linkId : undefined
+}
+
+export const getIdLinkAccountForPopQuiz = (): number | undefined => {
+  const requestByLinkId = useAccountLinkingStore.getState().requestByLinkId;
+  if (!requestByLinkId) return undefined;
+  return getIdLinkAccount();
 }
 
 export * from './times'

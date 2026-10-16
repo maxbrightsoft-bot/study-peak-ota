@@ -5,7 +5,7 @@ import useAuthStore from '@/store/useAuthStore'
 import { palette, TYPO } from '@/theme'
 import { BRIEF_GRADE_OPTIONS } from '@/utils/constants'
 import { NoteType } from '@/utils/enums'
-import { formatGrade, getErrorMessage, toast, utcToLocalTime } from '@/utils/helpers'
+import { checkIsParent, formatGrade, getErrorMessage, toast, utcToLocalTime } from '@/utils/helpers'
 import { NoteResponse, NoteUserInfo } from '@/utils/types'
 import { Ionicons } from '@expo/vector-icons'
 import React, { FC, useEffect, useMemo, useState } from 'react'
@@ -29,6 +29,7 @@ interface Props {
 const NoteDrawer: FC<Props> = (props) => {
   const { open, student, onClose, data, showStudentInfo = true, id, onEdit, onDelete } = props
 
+  const isParent = checkIsParent()
   const { t } = useTranslation()
   const { language, selectedAcademy } = useAuthStore()
   const [loading, setLoading] = useState<boolean>(false)
@@ -187,12 +188,12 @@ const NoteDrawer: FC<Props> = (props) => {
           </Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-          {note && onEdit && (
+          {!isParent && note && onEdit && (
             <TouchableOpacity onPress={() => onEdit(note)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <Ionicons name="create-outline" size={22} color={palette.grey[700]} />
             </TouchableOpacity>
           )}
-          {note && onDelete && (
+          {!isParent && note && onDelete && (
             <TouchableOpacity onPress={() => onDelete(note)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <Ionicons name="trash-outline" size={22} color={palette.error.main} />
             </TouchableOpacity>

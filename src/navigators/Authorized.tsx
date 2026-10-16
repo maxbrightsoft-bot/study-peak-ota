@@ -87,18 +87,19 @@ const MainTabNavigator = () => {
   const linkedStudents = useAuthStore((state) => state.linkedStudents)
   const isParent = checkIsParent()
   const isParentNoChildren = isParent && linkedStudents?.length === 0
+  const user = useAuthStore(state => state.user)
 
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         header: () => <></>,
         tabBarStyle:
-          isParentNoChildren || hiddenTabBar.includes(route.name)
+          hiddenTabBar.includes(route.name)
             ? { display: 'none', height: 0, position: 'absolute' }
             : undefined,
       })}
       tabBar={(props) => {
-        if (isParentNoChildren) {
+        if (isParentNoChildren && user?.academyDomain) {
           return null
         }
 
