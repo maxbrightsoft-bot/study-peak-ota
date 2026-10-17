@@ -16,6 +16,26 @@ export enum TypeNotificationEnum {
     Student
 }
 
+export const TEXTBOOK_TABS = {
+    CSAT_PAST_QUESTIONS: PreparedType.csat_past_questions,
+    OFFICIAL_MOCK_EXAM: PreparedType.official_mock_exam,
+    PRIVATE_MOCK_EXAM: PreparedType.private_mock_exam,
+    POP_QUIZ: "pop_quiz",
+    WORKBOOK: PreparedType.workbook,
+    PAST_EXAM_QUESTIONS: PreparedType.past_exam_questions,
+    ACADEMY_QUESTIONS: PreparedFilterType.academy_questions,
+    // Lowercase aliases
+    csat_past_questions: PreparedType.csat_past_questions,
+    official_mock_exam: PreparedType.official_mock_exam,
+    private_mock_exam: PreparedType.private_mock_exam,
+    pop_quiz: "pop_quiz",
+    workbook: PreparedType.workbook,
+    past_exam_questions: PreparedType.past_exam_questions,
+    academy_questions: PreparedFilterType.academy_questions,
+} as const;
+
+export type TextbookTab = typeof TEXTBOOK_TABS[keyof typeof TEXTBOOK_TABS];
+
 export const TabList = [
     // {
     //     label: "recently_solved_questions",
@@ -27,27 +47,31 @@ export const TabList = [
     // },
     {
         label: "csat_past_questions",
-        value: PreparedType.csat_past_questions
+        value: TEXTBOOK_TABS.CSAT_PAST_QUESTIONS
     },
     {
         label: "official_mock_exam",
-        value: PreparedType.official_mock_exam
+        value: TEXTBOOK_TABS.OFFICIAL_MOCK_EXAM
     },
     {
         label: "private_mock_exam",
-        value: PreparedType.private_mock_exam
+        value: TEXTBOOK_TABS.PRIVATE_MOCK_EXAM
+    },
+    {
+        label: "pop_quiz",
+        value: TEXTBOOK_TABS.POP_QUIZ
     },
     {
         label: "workbook",
-        value: PreparedType.workbook
+        value: TEXTBOOK_TABS.WORKBOOK
     },
     {
         label: "past_exam_questions",
-        value: PreparedType.past_exam_questions
+        value: TEXTBOOK_TABS.PAST_EXAM_QUESTIONS
     },
     {
         label: "academy_questions",
-        value: PreparedFilterType.academy_questions
+        value: TEXTBOOK_TABS.ACADEMY_QUESTIONS
     },
 ];
 

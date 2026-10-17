@@ -10,6 +10,7 @@ import * as Yup from 'yup'
 import AnswerContent from './AnswerContent'
 import { Formik } from 'formik'
 import { ScaledSheet } from 'react-native-size-matters'
+import { toast } from '@/utils/helpers'
 
 interface Props {
   t: any
@@ -40,15 +41,21 @@ const TextbookAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAn
   const handleSelectAnswer = (num: number, type: QuestionAnswerType) => {
     if (disabled) return
     let nextSelected: number[]
+    const isMultiple = type === QuestionAnswerType.MultipleChoice
+    const maxAllowed = (question?.answerCount || 0) > 0 ? (question?.answerCount || 0) - 1 : 0
 
-    if (type === QuestionAnswerType.MultipleChoice) {
+    if (isMultiple) {
       if (selectedAnswers.includes(num)) {
         nextSelected = selectedAnswers.filter((a) => a !== num)
       } else {
-        nextSelected = [...selectedAnswers, num]
+        if (maxAllowed > 0 && selectedAnswers.length >= maxAllowed) {
+          nextSelected = [...selectedAnswers.slice(1), num]
+        } else {
+          nextSelected = [...selectedAnswers, num]
+        }
       }
     } else {
-      nextSelected = [num]
+      nextSelected = selectedAnswers.includes(num) ? [] : [num]
     }
 
     setSelectedAnswers(nextSelected)
@@ -114,6 +121,7 @@ const TextbookAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAn
         )
 
       case QuestionAnswerType.MultipleChoice:
+      case QuestionAnswerType.MultipleCorrectAnswers:
       case QuestionAnswerType.SingleChoice: {
         const isManyAnswers = (question?.answerCount || 0) > 5
         return (

@@ -16,13 +16,17 @@ import StudyTimerCard from '../components/StudyTimerCard'
 import Notice from '@/containers/Notice/view'
 import { ScaledSheet } from 'react-native-size-matters'
 import moment from 'moment'
-
 import useAuthStore from '@/store/useAuthStore'
+import { Ionicons } from '@expo/vector-icons'
+import { navigate } from '@/navigators/NavigationHelpers'
+import { Routes } from '@/navigators/RouteName'
+import { useTranslation } from 'react-i18next'
+import { TEXTBOOK_TABS } from '@/containers/Textbook/configs/constants'
 
 const AcademyView = () => {
+  const { t } = useTranslation()
   const selectedAcademy = useAuthStore(state => state.selectedAcademy)
   const {
-    t,
     open,
     user,
     schedules,
@@ -43,7 +47,9 @@ const AcademyView = () => {
     handleCloseConfirmDialog,
     handleToggleSchedule,
     handleCodeExam,
-    isCheckTeacherStart
+    isCheckTeacherStart,
+    receivedPopQuiz,
+    receivedPopQuizzes
   } = useProblemSolving()
 
   const {
@@ -247,6 +253,65 @@ const AcademyView = () => {
             </View>
           )}
 
+          <View style={styles.popQuizSectionContainer}>
+            <View style={styles.popQuizHeaderRow}>
+              <Text style={styles.popQuizHeaderTitle}>{t('received_pop_quiz')}</Text>
+              <TouchableOpacity onPress={() => navigate(Routes.Auth.Textbook as any, { tab: TEXTBOOK_TABS.POP_QUIZ })}>
+                <Text style={styles.popQuizViewAll}>{t('view_all') || '전체보기'}</Text>
+              </TouchableOpacity>
+            </View>
+
+            {receivedPopQuizzes && receivedPopQuizzes.length > 0 ? (
+              <View style={{ gap: 8, marginTop: 10 }}>
+                {receivedPopQuizzes.map((item: any, idx: number) => (
+                  <TouchableOpacity
+                    key={item.id || item.code || idx}
+                    style={styles.popQuizItemCard}
+                    onPress={() => navigate(Routes.Auth.PopQuizIntro as any, { code: item.code, popQuizStatus: item.popQuizStatus })}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.popQuizItemIconWrapper}>
+                      <Ionicons name="bulb" size={16} color="#FFF" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.popQuizItemTitle} numberOfLines={1}>
+                        {item.title || t('pop_quiz_review')}
+                      </Text>
+                      <Text style={styles.popQuizItemDesc} numberOfLines={1}>
+                        {item.solveTarget !== undefined && item.solveTarget !== null
+                          ? t(
+                              item.solveTarget === 0 ? 'pop_quiz_review_desc_child' :
+                              item.solveTarget === 1 ? 'pop_quiz_review_desc_friend' :
+                              item.solveTarget === 2 ? 'pop_quiz_review_desc_group' :
+                              'pop_quiz_review_desc_myself',
+                              { count: item.questionCount ?? item.totalQuestions ?? 0 }
+                            )
+                          : t('pop_quiz_review_desc', { author: item.authorName || '', count: item.questionCount ?? item.totalQuestions ?? 0 })
+                        }
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color={palette.grey[400]} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={[styles.popQuizItemCard, { marginTop: 10 }]}
+                onPress={() => navigate(Routes.Auth.Textbook as any, { tab: TEXTBOOK_TABS.POP_QUIZ })}
+                activeOpacity={0.8}
+              >
+                <View style={styles.popQuizItemIconWrapper}>
+                  <Ionicons name="bulb" size={16} color="#FFF" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.popQuizItemTitle}>{t('pop_quiz')}</Text>
+                  <Text style={styles.popQuizItemDesc}>{t('no_received_pop_quiz')}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={palette.grey[400]} />
+              </TouchableOpacity>
+            )}
+          </View>
+
           <View style={{ marginBottom: 28 }}>
             <RecentTextbook />
           </View>
@@ -429,5 +494,58 @@ const styles = ScaledSheet.create({
     fontWeight: 'bold',
     color: '#36BFEC',
     includeFontPadding: false
+  },
+  popQuizSectionContainer: {
+    backgroundColor: '#FFF',
+    borderRadius: '16@ms',
+    padding: '16@ms',
+    marginBottom: '28@ms',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  popQuizHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '4@ms'
+  },
+  popQuizHeaderTitle: {
+    fontSize: '15@ms',
+    fontWeight: 'bold',
+    color: '#222222',
+  },
+  popQuizViewAll: {
+    fontSize: '12@ms',
+    color: palette.main[600],
+    fontWeight: '500',
+  },
+  popQuizItemCard: {
+    backgroundColor: palette.grey[50] || '#F9FAFB',
+    borderRadius: '12@ms',
+    padding: '12@ms',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  popQuizItemIconWrapper: {
+    backgroundColor: palette.main[600],
+    borderRadius: '10@ms',
+    width: '32@ms',
+    height: '32@ms',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: '10@ms',
+  },
+  popQuizItemTitle: {
+    fontSize: '13@ms',
+    fontWeight: '600',
+    color: '#333333',
+    marginBottom: '2@ms',
+  },
+  popQuizItemDesc: {
+    fontSize: '11@ms',
+    color: palette.grey[500],
   }
 })

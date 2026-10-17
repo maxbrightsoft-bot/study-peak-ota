@@ -1,8 +1,9 @@
 import { palette, TYPO } from '@/theme'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { View, TouchableOpacity, ScrollView, Text } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { TabList, DefaultTextbookFilter } from '../configs/constants'
+import { useNavigation, useRoute } from '@react-navigation/native'
+import { TabList, DefaultTextbookFilter, TEXTBOOK_TABS } from '../configs/constants'
 import useTab from '@/hooks/useTab'
 import { useTranslation } from 'react-i18next'
 import TabPanel from '@/components/Tab/TabPanel'
@@ -10,13 +11,24 @@ import TextbookList from '../components/TextbookList'
 import { PreparedFilterType, PreparedType, TextbookQuery } from '../configs/type'
 import HeaderAction from '@/layouts/components/HeaderAction'
 import { ScaledSheet } from 'react-native-size-matters'
+import PopQuiz from '@/containers/PopQuiz'
 
 const Textbook = () => {
   const { t } = useTranslation()
-  const { selected, handleChangeTab } = useTab(TabList)
+  const navigation = useNavigation<any>()
+  const route = useRoute<any>()
+  const routeTab = route?.params?.tab
+  const { selected, handleChangeTab } = useTab(TabList, routeTab)
   const insets = useSafeAreaInsets()
   const [search, setSearch] = useState<string>('')
   const [textbookFilter, setTextbookFilter] = useState<TextbookQuery>(DefaultTextbookFilter)
+
+  useEffect(() => {
+    if (route?.params?.tab) {
+      handleChangeTab(route.params.tab)
+      navigation.setParams({ tab: undefined })
+    }
+  }, [route?.params?.tab, handleChangeTab, navigation])
 
   const handleTabChange = (value: any) => {
     handleChangeTab(value)
@@ -32,33 +44,29 @@ const Textbook = () => {
           <HeaderAction />
         </View>
       </View>
-      <View style={{ marginTop: 18 }}>
-        <ScrollView
-          showsHorizontalScrollIndicator={false}
-          horizontal
-          style={{ flexDirection: 'row', paddingLeft: 20 }}
-          contentContainerStyle={{ gap: 16, paddingRight: 30, height: 30 }}
-        >
-          {TabList.map(({ label, value }, index) => (
+      <View style={styles.gridContainer}>
+        {TabList.map(({ label, value }, index) => {
+          const isSelected = value === selected
+          return (
             <TouchableOpacity
               key={index}
-              style={[styles.tabButton, value === selected ? styles.activeTab : styles.inactiveTab]}
+              style={[styles.gridTabButton, isSelected ? styles.activeGridTab : styles.inactiveGridTab]}
               onPress={() => handleTabChange(value)}
             >
-              <Text style={[styles.tabText, { color: value === selected ? palette.main[600] : palette.grey[900] }]}>
+              <Text
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
+                style={[styles.gridTabText, isSelected ? styles.activeGridTabText : styles.inactiveGridTabText]}
+              >
                 {t(label)}
               </Text>
             </TouchableOpacity>
-          ))}
-        </ScrollView>
+          )
+        })}
       </View>
-      {/* <TabPanel value={selected} index={TabList[0].value}>
-        <TextbookList preparedFilterType={PreparedFilterType.recently_solved_questions} />
-      </TabPanel>
-      <TabPanel value={selected} index={TabList[1].value}>
-        <TextbookList />
-      </TabPanel> */}
-      <TabPanel value={selected} index={TabList[0].value} style={{ flex: 1 }}>
+
+      <TabPanel value={selected} index={TEXTBOOK_TABS.CSAT_PAST_QUESTIONS} style={{ flex: 1 }}>
         <TextbookList
           preparedType={PreparedType.csat_past_questions}
           search={search}
@@ -67,7 +75,7 @@ const Textbook = () => {
           setTextbookFilter={setTextbookFilter}
         />
       </TabPanel>
-      <TabPanel value={selected} index={TabList[1].value} style={{ flex: 1 }}>
+      <TabPanel value={selected} index={TEXTBOOK_TABS.OFFICIAL_MOCK_EXAM} style={{ flex: 1 }}>
         <TextbookList
           preparedType={PreparedType.official_mock_exam}
           search={search}
@@ -76,7 +84,7 @@ const Textbook = () => {
           setTextbookFilter={setTextbookFilter}
         />
       </TabPanel>
-      <TabPanel value={selected} index={TabList[2].value} style={{ flex: 1 }}>
+      <TabPanel value={selected} index={TEXTBOOK_TABS.PRIVATE_MOCK_EXAM} style={{ flex: 1 }}>
         <TextbookList
           preparedType={PreparedType.private_mock_exam}
           search={search}
@@ -85,7 +93,10 @@ const Textbook = () => {
           setTextbookFilter={setTextbookFilter}
         />
       </TabPanel>
-      <TabPanel value={selected} index={TabList[3].value} style={{ flex: 1 }}>
+      <TabPanel value={selected} index={TEXTBOOK_TABS.POP_QUIZ} style={{ flex: 1 }}>
+        <PopQuiz />
+      </TabPanel>
+      <TabPanel value={selected} index={TEXTBOOK_TABS.WORKBOOK} style={{ flex: 1 }}>
         <TextbookList
           preparedType={PreparedType.workbook}
           search={search}
@@ -94,7 +105,7 @@ const Textbook = () => {
           setTextbookFilter={setTextbookFilter}
         />
       </TabPanel>
-      <TabPanel value={selected} index={TabList[4].value} style={{ flex: 1 }}>
+      <TabPanel value={selected} index={TEXTBOOK_TABS.PAST_EXAM_QUESTIONS} style={{ flex: 1 }}>
         <TextbookList
           preparedType={PreparedType.past_exam_questions}
           search={search}
@@ -103,7 +114,7 @@ const Textbook = () => {
           setTextbookFilter={setTextbookFilter}
         />
       </TabPanel>
-      <TabPanel value={selected} index={TabList[5].value} style={{ flex: 1 }}>
+      <TabPanel value={selected} index={TEXTBOOK_TABS.ACADEMY_QUESTIONS} style={{ flex: 1 }}>
         <TextbookList
           preparedFilterType={PreparedFilterType.academy_questions}
           search={search}
@@ -130,8 +141,43 @@ const styles = ScaledSheet.create({
   },
   headerTitle: {
     fontSize: '20@ms',
-    fontWeight: 600,
+    fontWeight: '600',
     color: '#222222'
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: '16@ms',
+    marginTop: '6@ms',
+    marginBottom: '12@ms',
+    rowGap: '8@ms',
+    columnGap: '6@ms'
+  },
+  gridTabButton: {
+    width: '23.5%',
+    paddingVertical: '8@ms',
+    paddingHorizontal: '2@ms',
+    borderRadius: '6@ms',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  activeGridTab: {
+    backgroundColor: palette.main[600] || '#7545FC'
+  },
+  inactiveGridTab: {
+    backgroundColor: 'transparent'
+  },
+  gridTabText: {
+    fontSize: '13@ms',
+    textAlign: 'center'
+  },
+  activeGridTabText: {
+    color: '#FFFFFF',
+    fontWeight: '700'
+  },
+  inactiveGridTabText: {
+    color: '#666666',
+    fontWeight: '500'
   },
   scrollView: {
     gap: '24@ms',
@@ -152,12 +198,8 @@ const styles = ScaledSheet.create({
     backgroundColor: palette.grey[100]
   },
   tabButton: {},
-  activeTab: {
-    borderBottomColor: palette.main[500]
-  },
-  inactiveTab: {
-    borderBottomColor: '#D0D5DD'
-  },
+  activeTab: {},
+  inactiveTab: {},
   tabText: {
     fontSize: '16@ms',
     fontWeight: '700',

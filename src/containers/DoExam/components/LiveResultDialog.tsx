@@ -9,6 +9,8 @@ import TextTooltip from '@/components/Tooltip/TextTooltip'
 import { Ionicons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
 import { ExamStatus } from '@/utils/enums'
+import { isTextType } from '@/utils/helpers/textbook'
+import { isQuestionAnswered } from '../hooks/useExam'
 
 interface Props {
   open: boolean
@@ -28,12 +30,7 @@ const LiveResultDialog = ({ open, onClose = () => {}, examCode, studentExamSessi
       ? resultData.lateStatus === ExamStatus.Completed
       : resultData.status === ExamStatus.Completed
     if (isCompleted) return false
-    return resultData.questions.some(
-      (q: any) =>
-        q.questionAnswerType !== undefined && q.questionAnswerType >= 2
-          ? !q.textualAnswers?.length
-          : !q.selectedAnswers?.length && !q.textualAnswers?.length
-    )
+    return resultData.questions.some((q: any) => !isQuestionAnswered(q))
   }, [resultData])
 
   const scoreDisplay = useMemo(() => {

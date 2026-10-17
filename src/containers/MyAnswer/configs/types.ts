@@ -1,6 +1,6 @@
-import { Category, EffectSize, Question } from "@/utils/types";
+import { Category, CategoryResponse, EffectSize, Question } from "@/utils/types";
 
-export type FormatDataMyAnswer = { category: Category; questions: Question[] }
+export type FormatDataMyAnswer = { category: Category | CategoryResponse; questions: Question[] }
 export type FormatTextbookDataMyAnswer = { categories: Category[]; questions: StudentQuestionResult[], questionGroupId: number }
 
 export type StudentQuestionResult = Question & {

@@ -48,6 +48,7 @@ const linking: any = {
       [MainRoutes.AuthStack]: {
         screens: {
           [Routes.Auth.ExamResultList]: 'student/exam-results/:domain',
+          [Routes.Auth.PopQuizIntro]: 'pop-quiz/:code',
         },
       },
       [MainRoutes.UnAuthStack]: {
@@ -80,6 +81,34 @@ const linking: any = {
           name: Routes.AcademyRequest,
           params: { domain, ...(classParam ? { class: classParam } : {}) },
         }],
+      }
+    }
+    const popQuizMatch = path.match(/^\/?pop-quiz\/([^/?]+)/)
+    if (popQuizMatch?.[1]) {
+      const code = popQuizMatch[1]
+      const user = useAuthStore.getState().user
+
+      if (!user?.id) {
+        useAuthStore.getState().setPendingRedirectUrl(Routes.Auth.PopQuizIntro, { code })
+
+        return {
+          routes: [{
+            name: MainRoutes.UnAuthStack,
+            state: {
+              routes: [{ name: Routes.UnAuth.Login }]
+            }
+          }],
+        }
+      }
+
+      const state = defaultGetStateFromPath(path, options)
+      return state || {
+        routes: [{
+          name: MainRoutes.AuthStack,
+          state: {
+            routes: [{ name: Routes.Auth.PopQuizIntro, params: { code } }]
+          }
+        }]
       }
     }
     if (path.includes('student/exam-results')) {

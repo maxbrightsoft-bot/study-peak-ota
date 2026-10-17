@@ -10,6 +10,7 @@ export const getListExamMock = async (query?: any) => {
         courses: e.coursesJson ? JSON.parse(e.coursesJson) : [],
         isLate: e.isLate === 1,
         isSelected: e.isSelected === 1 || false,
+        isPopQuiz: e.isPopQuiz === 1,
     }));
 };
 
@@ -47,6 +48,7 @@ export const getLiveHistoryDetailsMock = async (query?: any) => {
         courses: e.coursesJson ? JSON.parse(e.coursesJson) : [],
         isLate: e.isLate === 1,
         isSelected: e.isSelected === 1,
+        isPopQuiz: e.isPopQuiz === 1,
     }));
 
     // 2. Textbooks

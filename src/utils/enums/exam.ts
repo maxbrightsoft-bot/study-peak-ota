@@ -18,7 +18,8 @@ export enum QuestionAnswerType {
   ShortAnswer,
   OrderMatters,
   OrderDoesNotMatters,
-  SynonymProcessing
+  SynonymProcessing,
+  MultipleCorrectAnswers
 }
 
 export enum ExamStatus {
@@ -51,4 +52,22 @@ export enum ProblemKey {
   ProtractedProblem,
   GradesByTerritory,
   Vulnerable
+}
+
+export enum PopQuizSolveTarget {
+  Child,
+  Friend,
+  Group,
+  Myself
+}
+
+export enum ExamSessionType {
+  Default,
+  Merged,
+  PopQuiz
+}
+
+export enum ExamType {
+  Normal = 0,
+  PopQuiz = 1
 }

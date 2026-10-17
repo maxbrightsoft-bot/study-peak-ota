@@ -3,6 +3,7 @@ import { View, ScrollView, Text, TouchableOpacity } from 'react-native'
 import { OverallChartContainerProps } from './components/OverallChartContainer'
 import { CategoriesOverallChartContainerProps } from './components/CategoriesOverallChartContainer'
 import { OverallTimeChartContainerProps } from './components/OverallTimeChartContainer'
+import { ExamSessionType, ExamType, SubjectType } from '@/utils/enums'
 import { ExamResult } from '@/utils/types'
 import { useTranslation } from 'react-i18next'
 import { palette, TYPO } from '@/theme'
@@ -64,39 +65,111 @@ const MyOverall: FC<OverallTabProps> = React.memo(({
 
   const SLIDE_WIDTH = width - 20
 
-  const slides = useMemo(() => [
-    {
-      key: 'overall',
-      isTimeChart: false,
-      title: t('today_s_data'),
-      payload: { ...overallChartContainerProps, id: 'today-s-data', isPrint }
-    },
-    {
-      key: 'categories',
-      isTimeChart: false,
-      title: t('my_average_data'),
-      payload: { ...categoriesOverallChartContainerProps, id: 'my-average-data', isPrint }
-    },
-    {
-      key: 'subcategories',
-      isTimeChart: false,
-      title: t('subcategories_data'),
-      payload: { ...subcategoriesOverallChartContainerProps, id: 'subcategories-data', isPrint }
-    },
-    {
-      key: 'questionTypes',
-      isTimeChart: false,
-      title: t('question_types_data'),
-      payload: { ...questionTypesOverallChartContainerProps, id: 'question-types-data', isPrint }
-    },
-    ...(overallTimeChartContainerProps?.categories ?? []).map((item, index) => ({
-      key: `time-${index}`,
-      title: t('problem_solving_speed'),
-      isTimeChart: true,
-      payload: { ...item, isPrint }
-    }))
-  ], [
+  const isPopQuiz =
+    (resultData as any)?.examSessionType === ExamSessionType.PopQuiz ||
+    (resultData as any)?.type === ExamType.PopQuiz ||
+    (resultData as any)?.isPopQuiz
+
+  const hasValidCategories = (categories?: any[]) =>
+    Boolean(categories?.some((c: any) => c && String(c).trim() !== ''))
+
+  const hasCategoryFromQuestions = Boolean(
+    resultData?.questions?.some(
+      q =>
+        (q.category?.name && q.category.name.trim() !== '') ||
+        q.questionTypeCategories?.some(
+          qc => qc.category?.name && qc.category.name.trim() !== ''
+        )
+    )
+  )
+  const hasSubcategoryFromQuestions = Boolean(
+    resultData?.questions?.some(q =>
+      q.questionTypeCategories?.some(
+        qc => qc.subcategory?.name && qc.subcategory.name.trim() !== ''
+      )
+    )
+  )
+  const hasQuestionTypeFromQuestions = Boolean(
+    resultData?.questions?.some(q =>
+      q.questionTypeCategories?.some(
+        qc => qc.questionType?.name && qc.questionType.name.trim() !== ''
+      )
+    )
+  )
+
+  const hasCategory =
+    hasCategoryFromQuestions ||
+    hasValidCategories(categoriesOverallChartContainerProps?.categories)
+  const hasSubcategory =
+    hasSubcategoryFromQuestions ||
+    hasValidCategories(subcategoriesOverallChartContainerProps?.categories)
+  const hasQuestionType =
+    hasQuestionTypeFromQuestions ||
+    hasValidCategories(questionTypesOverallChartContainerProps?.categories)
+
+  const isPopQuizWithoutCategories = isPopQuiz && !hasCategory && !hasSubcategory && !hasQuestionType
+
+  const showOverallChart = !isPopQuizWithoutCategories
+  const showCategoryChart = !isPopQuiz || hasCategory
+  const showSubcategoryChart = !isPopQuiz || hasSubcategory
+  const showQuestionTypeChart =
+    (!isPopQuiz || hasQuestionType) &&
+    Boolean(questionTypesOverallChartContainerProps?.categories?.length) &&
+    Boolean(
+      resultData &&
+      (resultData.type === SubjectType.Math ||
+        resultData.type === SubjectType.Korean)
+    )
+
+  const slides = useMemo(() => {
+    const list: any[] = []
+    if (showOverallChart) {
+      list.push({
+        key: 'overall',
+        isTimeChart: false,
+        title: t('today_s_data'),
+        payload: { ...overallChartContainerProps, id: 'today-s-data', isPrint }
+      })
+    }
+    if (showCategoryChart) {
+      list.push({
+        key: 'categories',
+        isTimeChart: false,
+        title: t('my_average_data'),
+        payload: { ...categoriesOverallChartContainerProps, id: 'my-average-data', isPrint }
+      })
+    }
+    if (showSubcategoryChart) {
+      list.push({
+        key: 'subcategories',
+        isTimeChart: false,
+        title: t('subcategories_data'),
+        payload: { ...subcategoriesOverallChartContainerProps, id: 'subcategories-data', isPrint }
+      })
+    }
+    if (showQuestionTypeChart) {
+      list.push({
+        key: 'questionTypes',
+        isTimeChart: false,
+        title: t('question_types_data'),
+        payload: { ...questionTypesOverallChartContainerProps, id: 'question-types-data', isPrint }
+      })
+    }
+    ;(overallTimeChartContainerProps?.categories ?? []).forEach((item, index) => {
+      list.push({
+        key: `time-${index}`,
+        title: t('problem_solving_speed'),
+        isTimeChart: true,
+        payload: { ...item, isPrint }
+      })
+    })
+    return list
+  }, [
     t,
+    showOverallChart,
+    showCategoryChart,
+    showSubcategoryChart,
+    showQuestionTypeChart,
     overallChartContainerProps,
     categoriesOverallChartContainerProps,
     subcategoriesOverallChartContainerProps,
@@ -263,52 +336,54 @@ const MyOverall: FC<OverallTabProps> = React.memo(({
           </View>
         </View>
       </View>
-      <View>
-        <ScrollView
-          horizontal
-          ref={scrollRef}
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          decelerationRate="fast"
-          snapToInterval={SLIDE_WIDTH}
-          snapToAlignment="start"
-          onMomentumScrollEnd={(e) => {
-            const index = Math.round(e.nativeEvent.contentOffset.x / SLIDE_WIDTH)
-            setCurrentIndex(index)
-          }}
-        >
-          {slides.map((item, index) => (
-            <View
-              key={item.key}
-              style={{
-                width: SLIDE_WIDTH
-              }}
-            >
-              <View style={{
-                paddingLeft: index === 0 ? 0 : -20,
-                marginRight: index === slides.length - 1 ? 0 : 20
-              }}>
-                <ChartSlide
-                  title={item.title}
-                  isTimeChart={item.isTimeChart}
-                  payload={item.payload}
-                />
+      {slides.length > 0 && (
+        <View>
+          <ScrollView
+            horizontal
+            ref={scrollRef}
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            decelerationRate="fast"
+            snapToInterval={SLIDE_WIDTH}
+            snapToAlignment="start"
+            onMomentumScrollEnd={(e) => {
+              const index = Math.round(e.nativeEvent.contentOffset.x / SLIDE_WIDTH)
+              setCurrentIndex(index)
+            }}
+          >
+            {slides.map((item, index) => (
+              <View
+                key={item.key}
+                style={{
+                  width: SLIDE_WIDTH
+                }}
+              >
+                <View style={{
+                  paddingLeft: index === 0 ? 0 : -20,
+                  marginRight: index === slides.length - 1 ? 0 : 20
+                }}>
+                  <ChartSlide
+                    title={item.title}
+                    isTimeChart={item.isTimeChart}
+                    payload={item.payload}
+                  />
+                </View>
               </View>
-            </View>
-          ))}
-        </ScrollView>
-        {currentIndex > 0 && <View style={{ position: 'absolute', left: 0, top: '35%' }}>
-          <TouchableOpacity onPress={handlePrev}>
-            <MaterialIcons name="arrow-back-ios-new" size={24} color={palette.grey[100]} />
-          </TouchableOpacity>
-        </View>}
+            ))}
+          </ScrollView>
+          {currentIndex > 0 && <View style={{ position: 'absolute', left: 0, top: '35%' }}>
+            <TouchableOpacity onPress={handlePrev}>
+              <MaterialIcons name="arrow-back-ios-new" size={24} color={palette.grey[100]} />
+            </TouchableOpacity>
+          </View>}
 
-        {currentIndex < slides.length - 1 && <View style={{ position: 'absolute', right: 5, top: '35%' }}>
-          <TouchableOpacity onPress={handleNext}>
-            <MaterialIcons name="arrow-forward-ios" size={24} color={palette.grey[100]} />
-          </TouchableOpacity>
-        </View>}
-      </View>
+          {currentIndex < slides.length - 1 && <View style={{ position: 'absolute', right: 5, top: '35%' }}>
+            <TouchableOpacity onPress={handleNext}>
+              <MaterialIcons name="arrow-forward-ios" size={24} color={palette.grey[100]} />
+            </TouchableOpacity>
+          </View>}
+        </View>
+      )}
     </ScrollView>
   )
 })

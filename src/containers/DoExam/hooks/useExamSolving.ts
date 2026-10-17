@@ -320,6 +320,7 @@ const useExamSolving = (props: Props) => {
       if (item.id === questionId) {
         switch (item.questionAnswerType) {
           case QuestionAnswerType.SingleChoice:
+          case QuestionAnswerType.MultipleCorrectAnswers:
             if (answer === undefined) break;
             item.selectedAnswers = item.selectedAnswers?.includes(answer)
               ? item.selectedAnswers.filter((i: number) => i != answer)
@@ -327,9 +328,16 @@ const useExamSolving = (props: Props) => {
             break;
           case QuestionAnswerType.MultipleChoice:
             if (answer === undefined) break;
-            item.selectedAnswers = item.selectedAnswers?.includes(answer)
-              ? item.selectedAnswers.filter((i: number) => i != answer)
-              : [...(item.selectedAnswers ?? []), answer];
+            if (item.selectedAnswers?.includes(answer)) {
+              item.selectedAnswers = item.selectedAnswers.filter((i: number) => i != answer);
+            } else {
+              const maxAllowed = (item.answerCount || 0) > 0 ? (item.answerCount || 0) - 1 : 0;
+              if (maxAllowed > 0 && (item.selectedAnswers?.length ?? 0) >= maxAllowed) {
+                item.selectedAnswers = [...(item.selectedAnswers ?? []).slice(1), answer];
+              } else {
+                item.selectedAnswers = [...(item.selectedAnswers ?? []), answer];
+              }
+            }
             break;
           default:
             item.textualAnswers = textualAnswers

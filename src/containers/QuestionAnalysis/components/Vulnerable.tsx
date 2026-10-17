@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView } from 'react-native'
 import _ from 'lodash'
 import { useTranslation } from 'react-i18next'
 import { QuestionAnswerType } from '@/utils/enums'
-import { ExamResult, Question } from '@/utils/types'
+import { CategoryResponse, ExamResult, Question } from '@/utils/types'
 import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
 import MathRender from '@/components/MathRender'
@@ -13,14 +13,20 @@ type QuestionItem = Question & { categories?: Array<{ name: string }> }
 
 interface Props {
   data: QuestionItem[]
+  categories?: CategoryResponse[]
   isPrint?: boolean
 }
 
 const limitQuestions = 5
 const correctRateThreshHold = 70
 
-const Vulnerable: FC<Props> = ({ data, isPrint }) => {
+const Vulnerable: FC<Props> = ({ data, categories, isPrint }) => {
   const { t } = useTranslation()
+
+  const hasValidCategory = Boolean(
+    (categories && categories.some((c) => c && c.id !== 0 && c.name && c.name.trim() !== '')) ||
+    data.some((q) => (q.category?.name && q.category.name.trim() !== '') || q.categories?.some((c) => c.name && c.name.trim() !== ''))
+  )
 
   const incorrectQuestions = useMemo(() => {
     return data
@@ -53,6 +59,7 @@ const Vulnerable: FC<Props> = ({ data, isPrint }) => {
         return isCorrect ? textualAnswers?.join(' | ') : (textualAnswers?.[0] ?? '')
       case QuestionAnswerType.SingleChoice:
       case QuestionAnswerType.MultipleChoice:
+      case QuestionAnswerType.MultipleCorrectAnswers:
         if (!answers?.length) return ''
         return answers.map((i) => t('number_question', { number: i })).join(',')
       default:
@@ -106,9 +113,11 @@ const Vulnerable: FC<Props> = ({ data, isPrint }) => {
           <Text style={styles.normalText}>{renderTextbookAnswer(item.questionAnswerType, item.correctAnswers, item.correctTextualAnswers, true)}</Text>
         )}
       </View>
-      <View style={styles.tdColumn5}>
-        <Text style={styles.normalText}>{item.category?.name ? item.category.name : (item.categories ? item.categories.map((i) => i.name).join(', ') : '')}</Text>
-      </View>
+      {hasValidCategory && (
+        <View style={styles.tdColumn5}>
+          <Text style={styles.normalText}>{item.category?.name ? item.category.name : (item.categories ? item.categories.map((i) => i.name).join(', ') : '')}</Text>
+        </View>
+      )}
     </View>
   )
 
@@ -131,9 +140,11 @@ const Vulnerable: FC<Props> = ({ data, isPrint }) => {
                 <View style={styles.thColumn4}>
                   <Text style={styles.headerText}>{t('answer')}</Text>
                 </View>
-                <View style={styles.thColumn5}>
-                  <Text style={styles.headerText}>{t('_category')}</Text>
-                </View>
+                {hasValidCategory && (
+                  <View style={styles.thColumn5}>
+                    <Text style={styles.headerText}>{t('_category')}</Text>
+                  </View>
+                )}
               </View>
               <ScrollView showsVerticalScrollIndicator={true}>
                 {incorrectQuestions.map((item, index) => renderTableRow(item, index, incorrectQuestions.length))}

@@ -39,7 +39,7 @@ const QuestionAnalysis = ({ resultData, categoryResponses, longTimeSpend, isPrin
       </View>
       <View style={{ gap: 28 }}>
         <TrickyProblem data={resultData?.questions ?? []} questionGroups={resultData?.questionGroups ?? []} isPrint={isPrint} categories={categoryResponses ?? []} />
-        <Vulnerable isPrint={isPrint} data={resultData?.questions ?? []} />
+        <Vulnerable isPrint={isPrint} data={resultData?.questions ?? []} categories={categoryResponses ?? []} />
         <ProtractedProblem data={longTimeSpend ?? []} isPrint={isPrint} questions={resultData?.questions ?? []} />
         <GradesByTerritory data={categoryResponses ?? []} isPrint={isPrint} />
       </View>
