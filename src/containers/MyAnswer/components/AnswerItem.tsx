@@ -6,6 +6,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { AnswerItemProps } from '../configs/types';
 import { palette, red } from '@/theme/colors';
 import { ScaledSheet } from 'react-native-size-matters'
+import useAuthStore from '@/store/useAuthStore'
 
 const AnswerItem: FC<AnswerItemProps> = ({
   data,
@@ -17,6 +18,7 @@ const AnswerItem: FC<AnswerItemProps> = ({
   onCreateQuestion,
 }) => {
   const { t } = useTranslation();
+  const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
 
   const isSelected = !!data.selectedAnswers?.length || !!data.textualAnswers?.length;
 
@@ -226,16 +228,18 @@ const AnswerItem: FC<AnswerItemProps> = ({
         </View>
       </View>
 
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.footerButton} onPress={() => onCreateQuestion?.(data)}>
-          <Ionicons name="chatbubbles-outline" size={16} color="#4B5563" />
-          <Text style={styles.footerText}>{t('qna')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerButton} onPress={() => onCreateNote?.(data)}>
-          <Ionicons name="document-text-outline" size={16} color="#4B5563" />
-          <Text style={styles.footerText}>{t('note')}</Text>
-        </TouchableOpacity>
-      </View>
+      {!isParentMode && (
+        <View style={styles.footer}>
+            <TouchableOpacity style={styles.footerButton} onPress={() => onCreateQuestion?.(data)}>
+              <Ionicons name="chatbubbles-outline" size={16} color="#4B5563" />
+              <Text style={styles.footerText}>{t('qna')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.footerButton} onPress={() => onCreateNote?.(data)}>
+              <Ionicons name="document-text-outline" size={16} color="#4B5563" />
+              <Text style={styles.footerText}>{t('note')}</Text>
+            </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };

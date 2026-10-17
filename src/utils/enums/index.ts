@@ -3,7 +3,8 @@ export enum Role {
   Teacher = "Teacher",
   Admin = "Admin",
   AcademyAdmin = "AcademyAdmin",
-  AcademyAdminTeacher = "AcademyAdmin/Teacher"
+  AcademyAdminTeacher = "AcademyAdmin/Teacher",
+  Parent = "Parent"
 }
 
 export enum PositionFlex {
@@ -29,3 +30,4 @@ export * from './textbook'
 export * from './chat'
 export * from './subject'
 export * from './activity'
+export * from './accountLink'

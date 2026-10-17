@@ -23,6 +23,7 @@ import TutorialScreen from '@/screens/Tutorial'
 import { toast } from '@/utils/helpers'
 import i18next from 'i18next'
 import { isDemoMode } from '@/demoData/mockInterceptor'
+import { KeyboardProvider } from 'react-native-keyboard-controller'
 
 const Stack = createNativeStackNavigator()
 
@@ -47,8 +48,13 @@ const linking: any = {
       [Routes.AcademyInvitation]: ':domain/invitations',
       [MainRoutes.AuthStack]: {
         screens: {
-          [Routes.Auth.ExamResultList]: 'student/exam-results/:domain',
-          [Routes.Auth.PopQuizIntro]: 'pop-quiz/:code',
+          [Routes.Auth.MainTabs]: {
+            screens: {
+              [Routes.Auth.ExamResultList]: 'student/exam-results/:domain',
+              [Routes.Auth.ExamResult]: 'student/exam-results/details/:domain',
+              [Routes.Auth.PopQuizIntro]: 'pop-quiz/:code',
+            },
+          },
         },
       },
       [MainRoutes.UnAuthStack]: {
@@ -106,35 +112,51 @@ const linking: any = {
         routes: [{
           name: MainRoutes.AuthStack,
           state: {
-            routes: [{ name: Routes.Auth.PopQuizIntro, params: { code } }]
+            routes: [{
+              name: Routes.Auth.MainTabs,
+              state: {
+                routes: [{ name: Routes.Auth.PopQuizIntro, params: { code } }]
+              }
+            }]
           }
         }]
       }
     }
-    if (path.includes('student/exam-results')) {
+    if (path.includes('student/exam-results') || path.includes('student/exam-result')) {
       const user = useAuthStore.getState().user
       const state = defaultGetStateFromPath(path, options)
       const authRoute = state?.routes?.find((r: any) => r.name === MainRoutes.AuthStack)
-      const examRoute = (authRoute?.state as any)?.routes?.find((r: any) => r.name === Routes.Auth.ExamResultList)
+      const mainTabsRoute = (authRoute?.state as any)?.routes?.find((r: any) => r.name === Routes.Auth.MainTabs)
+
+      const isExamResultRoute = path.includes('student/exam-results/details') || path.includes('student/exam-result')
+      const targetScreen = isExamResultRoute ? Routes.Auth.ExamResult : Routes.Auth.ExamResultList
+
+      const examRoute = (mainTabsRoute?.state as any)?.routes?.find((r: any) => r.name === targetScreen)
       const params = examRoute?.params
       const targetDomain = params?.domain
 
+      const isDemoMode = useAuthStore.getState().isDemoMode
+      const academies = useAuthStore.getState().academies
+      const isCheckLinkAccount =
+        params?.isCheckLinkAccount === 'true' || params?.isCheckLinkAccount === true
+        
       if (!user?.id) {
-        useAuthStore.getState().setPendingRedirectUrl(Routes.Auth.ExamResultList, params)
+        useAuthStore.getState().setPendingRedirectUrl(targetScreen, params)
+        const hasSeenTutorial = useAuthStore.getState().hasSeenTutorial
 
         return {
           routes: [{
             name: MainRoutes.UnAuthStack,
             state: {
-              routes: [{ name: Routes.UnAuth.Login, params: { domain: targetDomain } }]
+              routes: [{
+                name: hasSeenTutorial ? Routes.UnAuth.Login : Routes.UnAuth.Tutorial,
+              }]
             }
           }],
         }
       }
 
-      const isDemoMode = useAuthStore.getState().isDemoMode
-      const academies = useAuthStore.getState().academies
-      if (!isDemoMode && targetDomain && academies?.length > 0) {
+      if (!isCheckLinkAccount && !isDemoMode && targetDomain && academies?.length > 0) {
         const isAcademyExist = academies.some((a: any) => a.domain === targetDomain)
         if (!isAcademyExist) {
           toast.error(i18next.t('academy_not_found'))
@@ -142,15 +164,25 @@ const linking: any = {
         }
       }
 
-      return state
+      return {
+        routes: [{
+          name: MainRoutes.AuthStack,
+          state: {
+            routes: [{
+              name: Routes.Auth.MainTabs,
+              state: {
+                routes: [{
+                  name: targetScreen,
+                  params,
+                }],
+              },
+            }],
+          },
+        }],
+      }
     }
     return defaultGetStateFromPath(path, options)
   },
-}
-
-const ToastWrapper: React.FC = () => {
-  const insets = useSafeAreaInsets()
-  return <Toast config={audioToastConfig} position="top" topOffset={insets.top + 10} />
 }
 
 const RootNavigation: React.FC = () => {
@@ -161,6 +193,8 @@ const RootNavigation: React.FC = () => {
   const setLoading = useAuthStore(state => state.setLoading)
   const hasSeenTutorial = useAuthStore(state => state.hasSeenTutorial)
   const setIsDemoMode = useAuthStore(state => state.setIsDemoMode)
+  const setIsMustChangePasswordDismissed = useAuthStore(state => state.setIsMustChangePasswordDismissed)
+  const mustChangePassword = !!user?.mustChangePassword
   useLanguage()
   useSocketInit()
 
@@ -186,7 +220,11 @@ const RootNavigation: React.FC = () => {
     }
   }, [user?.id])
 
-
+  useEffect(() => {
+    if (mustChangePassword) {
+      setIsMustChangePasswordDismissed(false)
+    }
+  }, [mustChangePassword])
 
   if (!hydrated) {
     return null
@@ -194,38 +232,40 @@ const RootNavigation: React.FC = () => {
 
   return (
     <SafeAreaProvider>
-      <PaperProvider>
-        <NavigationContainer
-          linking={linking}
-          onReady={() => RNBootSplash.hide()}
-          onStateChange={() => {
-            useAuthStore.getState().setLoading(false)
-            useAuthStore.getState().setLoadingWithoutOverlay(false)
-          }}
-          ref={(navigatorRef) => {
-            if (navigatorRef) {
-              NavigationHelpers.setTopLevelNavigator(navigatorRef)
-            }
-          }}
-        >
-          <Stack.Navigator screenOptions={{ headerShown: false }}>
-            {!user?.id ? (
-              <Stack.Screen
-                name={MainRoutes.UnAuthStack}
-                component={UnAuthorized}
-                initialParams={{ tutorialSeen: hasSeenTutorial }}
-              />
-            ) : (
-              <Stack.Screen name={MainRoutes.AuthStack} component={Authorized} />
-            )}
-            <Stack.Screen name={Routes.AcademyRequest} component={AcademyRequestScreen} />
-            <Stack.Screen name={Routes.AcademyInvitation} component={AcademyInvitationScreen} />
-            <Stack.Screen name={Routes.Auth.Tutorial} component={TutorialScreen} />
-          </Stack.Navigator>
-        </NavigationContainer>
-        {isLoading && <Loading isOverlay />}
-        {!isLoading && isLoadingWithoutOverlay && <Loading />}
-      </PaperProvider>
+      <KeyboardProvider>
+        <PaperProvider>
+          <NavigationContainer
+            linking={linking}
+            onReady={() => RNBootSplash.hide()}
+            onStateChange={() => {
+              useAuthStore.getState().setLoading(false)
+              useAuthStore.getState().setLoadingWithoutOverlay(false)
+            }}
+            ref={(navigatorRef) => {
+              if (navigatorRef) {
+                NavigationHelpers.setTopLevelNavigator(navigatorRef)
+              }
+            }}
+          >
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+              {!user?.id ? (
+                <Stack.Screen
+                  name={MainRoutes.UnAuthStack}
+                  component={UnAuthorized}
+                  initialParams={{ tutorialSeen: hasSeenTutorial }}
+                />
+              ) : (
+                <Stack.Screen name={MainRoutes.AuthStack} component={Authorized} />
+              )}
+              <Stack.Screen name={Routes.AcademyRequest} component={AcademyRequestScreen} />
+              <Stack.Screen name={Routes.AcademyInvitation} component={AcademyInvitationScreen} />
+              <Stack.Screen name={Routes.Auth.Tutorial} component={TutorialScreen} />
+            </Stack.Navigator>
+          </NavigationContainer>
+          {isLoading && <Loading isOverlay />}
+          {!isLoading && isLoadingWithoutOverlay && <Loading />}
+        </PaperProvider>
+      </KeyboardProvider>
       <AppToast />
     </SafeAreaProvider>
   )

@@ -20,6 +20,17 @@ export const Routes = {
         PopQuizIntro: "POP_QUIZ_INTRO",
         PopQuizTake: "POP_QUIZ_TAKE",
         PopQuizResult: "POP_QUIZ_RESULT",
+        ParentAccountLinking: "PARENT_ACCOUNT_LINKING",
+        StudentAccountLinking: "STUDENT_ACCOUNT_LINKING",
+        ParentLinkRequest: "PARENT_LINK_REQUEST",
+        StudentLinkShare: "STUDENT_LINK_SHARE",
+        ParentQrScan: "PARENT_QR_SCAN",
+        ParentWaitingApproval: "PARENT_WAITING_APPROVAL",
+        StudentLinkApproval: "STUDENT_LINK_APPROVAL",
+        AccountLinkRoleSelection: "ACCOUNT_LINK_ROLE_SELECTION",
+        AccountLinkingGroup: "ACCOUNT_LINKING_GROUP",
+        PendingLinkRequests: "PENDING_LINK_REQUESTS",
+        ParentShareLinkConfirm: "PARENT_SHARE_LINK_CONFIRM",
     },
     UnAuth: {
         Splash: 'SPLASH',
@@ -50,6 +61,7 @@ export const hiddenTabBar = [
     Routes.Auth.PopQuizIntro,
     Routes.Auth.PopQuizTake,
     Routes.Auth.PopQuizResult,
+    Routes.Auth.PendingLinkRequests,
 ]
 
 export const noLayoutScreens = [
@@ -67,4 +79,18 @@ export const noLayoutScreens = [
     Routes.Auth.PopQuizIntro,
     Routes.Auth.PopQuizTake,
     Routes.Auth.PopQuizResult,
+];
+
+export const accountLinkingRoutes = [
+    Routes.Auth.AccountLinkingGroup,
+    Routes.Auth.ParentShareLinkConfirm,
+    Routes.Auth.ParentWaitingApproval,
+    Routes.Auth.ParentQrScan,
+    Routes.Auth.ParentLinkRequest,
+    Routes.Auth.AccountLinkRoleSelection,
+    Routes.Auth.PendingLinkRequests,
+    Routes.Auth.ParentAccountLinking,
+    Routes.Auth.StudentAccountLinking,
+    Routes.Auth.StudentLinkShare,
+    Routes.Auth.StudentLinkApproval,
 ];

@@ -1,4 +1,10 @@
 export const ErrorMessages: any = {
+    InvalidOrExpiredCode: "invalid_or_expired_code",
+    AlreadyLinked: "already_linked",
+    AccountLinkNotFound: "account_link_not_found",
+    CannotLinkToYourself: "cannot_link_to_yourself",
+    LinkRequestExpired: "link_request_expired",
+    LinkRequestPending: "link_request_pending",
     SuperAdministratorsCannotCreateAcademyRequest: "super_administrators_cannot_create_academy_request",
     AcademyRequestRoleIsInvalid: "academy_request_role_is_invalid",
     TheUserAlreadyExistInTheAcademyWithRole: "user_already_exists_in_academy_with_role",
@@ -36,9 +42,16 @@ export const ErrorMessages: any = {
     StudentExamSessionsDoNotMatch: "student_exam_sessions_do_not_match",
     DuplicatedStudentExamSessions: "duplicated_student_exam_sessions",
     InvalidPopQuizStatus: "invalid_pop_quiz_status",
-    PopQuizAlreadyUsed: "PopQuizAlreadyUsed"
+    PopQuizAlreadyUsed: "PopQuizAlreadyUsed",
+    TooManyRequests: "too_many_requests"
 }
 export enum ErrorMessageCodes {
+    InvalidOrExpiredCode = "InvalidOrExpiredCode",
+    AlreadyLinked = "AlreadyLinked",
+    AccountLinkNotFound = "AccountLinkNotFound",
+    CannotLinkToYourself = "CannotLinkToYourself",
+    LinkRequestExpired = "LinkRequestExpired",
+    LinkRequestPending = "LinkRequestPending",
     SuperAdministratorsCannotCreateAcademyRequest = "SuperAdministratorsCannotCreateAcademyRequest",
     AcademyRequestRoleIsInvalid = "AcademyRequestRoleIsInvalid",
     TheUserAlreadyExistInTheAcademyWithRole = "TheUserAlreadyExistInTheAcademyWithRole",
@@ -76,7 +89,8 @@ export enum ErrorMessageCodes {
     StudentExamSessionsDoNotMatch = "StudentExamSessionsDoNotMatch",
     DuplicatedStudentExamSessions = "DuplicatedStudentExamSessions",
     InvalidPopQuizStatus = "InvalidPopQuizStatus",
-    PopQuizAlreadyUsed = "PopQuizAlreadyUsed"
+    PopQuizAlreadyUsed = "PopQuizAlreadyUsed",
+    TooManyRequests = "TooManyRequests"
 }
 
 export const INVALID_CODE_FORMAT = "INVALID_CODE_FORMAT";

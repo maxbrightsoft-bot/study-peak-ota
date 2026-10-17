@@ -9,13 +9,14 @@ import NoticeDetailDialog from '../components/NoticeDetailDialog'
 import { TabList } from '../configs/constants'
 import { useState } from 'react'
 import { stripHtml } from '@/utils/helpers'
+import useAuthStore from '@/store/useAuthStore'
 
 type Props = {
   open: boolean
   onClose: () => void
 }
 
-const Notice = ({ open, onClose }: Props) => {
+const NoticeContent = ({ open, onClose }: Props) => {
   const [isNew, setNew] = useState<any>({});
   const {
     t,
@@ -73,13 +74,18 @@ const Notice = ({ open, onClose }: Props) => {
   return (
     <SlideDrawerRoot visible={open} onClose={onClose}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onClose}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={onClose}
+          activeOpacity={0.7}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
           <Ionicons name="chevron-back-outline" size={24} color={palette.grey[800]} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>{t('institute_notice')}</Text>
 
-        <View style={{ width: 24 }} />
+        <View style={{ width: 40 }} />
       </View>
       <View style={styles.container}>
         <View style={styles.tabsWrapper}>
@@ -118,6 +124,14 @@ const Notice = ({ open, onClose }: Props) => {
   )
 }
 
+const Notice = (props: Props) => {
+  const parentViewMode = useAuthStore(state => state.parentViewMode)
+  if (parentViewMode?.isActive && !parentViewMode?.linkId) {
+    return null
+  }
+  return <NoticeContent {...props} />
+}
+
 export default Notice
 
 const styles = ScaledSheet.create({
@@ -154,7 +168,10 @@ const styles = ScaledSheet.create({
   },
 
   backButton: {
-    width: '24@ms'
+    width: '40@ms',
+    height: '40@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tabsWrapper: {
     backgroundColor: '#fff',
