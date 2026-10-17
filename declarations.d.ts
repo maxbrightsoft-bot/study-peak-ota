@@ -8,3 +8,6 @@ declare module "*.png" {
   const value: any;
   export = value;
 }
+
+declare module 'qs';
+declare module 'react-native-keyboard-controller';
