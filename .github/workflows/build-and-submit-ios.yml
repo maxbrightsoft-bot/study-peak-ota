@@ -4,18 +4,18 @@ on:
   workflow_dispatch:
     inputs:
       source_branch:
-        description: 'Branch chứa source iOS (mặc định: feat/ios)'
+        description: 'Branch chứa source iOS (mặc định: feat/release-test-sites-ios)'
         type: string
         required: false
-        default: 'feat/ios'
+        default: 'feat/release-test-sites-ios'
       build_profile:
-        description: 'EAS build profile (production / preview)'
+        description: 'EAS build profile (preview / production)'
         type: choice
         options:
-          - production
           - preview
+          - production
         required: true
-        default: 'production'
+        default: 'preview'
       auto_submit:
         description: 'Automatically upload to TestFlight after build?'
         type: boolean
@@ -34,7 +34,7 @@ jobs:
       - name: Checkout iOS source
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.source_branch || 'feat/ios' }}
+          ref: ${{ inputs.source_branch || 'feat/release-test-sites-ios' }}
 
       # ── 2. Node.js ──────────────────────────────────────────────────────────
       - name: Setup Node.js
@@ -74,7 +74,7 @@ jobs:
         run: |
           npx eas-cli build \
             --platform ios \
-            --profile ${{ inputs.build_profile || 'production' }} \
+            --profile ${{ inputs.build_profile || 'preview' }} \
             --local \
             --output=StudyPeak.ipa \
             --non-interactive
@@ -99,6 +99,6 @@ jobs:
           echo "Uploading StudyPeak.ipa to TestFlight via eas submit..."
           npx eas-cli submit \
             --platform ios \
-            --profile ${{ inputs.build_profile || 'production' }} \
+            --profile ${{ inputs.build_profile || 'preview' }} \
             --path StudyPeak.ipa \
             --non-interactive
