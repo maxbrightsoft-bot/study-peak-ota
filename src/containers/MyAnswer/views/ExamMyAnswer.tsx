@@ -229,7 +229,9 @@ const MyAnswer: FC<Props> = ({ data, categories, effectSize, onCreateNote, onCre
 }
 
 const styles = ScaledSheet.create({
-  container: {},
+  container: {
+    flex: 1
+  },
   categorySection: {},
   headerRow: {
     flexDirection: 'row',
