@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { View, Text, TouchableOpacity, ActivityIndicator, Image } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
@@ -8,15 +8,23 @@ import { Routes } from '@/navigators/RouteName'
 import { toast, getMessageFromError } from '@/utils/helpers'
 import { resetToHome } from '@/navigators/NavigationHelpers'
 import Navbar from '../components/Navbar'
-import { AccountLinkMethod, requestLinkByStudentIdApi, AccountLinkStatus } from '../apiClients'
+import {
+  AccountLinkMethod,
+  requestLinkByStudentIdApi,
+  AccountLinkStatus,
+  AccountLinkResponse,
+  getLinkedAccountsApi
+} from '../apiClients'
 import useAccountLinkingStore, { buildAccountLinkingChannelName, waitForPusherSubscribed } from '@/store/useAccountLinkingStore'
 import useAuthStore from '@/store/useAuthStore'
+import { Role } from '@/utils/enums'
 
 const ParentShareLinkConfirm = () => {
   const { t } = useTranslation()
   const navigation = useNavigation<any>()
   const route = useRoute<any>()
   const [loading, setLoading] = useState(false)
+  const [existingLink, setExistingLink] = useState<AccountLinkResponse | null>(null)
   const setStudentEmail = useAccountLinkingStore((state) => state.setStudentEmail)
   const setAcceptedLinkData = useAccountLinkingStore((state) => state.setAcceptedLinkData)
 
@@ -25,12 +33,61 @@ const ParentShareLinkConfirm = () => {
   const studentEmail = route.params?.studentEmail || route.params?.email || ''
   const studentAvatar = route.params?.studentAvatar || route.params?.avatar || ''
 
+  const checkLink = useCallback(async () => {
+    if (!idSuperStudent) return
+
+    try {
+      const res = await getLinkedAccountsApi(Role.Parent)
+      const data = res.data?.data
+      if (Array.isArray(data)) {
+        const matched = data.find(
+          (item) => item.studentId === Number(idSuperStudent)
+        )
+        setExistingLink(matched || null)
+      } else {
+        setExistingLink(null)
+      }
+    } catch (e) {
+      console.error('[ParentShareLinkConfirm] checkLink error:', e)
+      setExistingLink(null)
+    }
+  }, [idSuperStudent])
+
+  const setSelectedRole = useAccountLinkingStore((state) => state.setSelectedRole)
+
+  useEffect(() => {
+    // Vì user hiện tại có thể đang mang role Student khi bấm vào deeplink liên kết phụ huynh,
+    // ta chủ động set selectedRole thành Role.Parent để Pusher subscribe đúng channel của Parent.
+    setSelectedRole(Role.Parent)
+
+    return () => {
+      // Reset selectedRole về null khi unmount
+      setSelectedRole(null)
+    }
+  }, [setSelectedRole])
+
+  useEffect(() => {
+    checkLink()
+  }, [checkLink])
+
   const handleCancel = () => {
     useAuthStore.getState().clearRedirectUrl()
     if (navigation.canGoBack()) {
       navigation.goBack()
     } else {
       resetToHome()
+    }
+  }
+
+  const handleGoToConvertRole = () => {
+    if (existingLink?.id) {
+      useAccountLinkingStore.getState().setIsFromShareLink(true)
+      navigation.replace(Routes.Auth.ConvertParentRole, {
+        linkId: existingLink.id,
+        targetDomain: route.params?.domain,
+        redirectUrl: route.params?.redirectUrl,
+        redirectParams: route.params?.redirectParams,
+      })
     }
   }
 
@@ -72,6 +129,8 @@ const ParentShareLinkConfirm = () => {
         }
         navigation.push(Routes.Auth.ParentWaitingApproval, {
           approved: true,
+          idSuperStudent: Number(idSuperStudent),
+          targetDomain: route.params?.domain,
           redirectUrl: route.params?.redirectUrl,
           redirectParams: route.params?.redirectParams,
         })
@@ -80,6 +139,8 @@ const ParentShareLinkConfirm = () => {
         navigation.push(Routes.Auth.ParentWaitingApproval, {
           linkData,
           approved: false,
+          idSuperStudent: Number(idSuperStudent),
+          targetDomain: route.params?.domain,
           redirectUrl: route.params?.redirectUrl,
           redirectParams: route.params?.redirectParams,
         })
@@ -92,6 +153,98 @@ const ParentShareLinkConfirm = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const renderQuestionAndActions = () => {
+    // Đã có link sẵn: hiển thị convert_parent_role_desc
+    if (existingLink) {
+      return (
+        <View style={styles.questionContainer}>
+          <Ionicons name="swap-horizontal" size={24} color="#5F30AA" style={{ marginRight: 8, marginTop: 2 }} />
+          <Text style={styles.questionText}>
+            {t('convert_parent_role_desc')}
+          </Text>
+        </View>
+      )
+    }
+
+    // Chưa có link: hiển thị câu hỏi kết nối như cũ
+    return (
+      <View style={styles.questionContainer}>
+        <Ionicons name="link-outline" size={24} color="#5F30AA" style={{ marginRight: 8, marginTop: 2 }} />
+        <Text style={styles.questionText}>
+          {t('confirm_link_student_desc', {
+            name: studentName || t('student')
+          })}
+        </Text>
+      </View>
+    )
+  }
+
+  const renderButtons = () => {
+    // Trường hợp đã có link sẵn: nút Không (nhỏ gọn) và nút Chuyển sang vai trò Phụ huynh (rộng rãi)
+    if (existingLink) {
+      return (
+        <>
+          <TouchableOpacity
+            style={styles.cancelButtonSmall}
+            onPress={handleCancel}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.cancelText} numberOfLines={1}>
+              {t('no')}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.convertRoleButton}
+            onPress={handleGoToConvertRole}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="swap-horizontal" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
+            <Text
+              style={styles.confirmText}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.8}
+            >
+              {t('convert_role')}
+            </Text>
+          </TouchableOpacity>
+        </>
+      )
+    }
+
+    // Trường hợp chưa có link: nút Hủy và Kết nối như cũ
+    return (
+      <>
+        <TouchableOpacity
+          style={styles.cancelButton}
+          onPress={handleCancel}
+          disabled={loading}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.cancelText} numberOfLines={1}>
+            {t('no')}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.confirmButton}
+          onPress={handleConfirm}
+          disabled={loading}
+          activeOpacity={0.8}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <Text style={styles.confirmText} numberOfLines={1}>
+              {t('connect')}
+            </Text>
+          )}
+        </TouchableOpacity>
+      </>
+    )
   }
 
   return (
@@ -131,41 +284,14 @@ const ParentShareLinkConfirm = () => {
 
           <View style={styles.divider} />
 
-          {/* Câu hỏi xác nhận */}
-          <View style={styles.questionContainer}>
-            <Ionicons name="link-outline" size={24} color="#5F30AA" style={{ marginRight: 8, marginTop: 2 }} />
-            <Text style={styles.questionText}>
-              {t('confirm_link_student_desc', {
-                name: studentName || t('student')
-              })}
-            </Text>
-          </View>
+          {/* Câu hỏi xác nhận / Chuyển đổi vai trò */}
+          {renderQuestionAndActions()}
         </View>
       </View>
 
       {/* Nút hành động */}
       <View style={styles.ctaWrapper}>
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={handleCancel}
-          disabled={loading}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.cancelText}>{t('no')}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.confirmButton}
-          onPress={handleConfirm}
-          disabled={loading}
-          activeOpacity={0.8}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <Text style={styles.confirmText}>{t('connect')}</Text>
-          )}
-        </TouchableOpacity>
+        {renderButtons()}
       </View>
     </View>
   )
@@ -261,9 +387,21 @@ const styles = ScaledSheet.create({
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: '8@ms',
+  },
+  cancelButtonSmall: {
+    flex: 1,
+    height: '48@ms',
+    borderRadius: '12@ms',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: '8@ms',
   },
   cancelText: {
-    fontSize: '16@ms',
+    fontSize: '15@ms',
     fontWeight: '600',
     color: '#666666',
   },
@@ -274,10 +412,22 @@ const styles = ScaledSheet.create({
     backgroundColor: '#5F30AA',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: '8@ms',
+  },
+  convertRoleButton: {
+    flex: 2.6,
+    height: '48@ms',
+    borderRadius: '12@ms',
+    backgroundColor: '#5F30AA',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: '12@ms',
   },
   confirmText: {
-    fontSize: '16@ms',
+    fontSize: '14@ms',
     fontWeight: '700',
     color: '#FFFFFF',
+    flexShrink: 1,
   },
 })

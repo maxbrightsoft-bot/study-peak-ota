@@ -1,9 +1,9 @@
-import React, { useEffect, useCallback, useRef } from 'react'
+import React, { useEffect, useCallback, useRef, useState } from 'react'
 import { View, Text, TouchableOpacity, Alert } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { ScaledSheet } from 'react-native-size-matters'
-import { useNavigation, useRoute, CommonActions } from '@react-navigation/native'
+import { useNavigation, useRoute, CommonActions, useFocusEffect } from '@react-navigation/native'
 import { palette, TYPO } from '@/theme'
 import { Routes, MainRoutes } from '@/navigators/RouteName'
 import { toast, getMessageFromError } from '@/utils/helpers'
@@ -11,7 +11,15 @@ import { navigationRef, resetToHome } from '@/navigators/NavigationHelpers'
 import Navbar from '../components/Navbar'
 import LinkedStateCard from '../components/LinkedStateCard'
 import ExpiryProgressBar from '../components/ExpiryProgressBar'
-import { rejectLinkAccountApi, getAccountLinkDetailApi, deleteLinkApi, AccountLinkMethod } from '../apiClients'
+import {
+  rejectLinkAccountApi,
+  getAccountLinkDetailApi,
+  deleteLinkApi,
+  AccountLinkMethod,
+  getParentPendingAcademiesApi,
+  AcademySimpleResponse
+} from '../apiClients'
+import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
 import useAccountLinkingStore from '@/store/useAccountLinkingStore'
 import useAuthStore from '@/store/useAuthStore'
 
@@ -35,6 +43,21 @@ const ParentWaitingApproval = () => {
   const pendingRedirectUrl = route.params?.redirectUrl || useAuthStore((state) => state.pendingRedirectUrl)
   const pendingRedirectParams = route.params?.redirectParams || useAuthStore((state) => state.pendingRedirectParams)
   const clearRedirectUrl = useAuthStore((state) => state.clearRedirectUrl)
+  const [isPromptModalVisible, setIsPromptModalVisible] = useState(false)
+  const [pendingAcademies, setPendingAcademies] = useState<AcademySimpleResponse[]>([])
+  const targetLinkId = acceptedLinkData?.id || acceptedLinkId || linkData?.id
+  const hasPromptShownRef = useRef<number | null>(null)
+
+  const idSuperStudent = route.params?.idSuperStudent
+
+  const isStudentLinked = Boolean(
+    idSuperStudent &&
+    linkedStudents?.some(
+      (s) => s.studentSuperId === Number(idSuperStudent)
+    )
+  )
+
+  const targetDomain = route.params?.targetDomain
 
   const linkStateRef = useRef({
     isApproved,
@@ -71,6 +94,30 @@ const ParentWaitingApproval = () => {
     }
     return () => controller.abort()
   }, [acceptedLinkId, t])
+
+  useFocusEffect(
+    useCallback(() => {
+      const linkId = targetLinkId
+      if (linkId && isApproved) {
+        const controller = new AbortController()
+        getParentPendingAcademiesApi(linkId, controller.signal)
+          .then((res) => {
+            const list = res.data?.data || []
+            setPendingAcademies(list)
+            if (list.length > 0 && hasPromptShownRef.current !== linkId) {
+                hasPromptShownRef.current = linkId
+                setIsPromptModalVisible(true)
+              }
+          })
+          .catch((err) => {
+            if (err.name !== 'CanceledError' && err.message !== 'canceled') {
+              console.error('[ParentWaitingApproval] Refresh pending academies error:', err)
+            }
+          })
+        return () => controller.abort()
+      }
+    }, [targetLinkId, isApproved])
+  )
 
   useEffect(() => {
     return () => {
@@ -133,6 +180,29 @@ const ParentWaitingApproval = () => {
           ],
         })
       )
+    }
+  }
+
+  const handleConfirmPrompt = () => {
+    setIsPromptModalVisible(false)
+    if (targetLinkId) {
+      navigation.navigate(Routes.Auth.ConvertParentRole, {
+        linkId: targetLinkId,
+        targetDomain,
+        redirectUrl: pendingRedirectUrl,
+        redirectParams: pendingRedirectParams,
+      })
+    }
+  }
+
+  const handleOpenConvertScreen = () => {
+    if (targetLinkId) {
+      navigation.navigate(Routes.Auth.ConvertParentRole, {
+        linkId: targetLinkId,
+        targetDomain,
+        redirectUrl: pendingRedirectUrl,
+        redirectParams: pendingRedirectParams,
+      })
     }
   }
 
@@ -251,7 +321,7 @@ const ParentWaitingApproval = () => {
       <View style={styles.ctaWrapper}>
         {isApproved ? (
           <>
-            {Boolean(isShareLink && pendingRedirectUrl) && (
+            {Boolean(isShareLink && pendingRedirectUrl && isStudentLinked) && (
               <TouchableOpacity
                 style={styles.redirectButton}
                 onPress={handleRedirectToExamResult}
@@ -260,6 +330,21 @@ const ParentWaitingApproval = () => {
                 <Ionicons name="document-text-outline" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
                 <Text style={styles.redirectButtonText}>
                   {t('view_results')}
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {pendingAcademies.length > 0 && (
+              <TouchableOpacity
+                style={styles.convertRoleButton}
+                onPress={handleOpenConvertScreen}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="swap-horizontal" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
+                <Text style={styles.convertRoleButtonText}>
+                  {isShareLink
+                    ? t('convert_parent_role_to_view_results')
+                    : t('convert_parent_role_title')}
                 </Text>
               </TouchableOpacity>
             )}
@@ -292,6 +377,25 @@ const ParentWaitingApproval = () => {
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Modal thông báo có học viện cần chuyển đổi sang vai trò Phụ huynh */}
+      <ConfirmDialog
+        open={isPromptModalVisible}
+        toggle={() => setIsPromptModalVisible(false)}
+        title={
+          isShareLink
+            ? t('convert_parent_role_to_view_results')
+            : t('convert_parent_role_title')
+        }
+        text={
+          isShareLink
+            ? t('convert_parent_role_to_view_results_desc')
+            : t('convert_parent_role_desc')
+        }
+        cancelText={t('close')}
+        okText={t('confirm')}
+        onConfirm={handleConfirmPrompt}
+      />
     </View>
   )
 }
@@ -552,6 +656,20 @@ const styles = ScaledSheet.create({
     marginBottom: '10@ms'
   },
   redirectButtonText: {
+    color: '#FFF',
+    fontSize: '15@ms',
+    fontWeight: '700'
+  },
+  convertRoleButton: {
+    height: '50@ms',
+    borderRadius: '14@ms',
+    backgroundColor: '#5F30AA',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: '10@ms'
+  },
+  convertRoleButtonText: {
     color: '#FFF',
     fontSize: '15@ms',
     fontWeight: '700'

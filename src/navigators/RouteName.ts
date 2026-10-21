@@ -31,6 +31,7 @@ export const Routes = {
         AccountLinkingGroup: "ACCOUNT_LINKING_GROUP",
         PendingLinkRequests: "PENDING_LINK_REQUESTS",
         ParentShareLinkConfirm: "PARENT_SHARE_LINK_CONFIRM",
+        ConvertParentRole: "CONVERT_PARENT_ROLE",
     },
     UnAuth: {
         Splash: 'SPLASH',

@@ -1482,6 +1482,7 @@
   "mention_name": "Tên người được mention",
   "mentioned_you_in_a_memo": "đã mention bạn trong một memo",
   "select_all": "Chọn tất cả",
+  "deselect_all": "Bỏ chọn tất cả",
   "sort_order_must_greater_than_n": "Số thứ tự sắp xếp phải lớn hơn {{n}}",
   "mock_question_count": "Số câu hỏi mô phỏng",
   "mock_time": "Thời gian mô phỏng",
@@ -2625,5 +2626,19 @@
   "no_exams_found": "Không tìm thấy bài kiểm tra",
   "common_comment": "Nhận xét chung",
   "special_comment": "Nhận xét riêng",
-  "teacher_comment": "Nhận xét của giáo viên"
+  "teacher_comment": "Nhận xét của giáo viên",
+  "convert_parent_role_title": "Chuyển sang vai trò Phụ huynh",
+  "convert_parent_role_desc": "Tài khoản này đang được đăng ký vai trò Học sinh trong Bản đồ tư duy. Bạn có muốn chuyển sang tài khoản Phụ huynh không?",
+  "convert_parent_role_to_view_results": "Chuyển đổi sang vai trò Phụ huynh để xem kết quả",
+  "convert_parent_role_to_view_results_desc": "Để xem được kết quả bài kiểm tra, bạn cần chuyển đổi học viện chỉ định sang vai trò Phụ huynh. Bạn có muốn chuyển đổi ngay bây giờ không?",
+  "required_to_view_results": "Cần chuyển đổi để xem kết quả",
+  "select_academies_to_convert": "Vui lòng chọn các học viện bạn muốn chuyển đổi sang vai trò Phụ huynh.",
+  "confirm_convert": "Chuyển sang vai trò Phụ huynh",
+  "convert_role_success": "Chuyển sang vai trò Phụ huynh thành công",
+  "please_select_at_least_one_academy": "Vui lòng chọn ít nhất một học viện",
+  "selected_academies_count": "Đã chọn {{count}} học viện",
+  "convert_role": "Chuyển sang vai trò Phụ huynh",
+  "no_academies_to_convert": "Không có học viện nào cần chuyển đổi",
+  "no_academies_to_convert_desc": "Tất cả các học viện đã ở vai trò Phụ huynh hoặc không có học viện nào cần chuyển đổi.",
+  "loading_academies": "Đang tải danh sách học viện..."
 }

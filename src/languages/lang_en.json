@@ -1468,6 +1468,7 @@
   "mention_name": "Mentioned person's name",
   "mentioned_you_in_a_memo": "mentioned you in a memo",
   "select_all": "Select all",
+  "deselect_all": "Deselect all",
   "sort_order_must_greater_than_n": "The sort order number must be greater than {{n}}",
   "mock_question_count": "Mock question count",
   "mock_time": "Mock time",
@@ -2608,5 +2609,19 @@
   "no_exams_found": "No exams found",
   "common_comment": "Common Comment",
   "special_comment": "Special Comment",
-  "teacher_comment": "Teacher's Comment"
+  "teacher_comment": "Teacher's Comment",
+  "convert_parent_role_title": "Switch to Parent Role",
+  "convert_parent_role_desc": "This account is registered as a Student in Thought Map. Would you like to switch to a Parent account?",
+  "convert_parent_role_to_view_results": "Switch to Parent role to view results",
+  "convert_parent_role_to_view_results_desc": "To view the exam results, you need to switch the specified academy to a Parent account. Would you like to switch now?",
+  "required_to_view_results": "Required to view results",
+  "select_academies_to_convert": "Please select the academies you want to switch to Parent role.",
+  "confirm_convert": "Switch to Parent Role",
+  "convert_role_success": "Successfully switched to Parent role",
+  "please_select_at_least_one_academy": "Please select at least one academy",
+  "selected_academies_count": "{{count}} academies selected",
+  "convert_role": "Switch to Parent Role",
+  "no_academies_to_convert": "No academies to convert",
+  "no_academies_to_convert_desc": "All academies are already in Parent role or no academies require conversion.",
+  "loading_academies": "Loading academies..."
 }

@@ -12,8 +12,10 @@ import { Ionicons } from '@expo/vector-icons'
 import HeaderAction from './components/HeaderAction'
 import { getUserAcademies } from './apiClients/academyServices'
 import { AcademyResponse } from '@/utils/types'
-import { getCurrentRole, getErrorMessage, toast } from '@/utils/helpers'
-import { Fragment, useEffect, useState } from 'react'
+import { ParentLinkResponse } from '@/containers/AccountLinking/apiClients'
+import { Role } from '@/utils/enums'
+import { getErrorMessage, toast } from '@/utils/helpers'
+import { Fragment, useEffect, useState, useMemo } from 'react'
 
 type Props = {
   headerProps: any
@@ -45,8 +47,7 @@ const Header = ({ headerProps }: Props) => {
     if (!user) return
     setLoading(true)
     try {
-      const userRole = getCurrentRole(user.roles)
-      const res = await getUserAcademies(userRole, user.isLearningSpace)
+      const res = await getUserAcademies()
       const items: AcademyResponse[] = res.data.items || []
       setAcademies(items)
     } catch (error) {
@@ -54,6 +55,70 @@ const Header = ({ headerProps }: Props) => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const academyDropdownItems = useMemo(() => {
+    const items: Array<{
+      key: string
+      academy: AcademyResponse
+      role: Role
+      child?: ParentLinkResponse | null
+    }> = []
+
+    academies.forEach((academy) => {
+      const roles = (academy.roles || []).map((r) => r.toLowerCase())
+      const hasStudentRole = roles.includes('student') || roles.length === 0
+      const hasParentRole = roles.includes('parent')
+
+      if (hasStudentRole) {
+        items.push({
+          key: `${academy.id}-student`,
+          academy,
+          role: Role.Student,
+          child: null
+        })
+      }
+
+      if (hasParentRole) {
+        if (academy.children && academy.children.length > 0) {
+          academy.children.forEach((child) => {
+            items.push({
+              key: `${academy.id}-parent-${child.id}`,
+              academy,
+              role: Role.Parent,
+              child
+            })
+          })
+        } else {
+          items.push({
+            key: `${academy.id}-parent`,
+            academy,
+            role: Role.Parent,
+            child: null
+          })
+        }
+      }
+    })
+
+    return items
+  }, [academies])
+
+  const isItemSelected = (item: {
+    academy: AcademyResponse
+    role: Role
+    child?: ParentLinkResponse | null
+  }) => {
+    if (!selectedAcademy?.domain || selectedAcademy.domain !== item.academy.domain) {
+      return false
+    }
+    if (isParentMode) {
+      if (item.role !== Role.Parent) return false
+      if (item.child && parentViewMode?.linkId) {
+        return item.child.id === parentViewMode.linkId
+      }
+      return !item.child && !parentViewMode?.linkId
+    }
+    return item.role === Role.Student
   }
 
   useEffect(() => {
@@ -164,47 +229,87 @@ const Header = ({ headerProps }: Props) => {
                     </Text>
                   </View>
                 </TouchableRipple>
-                {academies.map((academy, index) => (
-                  <TouchableRipple
-                    key={index}
-                    onPress={() => {
-                      closeAcademyMenu()
-                      handleSwitchAcademy(false, academy)
-                    }}
-                    style={{
-                      width: '100%',
-                      flexDirection: 'row',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <View
+                {academyDropdownItems.map((item) => {
+                  const selected = isItemSelected(item)
+                  return (
+                    <TouchableRipple
+                      key={item.key}
+                      onPress={() => {
+                        closeAcademyMenu()
+                        handleSwitchAcademy(false, item.academy, true, item.role, item.child)
+                      }}
                       style={{
-                        flex: 1,
+                        width: '100%',
                         flexDirection: 'row',
-                        alignItems: 'center',
-                        paddingVertical: 12,
-                        paddingHorizontal: 10,
-                        backgroundColor: selectedAcademy?.domain === academy.domain ? palette.main[500] : '#FFF',
-                        borderColor: '#E0E0E0',
-                        borderBottomWidth: 1
+                        alignItems: 'center'
                       }}
                     >
-                      <Avatar.Image
-                        size={36}
-                        style={{ backgroundColor: '#fff', marginRight: 10 }}
-                        source={{ uri: academy?.image }}
-                      />
-                      <Text
+                      <View
                         style={{
-                          color: selectedAcademy?.domain === academy.domain ? '#FFF' : '#000',
-                          flex: 1
+                          flex: 1,
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          paddingVertical: 12,
+                          paddingHorizontal: 10,
+                          backgroundColor: selected ? palette.main[500] : '#FFF',
+                          borderColor: '#E0E0E0',
+                          borderBottomWidth: 1
                         }}
                       >
-                        {academy.name}
-                      </Text>
-                    </View>
-                  </TouchableRipple>
-                ))}
+                        <Avatar.Image
+                          size={36}
+                          style={{ backgroundColor: '#fff', marginRight: 10 }}
+                          source={{ uri: item.academy?.image }}
+                        />
+                        <View
+                          style={{
+                            flex: 1,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'space-between'
+                          }}
+                        >
+                          <Text
+                            numberOfLines={1}
+                            style={{
+                              color: selected ? '#FFF' : '#000',
+                              fontWeight: selected ? '700' : '500',
+                              flex: 1,
+                              marginRight: 8
+                            }}
+                          >
+                            {item.academy.name}
+                          </Text>
+                          {Boolean(item.child?.studentName) && (
+                            <View
+                              style={{
+                                backgroundColor: selected ? '#FFFFFF' : '#3B1E78',
+                                paddingHorizontal: 7,
+                                paddingVertical: 3,
+                                borderRadius: 4,
+                                marginLeft: 8,
+                                alignSelf: 'center',
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                              }}
+                            >
+                              <Text
+                                numberOfLines={1}
+                                style={{
+                                  color: selected ? '#3B1E78' : '#FFFFFF',
+                                  fontSize: 11,
+                                  fontWeight: '700'
+                                }}
+                              >
+                                {item.child?.studentName}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      </View>
+                    </TouchableRipple>
+                  )
+                })}
               </Fragment>
             )
             }

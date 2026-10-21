@@ -5,18 +5,18 @@ import useLogin from "@/containers/Login/hooks/useLogin"
 import { getUserAcademies, switchAcademy } from "@/layouts/apiClients/academyServices"
 import { AcademyResponse, LoginAccessTokenRequest } from "@/utils/types"
 import { getDataStorage, removeDataStorage } from "@/utils/storage"
-import { getErrorMessage, toast, checkIsParent, getCurrentRole } from "@/utils/helpers"
+import { getErrorMessage, toast, getCurrentRole } from "@/utils/helpers"
 import { setDemoMode } from "@/demoData/mockInterceptor"
 import { useFocusEffect, useRoute, CommonActions } from "@react-navigation/native";
 import { reset, navigationRef } from "@/navigators/NavigationHelpers"
 import { MainRoutes, Routes } from "@/navigators/RouteName"
+import { Role } from "@/utils/enums"
 import { DEMO_MODE_STORAGE_KEY, DEMO_SESSION_BACKUP_STORAGE_KEY, DemoSessionBackup, restorePreviousSession } from "@/containers/Setting/hooks/useSetting"
 
 export const useAcademyDeepLink = (targetRoute: string, targetDomain?: string) => {
   const { t } = useTranslation()
   const route = useRoute<any>()
   const user = useAuthStore(state => state.user)
-  const academies = useAuthStore(state => state.academies)
   const setLoadingWithoutOverlay = useAuthStore(state => state.setLoadingWithoutOverlay)
   const setSelectAcademy = useAuthStore(state => state.setSelectAcademy)
   const { handleLoginAccessToken } = useLogin()
@@ -48,10 +48,14 @@ export const useAcademyDeepLink = (targetRoute: string, targetDomain?: string) =
     return demoMode === 'true';
   }
 
-  const handleSwitchAcademy = async (targetAcademy: AcademyResponse, shouldRedirect: boolean = true) => {
+  const handleSwitchAcademy = async (
+    targetAcademy: AcademyResponse,
+    shouldRedirect: boolean = true,
+    roleOverride?: Role
+  ) => {
     setLoadingWithoutOverlay(true)
     try {
-      const userRole = getCurrentRole(user?.roles || [])
+      const userRole = roleOverride || getCurrentRole(targetAcademy.roles || user?.roles || [])
       const res = await switchAcademy(targetAcademy.id, userRole, false)
 
       const data = res.data
@@ -184,9 +188,7 @@ export const useAcademyDeepLink = (targetRoute: string, targetDomain?: string) =
           let currentAcademies = useAuthStore.getState().academies || []
           if (!currentAcademies || currentAcademies.length === 0) {
             try {
-              const currentUser = useAuthStore.getState().user
-              const userRole = getCurrentRole(currentUser?.roles || [])
-              const res = await getUserAcademies(userRole, currentUser?.isLearningSpace || false)
+              const res = await getUserAcademies()
               currentAcademies = res.data?.items || []
               useAuthStore.getState().setAcademies(currentAcademies)
             } catch (e) {
@@ -197,27 +199,45 @@ export const useAcademyDeepLink = (targetRoute: string, targetDomain?: string) =
           const targetAcademy = currentAcademies.find((a) => a.domain === targetDomain)
           const currentUser = useAuthStore.getState().user
 
-          if (isCheckLinkAccount && checkIsParent()) {
-            // 1. Phụ huynh chưa có academy này trong danh sách -> chắc chắn chưa link -> redirect confirm luôn
+          if (isCheckLinkAccount && idSuperStudent) {
+            // Trường hợp không tìm thấy targetAcademy trong danh sách -> redirect sang màn confirm luôn
             if (!targetAcademy) {
               redirectToConfirm()
               return
             }
 
-            // 2. Phụ huynh CÓ academy này: nếu đang ở domain khác thì switch sang academy này trước
-            // để nạp đúng danh sách học sinh liên kết (linkedStudents) của academy này
-            if (currentUser?.academyDomain !== targetDomain) {
-              setIsReady(false)
-              await handleSwitchAcademy(targetAcademy, false)
-            }
+            const targetRole = getCurrentRole(targetAcademy.roles)
+            const isParentRole = targetRole === Role.Parent
 
-            // 3. Sau khi đã ở đúng academy đích, kiểm tra xem học sinh đã liên kết ở academy này chưa
-            if (idSuperStudent) {
-              const isLinked = await checkStudentLinked(Number(idSuperStudent))
-              if (!isLinked) {
-                redirectToConfirm()
-                return
+            // TargetAcademy là role parent: kiểm tra trong mảng children có id khớp với idSuperStudent
+            const isStudentLinked = Boolean(
+              isParentRole &&
+              idSuperStudent &&
+              targetAcademy.children?.some(
+                (c) => c.studentSuperId === Number(idSuperStudent)
+              )
+            )
+
+            if (isStudentLinked) {
+              // Trường hợp targetAcademy là role parent và học sinh đã liên kết:
+              // chuyển academy nếu đang ở academy khác và kích hoạt parentViewMode (không redirect sang màn confirm)
+              if (currentUser?.academyDomain !== targetDomain) {
+                setIsReady(false)
+                await handleSwitchAcademy(targetAcademy, false, targetRole)
               }
+              await checkStudentLinked(Number(idSuperStudent))
+              return
+            } else {
+              // Các trường hợp cần xác nhận liên kết (redirectToConfirm):
+              // - Role parent nhưng chưa liên kết học sinh này
+              // - Không phải role parent (ví dụ role Student)
+              // Nếu đang ở academy khác, cần switch sang targetAcademy trước khi redirect
+              if (currentUser?.academyDomain !== targetDomain) {
+                setIsReady(false)
+                await handleSwitchAcademy(targetAcademy, false, targetRole)
+              }
+              redirectToConfirm()
+              return
             }
           } else {
             // Luồng thông thường (không có cờ isCheckLinkAccount hoặc không phải Parent)

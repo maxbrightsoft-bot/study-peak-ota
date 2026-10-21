@@ -37,7 +37,7 @@ const ParentList = () => {
       } else {
         setLoading(true)
       }
-      const response = await getLinkedAccountsApi(signal)
+      const response = await getLinkedAccountsApi(undefined, signal)
       const data = response.data?.data
       if (Array.isArray(data)) {
         setLinkedAccounts(data)

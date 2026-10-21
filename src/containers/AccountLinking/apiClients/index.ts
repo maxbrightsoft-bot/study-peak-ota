@@ -1,6 +1,7 @@
 import { AxiosResponse } from "axios";
 import { api } from "@/services/api/apiClient";
 import { BASE_URL } from "@/utils/constants";
+import { LoginResponse } from "@/utils/types";
 
 const ACCOUNT_LINKS_URL = `${BASE_URL}/api/accountlinks`;
 
@@ -48,17 +49,34 @@ export interface ParentLinkResponse {
   studentAvatar?: string | null;
 }
 
-export type LinkedAccountResponse = ParentLinkResponse;
-
-export interface AccountLinkResponse extends ParentLinkResponse {
+export interface AccountLinkResponse {
+  id: number;
+  parentId: number;
+  parentName?: string | null;
+  parentEmail?: string | null;
+  parentAvatar?: string | null;
+  studentId: number;
+  studentAcademyUserId?: number | null;
+  linkIdAcademy?: number | null;
+  studentName?: string | null;
+  studentEmail?: string | null;
+  studentAvatar?: string | null;
   status?: AccountLinkStatus;
   linkMethod?: AccountLinkMethod | number;
   createdAt?: string;
   expiredTime?: string;
 }
 
-export const getLinkedAccountsApi = (signal?: AbortSignal): Promise<AxiosResponse<ResponseModel<AccountLinkResponse[]>>> =>
-  api.get(`${ACCOUNT_LINKS_URL}/my-links`, { signal });
+export type LinkedAccountResponse = AccountLinkResponse;
+
+export const getLinkedAccountsApi = (
+  role?: string,
+  signal?: AbortSignal
+): Promise<AxiosResponse<ResponseModel<AccountLinkResponse[]>>> =>
+  api.get(`${ACCOUNT_LINKS_URL}/my-links`, {
+    params: role ? { role } : undefined,
+    signal
+  });
 
 export const getAccountLinkDetailApi = (
   linkId: number,
@@ -93,11 +111,34 @@ export const deleteLinkApi = (
 
 const PARENTS_URL = `${BASE_URL}/api/parents`;
 
-export const getLinkedStudentsForParentApi = (signal?: AbortSignal): Promise<AxiosResponse<ResponseModel<AccountLinkResponse[]>>> =>
+export const getLinkedStudentsForParentApi = (signal?: AbortSignal): Promise<AxiosResponse<ResponseModel<ParentLinkResponse[]>>> =>
   api.get(`${PARENTS_URL}/linked-students`, { signal });
 
-export const completeParentRoleIfPendingApi = (): Promise<AxiosResponse<ResponseModel<any>>> =>
-  api.post(`${ACCOUNT_LINKS_URL}/complete-parent-role-if-pending`, {});
+export interface AcademySimpleResponse {
+  id: number;
+  name: string;
+  image?: string;
+  coverImage?: string;
+  domain?: string;
+  createdAt?: string;
+  isOwned?: boolean | null;
+}
+
+export interface ConvertParentRoleAcademiesRequest {
+  academyIds: number[];
+}
+
+export const getParentPendingAcademiesApi = (
+  linkId: number,
+  signal?: AbortSignal
+): Promise<AxiosResponse<ResponseModel<AcademySimpleResponse[]>>> =>
+  api.get(`${ACCOUNT_LINKS_URL}/parent-pending-academies/${linkId}`, { signal });
+
+export const convertParentRoleAcademiesApi = (
+  linkId: number,
+  data: ConvertParentRoleAcademiesRequest
+): Promise<AxiosResponse<ResponseModel<LoginResponse | null>>> =>
+  api.post(`${ACCOUNT_LINKS_URL}/convert-parent-role-academies/${linkId}`, data);
 
 export interface SyncAccountLinksRequest {
   userSuperId?: number;

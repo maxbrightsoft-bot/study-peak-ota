@@ -1,8 +1,11 @@
 import React from 'react'
 import { View, Text, TouchableOpacity, Image } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
 import { useTranslation } from 'react-i18next'
 import { palette, TYPO } from '@/theme'
+import { useNavigation } from '@react-navigation/native'
+import { Routes } from '@/navigators/RouteName'
 import { AccountLinkResponse, AccountLinkStatus } from '../apiClients'
 
 export type LinkedAccount = AccountLinkResponse
@@ -15,6 +18,11 @@ interface LinkedAccountListProps {
 
 const LinkedAccountList = ({ accounts, onUnlink, isParentView = false }: LinkedAccountListProps) => {
   const { t } = useTranslation()
+  const navigation = useNavigation<any>()
+
+  const handleOpenConvertScreen = (linkId: number) => {
+    navigation.navigate(Routes.Auth.ConvertParentRole, { linkId })
+  }
 
   return (
     <View style={styles.container}>
@@ -50,6 +58,16 @@ const LinkedAccountList = ({ accounts, onUnlink, isParentView = false }: LinkedA
 
             {/* Bottom Row */}
             <View style={styles.bottomRow}>
+              {isParentView && (
+                <TouchableOpacity
+                  style={styles.convertButton}
+                  onPress={() => handleOpenConvertScreen(account.id)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="swap-horizontal" size={15} color="#5F30AA" />
+                  <Text style={styles.convertText}>{t('convert_role')}</Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
                 style={styles.unlinkButton}
                 onPress={() => onUnlink(account.id)}
@@ -166,24 +184,23 @@ const styles = ScaledSheet.create({
     paddingBottom: '14@ms',
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    alignItems: 'center'
+    alignItems: 'center',
+    gap: '8@ms'
   },
-  sharedContainer: {
+  convertButton: {
+    height: '34@ms',
+    paddingHorizontal: '12@ms',
+    borderRadius: '10@ms',
+    backgroundColor: '#F4F0FA',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    gap: '4@ms'
   },
-  sharedText: {
-    ...TYPO.body2,
-    fontSize: '12@ms',
-    color: palette.grey[500]
-  },
-  sharedTextEditable: {
+  convertText: {
     color: '#5F30AA',
+    fontSize: '13@ms',
     fontWeight: '700'
-  },
-  chevronIcon: {
-    marginLeft: '2@ms'
   },
   unlinkButton: {
     height: '34@ms',

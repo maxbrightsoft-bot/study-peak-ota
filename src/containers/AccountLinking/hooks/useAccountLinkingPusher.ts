@@ -4,11 +4,9 @@ import { PusherMember } from '@pusher/pusher-websocket-react-native'
 import useAuthStore from '@/store/useAuthStore'
 import useAccountLinkingStore, { ParentRequestLink, buildAccountLinkingChannelName } from '@/store/useAccountLinkingStore'
 import { navigate, goBack, resetToHome } from '@/navigators/NavigationHelpers'
-import { toast, getMessageFromError, checkIsParent } from '@/utils/helpers'
+import { toast, checkIsParent } from '@/utils/helpers'
 import { Role } from '@/utils/enums'
-import { setDataStorage } from '@/utils/storage'
-import { ACCESS_TOKEN } from '@/utils/constants'
-import { completeParentRoleIfPendingApi, AccountLinkMethod } from '../apiClients'
+import { AccountLinkMethod } from '../apiClients'
 import { Routes } from '@/navigators/RouteName'
 
 // Serialize unsubscribe -> subscribe so a late unsubscribe never kills a fresh subscription
@@ -17,7 +15,6 @@ let pendingUnsubscribe: Promise<unknown> = Promise.resolve()
 export const useAccountLinkingPusher = () => {
   const { t } = useTranslation()
   const user = useAuthStore((state) => state.user)
-  const setUserCustom = useAuthStore((state) => state.setUserCustom)
   const pusher = useAuthStore((state) => state.pusher)
   const subscribeChannel = useAuthStore((state) => state.subscribeChannel)
   const unsubscribeChannelSafe = useAuthStore((state) => state.unsubscribeChannelSafe)
@@ -40,6 +37,7 @@ export const useAccountLinkingPusher = () => {
   // Handlers ref tránh stale closure khi state hoặc params thay đổi
   const handlersRef = useRef<{ [event: string]: (data: any) => void }>({})
   const onMemberRemovedRef = useRef<((member: PusherMember) => void) | undefined>(undefined)
+  console.log(determinedRole);
 
   useEffect(() => {
     if (determinedRole === Role.Student) {
@@ -123,27 +121,11 @@ export const useAccountLinkingPusher = () => {
           goBack()
         },
 
-        'student-accepted': async (data: any) => {
+        'student-accepted': (data: any) => {
           toast.info(t('student_accepted_request'))
           const linkId = data?.id || data?.linkId
-          if(checkIsParent()){
-            setAcceptedLinkId(linkId)
-            return;
-          }
-          try {
-            const res = await completeParentRoleIfPendingApi()
-            const { token, user: userData } = res?.data?.data || {}      
-            if (token) {
-              await setDataStorage(ACCESS_TOKEN, token)
-            }
-            setAcceptedLinkId(linkId)
-            useAccountLinkingStore.getState().clearPendingRequests()
-            if (userData) {
-              await setUserCustom(userData)
-            }
-          } catch (error) {
-            toast.error(getMessageFromError(t, error))
-          }
+          setAcceptedLinkId(linkId)
+          useAccountLinkingStore.getState().clearPendingRequests()
         },
       }
     }
@@ -157,7 +139,7 @@ export const useAccountLinkingPusher = () => {
     const isParent = determinedRole === Role.Parent || checkIsParent();
 
     const channelName = buildAccountLinkingChannelName(targetEmail, method, isParent, user?.superId);
-
+    console.log(channelName);
     let cancelled = false
 
     const handleSubscribe = async () => {

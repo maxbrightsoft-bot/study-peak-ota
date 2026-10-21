@@ -34,7 +34,9 @@ interface AccountLinkingState {
   linkedAccounts: AccountLinkResponse[];
   pendingRequests: AccountLinkResponse[];
   subscribedChannel: string | null;
+  isCancelledByStudent: boolean;
   requestByLinkId: boolean;
+  isFromShareLink: boolean;
 }
 
 interface AccountLinkingActions {
@@ -51,6 +53,8 @@ interface AccountLinkingActions {
   setRequestByLinkId: (val: boolean) => void;
   setLinkData: (data: { key: string; code: string; image: string; expiredTime: string }, studentEmail?: string) => void;
   clearLinkData: () => void;
+  setIsCancelledByStudent: (val: boolean) => void;
+  setIsFromShareLink: (val: boolean) => void;
 }
 
 type AccountLinkingStore = AccountLinkingState & AccountLinkingActions;
@@ -86,6 +90,13 @@ const useAccountLinkingStore = create<AccountLinkingStore>()(
     pendingRequests: [],
     isCancelledByStudent: false,
     subscribedChannel: null,
+    isFromShareLink: false,
+
+    setIsFromShareLink: (val) => {
+      set((state) => {
+        state.isFromShareLink = val;
+      });
+    },
 
     setSubscribedChannel: (channelName) => {
       set((state) => {

@@ -1463,6 +1463,7 @@
   "mention_name": "멘션한 사람 이름",
   "mentioned_you_in_a_memo": "메모에서 당신을 멘션했습니다",
   "select_all": "모두 선택",
+  "deselect_all": "모두 선택 해제",
   "sort_order_must_greater_than_n": "정렬 순서 번호는 {{n}}보다 커야 합니다",
   "mock_question_count": "모의 문제 수",
   "mock_time": "모의 시험 시간",
@@ -2603,5 +2604,19 @@
   "no_exams_found": "시험을 찾을 수 없습니다",
   "common_comment": "공통 코멘트",
   "special_comment": "개별 코멘트",
-  "teacher_comment": "선생님 코멘트"
+  "teacher_comment": "선생님 코멘트",
+  "convert_parent_role_title": "학부모 역할로 전환",
+  "convert_parent_role_desc": "생각의 지도에 학생으로 등록되어 있는 계정입니다. 학부모 계정으로 전환하시겠습니까?",
+  "convert_parent_role_to_view_results": "시험 결과를 확인하려면 학부모 역할로 전환",
+  "convert_parent_role_to_view_results_desc": "시험 결과를 확인하려면 지정된 학원을 학부모 역할로 전환해야 합니다. 지금 전환하시겠습니까?",
+  "required_to_view_results": "결과 확인을 위해 전환 필요",
+  "select_academies_to_convert": "학부모 역할로 전환할 학원을 선택해 주세요.",
+  "confirm_convert": "학부모 역할로 전환",
+  "convert_role_success": "학부모 역할로 성공적으로 전환되었습니다.",
+  "please_select_at_least_one_academy": "하나 이상의 학원을 선택해 주세요.",
+  "selected_academies_count": "{{count}}개 학원 선택됨",
+  "convert_role": "학부모 역할로 전환",
+  "no_academies_to_convert": "전환할 학원이 없습니다",
+  "no_academies_to_convert_desc": "모든 학원이 이미 학부모 역할이거나 전환할 학원이 없습니다.",
+  "loading_academies": "학원 목록을 불러오는 중..."
 }

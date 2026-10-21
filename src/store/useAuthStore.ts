@@ -29,7 +29,7 @@ import { autoReconnectPusher } from "@/utils/helpers/pusher";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { toast } from "@/utils/helpers";
 import crashlytics from '@react-native-firebase/crashlytics'
-import { AccountLinkResponse, getLinkedStudentsForParentApi } from "@/containers/AccountLinking/apiClients";
+import { ParentLinkResponse, getLinkedStudentsForParentApi } from "@/containers/AccountLinking/apiClients";
 import { Role } from "@/utils/enums";
 
 interface EventHandler<T = any> {
@@ -79,7 +79,7 @@ interface StoreState {
   isWeakPassword: boolean;
   activeEventHandlers: Record<string, EventHandler[]>;
   parentViewMode: ParentViewModeState | null;
-  linkedStudents: AccountLinkResponse[];
+  linkedStudents: ParentLinkResponse[];
   isUserCustomLoaded: boolean;
   hasConfirmedWarning: boolean;
   isMustChangePasswordDismissed: boolean;
@@ -89,8 +89,8 @@ interface StoreActions {
   setUser: (user: UserResponse | null) => void;
   setUserCustom: (user: UserResponse | null) => Promise<void>;
   setParentViewMode: (viewMode: ParentViewModeState | null) => void;
-  setLinkedStudents: (students: AccountLinkResponse[]) => void;
-  syncParentLinkedStudents: (signal?: AbortSignal) => Promise<AccountLinkResponse[]>;
+  setLinkedStudents: (students: ParentLinkResponse[]) => void;
+  syncParentLinkedStudents: (signal?: AbortSignal) => Promise<ParentLinkResponse[]>;
   setHasConsented: (value: boolean) => void;
   setIsDemoMode: (value: boolean) => void;
   setAcademies: (academies: AcademyResponse[]) => void;
@@ -141,7 +141,7 @@ interface StoreActions {
 type AuthStore = StoreState & StoreActions;
 
 const computeParentViewMode = (
-  studentsList: AccountLinkResponse[],
+  studentsList: ParentLinkResponse[],
   currentViewMode: ParentViewModeState | null,
   academyDomain?: string | null
 ): ParentViewModeState => {
@@ -222,7 +222,7 @@ const useAuthStore = create<AuthStore>()(
           return;
         }
 
-        let studentsList: AccountLinkResponse[] = [];
+        let studentsList: ParentLinkResponse[] = [];
         let newParentViewMode = get().parentViewMode;
 
         const isParent = user?.roles?.includes(Role.Parent);
@@ -242,6 +242,8 @@ const useAuthStore = create<AuthStore>()(
           if (isParent) {
             state.linkedStudents = studentsList;
             state.parentViewMode = newParentViewMode;
+          } else {
+            state.parentViewMode = null;
           }
           state.isUserCustomLoaded = true;
         });
@@ -613,6 +615,7 @@ const useAuthStore = create<AuthStore>()(
         user: state.user,
         academies: state.academies,
         selectedAcademy: state.selectedAcademy,
+        parentViewMode: state.parentViewMode,
         language: state.language,
         hasConsented: state.hasConsented,
         hasSeenTutorial: state.hasSeenTutorial,

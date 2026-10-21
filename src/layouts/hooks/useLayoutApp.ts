@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAcademyDetailApi, getUserAcademies, switchAcademy } from '../apiClients/academyServices'
 import { AcademyResponse, LoginAccessTokenRequest } from '@/utils/types'
+import { ParentLinkResponse } from '@/containers/AccountLinking/apiClients'
 import useLogin from '@/containers/Login/hooks/useLogin'
 import { getDataStorage, removeDataStorage, setDataStorage } from '@/utils/storage'
 import { ACADEMY_DOMAIN, ACCESS_TOKEN, LEARNING_SPACE } from '@/utils/constants'
@@ -95,8 +96,7 @@ const useLayoutApp = () => {
     if (!user) return
     isLoading && setLoadingWithoutOverlay(true)
     try {
-      const userRole = getCurrentRole(user.roles)
-      const res = await getUserAcademies(userRole, user.isLearningSpace)
+      const res = await getUserAcademies()
       const items: AcademyResponse[] = res.data.items || []
       setAcademies(items)
     } catch (error) {
@@ -228,8 +228,12 @@ const useLayoutApp = () => {
     isLearningSpace: boolean,
     selectedAcademy?: AcademyResponse,
     isLoading: boolean = true,
+    targetRole?: Role,
+    targetChild?: ParentLinkResponse | null,
     redirectUrlProp?: string
   ) => {
+    const setParentViewMode = useAuthStore.getState().setParentViewMode
+
     // Demo Mode: chỉ cập nhật store, không gọi API thật
     const demoMode = await getDataStorage('DEMO_MODE');
     if (demoMode === 'true') {
@@ -255,7 +259,12 @@ const useLayoutApp = () => {
       const academyDomain = selectedAcademy
         ? selectedAcademy.domain
         : undefined
-      const userRole = selectedAcademy?.domain ? getCurrentRole(user?.roles || []) : Role.Student;
+      const userRole = targetRole
+        ? targetRole
+        : selectedAcademy?.domain
+        ? getCurrentRole(user?.roles || [])
+        : Role.Student;
+
       const res = await switchAcademy(academyId, userRole, isLearningSpace)
       
       const data = res.data
@@ -273,6 +282,21 @@ const useLayoutApp = () => {
         false,
         redirectUrlProp
       )
+
+      if (!isLearningSpace) {
+        if (userRole === Role.Parent && targetChild) {
+          setParentViewMode({
+            isActive: true,
+            linkId: targetChild.id,
+            studentAcademyUserId: targetChild.studentAcademyUserId || null,
+            studentName: targetChild.studentName || null,
+            studentEmail: targetChild.studentEmail || null,
+            studentAcademyDomain: selectedAcademy?.domain || null,
+          });
+        } else if (userRole === Role.Student) {
+          setParentViewMode(null);
+        }
+      }
 
       setSelectAcademy(selectedAcademy)
     } catch (error) {

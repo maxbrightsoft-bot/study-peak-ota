@@ -24,7 +24,7 @@ const useSelectAcademy = () => {
     if (!user) return
     isLoading && setLoading(true)
     try {
-      const res = await getUserAcademies(getCurrentRole(user.roles), user.isLearningSpace)
+      const res = await getUserAcademies()
       const items: AcademyResponse[] = res.data.items || []
       setAcademies(items)
     } catch (error) {

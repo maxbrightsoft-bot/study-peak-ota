@@ -31,6 +31,7 @@ import StudentLinkApprovalScreen from '@/screens/AccountLinking/StudentLinkAppro
 import RoleSelectionScreen from '@/screens/AccountLinking/AccountLinkRoleSelection'
 import PendingLinkRequestsScreen from '@/screens/AccountLinking/PendingLinkRequests'
 import ParentShareLinkConfirmScreen from '@/screens/AccountLinking/ParentShareLinkConfirm'
+import ConvertParentRoleScreen from '@/screens/AccountLinking/ConvertParentRole'
 import useAccountLinkingPusher from '@/containers/AccountLinking/hooks/useAccountLinkingPusher'
 import ConsentScreen from '@/containers/Setting/components/ConsentScreen'
 import { getConsentStatusApi, agreeConsentApi } from '@/containers/Setting/apiClients'
@@ -78,6 +79,7 @@ const AccountLinkingNavigator = () => {
       <AccountLinkingStack.Screen name={Routes.Auth.AccountLinkRoleSelection} component={RoleSelectionScreen} />
       <AccountLinkingStack.Screen name={Routes.Auth.PendingLinkRequests} component={PendingLinkRequestsScreen} />
       <AccountLinkingStack.Screen name={Routes.Auth.ParentShareLinkConfirm} component={ParentShareLinkConfirmScreen} />
+      <AccountLinkingStack.Screen name={Routes.Auth.ConvertParentRole} component={ConvertParentRoleScreen} />
     </AccountLinkingStack.Navigator>
   )
 }
