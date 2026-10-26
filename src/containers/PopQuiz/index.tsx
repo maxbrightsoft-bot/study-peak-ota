@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Modal, ActivityIndicator, Alert, Share } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Modal, ActivityIndicator, Alert, Share, Clipboard } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { palette } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,7 +8,6 @@ import { Routes } from '@/navigators/RouteName';
 import usePopQuiz from './hooks/usePopQuiz';
 import BottomSheet from '@/components/ModalBase/BottomSheet';
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog';
-import * as Clipboard from 'expo-clipboard';
 import { toast } from '@/utils/helpers';
 import { STUDENT_URL } from '@/utils/constants';
 import { ExamStatus } from '@/utils/enums';
@@ -293,8 +292,8 @@ const PopQuiz = () => {
                 <>
                   <TouchableOpacity
                     style={styles.sheetAction}
-                    onPress={async () => {
-                      await Clipboard.setStringAsync(selectedQuiz.code);
+                    onPress={() => {
+                      Clipboard.setString(selectedQuiz.code);
                       toast.success(t('the_code_has_been_copied_to_your_clipboard') || 'Mã đã được sao chép vào bộ nhớ tạm');
                     }}
                   >
