@@ -101,7 +101,11 @@ const Footer = ({ navigation }: BottomTabBarProps) => {
         const shouldShowText = !isEnOrVi || isFocused
 
         return (
-          <TouchableOpacity key={item.name} style={styles.tabItem} onPress={() => navigation.navigate(item.name)}>
+          <TouchableOpacity
+            key={item.name}
+            style={styles.tabItem}
+            onPress={() => navigation.navigate(item.name)}
+          >
             <View style={{ height: 20}}>
               {item?.iconJSX ? (
                 item?.iconJSX(isFocused)

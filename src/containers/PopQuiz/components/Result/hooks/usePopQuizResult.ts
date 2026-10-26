@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Share } from "react-native";
 import { navigate } from "@/navigators/NavigationHelpers";
+import { navigateToPopQuizList } from "@/containers/PopQuiz/helpers";
 
 const usePopQuizResult = () => {
   const route = useRoute<any>();
@@ -22,7 +23,7 @@ const usePopQuizResult = () => {
   const fetchResult = async () => {
     if (!code) {
       toast.error(t('no_code_provided'));
-      navigate(Routes.Auth.PopQuiz);
+      navigateToPopQuizList();
       return;
     }
 

@@ -13,6 +13,7 @@ import ChartSlide from './components/ChartSlide'
 import { useWindowDimensions } from 'react-native'
 import { MaterialIcons } from '@expo/vector-icons'
 import TextTooltip from '@/components/Tooltip/TextTooltip'
+import TeacherCommentSection from '../ExamResult/components/TeacherCommentSection'
 
 interface OverallTabProps {
   examCode: string
@@ -202,6 +203,11 @@ const MyOverall: FC<OverallTabProps> = React.memo(({
       >
         <Text style={{ color: palette.main[600], fontSize: 16, fontWeight: 600 }}>{t('my_overall')}</Text>
       </View>
+      <TeacherCommentSection
+        commonComment={resultData?.commonComment}
+        specialComment={resultData?.specialComment}
+        teacherName={resultData?.teacherName}
+      />
       <View
         style={{
           borderRadius: 14,
