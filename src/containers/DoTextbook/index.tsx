@@ -292,7 +292,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
           </View>
         )}
 
-        <View style={{ flex: 1, position: 'relative' }}>
+        <View style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
           {isLocalPaused && !textbook?.isMock && (
             <Pressable
               onPress={handleInteractionWhilePaused}
@@ -309,6 +309,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
           )}
 
           <FlatList
+            removeClippedSubviews={true}
             data={groupedQuestions}
             keyExtractor={(item) => `group-${item.id}`}
             ref={scrollViewRef}
@@ -565,7 +566,8 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
 const styles = ScaledSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF'
+    backgroundColor: '#FFF',
+    overflow: 'hidden'
   },
   titleContainer: {
     gap: '4@ms',
