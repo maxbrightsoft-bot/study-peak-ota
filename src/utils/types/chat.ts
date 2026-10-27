@@ -1,5 +1,5 @@
 import { UserResponse } from '@/utils/types';
-import { ExamStatus, MessageSortBy, OrderBy } from "../enums"
+import { ExamStatus, MessageSortBy, OrderBy, ConversationType } from "../enums"
 
 export type ConversationResponse = {
   id: number
@@ -11,6 +11,7 @@ export type ConversationResponse = {
 
 export type ConversationsResponse = {
   id: number;
+  type?: ConversationType | number | string;
   studentExamSessionId?: number;
   courseId: number | null;
   courseName: string | null;

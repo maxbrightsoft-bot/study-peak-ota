@@ -76,25 +76,33 @@ const useMessageList = () => {
     callback()
   }
 
-  const deleteMessageState = (data: string) => {
+  const deleteMessageState = (data: any) => {
     if (!data) return
-    const item = JSON.parse(data)
-
-    setMessages((prev) => {
-      return prev.filter((message) => message.id !== item.id)
-    })
+    try {
+      const item = typeof data === 'string' ? JSON.parse(data) : data
+      if (!item?.id) return
+      setMessages((prev) => {
+        return prev.filter((message) => message.id !== item.id)
+      })
+    } catch (e) {
+      console.error('Error in deleteMessageState:', e)
+    }
   }
 
-  const updateMessageState = (data: string) => {
+  const updateMessageState = (data: any) => {
     if (!data) return
-    const item = JSON.parse(data)
-
-    setMessages((prev) => {
-      return prev.map((message) => {
-        if (message.id === item.id) return item
-        return message
+    try {
+      const item = typeof data === 'string' ? JSON.parse(data) : data
+      if (!item?.id) return
+      setMessages((prev) => {
+        return prev.map((message) => {
+          if (message.id === item.id) return item
+          return message
+        })
       })
-    })
+    } catch (e) {
+      console.error('Error in updateMessageState:', e)
+    }
   }
 
 
