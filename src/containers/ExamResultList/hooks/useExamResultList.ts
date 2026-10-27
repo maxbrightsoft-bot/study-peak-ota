@@ -136,6 +136,7 @@ const useExamResultList = () => {
   }, [user?.id, setLoadingList, t]);
 
   const getResultExamSearch = async (search: string) => {
+    setLoadingList(true);
     try {
       const res = await getLiveHistoryDetailsApi({
         textSearch: search,
@@ -159,6 +160,8 @@ const useExamResultList = () => {
       } catch (e) {
         console.log({ error });
       }
+    } finally {
+      setLoadingList(false);
     }
   };
 

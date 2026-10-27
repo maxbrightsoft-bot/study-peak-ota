@@ -11,6 +11,7 @@ import FilterIcon from '@/assets/iconJSX/filter'
 import { palette, TYPO } from '@/theme'
 import SelectTimeDialog from '@/layouts/components/SelectTimeDialog'
 import { ScaledSheet } from 'react-native-size-matters'
+import { TextbookListSkeleton } from '@/components/Skeleton'
 
 type Props = {
   preparedType?: PreparedType
@@ -103,7 +104,7 @@ const TextbookList = ({
         keyExtractor={(item, index) => `${item.id}_${index}`}
         ListEmptyComponent={
           loadingList ? (
-            <ActivityIndicator size="large" color={palette.main[600]} style={{ marginTop: 40 }} />
+            <TextbookListSkeleton count={4} />
           ) : (
             <Text style={styles.emptyText}>{t('no_data')}</Text>
           )

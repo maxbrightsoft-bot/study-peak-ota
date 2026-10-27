@@ -10,6 +10,7 @@ import { highlightText, isValidTime, utcToLocalTime } from '@/utils/helpers'
 import ExamResult from '../ExamResult/views'
 import HeaderAction from '@/layouts/components/HeaderAction'
 import TextTooltip from '@/components/Tooltip/TextTooltip'
+import { ExamResultListSkeleton } from '@/components/Skeleton'
 
 const ExamResultList = () => {
   const {
@@ -155,7 +156,9 @@ const ExamResultList = () => {
         keyboardVerticalOffset={80}
         style={{ flex: 1 }}
       >
-        {search.length ? (
+        {loadingList ? (
+          <ExamResultListSkeleton count={3} />
+        ) : search.length ? (
           <FlatList
             data={listExam}
             ref={scrollViewRef}
@@ -163,6 +166,11 @@ const ExamResultList = () => {
             keyExtractor={(item, index) => `search_${index}`}
             contentContainerStyle={styles.scrollContainer}
             showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>{t('no_data')}</Text>
+              </View>
+            }
           />
         ) : (
           <FlatList
@@ -172,6 +180,11 @@ const ExamResultList = () => {
             keyExtractor={(item) => item[0]}
             contentContainerStyle={styles.scrollContainer}
             showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>{t('no_data')}</Text>
+              </View>
+            }
           />
         )}
       </KeyboardAvoidingView>
@@ -344,5 +357,17 @@ const styles = ScaledSheet.create({
     fontSize: '12@ms',
     fontWeight: '600',
     color: palette.grey[800]
-  }
+  },
+
+  emptyContainer: {
+    paddingVertical: '40@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  emptyText: {
+    ...TYPO.body2,
+    color: palette.grey[400],
+    textAlign: 'center',
+  },
 })

@@ -80,6 +80,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
     handleDetailExamResult,
     handleCloseLiveResultDialog,
     handleFinishExam,
+    isLoadingWithoutOverlay,
     isLoadingQuestions,
     showResumeDialog,
     handleInteractionWhilePaused,
@@ -217,7 +218,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
           </View>
         )}
 
-        <View style={{ flex: 1, position: 'relative' }}>
+        <View style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
           {exam?.isLate && exam?.lateStatus === ExamStatus.Paused && (
             <Pressable
               onPress={handleInteractionWhilePaused}
@@ -299,11 +300,13 @@ const DoExam = ({ examCode, reqTime }: Props) => {
           initialNumToRender={3}
           maxToRenderPerBatch={3}
           windowSize={5}
-          removeClippedSubviews={Platform.OS === 'android'}
+          removeClippedSubviews={true}
           ListEmptyComponent={
-            <View style={{ paddingVertical: 60, alignItems: 'center', justifyContent: 'center' }}>
-              <ActivityIndicator size="large" color={palette.main[600]} />
-            </View>
+            isLoadingWithoutOverlay ? null : (
+              <View style={{ paddingVertical: 60, alignItems: 'center', justifyContent: 'center' }}>
+                <ActivityIndicator size="large" color={palette.main[600]} />
+              </View>
+            )
           }
         />
         </View>
@@ -548,6 +551,7 @@ const styles = ScaledSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF',
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',

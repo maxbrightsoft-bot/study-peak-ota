@@ -7,46 +7,34 @@ import moment from 'moment'
 import Toast from 'react-native-toast-message'
 import { ACADEMY_DOMAIN, LEARNING_SPACE } from '@/utils/constants'
 import { getDataStorage } from '@/utils/storage'
-import { Platform, Text, StatusBar } from 'react-native'
+import { Platform, Text } from 'react-native'
 import { palette } from '@/theme'
 import { Language, Role } from '../enums'
 import { PauseOrResumeExamRequest } from '../types'
 import { trackErrorStandalone } from '@/hooks/useActivityTracking'
 
-import { initialWindowMetrics } from 'react-native-safe-area-context'
-
-export const getToastTopOffset = () => {
-  const statusBarHeight = Platform.OS === 'android' ? (StatusBar.currentHeight || 0) : 0
-  const safeTop = initialWindowMetrics?.insets?.top || 0
-  return Math.max(safeTop, statusBarHeight, 44) + 16
-}
-
 export const toast = {
   success: (message: string) =>
     Toast.show({
       type: 'success',
-      text1: message,
-      topOffset: getToastTopOffset()
+      text1: message
     }),
   error: (message: string) => {
     if (message === 'DEMO_BLOCKED' || message === UPDATE_REQUIRED) return;
     Toast.show({
       type: 'error',
-      text1: message,
-      topOffset: getToastTopOffset()
+      text1: message
     })
   },
   info: (message: string) =>
     Toast.show({
       type: 'info',
-      text1: message,
-      topOffset: getToastTopOffset()
+      text1: message
     }),
   warning: (message: string) =>
     Toast.show({
       type: 'warning',
-      text1: message,
-      topOffset: getToastTopOffset()
+      text1: message
     }),
   dismiss: () => Toast.hide(),
   show: (config: any) => {
@@ -64,7 +52,6 @@ export const toast = {
       text1: i18n.t('demo_mode'),
       text2: i18n.t('feature_not_available_in_demo_mode'),
       visibilityTime: 3000,
-      topOffset: getToastTopOffset()
     });
   }
 }
