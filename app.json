@@ -4,7 +4,7 @@
     "slug": "touch-study-mobile",
     "jsEngine": "hermes",
     "newArchEnabled": false,
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/app-icon.png",
     "scheme": "com.max.britghtsoft.touchstudymobile",
