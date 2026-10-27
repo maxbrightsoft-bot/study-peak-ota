@@ -288,7 +288,7 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapter
   }
 
   return (
-    <SlideDrawerRoot visible={!!resultData || !!textbookResult} onClose={onClose}>
+    <SlideDrawerRoot visible={!!resultData || !!textbookResult} onClose={onClose} backgroundColor={palette.grey[100]}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={onClose}>
           <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />
@@ -443,7 +443,7 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapter
         </View>
         {resultData && (
           <View
-            style={{ flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 8, gap: 10, alignItems: 'center' }}
+            style={{ flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 8, gap: 10, alignItems: 'center', backgroundColor: '#fff' }}
           >
             <Text style={{ color: '#222222', fontSize: 12, fontWeight: '600' }}>{resultData?.subjectName}</Text>
             <View style={{ height: 12, width: 2, backgroundColor: palette.grey[300] }} />
@@ -527,14 +527,15 @@ export default ExamResult
 const styles = ScaledSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff'
+    backgroundColor: palette.grey[100]
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: '20@ms',
-    paddingVertical: '16@ms'
+    paddingVertical: '16@ms',
+    backgroundColor: '#fff'
   },
   tabs: {
     flexDirection: 'row',
@@ -542,7 +543,8 @@ const styles = ScaledSheet.create({
     gap: '12@ms',
     borderBottomWidth: '1@ms',
     borderTopWidth: '1@ms',
-    borderColor: palette.grey[100]
+    borderColor: palette.grey[100],
+    backgroundColor: '#fff'
   },
   tabButton: {
     width: '30%',
@@ -646,6 +648,7 @@ const styles = ScaledSheet.create({
     width: '48%'
   },
   contentContainer: {
+    flex: 1,
     padding: '20@ms',
     backgroundColor: palette.grey[100],
     paddingBottom: '40@ms'
