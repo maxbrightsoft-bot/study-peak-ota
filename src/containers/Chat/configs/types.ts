@@ -40,7 +40,7 @@ export interface IInputChatProps {
     onSubmit: (url?: string) => Promise<void>
     onChangeInput: (text: string) => void
     isCompleted?: boolean
-    inputRef: React.RefObject<MathRichInputRef>
+    inputRef: React.RefObject<MathRichInputRef | null> | React.RefObject<MathRichInputRef>
     handleUploadImage: () => void
     handleTakePhoto?: () => void
     handlePickFromGallery?: () => void

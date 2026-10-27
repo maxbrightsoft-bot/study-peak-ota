@@ -125,7 +125,6 @@ const styles = ScaledSheet.create({
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: '16@ms',
   },
   button: {
     paddingVertical: '14@ms',

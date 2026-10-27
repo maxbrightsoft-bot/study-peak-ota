@@ -1,4 +1,3 @@
-import { Platform, StatusBar } from 'react-native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { NavigationContainer, getStateFromPath as defaultGetStateFromPath } from '@react-navigation/native'
@@ -226,24 +225,8 @@ const RootNavigation: React.FC = () => {
         {isLoading && <Loading isOverlay />}
         {!isLoading && isLoadingWithoutOverlay && <Loading />}
       </PaperProvider>
-      <AppToast />
+      <ToastWrapper />
     </SafeAreaProvider>
-  )
-}
-
-const AppToast = () => {
-  const insets = useSafeAreaInsets()
-  const statusBarHeight = Platform.OS === 'android' ? (StatusBar.currentHeight || 0) : 0
-  const topOffset = Math.max(insets?.top || 0, statusBarHeight, 44) + 16
-  const bottomOffset = (insets?.bottom || 0) + 20
-
-  return (
-    <Toast
-      config={audioToastConfig}
-      position="top"
-      topOffset={topOffset}
-      bottomOffset={bottomOffset}
-    />
   )
 }
 

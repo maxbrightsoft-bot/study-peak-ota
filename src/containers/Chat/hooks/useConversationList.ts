@@ -18,6 +18,7 @@ const useConversationList = () => {
   const academyDomain = user?.academyDomain
   const channel1 = useRef('')
   const channel2 = useRef('')
+  const [loadingList, setLoadingList] = useState<boolean>(true);
   const [search, setSearch] = useState<string>("");
   const searchRef = useRef<string>("");
   const [selectedConversation, setSelectedConversation] = useState<ConversationsResponse>();
@@ -44,16 +45,17 @@ const useConversationList = () => {
   }, []);
 
   const getConversationList = useCallback(async (textSearch?: string) => {
-    setLoading(true)
+    setLoadingList(true)
     try {
       const res = await getListConversation({ ...conversationFilter, textSearch: textSearch || searchRef.current })
       setConversations(res.data.items || [])
 
     } catch (error) {
       toast.error(getErrorMessage(t, error))
+    } finally {
+      setLoadingList(false)
     }
-    setLoading(false)
-  }, [conversationFilter, setLoading, t])
+  }, [conversationFilter, t])
 
   useEffect(() => {
     if (inputSearch.current) {
@@ -238,6 +240,7 @@ const useConversationList = () => {
     selectedConversation,
     conversations,
     search,
+    loadingList,
     onChangeSearch,
     handleCloseFilterModal,
     handleOpenFilterModal,
@@ -254,7 +257,7 @@ const useConversationList = () => {
 
   }), [
     t, user, courses, conversationFilter, selectedConversation, conversations, search,
-    onChangeSearch, handleCloseFilterModal, handleOpenFilterModal, handleChangeFilter,
+    loadingList, onChangeSearch, handleCloseFilterModal, handleOpenFilterModal, handleChangeFilter,
     handleCompletedConversation, handleChangeSelectedConversation, getConversationList,
     isVisibleCreateConversationDialog, handleCloseCreateConversationDialog, handleVisibleCreateConversationDialog,
     selectedTab, handleChangeTab

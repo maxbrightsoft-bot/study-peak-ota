@@ -335,7 +335,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
 
     setEnding(false);
     setNotFoundExam(false);
-    setLoading(true);
+    setLoadingWithoutOverlay(true);
     setIsLoadingQuestions(true);
     const nowTime = getServerNow();
 
@@ -358,6 +358,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
         handleCloseFinishConfirmDialog()
         handleCloseLeaveDialog()
         handleCloseInfoExamDialog()
+        setLoadingWithoutOverlay(false);
         setLoading(false);
         setIsLoadingQuestions(false);
         return;
@@ -410,6 +411,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
         examCode
       })
     } finally {
+      setLoadingWithoutOverlay(false);
       setLoading(false);
       setIsLoadingQuestions(false);
       if (firstLoadRef.current) firstLoadRef.current = false;
@@ -1042,6 +1044,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     handleCloseLiveResultDialog,
     handleOpenLiveResultDialog,
     isLoading: isLoading || isLoadingWithoutOverlay,
+    isLoadingWithoutOverlay,
     isLoadingQuestions,
     showResumeDialog,
     handleInteractionWhilePaused,

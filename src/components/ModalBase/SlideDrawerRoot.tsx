@@ -126,10 +126,10 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
             ) : (
               children
             )}
-          </View>
 
-          {isLoading && <Loading fullScreen={false} />}
-          {!isLoading && isLoadingWithoutOverlay && <Loading isOverlay={false} />}
+            {isLoading && <Loading fullScreen={false} />}
+            {!isLoading && isLoadingWithoutOverlay && <Loading isOverlay={false} />}
+          </View>
         </Animated.View>
       </View>
     </Portal>

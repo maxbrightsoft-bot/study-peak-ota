@@ -28,7 +28,7 @@ type Props = {
   chatListProps: IChatListProps
   inputProps: IInputChatProps
   chatHeaderProps: any
-  handleLoadMoreMessages: () => Promise<true | undefined>
+  handleLoadMoreMessages: () => Promise<any>
 }
 const ChatContainer = ({
   t,

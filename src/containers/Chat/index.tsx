@@ -17,6 +17,7 @@ import MathRender from '@/components/MathRender'
 import { Ionicons } from '@expo/vector-icons'
 import { useFocusEffect } from '@react-navigation/native'
 import TextTooltip from '@/components/Tooltip/TextTooltip'
+import { ConversationListSkeleton } from '@/components/Skeleton'
 
 const getConversationTitle = (
   conversation: ConversationsResponse,
@@ -171,6 +172,7 @@ export default function Question() {
     search,
     selectedConversation,
     conversations,
+    loadingList,
     onChangeSearch,
     getConversationList,
     courses,
@@ -290,7 +292,9 @@ export default function Question() {
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
-          {conversationFilters.length > 0 ? (
+          {loadingList ? (
+            <ConversationListSkeleton count={4} />
+          ) : conversationFilters.length > 0 ? (
             conversationFilters.map((conversation) => (
               <Card
                 conversation={conversation}
