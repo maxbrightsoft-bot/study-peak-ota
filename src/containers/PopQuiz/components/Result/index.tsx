@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, ActivityIndicator } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, ActivityIndicator, BackHandler } from 'react-native';
 import { palette } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { ScaledSheet } from 'react-native-size-matters';
@@ -8,7 +8,7 @@ import Svg, { Circle } from 'react-native-svg';
 import usePopQuizResult from './hooks/usePopQuizResult';
 import { ExamStatus } from '@/utils/enums';
 import { navigate } from '@/navigators/NavigationHelpers';
-import { getSolveTargetLabel } from '../../helpers';
+import { getSolveTargetLabel, navigateToPopQuizList } from '../../helpers';
 
 const PopQuizResult = () => {
   const {
@@ -19,6 +19,15 @@ const PopQuizResult = () => {
     handleRetry,
     fetchResult,
   } = usePopQuizResult();
+
+  useEffect(() => {
+    const onBackPress = () => {
+      navigateToPopQuizList();
+      return true;
+    };
+    const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => subscription.remove();
+  }, []);
 
   if (loading) {
     return (
@@ -62,7 +71,7 @@ const PopQuizResult = () => {
       <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
         <View style={styles.header}>
           <View style={styles.headerButtonsRow}>
-            <TouchableOpacity onPress={() => navigate(Routes.Auth.PopQuiz)} style={styles.headerIconBtn}>
+            <TouchableOpacity onPress={navigateToPopQuizList} style={styles.headerIconBtn}>
               <Ionicons name="arrow-back" size={24} color={palette.grey[600]} />
             </TouchableOpacity>
             <TouchableOpacity onPress={fetchResult} style={styles.headerIconBtn}>

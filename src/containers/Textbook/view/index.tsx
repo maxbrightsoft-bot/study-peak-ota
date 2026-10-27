@@ -1,5 +1,5 @@
 import { palette, TYPO } from '@/theme'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { View, TouchableOpacity, ScrollView, Text } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native'
@@ -12,6 +12,7 @@ import { PreparedFilterType, PreparedType, TextbookQuery } from '../configs/type
 import HeaderAction from '@/layouts/components/HeaderAction'
 import { ScaledSheet } from 'react-native-size-matters'
 import PopQuiz from '@/containers/PopQuiz'
+import useAuthStore from '@/store/useAuthStore'
 
 const Textbook = () => {
   const { t } = useTranslation()
@@ -22,6 +23,8 @@ const Textbook = () => {
   const insets = useSafeAreaInsets()
   const [search, setSearch] = useState<string>('')
   const [textbookFilter, setTextbookFilter] = useState<TextbookQuery>(DefaultTextbookFilter)
+  const user = useAuthStore(state => state.user)
+  const isStudySpace = !user?.academyDomain
 
   useEffect(() => {
     if (route?.params?.tab) {
@@ -29,6 +32,19 @@ const Textbook = () => {
       navigation.setParams({ tab: undefined })
     }
   }, [route?.params?.tab, handleChangeTab, navigation])
+
+  useEffect(() => {
+    if (isStudySpace && selected === TEXTBOOK_TABS.POP_QUIZ) {
+      handleChangeTab(TEXTBOOK_TABS.CSAT_PAST_QUESTIONS)
+    }
+  }, [isStudySpace, selected, handleChangeTab])
+
+    const tabs = useMemo(() => {
+      if (isStudySpace) {
+      return TabList.filter(tab => tab.value !== TEXTBOOK_TABS.POP_QUIZ)
+    }
+    return TabList
+  }, [isStudySpace])
 
   const handleTabChange = (value: any) => {
     handleChangeTab(value)
@@ -45,7 +61,7 @@ const Textbook = () => {
         </View>
       </View>
       <View style={styles.gridContainer}>
-        {TabList.map(({ label, value }, index) => {
+        {tabs.map(({ label, value }, index) => {
           const isSelected = value === selected
           return (
             <TouchableOpacity

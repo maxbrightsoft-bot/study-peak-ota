@@ -1,4 +1,8 @@
 import { PopQuizSolveTarget } from '@/utils/enums';
+import useAuthStore from '@/store/useAuthStore';
+import { navigate } from '@/navigators/NavigationHelpers';
+import { Routes } from '@/navigators/RouteName';
+import { TEXTBOOK_TABS } from '@/containers/Textbook/configs/constants';
 
 export const getSolveTargetLabel = (
   target?: PopQuizSolveTarget | number | string | null,
@@ -20,3 +24,14 @@ export const getSolveTargetLabel = (
   }
   return '';
 };
+
+export const navigateToPopQuizList = () => {
+  const { user, selectedAcademy } = useAuthStore.getState();
+  const hasAcademy = Boolean(selectedAcademy?.domain || user?.academyDomain);
+  if (hasAcademy) {
+    navigate(Routes.Auth.Textbook as any, { tab: TEXTBOOK_TABS.POP_QUIZ });
+  } else {
+    navigate(Routes.Auth.PopQuiz as any);
+  }
+};
+

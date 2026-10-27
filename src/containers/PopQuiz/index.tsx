@@ -14,7 +14,6 @@ import { STUDENT_URL } from '@/utils/constants';
 import { ExamStatus } from '@/utils/enums';
 import { getSolveTargetLabel } from './helpers';
 import TextField from '@/components/Input/TextField';
-
 const PopQuiz = () => {
   const {
     t,

@@ -8,6 +8,7 @@ import { formatTimeSecond, formatTimeDiffV2 } from '@/utils/helpers'
 import AnswerItem from '../components/TextbookAnswerItem'
 import { red, primary, palette } from '@/theme/colors'
 import { ScaledSheet } from 'react-native-size-matters'
+import TeacherCommentSection from '@/containers/ExamResult/components/TeacherCommentSection'
 
 interface Props {
   data: TextbookResult
@@ -158,6 +159,11 @@ const TextbookMyAnswer: FC<Props> = ({ data, effectSize, onCreateNote, onCreateQ
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 350 }}
       >
+        <TeacherCommentSection
+          commonComment={data?.commonComment}
+          specialComment={data?.specialComment}
+        />
+
         {newFormattedData &&
           newFormattedData.length > 0 &&
           newFormattedData.map((item, index) => (

@@ -143,7 +143,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
               disabled={isLoadingQuestions}
               onPress={() => {
                 if (isLoadingQuestions) return;
-                if (exam && !isAllQuestionsAnswered(questionList)) {
+                if (exam?.isLate && !isAllQuestionsAnswered(questionList)) {
                   handleOpenUnsolvedLeaveDialog()
                 } else {
                   handleOpenLeaveDialog()
@@ -503,7 +503,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
           <SelectAnswerSheet
             onFishedExam={() => {
               handleCloseAnswerSheet()
-              if (!isAllQuestionsAnswered(questionList)) {
+              if (exam?.isLate && !isAllQuestionsAnswered(questionList)) {
                 handleOpenUnsolvedLeaveDialog()
               } else {
                 handleOpenFinishConfirmDialog()

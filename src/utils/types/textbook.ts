@@ -78,6 +78,8 @@ export type TextbookResult = {
     studentQuestionResults: StudentQuestionResult[]
     questionGroups: QuestionGroupResponse[]
     type: SubjectType
+    commonComment?: string | null
+    specialComment?: string | null
 }
 
 export type StudentQuestionResult = Question & {

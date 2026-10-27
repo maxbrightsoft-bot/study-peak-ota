@@ -14,6 +14,7 @@ import MathRichInput from '@/components/Input/MathRichInput';
 import usePopQuizTake from './hooks/usePopQuizTake';
 import { navigate } from '@/navigators/NavigationHelpers';
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog';
+import { navigateToPopQuizList } from '../../helpers';
 
 const PopQuizTake = () => {
   const {
@@ -78,7 +79,7 @@ const PopQuizTake = () => {
     return (
       <View style={[styles.container, styles.center]}>
         <Text style={styles.errorText}>{t('no_questions_found')}</Text>
-        <TouchableOpacity onPress={() => navigate(Routes.Auth.PopQuiz)} style={styles.backBtn}>
+        <TouchableOpacity onPress={navigateToPopQuizList} style={styles.backBtn}>
           <Text style={styles.backBtnText}>{t('go_back')}</Text>
         </TouchableOpacity>
       </View>
@@ -275,7 +276,7 @@ const PopQuizTake = () => {
       // Preview mode
       if (currentQuestionIndex === questions.length - 1) {
         toast.success(t('preview_finished') || '팝퀴즈 미리보기를 완료했습니다!');
-        navigate(Routes.Auth.PopQuiz);
+        navigateToPopQuizList();
       } else {
         setCurrentQuestionIndex(prev => prev + 1);
       }
@@ -596,7 +597,7 @@ const PopQuizTake = () => {
         toggle={() => setIsOpenConfirmExit(false)}
         onConfirm={() => {
           setIsOpenConfirmExit(false);
-          navigate(Routes.Auth.PopQuiz);
+          navigateToPopQuizList();
         }}
         text={t('confirm_exit_quiz')}
         title={t('confirmation')}

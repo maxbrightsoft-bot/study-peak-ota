@@ -12,6 +12,7 @@ import { Share } from 'react-native';
 import { QuestionAnswerType, ExamStatus, SubjectType, PopQuizSolveTarget, OrderBy } from '@/utils/enums';
 import { navigate } from '@/navigators/NavigationHelpers';
 import _ from 'lodash';
+import { navigateToPopQuizList } from '@/containers/PopQuiz/helpers';
 
 const usePopQuizCreate = () => {
   const navigation = useNavigation<any>();
@@ -643,7 +644,7 @@ const usePopQuizCreate = () => {
       { id: 4, questionAnswerType: QuestionAnswerType.SingleChoice, numberOfAnswers: 5, correctAnswers: [1], correctTextualAnswers: [], score: 1 },
       { id: 5, questionAnswerType: QuestionAnswerType.SingleChoice, numberOfAnswers: 5, correctAnswers: [1], correctTextualAnswers: [], score: 1 },
     ]);
-    navigate(Routes.Auth.PopQuiz);
+    navigateToPopQuizList();
   };
 
   return {

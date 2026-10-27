@@ -1,12 +1,10 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ActivityIndicator, Image } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, TouchableOpacity, SafeAreaView, ActivityIndicator, Image, BackHandler } from 'react-native';
 import { palette } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { ScaledSheet } from 'react-native-size-matters';
 import usePopQuizIntro from './hooks/usePopQuizIntro';
-import { navigate } from '@/navigators/NavigationHelpers';
-import { Routes } from '@/navigators/RouteName';
-import { getSolveTargetLabel } from '../../helpers';
+import { getSolveTargetLabel, navigateToPopQuizList } from '../../helpers';
 
 const PopQuizIntro = () => {
   const {
@@ -16,8 +14,17 @@ const PopQuizIntro = () => {
     startLoading,
     handleStart,
     error
-  } = usePopQuizIntro()
- 
+  } = usePopQuizIntro();
+
+  useEffect(() => {
+    const onBackPress = () => {
+      navigateToPopQuizList();
+      return true;
+    };
+    const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => subscription.remove();
+  }, []);
+
   if (loading) {
     return (
       <View style={[styles.container, styles.center]}>
@@ -31,7 +38,7 @@ const PopQuizIntro = () => {
       <View style={[styles.container, styles.center]}>
         <SafeAreaView />
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigate(Routes.Auth.PopQuiz)} style={styles.closeButton}>
+          <TouchableOpacity onPress={navigateToPopQuizList} style={styles.closeButton}>
             <Ionicons name="close" size={24} color="#FFF" />
           </TouchableOpacity>
         </View>
@@ -39,7 +46,7 @@ const PopQuizIntro = () => {
           <Ionicons name="alert-circle-outline" size={64} color="#FFF" style={styles.errorIcon} />
           <Text style={styles.errorTitle}>{t('error') || 'Error'}</Text>
           <Text style={styles.errorMessage}>{error}</Text>
-          <TouchableOpacity onPress={() => navigate(Routes.Auth.PopQuiz)} style={styles.errorBackBtn}>
+          <TouchableOpacity onPress={navigateToPopQuizList} style={styles.errorBackBtn}>
             <Text style={styles.errorBackBtnText}>{t('go_back') || 'Go Back'}</Text>
           </TouchableOpacity>
         </View>
@@ -51,7 +58,7 @@ const PopQuizIntro = () => {
     return (
       <View style={[styles.container, styles.center]}>
         <Text style={styles.errorText}>{t('quiz_not_found')}</Text>
-        <TouchableOpacity onPress={() => navigate(Routes.Auth.PopQuiz)} style={styles.backBtn}>
+        <TouchableOpacity onPress={navigateToPopQuizList} style={styles.backBtn}>
           <Text style={styles.backBtnText}>{t('go_back')}</Text>
         </TouchableOpacity>
       </View>
@@ -62,7 +69,7 @@ const PopQuizIntro = () => {
     <View style={styles.container}>
       <SafeAreaView />
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigate(Routes.Auth.PopQuiz)} style={styles.closeButton}>
+        <TouchableOpacity onPress={navigateToPopQuizList} style={styles.closeButton}>
           <Ionicons name="close" size={24} color="#FFF" />
         </TouchableOpacity>
       </View>

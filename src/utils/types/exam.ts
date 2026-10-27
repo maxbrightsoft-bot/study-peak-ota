@@ -149,6 +149,8 @@ export type ExamResult = {
     percentageAmongStudents: number
     questionSolvingOrderEfficiency?: number
     studentTotalAttemptTime: number
+    commonComment?: string | null
+    specialComment?: string | null
 }
 
 export type QuestionGroupResponse = {

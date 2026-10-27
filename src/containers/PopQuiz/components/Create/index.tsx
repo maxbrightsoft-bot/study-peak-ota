@@ -11,7 +11,7 @@ import CustomSelect from '@/components/Select/CustomSelect';
 import { toast } from '@/utils/helpers';
 import { navigate } from '@/navigators/NavigationHelpers';
 import { Routes } from '@/navigators/RouteName';
-import { getSolveTargetLabel } from '../../helpers';
+import { getSolveTargetLabel, navigateToPopQuizList } from '../../helpers';
 
 const PopQuizCreate = () => {
   const {
@@ -559,7 +559,7 @@ const PopQuizCreate = () => {
         )}
 
         {step === 3 && (
-          <TouchableOpacity style={styles.nextBtnFull} onPress={() => navigate(Routes.Auth.PopQuiz)}>
+          <TouchableOpacity style={styles.nextBtnFull} onPress={navigateToPopQuizList}>
             <Text style={styles.nextBtnText}>{t('done')}</Text>
           </TouchableOpacity>
         )}
