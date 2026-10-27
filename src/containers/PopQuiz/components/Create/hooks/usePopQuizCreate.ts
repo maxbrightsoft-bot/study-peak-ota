@@ -5,10 +5,9 @@ import { getCategoryListApi, getQuestionTypeListApi, getCategoryQuestionTypeList
 import { createPopQuizApi, getRecentPopQuizzesApi, startPopQuizSessionApi, endPopQuizSessionApi } from '@/services/api/popQuizApi';
 import { getErrorMessage, toast } from '@/utils/helpers';
 import { STUDENT_URL } from '@/utils/constants';
-import * as Clipboard from 'expo-clipboard';
 import { Routes } from '@/navigators/RouteName';
 import React, { useEffect, useState } from 'react';
-import { Share } from 'react-native';
+import { Clipboard, Share } from 'react-native';
 import { QuestionAnswerType, ExamStatus, SubjectType, PopQuizSolveTarget, OrderBy } from '@/utils/enums';
 import { navigate } from '@/navigators/NavigationHelpers';
 import _ from 'lodash';
@@ -83,16 +82,16 @@ const usePopQuizCreate = () => {
     },
   ]);
 
-  const handleCopyCode = async () => {
+  const handleCopyCode = () => {
     const code = createdQuizCode;
-    await Clipboard.setStringAsync(code);
+    Clipboard.setString(code);
     toast.success(t('the_code_has_been_copied_to_your_clipboard'));
   };
 
   const handleShareLink = async () => {
     try {
       const code = createdQuizCode;
-      const baseUrl = (STUDENT_URL || 'https://student.studypeak.io').replace(/\/$/, '');
+      const baseUrl = (STUDENT_URL).replace(/\/$/, '');
       const shareUrl = `${baseUrl}/pop-quiz/${code}`;
       await Share.share({
         message: shareUrl,
