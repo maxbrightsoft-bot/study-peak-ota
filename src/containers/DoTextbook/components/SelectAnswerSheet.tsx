@@ -1,10 +1,10 @@
+import ConfidenceIcon from '@/components/ConfidenceIcon'
 import BottomSheet from '@/components/ModalBase/BottomSheet'
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ConfidenceLevel } from '@/utils/enums'
+import { StyleSheet, Text, TouchableOpacity, View, Keyboard, Platform } from 'react-native'
 import LastIcon from '@/assets/iconJSX/last'
 import NextIcon from '@/assets/iconJSX/next'
 import { useEffect, useMemo, useState } from 'react'
-import Star from '@/assets/iconJSX/star'
-import StarOutline from '@/assets/iconJSX/startOutline'
 import { palette } from '@/theme'
 import { useTranslation } from 'react-i18next'
 import { PreparedQuestionResponse, ScrollType, TextbookQuestion } from '../config/types'
@@ -17,6 +17,7 @@ type Props = {
   questionList: PreparedQuestionResponse[]
   updateQuestionAnswer: ({ questionId, textualAnswers, answer }: TextbookQuestion) => void
   updateQuestionStar: (questionId: number, isStar: boolean) => void
+  updateQuestionConfidence?: (questionId: number, confidence?: ConfidenceLevel) => void
   scrollToQuestion: (type: ScrollType) => void
   onFishedExam: () => void
   currentQuestion: PreparedQuestionResponse
@@ -29,12 +30,29 @@ const SelectAnswerSheet = ({
   currentQuestion,
   updateQuestionAnswer,
   updateQuestionStar,
+  updateQuestionConfidence,
   scrollToQuestion,
   onFishedExam,
   disabled
 }: Props) => {
   const { t } = useTranslation()
   const [isReady, setIsReady] = useState(false)
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false)
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => setIsKeyboardVisible(true)
+    )
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setIsKeyboardVisible(false)
+    )
+    return () => {
+      showSub.remove()
+      hideSub.remove()
+    }
+  }, [])
 
   useEffect(() => {
     if (visible) {
@@ -71,11 +89,16 @@ const SelectAnswerSheet = ({
         <TouchableOpacity
           disabled={disabled}
           onPress={() => {
-            if (disabled || !currentQuestion) return
-            updateQuestionStar(currentQuestion?.id || 0, !(currentQuestion?.isStar || false))
+            if (disabled || !currentQuestion) return;
+            const nextConf = currentQuestion.confidence === ConfidenceLevel.Sure
+              ? ConfidenceLevel.Unsure
+              : currentQuestion.confidence === ConfidenceLevel.Unsure
+              ? ConfidenceLevel.Random
+              : ConfidenceLevel.Sure;
+            updateQuestionConfidence?.(currentQuestion.id, nextConf);
           }}
         >
-          {currentQuestion?.isStar ? <Star /> : <StarOutline />}
+          <ConfidenceIcon confidence={currentQuestion?.confidence} size={28} />
         </TouchableOpacity>
         <Text
           style={{ fontSize: 16, fontWeight: '600', color: '#222222' }}
@@ -86,14 +109,14 @@ const SelectAnswerSheet = ({
         })}</Text>
       </View>
     ),
-    [currentQuestion, updateQuestionStar, disabled]
+    [currentQuestion, updateQuestionConfidence, disabled, t]
   )
 
   return (
     <BottomSheet isVisible={visible} onClose={onClose} titleChildren={titleChildren} closeChildren={closeChildren}>
       {isReady && (
         <>
-          <View style={styles.sheetContent}>
+          <View style={[styles.sheetContent, isKeyboardVisible && styles.sheetContentKeyboardVisible]}>
             <Text style={styles.title}>{t('answer_sheet_note')}</Text>
 
             <TextbookAnswer
@@ -102,11 +125,13 @@ const SelectAnswerSheet = ({
               isLastQuestion={currentQuestion?.id === questionList[questionList.length - 1]?.id}
               question={currentQuestion}
               updateQuestionAnswer={updateQuestionAnswer}
+              updateQuestionConfidence={updateQuestionConfidence}
               onClose={onClose}
               disabled={disabled}
             />
           </View>
-          <View style={styles.navRow}>
+          {!isKeyboardVisible && (
+            <View style={styles.navRow}>
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <TouchableOpacity
                 disabled={currentQuestion?.id === questionList[0]?.id}
@@ -168,6 +193,7 @@ const SelectAnswerSheet = ({
               </TouchableOpacity>
             </View>
           </View>
+          )}
         </>
       )}
     </BottomSheet>
@@ -194,6 +220,10 @@ const styles = ScaledSheet.create({
     paddingHorizontal: '20@ms',
     paddingVertical: '24@ms',
     gap: '16@ms'
+  },
+  sheetContentKeyboardVisible: {
+    paddingVertical: '10@ms',
+    gap: '8@ms'
   },
   title: {
     fontSize: '12@ms',

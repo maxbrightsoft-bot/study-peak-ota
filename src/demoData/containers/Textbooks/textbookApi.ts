@@ -12,16 +12,27 @@ export const answerQuestionTextbookMock = async (textbookId: number, body: any) 
     if (body?.questions?.length) {
         for (const q of body.questions) {
             totalDuration += (q.duration || 0);
+            const hasConfidence = q.confidence !== undefined;
             if (q.selectedAnswers !== undefined) {
                 await database.runAsync(
-                    `UPDATE TextbookQuestions SET selectedAnswersJson = ?, duration = ?, isStar = ?, answerTime = ? WHERE id = ? AND textbookId = ?`,
-                    [JSON.stringify(q.selectedAnswers), q.duration || 0, q.isStar ? 1 : 0, q.answerTime || 0, q.questionId, textbookId]
+                    `UPDATE TextbookQuestions SET selectedAnswersJson = ?, duration = ?, isStar = ?, answerTime = ?${hasConfidence ? ', confidence = ?' : ''} WHERE id = ? AND textbookId = ?`,
+                    hasConfidence
+                        ? [JSON.stringify(q.selectedAnswers), q.duration || 0, q.isStar ? 1 : 0, q.answerTime || 0, q.confidence, q.questionId, textbookId]
+                        : [JSON.stringify(q.selectedAnswers), q.duration || 0, q.isStar ? 1 : 0, q.answerTime || 0, q.questionId, textbookId]
                 );
             }
             if (q.textualAnswers !== undefined) {
                 await database.runAsync(
-                    `UPDATE TextbookQuestions SET textualAnswersJson = ?, duration = ?, isStar = ?, answerTime = ? WHERE id = ? AND textbookId = ?`,
-                    [JSON.stringify(q.textualAnswers), q.duration || 0, q.isStar ? 1 : 0, q.answerTime || 0, q.questionId, textbookId]
+                    `UPDATE TextbookQuestions SET textualAnswersJson = ?, duration = ?, isStar = ?, answerTime = ?${hasConfidence ? ', confidence = ?' : ''} WHERE id = ? AND textbookId = ?`,
+                    hasConfidence
+                        ? [JSON.stringify(q.textualAnswers), q.duration || 0, q.isStar ? 1 : 0, q.answerTime || 0, q.confidence, q.questionId, textbookId]
+                        : [JSON.stringify(q.textualAnswers), q.duration || 0, q.isStar ? 1 : 0, q.answerTime || 0, q.questionId, textbookId]
+                );
+            }
+            if (q.selectedAnswers === undefined && q.textualAnswers === undefined && hasConfidence) {
+                await database.runAsync(
+                    `UPDATE TextbookQuestions SET confidence = ? WHERE id = ? AND textbookId = ?`,
+                    [q.confidence, q.questionId, textbookId]
                 );
             }
         }
@@ -72,6 +83,7 @@ export const getQuestionsTextbookMock = async (textbookId: number) => {
             questionGroupIndex: row.questionGroupIndex ?? 0,
             isCorrect: row.isCorrect === 1,
             isStar: row.isStar === 1,
+            confidence: row.confidence !== null && row.confidence !== undefined ? row.confidence : undefined,
             score: row.score,
             duration: row.duration,
             questionAnswerType: row.questionAnswerType ?? 0,

@@ -1,3 +1,4 @@
+import { ConfidenceLevel } from "../../../utils/enums";
 import { AnswerRequest } from "@/utils/types";
 import { ExamStatus, QuestionAnswerType, SubjectType, TextbookEditorType } from "../../../utils/enums";
 
@@ -120,6 +121,7 @@ export interface PreparedQuestionResponse {
   selectedAnswers?: number[];
   textualAnswers?: string[]
   isStar: boolean;
+  confidence?: ConfidenceLevel;
   isCorrect: boolean;
   answerTime: number;
   duration: number;
@@ -145,4 +147,5 @@ export type TextbookQuestion = {
   questionId: number
   answer?: number
   textualAnswers?: string[]
+  confidence?: ConfidenceLevel
 }
