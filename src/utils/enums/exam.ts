@@ -71,3 +71,9 @@ export enum ExamType {
   Normal = 0,
   PopQuiz = 1
 }
+
+export enum ConfidenceLevel {
+  Sure = 1,
+  Unsure = 2,
+  Random = 3
+}

@@ -1,10 +1,10 @@
-import React from 'react'
+import React, { useRef, useState, useEffect, useCallback } from 'react'
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
-  KeyboardAvoidingView,
+  Keyboard,
   Platform,
   Dimensions
 } from 'react-native'
@@ -16,6 +16,7 @@ import { Question } from '../config/types'
 import MathRichInput from '@/components/Input/MathRichInput'
 import TrashIcon from '@/assets/iconJSX/trash'
 import PlusIcon from '@/assets/iconJSX/plus'
+import { isTextualAnswerEmpty } from '@/utils/helpers'
 
 type Props = {
   t: (key: string, params?: any) => string
@@ -23,42 +24,108 @@ type Props = {
   question: Question
   errors: any
   values: any
+  onTextualAnswersChange?: (nextAnswers: string[]) => void
 }
 
 const { height: SCREEN_H } = Dimensions.get('window')
 
-const AnswerContent = ({ t, question, questionNumber, errors, values }: Props) => {
-  const addable = values.textualAnswers.some((i: string) => !i.trim().length)
-  const deletable = values.textualAnswers?.length <= 1
+let answerKeySeed = 0
+const createAnswerKey = () => `exam_ans_${Date.now()}_${++answerKeySeed}`
+
+const AnswerContent = ({ t, question, questionNumber, errors, values, onTextualAnswersChange }: Props) => {
+  const scrollViewRef = useRef<ScrollView>(null)
+  const itemLayouts = useRef<{ [key: number]: number }>({})
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false)
+
+  const textualAnswersList =
+    values?.textualAnswers && Array.isArray(values.textualAnswers) && values.textualAnswers.length > 0
+      ? values.textualAnswers
+      : ['']
+
+  // Persistent unique keys per input item so removing item 0 does NOT unmount or corrupt item 1
+  const [itemKeys, setItemKeys] = useState<string[]>(() =>
+    Array.from({ length: textualAnswersList.length }, createAnswerKey)
+  )
+
+  useEffect(() => {
+    // When question changes, reset item keys
+    setItemKeys(Array.from({ length: textualAnswersList.length }, createAnswerKey))
+  }, [question?.id])
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => setIsKeyboardVisible(true)
+    )
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setIsKeyboardVisible(false)
+    )
+    return () => {
+      showSub.remove()
+      hideSub.remove()
+    }
+  }, [])
+
+  const handleInputFocus = useCallback((index: number) => {
+    const targetY = itemLayouts.current[index] ?? (index * 110)
+    scrollViewRef.current?.scrollTo({ y: Math.max(0, targetY - 10), animated: true })
+  }, [])
+
+  const addable = textualAnswersList.some((i: string) => isTextualAnswerEmpty(i))
+  const deletable = textualAnswersList.length <= 1
   const isMultipleAnswer =
     question.questionAnswerType === QuestionAnswerType.OrderMatters ||
     question.questionAnswerType === QuestionAnswerType.OrderDoesNotMatters
+  const isMultiInput = textualAnswersList.length > 1
 
   return (
     <FieldArray name="textualAnswers">
       {({ push, remove }) => (
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={80}>
-          <ScrollView
-            style={styles.container}
-            contentContainerStyle={{ flexGrow: 1 }}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
-          >
-            <View style={{ flex: 1 }}>
-              <View style={styles.answersContainer}>
-                {values.textualAnswers?.map((_: string, index: number) => (
-                  <View key={index} style={styles.answerItem}>
-                    <Text style={styles.correctAnswerText}>{t('correct_answer')}</Text>
+        <ScrollView
+          ref={scrollViewRef}
+          style={[
+            styles.container,
+            isKeyboardVisible && styles.containerKeyboardVisible
+          ]}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 16 }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
+          <View style={{ flex: 1 }}>
+            <View style={styles.answersContainer}>
+              {textualAnswersList.map((_: string, index: number) => {
+                const itemKey = itemKeys[index] || `ans_fallback_${index}`
+                return (
+                  <View
+                    key={itemKey}
+                    style={styles.answerItem}
+                    onLayout={(e) => {
+                      itemLayouts.current[index] = e.nativeEvent.layout.y
+                    }}
+                  >
+                    <Text style={styles.correctAnswerText}>
+                      {isMultipleAnswer ? `${t('correct_answer')} ${index + 1}` : t('correct_answer')}
+                    </Text>
 
                     <View style={styles.answerInputContainer}>
                       <Field name={`textualAnswers[${index}]`}>
                         {({ field, form }: any) => (
                           <MathRichInput
-                            key={`math-input-${question.id}-${index}`}
-                            style={styles.mathInput}
+                            key={itemKey}
+                            style={[
+                              styles.mathInput,
+                              isMultiInput && styles.mathInputCompact
+                            ]}
                             value={field?.value || ''}
                             initialValue={field?.value || ''}
-                            onChange={(text: string) => form.setFieldValue(`textualAnswers[${index}]`, text)}
+                            onFocus={() => handleInputFocus(index)}
+                            onChange={(text: string) => {
+                              form.setFieldValue(`textualAnswers[${index}]`, text)
+                              const nextAnswers = [...textualAnswersList]
+                              nextAnswers[index] = text
+                              onTextualAnswersChange?.(nextAnswers)
+                            }}
                           />
                         )}
                       </Field>
@@ -70,7 +137,12 @@ const AnswerContent = ({ t, question, questionNumber, errors, values }: Props) =
                       <TouchableOpacity
                         style={[styles.deleteButton, deletable && styles.disabledButton]}
                         disabled={deletable}
-                        onPress={() => remove(index)}
+                        onPress={() => {
+                          setItemKeys(prev => prev.filter((_, i) => i !== index))
+                          remove(index)
+                          const nextAnswers = textualAnswersList.filter((_: any, i: number) => i !== index)
+                          onTextualAnswersChange?.(nextAnswers)
+                        }}
                       >
                         <TrashIcon width={12} height={14} color="#FFF" />
                       </TouchableOpacity>
@@ -79,21 +151,24 @@ const AnswerContent = ({ t, question, questionNumber, errors, values }: Props) =
                       <Text style={styles.errorText}>{errors.textualAnswers?.[index]}</Text>
                     )}
                   </View>
-                ))}
-              </View>
-
-              {isMultipleAnswer && (
-                <TouchableOpacity
-                  style={[styles.addButton, addable && styles.disabledButton]}
-                  disabled={addable}
-                  onPress={() => push('')}
-                >
-                  <PlusIcon width={24} height={24} color={palette.main[500]} />
-                </TouchableOpacity>
-              )}
+                )
+              })}
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
+
+            {isMultipleAnswer && (
+              <TouchableOpacity
+                style={[styles.addButton, addable && styles.disabledButton]}
+                disabled={addable}
+                onPress={() => {
+                  setItemKeys(prev => [...prev, createAnswerKey()])
+                  push('')
+                }}
+              >
+                <PlusIcon width={24} height={24} color={palette.main[500]} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </ScrollView>
       )}
     </FieldArray>
   )
@@ -101,7 +176,10 @@ const AnswerContent = ({ t, question, questionNumber, errors, values }: Props) =
 
 const styles = ScaledSheet.create({
   container: {
-    maxHeight: SCREEN_H * 0.5
+    maxHeight: SCREEN_H * 0.48
+  },
+  containerKeyboardVisible: {
+    maxHeight: SCREEN_H * 0.32
   },
   questionHeader: {
     marginBottom: '16@ms'
@@ -117,36 +195,16 @@ const styles = ScaledSheet.create({
     color: palette.main[500]
   },
   answersContainer: {
-    marginBottom: '16@ms'
+    marginBottom: '8@ms'
   },
   answerItem: {
-    marginBottom: '16@ms'
-  },
-  answerLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: '8@ms',
+    marginBottom: '10@ms'
   },
   correctAnswerText: {
     fontSize: '13@ms',
     fontWeight: '600',
     color: '#212121',
-  },
-  hwBtn: {
-    paddingHorizontal: '10@ms',
-    paddingVertical: '4@ms',
-    borderRadius: '12@ms',
-    backgroundColor: '#ede9fe',
-    borderWidth: 1,
-    borderColor: '#c7d2fe',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  hwBtnText: {
-    fontSize: '12@ms',
-    fontWeight: '700',
-    color: '#6d28d9',
+    marginBottom: '4@ms'
   },
   answerInputContainer: {
     flexDirection: 'row',
@@ -160,8 +218,12 @@ const styles = ScaledSheet.create({
     borderRadius: '8@ms',
     flex: 1,
     backgroundColor: '#fff',
-    minHeight: '135@ms',
-    height: '135@ms'
+    minHeight: '115@ms',
+    height: '115@ms'
+  },
+  mathInputCompact: {
+    minHeight: '92@ms',
+    height: '92@ms'
   },
   deleteButton: {
     backgroundColor: '#dc3545',
@@ -173,7 +235,7 @@ const styles = ScaledSheet.create({
   },
   addButton: {
     alignItems: 'center',
-    paddingBottom: '24@ms'
+    paddingBottom: '16@ms'
   },
   disabledButton: {
     opacity: 0.5

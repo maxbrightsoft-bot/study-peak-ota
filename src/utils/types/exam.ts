@@ -1,5 +1,5 @@
 import { Action } from ".";
-import { AnswerResponseSignal, ExamStatus, QuestionAnswerType, SubjectType } from "../enums";
+import { AnswerResponseSignal, ExamStatus, QuestionAnswerType, SubjectType, ConfidenceLevel } from "../enums";
 import { Student } from "./user";
 
 export type ExamSession = {
@@ -91,6 +91,7 @@ export type Question = {
     id: number
     isCorrect: boolean
     isStar: boolean
+    confidence?: ConfidenceLevel
     score: number
     parentQuestionId: number
     parentQuestionOrder: number
@@ -288,6 +289,7 @@ export type OverallExamResultData = {
     highLevelQuestions: number
     lowLevelQuestions: number
     totalAsteriskQuestions: number
+    confidenceRate?: number
     problemSolvingTime: number
     questionLongestTime: number
 }

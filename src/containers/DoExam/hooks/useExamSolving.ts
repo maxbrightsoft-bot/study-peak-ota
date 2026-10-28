@@ -9,8 +9,8 @@ import { answerQuestionExam } from "../apiClients";
 import _ from "lodash";
 import useAuthStore from "@/store/useAuthStore";
 import { useTranslation } from "react-i18next";
-import { diffFromNow, getErrorMessage, toast, toISOString } from "@/utils/helpers";
-import { ActivityAction, ActivityResource, AppScreen, ExamStatus, QuestionAnswerType } from "@/utils/enums";
+import { diffFromNow, getErrorMessage, toast, toISOString, hasAnyTextualAnswer } from "@/utils/helpers";
+import { ActivityAction, ActivityResource, AppScreen, ExamStatus, QuestionAnswerType, ConfidenceLevel } from "@/utils/enums";
 import moment from "moment";
 import { ExamSessionResponse } from "@/utils/types";
 import NetInfo from '@react-native-community/netinfo';
@@ -21,6 +21,14 @@ import { useActivityTracking } from "@/hooks/useActivityTracking";
 const DATE_TIME_FORMAT = "YYYY-MM-DDTHH:mm:ss.SSSZ"
 const rollBackQuestionList = "rb";
 const recoverQuestionList = "rc";
+
+interface ScheduledAnswerCall {
+  body: StudentAnswerRequest;
+  lastAnswerTime: string;
+  callback?: Function;
+  skipAutoNext?: boolean;
+}
+
 interface Props {
   examId?: number;
   exam?: ExamSessionResponse;
@@ -68,13 +76,13 @@ const useExamSolving = (props: Props) => {
   const userId: number | undefined = user?.id;
 
   const { t } = useTranslation();
-  const apiTimeouts = useRef<any>({});
+  const apiTimeouts = useRef<{ [key: string]: NodeJS.Timeout }>({});
 
   const ltAnswerTime = useRef<string | undefined>(undefined);
   const runningTimeRef = useRef<number | undefined>(undefined);
   const totalAnsweredTimeRef = useRef<number | undefined>(undefined);
   const isCallingApi = useRef<boolean>(false);
-  const pendingApiCall = useRef<any>(null);
+  const pendingApiCall = useRef<ScheduledAnswerCall | null>(null);
   const [recoverExamCode, setRecoveredExamCode] = useState<string>();
   const examRef = useRef(exam);
   useEffect(() => {
@@ -91,7 +99,7 @@ const useExamSolving = (props: Props) => {
     return `${rollBackQuestionList}.${academyId}.${examCode}.${userId}`;
   }, [academyDomain, academyId, examCode, userId]);
 
-  const latestScheduledCall = useRef<{ body: StudentAnswerRequest; lastAnswerTime: string } | null>(null);
+  const latestScheduledCall = useRef<ScheduledAnswerCall | null>(null);
 
   const getDiffTime = (exam: ExamSessionResponse, now: string, totalRunningTime: number) => {
     const prevRunningTime = runningTimeRef.current ?? exam.runningTime ?? 0;
@@ -105,14 +113,15 @@ const useExamSolving = (props: Props) => {
     const pending = pendingApiCall.current;
     if (pending) {
       pendingApiCall.current = null;
-      updateAnswers(pending.body, pending.lastAnswerTime, pending.callback);
+      updateAnswers(pending.body, pending.lastAnswerTime, pending.callback, pending.skipAutoNext);
     }
   };
 
   const updateAnswers = async (
     body: StudentAnswerRequest,
     lastAnswerTime: string,
-    callback?: Function
+    callback?: Function,
+    skipAutoNext?: boolean
   ) => {
     isCallingApi.current = true;
     let res: any = null;
@@ -153,7 +162,9 @@ const useExamSolving = (props: Props) => {
           if (ltAnswerTime.current && (diffFromNow(rollBackQuestions.lastAnswerTime, serverNow, ltAnswerTime.current) || 0) > 0)
             ltAnswerTime.current = rollBackQuestions.lastAnswerTime;
         }
-        handleNextQuestion(true);
+        if (!skipAutoNext) {
+          handleNextQuestion(true);
+        }
 
         const errorMessage = res?.message || error?.response?.data?.title || error?.response?.data?.message;
         if (errorMessage && typeof errorMessage === "string" && !callback) {
@@ -177,7 +188,7 @@ const useExamSolving = (props: Props) => {
     lastAnswerTimeNum: number,
     runningTime: number,
     questionId?: number,
-    isStar?: boolean
+    skipAutoNext?: boolean
   ) => {
     if (!exam || !recoverKey) return;
     await setDataStorage(
@@ -191,7 +202,7 @@ const useExamSolving = (props: Props) => {
 
     questionId && handleUpdateSlider?.(questionId);
 
-    callApiUpdateAnswers(questions, lastAnswerTime, lastAnswerTimeNum, runningTime, isStar, undefined, questionId);
+    callApiUpdateAnswers(questions, lastAnswerTime, lastAnswerTimeNum, runningTime, skipAutoNext, undefined, questionId);
   };
 
   const callApiUpdateAnswers = async (
@@ -199,7 +210,7 @@ const useExamSolving = (props: Props) => {
     lastAnswerTime: string,
     lastAnswerTimeNum: number,
     runningTime: number,
-    isStar?: boolean,
+    skipAutoNext?: boolean,
     callback?: Function,
     questionId?: number
   ) => {
@@ -218,7 +229,7 @@ const useExamSolving = (props: Props) => {
       ltAnswerTime.current = lastAnswerTime;
     updateQuestionList?.(arrQuestionNew);
 
-    !isStar && handleNextQuestion()
+    !skipAutoNext && handleNextQuestion()
 
     const mappedQuestions = arrQuestionNew.map((i) => {
       let duration = Math.max(0, Math.round(i.duration || 0));
@@ -236,6 +247,7 @@ const useExamSolving = (props: Props) => {
         textualAnswers: i.textualAnswers,
         duration,
         isStar: !!i.isStar,
+        confidence: i.confidence,
         answerTime,
         unit: i.unit,
         isActivelyAnswered: questionId === undefined ? true : i.id === questionId
@@ -243,7 +255,13 @@ const useExamSolving = (props: Props) => {
     });
 
     const sumQuestionDuration = mappedQuestions.reduce((acc, q) => acc + (q.duration || 0), 0);
-    const finalRunningTime = Math.max(runningTime || 0, sumQuestionDuration);
+    const finalRunningTime = Math.max(
+      runningTime || 0,
+      runningTimeRef.current || 0,
+      exam?.runningTime || 0,
+      sumQuestionDuration
+    );
+    runningTimeRef.current = finalRunningTime;
 
     const body: StudentAnswerRequest = {
       lastAnswerTime: lastAnswerTimeNum,
@@ -259,19 +277,19 @@ const useExamSolving = (props: Props) => {
     }
     if (!!callback) {
       if (isCallingApi.current) {
-        pendingApiCall.current = { body, lastAnswerTime, callback };
+        pendingApiCall.current = { body, lastAnswerTime, callback, skipAutoNext };
       } else {
-        await updateAnswers(body, lastAnswerTime, callback);
+        await updateAnswers(body, lastAnswerTime, callback, skipAutoNext);
       }
     } else {
-      latestScheduledCall.current = { body, lastAnswerTime };
+      latestScheduledCall.current = { body, lastAnswerTime, skipAutoNext };
       apiTimeouts.current[rollbackKey] = setTimeout(
         () => {
           latestScheduledCall.current = null;
           if (isCallingApi.current) {
-            pendingApiCall.current = { body, lastAnswerTime };
+            pendingApiCall.current = { body, lastAnswerTime, skipAutoNext };
           } else {
-            updateAnswers(body, lastAnswerTime);
+            updateAnswers(body, lastAnswerTime, undefined, skipAutoNext);
           }
         },
         500
@@ -297,7 +315,7 @@ const useExamSolving = (props: Props) => {
       return null;
     }
   };
-  const updateQuestionAnswer = ({ questionId, textualAnswers = [], answer }: ExamQuestion) => {
+  const updateQuestionAnswer = ({ questionId, textualAnswers = [], answer, confidence }: ExamQuestion) => {
     const { now, nowTime } = getServerTimeFormatted();
 
     if (!exam) return;
@@ -342,6 +360,13 @@ const useExamSolving = (props: Props) => {
           default:
             item.textualAnswers = textualAnswers
             break;
+        }
+
+        const isAnswered =
+          (item.selectedAnswers && item.selectedAnswers.length > 0) ||
+          hasAnyTextualAnswer(item.textualAnswers);
+        if (confidence !== undefined) {
+          item.confidence = confidence;
         }
 
         const diff = Math.max(0, getDiffTime(exam, now, totalRunningTime));
@@ -398,7 +423,8 @@ const useExamSolving = (props: Props) => {
           textualAnswers: i.textualAnswers,
           duration,
           isStar: !!i.isStar,
-          answerTime,
+        confidence: i.confidence,
+        answerTime,
           unit: i.unit,
           isActivelyAnswered: questionId === undefined ? true : i.id === questionId
         };
@@ -431,6 +457,32 @@ const useExamSolving = (props: Props) => {
         }
       })
     }
+  };
+
+  const updateQuestionConfidence = (questionId: number, confidence?: ConfidenceLevel) => {
+    if (!exam) return;
+    const { now, nowTime } = getServerTimeFormatted();
+    const examStatus = exam.isLate ? exam.lateStatus : exam.status;
+    if (examStatus !== ExamStatus.InProgress) return;
+
+    const totalRunningTime = moment(now).diff(moment.utc(!exam.isLate ? exam.startTime : exam.startTimeSession).local(), "milliseconds") - exam.totalPausedTime;
+
+    const listQuestionNews = _.cloneDeep(questionList);
+    const arrQuestionNew = listQuestionNews.map((item: Question) => {
+      if (item.id === questionId) {
+        item.confidence = confidence;
+        const diff = Math.max(0, getDiffTime(exam, now, totalRunningTime));
+        item.duration = (item.duration || 0) + diff;
+        if (item.duration > 0 && (!item.answerTime || item.answerTime <= 0)) {
+          item.answerTime = nowTime;
+        } else if ((!item.duration || item.duration <= 0) && item.answerTime && item.answerTime > 0) {
+          item.duration = 1000;
+        }
+      }
+      return item;
+    });
+
+    handleUpdateAnswer(arrQuestionNew, now, nowTime, totalRunningTime, questionId, true);
   };
 
   const updateQuestionStar = (questionId: number, isStar: boolean) => {
@@ -551,8 +603,7 @@ const useExamSolving = (props: Props) => {
       !!data &&
       data.questions.length &&
       data.lastAnswerTime &&
-      currentLastAnswerTime < data.lastAnswerTime &&
-      examRunningTime <= data.runningTime
+      currentLastAnswerTime < data.lastAnswerTime
     ) {
       const lastAnswerTime = moment(data.lastAnswerTime)
         .toDate()
@@ -648,7 +699,7 @@ const useExamSolving = (props: Props) => {
         if (isCallingApi.current) {
           pendingApiCall.current = call;
         } else {
-          await updateAnswers(call.body, call.lastAnswerTime);
+          await updateAnswers(call.body, call.lastAnswerTime, undefined, call.skipAutoNext);
         }
       }
     }
@@ -664,6 +715,7 @@ const useExamSolving = (props: Props) => {
     recoverKey,
     updateQuestionAnswer,
     updateQuestionStar,
+    updateQuestionConfidence,
     handleClearStorage,
     handleRecoverExamAnswer,
     handleResetExamSolving,

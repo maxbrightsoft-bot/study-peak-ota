@@ -1,3 +1,4 @@
+import { ConfidenceLevel } from "../../../utils/enums";
 import { ExamEditorType, ExamStatus, QuestionAnswerType } from "@/utils/enums"
 import { CourseInfo } from "@/utils/types"
 
@@ -31,6 +32,7 @@ export type AnswerRequest = {
     selectedAnswers?: number[]
     duration: number
     isStar: boolean
+    confidence?: ConfidenceLevel
     answerTime: number
     textualAnswers?: string[]
     unit?: string
@@ -65,6 +67,7 @@ export type QuestionResponse = {
     selectedAnswers?: number[]
     textualAnswers?: string[]
     isStar: boolean
+    confidence?: ConfidenceLevel
     duration: number
     score: number
     questionIndex?: number
@@ -95,6 +98,7 @@ export type Question = {
     selectedAnswers?: number[]
     textualAnswers?: string[]
     isStar: boolean
+    confidence?: ConfidenceLevel
     duration: number
     score: number
     answerTime: number
@@ -127,6 +131,7 @@ export type ExamQuestion = {
     questionId: number
     answer?: number
     textualAnswers?: string[]
+    confidence?: ConfidenceLevel
 }
 
 export type CategoryResponse = {

@@ -6,6 +6,7 @@ import { formatTimeDiff, formatTimeSecond } from '@/utils/helpers'
 import { palette, red } from '@/theme/colors'
 import { Ionicons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
+import ConfidenceIcon from '@/components/ConfidenceIcon'
 
 const getResponseColor = (signal: number) => {
   switch (signal) {
@@ -38,11 +39,6 @@ const getProblemCategoryColor = (problem: number) => {
   }
 }
 
-const StarIcon = memo(({ isStar }: { isStar: boolean }) => (
-  isStar
-    ? <Ionicons name="star" size={16} color="#F59E0B" />
-    : <Ionicons name="star-outline" size={16} color="#9CA3AF" />
-))
 
 const AnswerStatusIcon = memo(({ isCorrect, isSelected, t }: { isCorrect: boolean; isSelected: boolean; t: any }) => {
   if (isCorrect && isSelected) {
@@ -166,7 +162,7 @@ const TextbookAnswerItem: FC<TextbookAnswerItemProps> = ({
       <View style={styles.row}>
         <View style={styles.column1}>
           <View style={styles.questionInfo}>
-            <StarIcon isStar={!!data.isStar} />
+            <ConfidenceIcon confidence={data.confidence} />
             <Text style={styles.questionOrder}>
               {t('number_question', { number: questionNumber })}
             </Text>

@@ -40,16 +40,16 @@ body{
   flex-direction:column;
   justify-content:${compact ? 'center' : 'flex-start'};
 }
-#toolbar{display:${hideToolbar ? 'none' : 'flex'};align-items:center;padding:6px 10px;background:#f8fafc;border-bottom:1px solid #e2e8f0;flex-shrink:0;gap:8px}
-#sigmaBtn,#hwBtn{-webkit-appearance:none;appearance:none;width:34px;height:34px;min-width:34px;min-height:34px;padding:0;margin:0;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#334155;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent}
+#toolbar{display:${hideToolbar ? 'none' : 'flex'};align-items:center;padding:4px 8px;background:#f8fafc;border-bottom:1px solid #e2e8f0;flex-shrink:0;gap:6px}
+#sigmaBtn,#hwBtn{-webkit-appearance:none;appearance:none;width:28px;height:28px;min-width:28px;min-height:28px;padding:0;margin:0;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:#334155;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent}
 #sigmaBtn:active,#hwBtn:active{background:#e2e8f0;color:#0f172a}
-#hwBtn{border-color:#a5b4fc;color:#4f46e5;font-size:16px;}
+#hwBtn{border-color:#a5b4fc;color:#4f46e5;font-size:15px;}
 #editor{
   ${compact ? 'margin:auto 0;flex:0 0 auto;' : 'flex:1;'}
-  min-height:${compact ? '22px' : '100px'};
-  padding:${compact ? '0 4px' : '10px 12px'};
+  min-height:${compact ? '22px' : '40px'};
+  padding:${compact ? '0 4px' : '6px 10px'};
   outline:none;
-  font-size:${compact ? '15px' : '16px'};
+  font-size:${compact ? '15px' : '15px'};
   line-height:${compact ? '22px' : '1.4'};
   color:#1e293b;
   word-break:break-word;
@@ -97,6 +97,7 @@ function updateToolbar(){
 }
 function openPicker(){window.ReactNativeWebView.postMessage(JSON.stringify({type:'openPicker'}));}
 function openHandwriting(){window.ReactNativeWebView.postMessage(JSON.stringify({type:'openHandwriting'}));}
+var lastSentValue = null;
 function notifyChange(){
   var clone = editor.cloneNode(true);
   var chips = clone.querySelectorAll('.math-chip');
@@ -112,12 +113,20 @@ function notifyChange(){
     }
   });
   
-  var out = clone.innerHTML;
-  if(out.trim().length > 0 && !/^<(p|div|h[1-6]|ul|ol|li|blockquote|table)/i.test(out.trim())) {
-    out = '<p>' + out + '</p>';
+  var textOnly = (clone.textContent || '').replace(/[\u200B\uFEFF\s\u00A0]/g, '');
+  var hasMath = clone.querySelector('math') || clone.querySelector('.math-chip');
+  var out = '';
+  if (hasMath || textOnly.length > 0) {
+    out = clone.innerHTML;
+    if(out.trim().length > 0 && !/^<(p|div|h[1-6]|ul|ol|li|blockquote|table)/i.test(out.trim())) {
+      out = '<p>' + out + '</p>';
+    }
   }
   
-  window.ReactNativeWebView.postMessage(JSON.stringify({type:'change',value:out}));
+  if (out !== lastSentValue) {
+    lastSentValue = out;
+    window.ReactNativeWebView.postMessage(JSON.stringify({type:'change',value:out}));
+  }
 }
 
 // Click on existing chip to edit
@@ -432,9 +441,28 @@ editor.addEventListener('keydown',function(e){
   }
 });
 editor.addEventListener('input',notifyChange);
-editor.addEventListener('keyup',updateToolbar);
-editor.addEventListener('mouseup',updateToolbar);
+editor.addEventListener('keyup',function(){
+  updateToolbar();
+  notifyChange();
+});
+editor.addEventListener('mouseup',function(){
+  updateToolbar();
+  notifyChange();
+});
+editor.addEventListener('touchend',function(){
+  notifyChange();
+});
+editor.addEventListener('paste',function(){ setTimeout(notifyChange, 0); });
+editor.addEventListener('cut',function(){ setTimeout(notifyChange, 0); });
+editor.addEventListener('compositionend',notifyChange);
 editor.addEventListener('selectionchange',saveSelection);
+
+if (window.MutationObserver) {
+  var obs = new MutationObserver(function() {
+    notifyChange();
+  });
+  obs.observe(editor, { childList: true, subtree: true, characterData: true });
+}
 <\/script>
 </body></html>`;
 
@@ -448,17 +476,19 @@ export interface MathRichInputRef {
 
 const MathRichInput = forwardRef<MathRichInputRef, {
   initialValue?: string;
+  value?: string;
   onChange?: (v: string) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
   placeholder?: string;
   hideToolbar?: boolean;
   compact?: boolean;
-  onFocus?: () => void;
-  onBlur?: () => void;
-}>(({ initialValue, onChange, disabled, style, placeholder, hideToolbar, compact, onFocus, onBlur }, ref) => {
+}>(({ initialValue, value, onChange, onFocus, onBlur, disabled, style, placeholder, hideToolbar, compact }, ref) => {
   const webviewRef = useRef<WebView>(null);
-  const initialValueRef = useRef(initialValue);
+  const isLoadedRef = useRef(false);
+  const lastValueRef = useRef(value ?? initialValue ?? '');
   const [handwritingOpen, setHandwritingOpen] = useState(false);
   const [isHandwritingMode, setIsHandwritingMode] = useState(false);
   const editingChipIdRef = useRef<string | null>(null);
@@ -498,10 +528,26 @@ const MathRichInput = forwardRef<MathRichInputRef, {
         setHandwritingOpen(true);
       }
       else if (data.type === 'change') {
+        lastValueRef.current = data.value;
         onChange?.(data.value);
+      }
+      else if (data.type === 'focus') {
+        onFocus?.();
+      }
+      else if (data.type === 'blur') {
+        onBlur?.();
       }
     } catch { }
   };
+
+  useEffect(() => {
+    if (isLoadedRef.current && value !== undefined && value !== lastValueRef.current) {
+      lastValueRef.current = value;
+      webviewRef.current?.injectJavaScript(
+        `if(window.setEditorValue) window.setEditorValue(${JSON.stringify(value)}); true;`
+      );
+    }
+  }, [value]);
 
   useEffect(() => {
     if (Platform.OS === 'ios') {
@@ -514,6 +560,7 @@ const MathRichInput = forwardRef<MathRichInputRef, {
 
   useImperativeHandle(ref, () => ({
     clear: () => {
+      lastValueRef.current = '';
       webviewRef.current?.injectJavaScript(
         `document.getElementById('editor').innerHTML=''; notifyChange(); true;`
       );
@@ -542,9 +589,12 @@ const MathRichInput = forwardRef<MathRichInputRef, {
           androidLayerType="software"
           nestedScrollEnabled
           onLoadEnd={() => {
-            if (initialValueRef.current) {
+            isLoadedRef.current = true;
+            const val = value ?? initialValue ?? '';
+            if (val) {
+              lastValueRef.current = val;
               webviewRef.current?.injectJavaScript(
-                `if(window.setEditorValue) window.setEditorValue(${JSON.stringify(initialValueRef.current)}); true;`
+                `if(window.setEditorValue) window.setEditorValue(${JSON.stringify(val)}); true;`
               );
             }
           }}
