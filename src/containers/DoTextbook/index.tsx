@@ -9,6 +9,7 @@ import TextbookQuestionGroup from './components/TextbookQuestionGroup'
 import FloatingActionButton from '@/components/Button/FloatingActionButton'
 import RestartPageDialog from '../Textbook/components/Dialog/RestartPageDialog'
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
+import { isAllQuestionsAnswered } from './config/helpers'
 import useAlarmTextbook from './hooks/useAlarmTextbook'
 import useDrawer from './hooks/useDrawer'
 import { ExamStatus } from '@/utils/enums'
@@ -51,6 +52,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
     isNotFoundTextbook,
     updateQuestionAnswer,
     updateQuestionStar,
+    updateQuestionConfidence,
     formattedTime,
     remainTime,
     remainTimeString,
@@ -77,6 +79,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
     currentQuestionId,
     startPageOptions,
     scrollToQuestion,
+    scrollToFirstUnansweredQuestion,
     completedTasks,
     openAnswerSheet,
     questionStarList,
@@ -194,15 +197,17 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
         keyboardVerticalOffset={100}
       >
         <View style={styles.header}>
-          <TouchableOpacity
-            disabled={isLoadingQuestions}
-            onPress={isLoadingQuestions ? undefined : handleOpenLeaveDialog}
-            style={{ opacity: isLoadingQuestions ? 0.3 : 1 }}
-          >
-            <View style={{ transform: 'rotate(180deg)' }}>
-              <ArrowRight width={24} height={24} color={palette.grey[300]} />
-            </View>
-          </TouchableOpacity>
+          <View style={styles.headerSideLeft}>
+            <TouchableOpacity
+              disabled={isLoadingQuestions}
+              onPress={isLoadingQuestions ? undefined : handleOpenLeaveDialog}
+              style={{ opacity: isLoadingQuestions ? 0.3 : 1 }}
+            >
+              <View style={{ transform: 'rotate(180deg)' }}>
+                <ArrowRight width={24} height={24} color={palette.grey[300]} />
+              </View>
+            </TouchableOpacity>
+          </View>
           <View style={styles.titleContainer}>
             <Text style={[styles.subtitle, { color: isMockTimeOut ? palette.red[900] : (remainTime || 0) < 10 && textbook?.isMock ? palette.red[900] : palette.grey[400] }]}>
               {!textbook?.isMock ? formattedTime : isMockTimeOut ? t('completed') : remainTimeString}
@@ -218,14 +223,14 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
               </View>
             )}
             {(isPaused && !isMockTimeOut) && (
-              <View style={{ backgroundColor: '#FF9800', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, alignSelf: 'center', marginTop: 2 }}>
-                <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '600' }}>
+              <View style={styles.pausedBadge}>
+                <Text style={styles.pausedText}>
                   {t('paused')}
                 </Text>
               </View>
             )}
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View style={styles.headerSideRight}>
             {(isTimerRunning || isAlarmRunning) && (
               <TouchableOpacity onPress={() => handleToggleSpeaker()}>
                 {speaker ? <Ionicons name="volume-high" size={24} color={palette.grey[500]} /> : <MuteIcon />}
@@ -511,9 +516,29 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
         )}
         <ConfirmDialog
           open={openLeaveDialog}
+          title={textbook?.isMock ? t('exam_end') : undefined}
           toggle={handleCloseLeaveDialog}
-          text={t('are_you_sure_you_want_to_leave')}
-          onConfirm={onFinishedTextbook}
+          text={
+            textbook?.isMock && !isAllQuestionsAnswered(questionList)
+              ? t('there_are_still_unanswered_questions_do_you_want_to_end_the_exam')
+              : textbook?.isMock
+              ? t('do_you_want_to_quit_your_exam')
+              : t('are_you_sure_you_want_to_leave')
+          }
+          okText={
+            textbook?.isMock && !isAllQuestionsAnswered(questionList)
+              ? t('go_to_unanswered_question')
+              : t('confirm')
+          }
+          cancelText={t('cancel')}
+          onConfirm={
+            textbook?.isMock && !isAllQuestionsAnswered(questionList)
+              ? () => {
+                  handleCloseLeaveDialog()
+                  scrollToFirstUnansweredQuestion()
+                }
+              : onFinishedTextbook
+          }
         />
         <ConfirmDialog
           open={openExpiredQuestionDialog}
@@ -529,6 +554,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
             onClose={handleCloseAnswerSheet}
             scrollToQuestion={scrollToQuestion}
             updateQuestionStar={updateQuestionStar}
+            updateQuestionConfidence={updateQuestionConfidence}
             updateQuestionAnswer={updateQuestionAnswer}
             questionList={questionList}
             currentQuestion={currentQuestion}
@@ -569,21 +595,53 @@ const styles = ScaledSheet.create({
     backgroundColor: '#FFF',
     overflow: 'hidden'
   },
-  titleContainer: {
-    gap: '4@ms',
-    alignItems: 'center',
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: '16@ms',
+    paddingVertical: '12@ms',
     alignItems: 'center',
     paddingHorizontal: '20@ms',
     borderBottomWidth: '1@ms',
     zIndex: 10,
     borderColor: palette.grey[100],
     backgroundColor: '#FFF',
+    minHeight: '56@ms',
     elevation: '5@ms'
+  },
+  headerSideLeft: {
+    minWidth: '40@ms',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    zIndex: 10,
+  },
+  headerSideRight: {
+    minWidth: '40@ms',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: '8@ms',
+    zIndex: 10,
+  },
+  titleContainer: {
+    flex: 1,
+    marginHorizontal: '8@ms',
+    gap: '3@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pausedBadge: {
+    backgroundColor: '#FF9800',
+    paddingHorizontal: '8@ms',
+    paddingVertical: '2@ms',
+    borderRadius: '10@ms',
+    alignSelf: 'center',
+    marginTop: '2@ms',
+  },
+  pausedText: {
+    color: '#FFFFFF',
+    fontSize: '11@ms',
+    lineHeight: '14@ms',
+    fontWeight: '600',
   },
   title: {
     fontSize: '16@ms',
@@ -592,8 +650,10 @@ const styles = ScaledSheet.create({
   },
   subtitle: {
     fontSize: '14@ms',
+    lineHeight: '18@ms',
     fontWeight: '500',
-    color: palette.grey[400]
+    color: palette.grey[400],
+    textAlign: 'center',
   },
   currentQuestion: {
     fontWeight: 'bold',

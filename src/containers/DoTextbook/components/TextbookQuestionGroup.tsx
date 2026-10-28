@@ -1,9 +1,8 @@
-import { FlatList, Text, TouchableOpacity, View, ScrollView } from 'react-native'
+﻿import { FlatList, Text, TouchableOpacity, View, ScrollView } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { palette } from '@/theme'
-import { ExamStatus, QuestionAnswerType, SubjectType } from '@/utils/enums'
+import { ExamStatus, QuestionAnswerType, SubjectType, ConfidenceLevel } from '@/utils/enums'
 import { PreparedQuestionGroupResponse, PreparedQuestionResponse } from '../config/types'
-import StarRating from '@/assets/iconJSX/starRating'
 import React, { useCallback, useMemo } from 'react'
 import MathRender from '@/components/MathRender'
 import { useTranslation } from 'react-i18next'
@@ -64,11 +63,7 @@ const QuestionRow = React.memo(({
           { borderBottomWidth: item.questionOrder === lastIndex - 1 ? 0 : 1 }
         ]}
       >
-      {item.isStar && (
-        <View style={{ position: 'absolute', top: 0, right: 0, zIndex: 1 }}>
-          <StarRating />
-        </View>
-      )}
+
       <View
         style={[
           styles.questionCol,
@@ -98,6 +93,25 @@ const QuestionRow = React.memo(({
           </ScrollView>
         ) : (
           <View style={styles.answerCol}>{renderAnswer(item)}</View>
+        )}
+      </View>
+      <View style={{ justifyContent: 'center', alignItems: 'center', paddingRight: 8 }}>
+        {item.confidence === ConfidenceLevel.Sure ? (
+          <View style={{ width: 26, height: 26, borderRadius: 6, borderWidth: 1.5, borderColor: palette.confidence.sure.border, backgroundColor: palette.confidence.sure.bg, justifyContent: 'center', alignItems: 'center' }}>
+            <Text style={{ color: palette.confidence.sure.text, fontWeight: '800', fontSize: 13 }}>○</Text>
+          </View>
+        ) : item.confidence === ConfidenceLevel.Unsure ? (
+          <View style={{ width: 26, height: 26, borderRadius: 6, borderWidth: 1.5, borderColor: palette.confidence.unsure.border, backgroundColor: palette.confidence.unsure.bg, justifyContent: 'center', alignItems: 'center' }}>
+            <Text style={{ color: palette.confidence.unsure.text, fontWeight: '800', fontSize: 12 }}>△</Text>
+          </View>
+        ) : item.confidence === ConfidenceLevel.Random ? (
+          <View style={{ width: 26, height: 26, borderRadius: 6, borderWidth: 1.5, borderColor: palette.confidence.random.border, backgroundColor: palette.confidence.random.bg, justifyContent: 'center', alignItems: 'center' }}>
+            <Text style={{ color: palette.confidence.random.text, fontWeight: '800', fontSize: 13 }}>×</Text>
+          </View>
+        ) : (
+          <View style={{ width: 26, height: 26, borderRadius: 6, borderWidth: 1, borderStyle: 'dashed', borderColor: palette.grey[400], backgroundColor: '#F9FAFB', justifyContent: 'center', alignItems: 'center' }}>
+            <Text style={{ color: palette.grey[500], fontWeight: '700', fontSize: 13 }}>?</Text>
+          </View>
         )}
       </View>
     </TouchableOpacity>

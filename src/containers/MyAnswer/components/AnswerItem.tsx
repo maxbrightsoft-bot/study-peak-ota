@@ -8,6 +8,7 @@ import { palette, red } from '@/theme/colors';
 import { ScaledSheet } from 'react-native-size-matters'
 import useAuthStore from '@/store/useAuthStore'
 
+import ConfidenceIcon from '@/components/ConfidenceIcon'
 const AnswerItem: FC<AnswerItemProps> = ({
   data,
   nextData,
@@ -114,14 +115,7 @@ const AnswerItem: FC<AnswerItemProps> = ({
     );
   };
 
-  const getStarIcon = () => {
-    return data.isStar ? (
-      <Ionicons name="star" size={16} color="#F59E0B" />
-    ) : (
-      <Ionicons name="star-outline" size={16} color="#9CA3AF" />
-    );
-  };
-
+  
   const getDurationText = () => {
     if (data.duration != 0) {
       let textColor = data.answerResponseSignal !== null ? getResponseColor(data.answerResponseSignal) : '#9E9E9E'
@@ -192,7 +186,7 @@ const AnswerItem: FC<AnswerItemProps> = ({
       <View style={styles.row}>
         <View style={styles.column1}>
           <View style={styles.questionInfo}>
-            {getStarIcon()}
+            <ConfidenceIcon confidence={data.confidence} />
             <Text style={styles.questionOrder}>
               {t('number_question', { number: questionNumber })}
             </Text>

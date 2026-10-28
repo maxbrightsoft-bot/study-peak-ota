@@ -1,3 +1,4 @@
+import { ConfidenceLevel } from "../enums";
 import { JSX } from 'react'
 import { OrderBy } from '../enums'
 
@@ -23,6 +24,7 @@ export type AnswerRequest = {
   selectedAnswers?: number[]
   duration: number
   isStar: boolean
+  confidence?: ConfidenceLevel
   answerTime: number
   textualAnswers?: string[]
   unit?: string

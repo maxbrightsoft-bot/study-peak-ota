@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { View, TouchableOpacity, ScrollView } from 'react-native'
 import { Text } from 'react-native-paper'
 import { Ionicons } from '@expo/vector-icons'
 import _ from 'lodash'
-import { QuestionAnswerType } from '../../../utils/enums'
+import { QuestionAnswerType, ConfidenceLevel } from '../../../utils/enums'
+import { hasAnyTextualAnswer, isTextualAnswerEmpty } from '@/utils/helpers'
 import { palette, TYPO } from '@/theme'
 import { PreparedQuestionResponse, TextbookQuestion } from '../config/types'
 import * as Yup from 'yup'
@@ -18,6 +19,7 @@ interface Props {
   isLastQuestion: boolean
   question: PreparedQuestionResponse
   updateQuestionAnswer: ({ questionId, textualAnswers, answer }: TextbookQuestion) => void
+  updateQuestionConfidence?: (questionId: number, confidence?: ConfidenceLevel) => void
   disabled?: boolean
 }
 
@@ -30,13 +32,16 @@ const schema = (t: any) => {
   })
 }
 
-const TextbookAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer, disabled }: Props) => {
+const TextbookAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer, updateQuestionConfidence, disabled }: Props) => {
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>(question?.selectedAnswers ?? [])
+  const [confidence, setConfidence] = useState<ConfidenceLevel | undefined>(question?.confidence)
+  const confidenceRef = useRef<ConfidenceLevel | undefined>(question?.confidence)
   const answers = question.textualAnswers?.length ? question.textualAnswers : ['']
-
   useEffect(() => {
     setSelectedAnswers(question?.selectedAnswers ?? [])
-  }, [question.id])
+    setConfidence(question?.confidence)
+    confidenceRef.current = question?.confidence
+  }, [question?.id, question?.confidence])
 
   const handleSelectAnswer = (num: number, type: QuestionAnswerType) => {
     if (disabled) return
@@ -62,6 +67,13 @@ const TextbookAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAn
     updateQuestionAnswer({ questionId: question?.id || 0, answer: num })
   }
 
+  const handleConfidenceSelect = (level: ConfidenceLevel) => {
+    if (disabled) return
+    confidenceRef.current = level
+    setConfidence(level)
+    updateQuestionConfidence?.(question.id, level)
+  }
+
   const renderAnswer = (question: PreparedQuestionResponse, type: QuestionAnswerType) => {
     switch (type) {
       case QuestionAnswerType.ShortAnswer:
@@ -76,47 +88,49 @@ const TextbookAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAn
             validationSchema={schema(t)}
             onSubmit={(values: any) => {
               if (disabled) return
-              updateQuestionAnswer({
+                            updateQuestionAnswer({
                 questionId: question.id,
-                textualAnswers: values.textualAnswers
+                textualAnswers: values.textualAnswers,
+                confidence: confidenceRef.current
               })
               isLastQuestion && onClose()
             }}
             enableReinitialize
           >
-            {({ values, errors, handleSubmit }) => (
-              <>
-                <AnswerContent
-                  t={t}
-                  question={question}
-                  questionNumber={
-                    question.parentQuestionId
-                      ? `${(question.parentQuestionOrder || 0) + 1}-(${question.questionOrder + 1})`
-                      : question.questionOrder + 1
-                  }
-                  errors={errors}
-                  values={values}
-                  disabled={disabled}
-                />
-                <TouchableOpacity
-                  style={[
-                    styles.button,
-                    styles.confirmButton,
-                    (disabled ||
-                      !values.textualAnswers?.length ||
-                      values.textualAnswers.some((i: string) => !i?.trim()?.length)) && { opacity: 0.5 }
-                  ]}
-                  disabled={
-                    disabled ||
-                    !values.textualAnswers?.length ||
-                    values.textualAnswers.some((i: string) => !i?.trim()?.length)
-                  }
-                  onPress={() => !disabled && handleSubmit(values)}
-                >
-                  <Text style={styles.confirmButtonText}>{t('registration')}</Text>
-                </TouchableOpacity>
-              </>
-            )}
+            {({ values, errors, handleSubmit }) => {
+              const isButtonDisabled =
+                disabled ||
+                !values.textualAnswers?.length ||
+                values.textualAnswers.some((i: string) => isTextualAnswerEmpty(i))
+
+              return (
+                <>
+                  <AnswerContent
+                    t={t}
+                    question={question}
+                    questionNumber={
+                      question.parentQuestionId
+                        ? `${(question.parentQuestionOrder || 0) + 1}-(${question.questionOrder + 1})`
+                        : question.questionOrder + 1
+                    }
+                    errors={errors}
+                    values={values}
+                    disabled={disabled}
+                                      />
+                  <TouchableOpacity
+                    style={[
+                      styles.button,
+                      styles.confirmButton,
+                      isButtonDisabled && styles.disabledButton
+                    ]}
+                    disabled={isButtonDisabled}
+                    onPress={() => !isButtonDisabled && handleSubmit()}
+                  >
+                    <Text style={[styles.confirmButtonText, isButtonDisabled && { color: palette.grey[500] }]}>{t('registration')}</Text>
+                  </TouchableOpacity>
+                </>
+              )
+            }}
           </Formik>
         )
 
@@ -196,9 +210,84 @@ const TextbookAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAn
     }
   }
 
-  return <View style={styles.container}>
+    const renderConfidenceSelector = () => {
+    return (
+      <View style={{ marginTop: 16, paddingTop: 14, borderTopWidth: 1, borderTopColor: palette.grey[200] }}>
+        <Text style={{ fontSize: 13, fontWeight: '700', color: palette.grey[800], marginBottom: 10, textAlign: 'center' }}>
+          {t('how_confident')}
+        </Text>
+        <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'space-between' }}>
+          <TouchableOpacity
+            disabled={disabled}
+            activeOpacity={0.7}
+            style={{
+              flex: 1,
+              paddingVertical: 10,
+              paddingHorizontal: 6,
+              borderRadius: 10,
+              borderWidth: confidence === ConfidenceLevel.Sure ? 1.5 : 1,
+              borderColor: confidence === ConfidenceLevel.Sure ? palette.confidence.sure.border : '#E5E7EB',
+              backgroundColor: confidence === ConfidenceLevel.Sure ? palette.confidence.sure.border : '#F9FAFB',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            onPress={() => handleConfidenceSelect(ConfidenceLevel.Sure)}
+          >
+            <Text style={{ color: confidence === ConfidenceLevel.Sure ? palette.common.white : '#4B5563', fontWeight: '700', fontSize: 13 }}>
+              ○ {t('confidence_sure')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            disabled={disabled}
+            activeOpacity={0.7}
+            style={{
+              flex: 1,
+              paddingVertical: 10,
+              paddingHorizontal: 6,
+              borderRadius: 10,
+              borderWidth: confidence === ConfidenceLevel.Unsure ? 1.5 : 1,
+              borderColor: confidence === ConfidenceLevel.Unsure ? palette.confidence.unsure.border : '#E5E7EB',
+              backgroundColor: confidence === ConfidenceLevel.Unsure ? palette.confidence.unsure.border : '#F9FAFB',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            onPress={() => handleConfidenceSelect(ConfidenceLevel.Unsure)}
+          >
+            <Text style={{ color: confidence === ConfidenceLevel.Unsure ? palette.common.white : '#4B5563', fontWeight: '700', fontSize: 13 }}>
+              △ {t('confidence_unsure')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            disabled={disabled}
+            activeOpacity={0.7}
+            style={{
+              flex: 1,
+              paddingVertical: 10,
+              paddingHorizontal: 6,
+              borderRadius: 10,
+              borderWidth: confidence === ConfidenceLevel.Random ? 1.5 : 1,
+              borderColor: confidence === ConfidenceLevel.Random ? palette.confidence.random.border : '#E5E7EB',
+              backgroundColor: confidence === ConfidenceLevel.Random ? palette.confidence.random.border : '#F9FAFB',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            onPress={() => handleConfidenceSelect(ConfidenceLevel.Random)}
+          >
+            <Text style={{ color: confidence === ConfidenceLevel.Random ? palette.common.white : '#4B5563', fontWeight: '700', fontSize: 13 }}>
+              × {t('confidence_random')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  return (
+    <View style={styles.container}>
       {renderAnswer(question, question.questionAnswerType)}
-  </View>
+      {renderConfidenceSelector()}
+    </View>
+  );
 }
 
 const styles = ScaledSheet.create({
@@ -354,6 +443,10 @@ const styles = ScaledSheet.create({
   confirmButton: {
     backgroundColor: palette.main[500],
     marginBottom: '12@ms'
+  },
+  disabledButton: {
+    backgroundColor: palette.grey[300],
+    opacity: 0.6
   },
   cancelButtonText: {
     ...TYPO.button2,
