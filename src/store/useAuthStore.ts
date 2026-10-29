@@ -80,6 +80,7 @@ interface StoreState {
   isWeakPassword: boolean;
   activeEventHandlers: Record<string, EventHandler[]>;
   parentViewMode: ParentViewModeState | null;
+  selectedStudentSuperId: number | null;
   linkedStudents: ParentLinkResponse[];
   isUserCustomLoaded: boolean;
   hasConfirmedWarning: boolean;
@@ -90,6 +91,7 @@ interface StoreActions {
   setUser: (user: UserResponse | null) => void;
   setUserCustom: (user: UserResponse | null) => Promise<void>;
   setParentViewMode: (viewMode: ParentViewModeState | null) => void;
+  setSelectedStudentSuperId: (id: number | null) => void;
   setLinkedStudents: (students: ParentLinkResponse[]) => void;
   syncParentLinkedStudents: (signal?: AbortSignal) => Promise<ParentLinkResponse[]>;
   setHasConsented: (value: boolean) => void;
@@ -143,8 +145,8 @@ type AuthStore = StoreState & StoreActions;
 
 const computeParentViewMode = (
   studentsList: ParentLinkResponse[],
-  currentViewMode: ParentViewModeState | null,
-  academyDomain?: string | null
+  academyDomain?: string | null,
+  selectedStudentSuperId?: number | null
 ): ParentViewModeState => {
   if (studentsList.length === 0) {
     return {
@@ -157,10 +159,10 @@ const computeParentViewMode = (
       studentAcademyDomain: academyDomain || null,
     };
   }
-
-  const currentLinkId = currentViewMode?.linkId;
-  const matchedChild = currentLinkId ? studentsList.find((item) => item.id === currentLinkId) : undefined;
-  if (!currentLinkId || !matchedChild) {
+  const matchedChild = selectedStudentSuperId
+    ? studentsList.find((item) => item.studentSuperId === selectedStudentSuperId)
+    : undefined;
+  if (!matchedChild) {
     const firstChild = studentsList[0];
     return {
       isActive: true,
@@ -174,8 +176,13 @@ const computeParentViewMode = (
   }
 
   return {
-    ...currentViewMode,
-    studentSuperId: currentViewMode.studentSuperId ?? matchedChild.studentSuperId ?? null,
+    isActive: true,
+    linkId: matchedChild.id,
+    studentSuperId: matchedChild.studentSuperId || null,
+    studentAcademyUserId: matchedChild.studentAcademyUserId || null,
+    studentName: matchedChild.studentName || null,
+    studentEmail: matchedChild.studentEmail || null,
+    studentAcademyDomain: academyDomain || null,
   };
 };
 
@@ -206,6 +213,7 @@ const useAuthStore = create<AuthStore>()(
       isWeakPassword: false,
       activeEventHandlers: {},
       parentViewMode: null,
+      selectedStudentSuperId: null,
       linkedStudents: [],
       isUserCustomLoaded: false,
       hasConfirmedWarning: false,
@@ -223,20 +231,26 @@ const useAuthStore = create<AuthStore>()(
             state.user = null;
             state.linkedStudents = [];
             state.parentViewMode = null;
+            state.selectedStudentSuperId = null;
             state.isUserCustomLoaded = true;
           });
           return;
         }
 
         let studentsList: ParentLinkResponse[] = [];
-        let newParentViewMode = get().parentViewMode;
+        let newParentViewMode: ParentViewModeState | null = null;
+        const selectedStudentSuperId = get().selectedStudentSuperId;
 
         const isParent = user?.roles?.includes(Role.Parent);
         if (isParent) {
           try {
             const response = await getLinkedStudentsForParentApi();
             studentsList = response.data?.data || [];
-            newParentViewMode = computeParentViewMode(studentsList, newParentViewMode, user.academyDomain);
+            newParentViewMode = computeParentViewMode(
+              studentsList,
+              user.academyDomain,
+              selectedStudentSuperId
+            );
           } catch (error) {
             console.error("Failed to fetch linked children:", error);
             return;
@@ -248,8 +262,10 @@ const useAuthStore = create<AuthStore>()(
           if (isParent) {
             state.linkedStudents = studentsList;
             state.parentViewMode = newParentViewMode;
+            state.selectedStudentSuperId = newParentViewMode?.studentSuperId || null;
           } else {
             state.parentViewMode = null;
+            state.selectedStudentSuperId = null;
           }
           state.isUserCustomLoaded = true;
         });
@@ -257,12 +273,17 @@ const useAuthStore = create<AuthStore>()(
 
       setLinkedStudents: (students) => {
         const currentUser = get().user;
-        const currentViewMode = get().parentViewMode;
-        const newParentViewMode = computeParentViewMode(students, currentViewMode, currentUser?.academyDomain);
+        const selectedStudentSuperId = get().selectedStudentSuperId;
+        const newParentViewMode = computeParentViewMode(
+          students,
+          currentUser?.academyDomain,
+          selectedStudentSuperId
+        );
 
         set((state) => {
           state.linkedStudents = students;
           state.parentViewMode = newParentViewMode;
+          state.selectedStudentSuperId = newParentViewMode?.studentSuperId || null;
         });
       },
 
@@ -273,9 +294,16 @@ const useAuthStore = create<AuthStore>()(
         return studentsList;
       },
 
+      setSelectedStudentSuperId: (id) => {
+        set((state) => {
+          state.selectedStudentSuperId = id;
+        });
+      },
+
       setParentViewMode: (viewMode) => {
         set((state) => {
           state.parentViewMode = viewMode;
+          state.selectedStudentSuperId = viewMode?.studentSuperId || null;
         });
       },
 
@@ -593,6 +621,7 @@ const useAuthStore = create<AuthStore>()(
           isDemoMode: false,
           hasConsented: false,
           parentViewMode: null,
+          selectedStudentSuperId: null,
           linkedStudents: [],
           isUserCustomLoaded: false,
           hasConfirmedWarning: false,
@@ -622,6 +651,7 @@ const useAuthStore = create<AuthStore>()(
         academies: state.academies,
         selectedAcademy: state.selectedAcademy,
         parentViewMode: state.parentViewMode,
+        selectedStudentSuperId: state.selectedStudentSuperId,
         language: state.language,
         hasConsented: state.hasConsented,
         hasSeenTutorial: state.hasSeenTutorial,

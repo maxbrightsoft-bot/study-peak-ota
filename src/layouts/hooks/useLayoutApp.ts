@@ -232,7 +232,7 @@ const useLayoutApp = () => {
     targetChild?: ParentLinkResponse | null,
     redirectUrlProp?: string
   ) => {
-    const setParentViewMode = useAuthStore.getState().setParentViewMode
+    useAuthStore.getState().setSelectedStudentSuperId(targetChild?.studentSuperId || null)
 
     // Demo Mode: chỉ cập nhật store, không gọi API thật
     const demoMode = await getDataStorage('DEMO_MODE');
@@ -282,20 +282,6 @@ const useLayoutApp = () => {
         false,
         redirectUrlProp
       )
-
-      if (userRole === Role.Parent && targetChild) {
-        setParentViewMode({
-          isActive: true,
-          linkId: targetChild.id,
-          studentSuperId: targetChild.studentSuperId || null,
-          studentAcademyUserId: targetChild.studentAcademyUserId || null,
-          studentName: targetChild.studentName || null,
-          studentEmail: targetChild.studentEmail || null,
-          studentAcademyDomain: selectedAcademy?.domain || null,
-        });
-      } else if (userRole === Role.Student) {
-        setParentViewMode(null);
-      }
 
       setSelectAcademy(selectedAcademy)
     } catch (error) {
