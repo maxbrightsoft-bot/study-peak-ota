@@ -15,7 +15,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "buildNumber": "11",
+      "buildNumber": "12",
       "bundleIdentifier": "com.max.britghtsoft.touchstudymobile",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
@@ -28,7 +28,8 @@
               "com.googleusercontent.apps.152811895076-4fh9ctjtl077laeh3itrtn3fejdtlcqc"
             ]
           }
-        ]
+        ],
+        "NSFaceIDUsageDescription": "Allow $(PRODUCT_NAME) to use Face ID."
       },
       "appleTeamId": "9PC7DVBBJ8",
       "associatedDomains": [
@@ -103,6 +104,19 @@
           "android": {
             "enablePagesizeMigration": true
           }
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Study Peak needs camera access to scan a QR code to link your account with another user, such as a parent or tutor account.",
+          "barcodeScannerEnabled": true
         }
       ]
     ],
