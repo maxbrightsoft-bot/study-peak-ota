@@ -6,11 +6,10 @@ import {
   Pusher,
   PusherChannel,
   PusherEvent,
+  PusherMember,
 } from "@pusher/pusher-websocket-react-native";
 import {
-  AcademyHeaders,
   BASE_URL,
-  NoAcademyHeaders,
   PUSHER_CONFIG,
   ACCESS_TOKEN,
   ACADEMY_DOMAIN,
@@ -31,6 +30,8 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { disconnectSocket } from "@/services/socket";
 import { toast } from "@/utils/helpers";
 import crashlytics from '@react-native-firebase/crashlytics'
+import { ParentLinkResponse, getLinkedStudentsForParentApi } from "@/containers/AccountLinking/apiClients";
+import { Role } from "@/utils/enums";
 
 interface EventHandler<T = any> {
   eventName: string;
@@ -38,6 +39,20 @@ interface EventHandler<T = any> {
 }
 
 const channelHandlersRegistry = new Map<string, Set<any>>();
+
+export interface SubscribeOptions {
+  onMemberRemoved?: (member: PusherMember) => void;
+  onSubscriptionSucceeded?: (data?: any) => void;
+}
+
+export interface ParentViewModeState {
+  isActive: boolean;
+  linkId: number | null;
+  studentAcademyUserId?: number | null;
+  studentName: string | null;
+  studentEmail: string | null;
+  studentAcademyDomain: string | null;
+}
 
 interface StoreState {
   isLoading: boolean;
@@ -64,10 +79,19 @@ interface StoreState {
   isDemoMode: boolean;
   isWeakPassword: boolean;
   activeEventHandlers: Record<string, EventHandler[]>;
+  parentViewMode: ParentViewModeState | null;
+  linkedStudents: ParentLinkResponse[];
+  isUserCustomLoaded: boolean;
+  hasConfirmedWarning: boolean;
+  isMustChangePasswordDismissed: boolean;
 }
 
 interface StoreActions {
   setUser: (user: UserResponse | null) => void;
+  setUserCustom: (user: UserResponse | null) => Promise<void>;
+  setParentViewMode: (viewMode: ParentViewModeState | null) => void;
+  setLinkedStudents: (students: ParentLinkResponse[]) => void;
+  syncParentLinkedStudents: (signal?: AbortSignal) => Promise<ParentLinkResponse[]>;
   setHasConsented: (value: boolean) => void;
   setIsDemoMode: (value: boolean) => void;
   setAcademies: (academies: AcademyResponse[]) => void;
@@ -88,15 +112,13 @@ interface StoreActions {
   setActiveTimerSeconds: (seconds: number | undefined) => void;
   setIsOpenTimerDialog: (isOpen: boolean) => void;
 
-  initializePusher: (
-    academyDomain: string,
-    isLearningSpace: boolean
-  ) => Promise<Pusher>;
+  initializePusher: () => Promise<Pusher>;
 
   subscribeChannel: (
     pusher: Pusher,
     channelName: string,
-    getEventHandlers: EventHandler[] | (() => EventHandler[])
+    getEventHandlers: EventHandler[] | (() => EventHandler[]),
+    options?: SubscribeOptions
   ) => Promise<PusherChannel>;
 
   unsubscribeChannelSafe: (
@@ -113,9 +135,44 @@ interface StoreActions {
   logout: () => Promise<void>;
   setHasSeenTutorial: (value: boolean) => void;
   setWeakPassword: (value: boolean) => void;
+  setHasConfirmedWarning: (value: boolean) => void;
+  setIsMustChangePasswordDismissed: (value: boolean) => void;
 }
 
 type AuthStore = StoreState & StoreActions;
+
+const computeParentViewMode = (
+  studentsList: ParentLinkResponse[],
+  currentViewMode: ParentViewModeState | null,
+  academyDomain?: string | null
+): ParentViewModeState => {
+  if (studentsList.length === 0) {
+    return {
+      isActive: true,
+      linkId: null,
+      studentAcademyUserId: null,
+      studentName: null,
+      studentEmail: null,
+      studentAcademyDomain: academyDomain || null,
+    };
+  }
+
+  const currentLinkId = currentViewMode?.linkId;
+  const exists = currentLinkId ? studentsList.some((item) => item.id === currentLinkId) : false;
+  if (!currentLinkId || !exists) {
+    const firstChild = studentsList[0];
+    return {
+      isActive: true,
+      linkId: firstChild.id,
+      studentAcademyUserId: firstChild.studentAcademyUserId || null,
+      studentName: firstChild.studentName || null,
+      studentEmail: firstChild.studentEmail || null,
+      studentAcademyDomain: academyDomain || null,
+    };
+  }
+
+  return currentViewMode;
+};
 
 const useAuthStore = create<AuthStore>()(
   persist(
@@ -143,10 +200,77 @@ const useAuthStore = create<AuthStore>()(
       isDemoMode: false,
       isWeakPassword: false,
       activeEventHandlers: {},
+      parentViewMode: null,
+      linkedStudents: [],
+      isUserCustomLoaded: false,
+      hasConfirmedWarning: false,
+      isMustChangePasswordDismissed: false,
 
       setUser: (user) => {
         set((state) => {
           state.user = user;
+        });
+      },
+
+      setUserCustom: async (user) => {
+        if (!user) {
+          set((state) => {
+            state.user = null;
+            state.linkedStudents = [];
+            state.parentViewMode = null;
+            state.isUserCustomLoaded = true;
+          });
+          return;
+        }
+
+        let studentsList: ParentLinkResponse[] = [];
+        let newParentViewMode = get().parentViewMode;
+
+        const isParent = user?.roles?.includes(Role.Parent);
+        if (isParent) {
+          try {
+            const response = await getLinkedStudentsForParentApi();
+            studentsList = response.data?.data || [];
+            newParentViewMode = computeParentViewMode(studentsList, newParentViewMode, user.academyDomain);
+          } catch (error) {
+            console.error("Failed to fetch linked children:", error);
+            return;
+          }
+        }
+
+        set((state) => {
+          state.user = user;
+          if (isParent) {
+            state.linkedStudents = studentsList;
+            state.parentViewMode = newParentViewMode;
+          } else {
+            state.parentViewMode = null;
+          }
+          state.isUserCustomLoaded = true;
+        });
+      },
+
+      setLinkedStudents: (students) => {
+        const currentUser = get().user;
+        const currentViewMode = get().parentViewMode;
+        const newParentViewMode = computeParentViewMode(students, currentViewMode, currentUser?.academyDomain);
+
+        set((state) => {
+          state.linkedStudents = students;
+          state.parentViewMode = newParentViewMode;
+        });
+      },
+
+      syncParentLinkedStudents: async (signal?: AbortSignal) => {
+        const response = await getLinkedStudentsForParentApi(signal);
+        const studentsList = response.data?.data || [];
+        get().setLinkedStudents(studentsList);
+        return studentsList;
+      },
+
+      setParentViewMode: (viewMode) => {
+        set((state) => {
+          state.parentViewMode = viewMode;
         });
       },
 
@@ -170,6 +294,16 @@ const useAuthStore = create<AuthStore>()(
       setHasSeenTutorial: (value) => {
         set((state) => {
           state.hasSeenTutorial = value
+        })
+      },
+      setHasConfirmedWarning: (value) => {
+        set((state) => {
+          state.hasConfirmedWarning = value
+        })
+      },
+      setIsMustChangePasswordDismissed: (value) => {
+        set((state) => {
+          state.isMustChangePasswordDismissed = value
         })
       },
 
@@ -256,7 +390,7 @@ const useAuthStore = create<AuthStore>()(
         });
       },
 
-      initializePusher: async (academyDomain, isLearningSpace) => {
+      initializePusher: async () => {
         // Skip Pusher trong Demo Mode
         const { isDemoMode } = get();
         if (isDemoMode) {
@@ -286,8 +420,6 @@ const useAuthStore = create<AuthStore>()(
                 {
                   headers: {
                     "Content-Type": "multipart/form-data",
-                    [AcademyHeaders]: academyDomain,
-                    [NoAcademyHeaders]: isLearningSpace,
                   },
                 }
               );
@@ -326,7 +458,7 @@ const useAuthStore = create<AuthStore>()(
         return instance;
       },
 
-      subscribeChannel: async (pusher, channelName, getEventHandlers) => {
+      subscribeChannel: async (pusher, channelName, getEventHandlers, options) => {
         try {
           if (!channelHandlersRegistry.has(channelName)) {
             channelHandlersRegistry.set(channelName, new Set());
@@ -337,11 +469,18 @@ const useAuthStore = create<AuthStore>()(
 
           const existing = pusher?.getChannel?.(channelName);
           if (existing) {
+            if (options?.onSubscriptionSucceeded) {
+              existing.onSubscriptionSucceeded = options.onSubscriptionSucceeded;
+              if (existing.members?.size > 0) {
+                options.onSubscriptionSucceeded(existing);
+              }
+            }
             return existing;
           }
 
           const channel = await pusher.subscribe({
             channelName,
+            ...options,
             onEvent: (event: PusherEvent) => {
               try {
                 const handlerGetters = channelHandlersRegistry.get(channelName);
@@ -449,6 +588,11 @@ const useAuthStore = create<AuthStore>()(
           channel: undefined,
           isDemoMode: false,
           hasConsented: false,
+          parentViewMode: null,
+          linkedStudents: [],
+          isUserCustomLoaded: false,
+          hasConfirmedWarning: false,
+          isMustChangePasswordDismissed: false,
         }));
 
         const keysToRemove = [
@@ -473,10 +617,11 @@ const useAuthStore = create<AuthStore>()(
         user: state.user,
         academies: state.academies,
         selectedAcademy: state.selectedAcademy,
+        parentViewMode: state.parentViewMode,
         language: state.language,
         hasConsented: state.hasConsented,
         hasSeenTutorial: state.hasSeenTutorial,
-        isDemoMode: state.isDemoMode,
+        isDemoMode: state.isDemoMode
       }),
     }
   )

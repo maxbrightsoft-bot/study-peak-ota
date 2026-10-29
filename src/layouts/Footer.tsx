@@ -18,9 +18,11 @@ import CupIcon from '@/assets/iconJSX/cup'
 import ChatIcon from '@/assets/iconJSX/chat'
 import BookIcon from '@/assets/iconJSX/book'
 import useAuthStore from '@/store/useAuthStore'
+import useAccountLinkingStore from '@/store/useAccountLinkingStore'
 import { useTranslation } from 'react-i18next'
 import { ScaledSheet, ms } from 'react-native-size-matters'
 import { Language } from '@/utils/enums'
+import { checkIsParent } from '@/utils/helpers'
 
 interface TabItemData {
   name: string
@@ -178,9 +180,14 @@ const TabItem = React.memo(({ item, isFocused, isEnOrVi, onPress }: TabItemProps
 const Footer = ({ state, navigation }: BottomTabBarProps) => {
   const user = useAuthStore(state => state.user)
   const language = useAuthStore(state => state.language)
+  const requestByLinkId = useAccountLinkingStore(state => state.requestByLinkId)
+  const setRequestByLinkId = useAccountLinkingStore(state => state.setRequestByLinkId)
   const { t, i18n } = useTranslation()
   const insets = useSafeAreaInsets()
-  const isKorean = i18n.language === 'ko'
+
+  const linkedStudents = useAuthStore((state) => state.linkedStudents)
+  const isParent = checkIsParent()
+  const isParentNoChildren = isParent && linkedStudents?.length === 0
 
   const currentLang = language?.code || i18n.language
   const isEnOrVi = currentLang === Language.en || currentLang === Language.vi || currentLang === 'en' || currentLang === 'vi'
@@ -243,13 +250,12 @@ const Footer = ({ state, navigation }: BottomTabBarProps) => {
   const isStudent = user?.roles?.includes('Student')
 
   const filteredStudySpaceTabItems = studySpaceTabItems.filter(item => {
-    if (item.name === Routes.Auth.StudyPerformance && !isStudent) return false
+    if (isParentNoChildren && item.name !== Routes.Auth.PopQuiz && item.name !== Routes.Auth.Home) return false
     return true
   })
 
   const filteredTabItems = tabItems.filter(item => {
-    if (item.name === Routes.Auth.ExamResultList && !isStudent) return false
-    if (item.name === Routes.Auth.StudyPerformance && !isStudent) return false
+    if (item.name === Routes.Auth.Question && !isStudent) return false
     return true
   })
 
@@ -257,8 +263,13 @@ const Footer = ({ state, navigation }: BottomTabBarProps) => {
   const currentTabName = state?.routes[state?.index]?.name || currentScreen()
 
   const handlePressTab = useCallback((item: TabItemData) => {
+    if (item.name === Routes.Auth.PopQuiz && !user?.academyDomain && isParent) {
+      setRequestByLinkId(false);
+    } else {
+      setRequestByLinkId(true);
+    }
     navigation.navigate(item.name)
-  }, [navigation])
+  }, [navigation, user?.academyDomain, isParent, setRequestByLinkId])
 
   const bottomPadding = Platform.OS === 'ios' ? Math.max(insets.bottom, ms(8)) : ms(8)
 
@@ -266,7 +277,10 @@ const Footer = ({ state, navigation }: BottomTabBarProps) => {
     <View style={[styles.tabBar, { paddingBottom: bottomPadding }]}>
       <View style={styles.tabBarInner}>
         {displayItems.map((item) => {
-          const isFocused = currentTabName === item.name
+          let isFocused = currentTabName === item.name
+          if (!user?.academyDomain && isParent && requestByLinkId && item.name === Routes.Auth.PopQuiz) {
+            isFocused = false
+          }
 
           return (
             <TabItem

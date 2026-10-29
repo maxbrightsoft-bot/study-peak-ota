@@ -3,6 +3,7 @@ import { getReceivedPopQuizzesApi } from '@/services/api/examService';
 import { useState, useCallback } from 'react';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import useAuthStore from '@/store/useAuthStore';
+import useAccountLinkingStore from '@/store/useAccountLinkingStore';
 import { useTranslation } from 'react-i18next';
 import { toast } from '@/utils/helpers';
 import { ExamStatus } from '@/utils/enums';
@@ -11,6 +12,7 @@ import { Routes } from '@/navigators/RouteName';
 const usePopQuiz = () => {
   const navigation = useNavigation<any>();
   const user = useAuthStore(state => state.user);
+  const requestByLinkId = useAccountLinkingStore(state => state.requestByLinkId);
   const { t } = useTranslation();
 
   const [code, setCode] = useState('');
@@ -43,7 +45,7 @@ const usePopQuiz = () => {
       setRecentQuizzes(enrichedList);
     } catch (err) {
     }
-  }, [user?.academyDomain]);
+  }, [user?.academyDomain, requestByLinkId]);
 
   const fetchReceivedQuizzes = useCallback(async () => {
     try {
@@ -51,7 +53,7 @@ const usePopQuiz = () => {
       setReceivedQuizzes(res.data?.items || res.data || []);
     } catch (err) {
     }
-  }, []);
+  }, [requestByLinkId]);
 
   const popQuizStatusLabel = useCallback((status: ExamStatus) => {
     if (status === ExamStatus.Default) return { label: t('pop_quiz_status_inactive'), color: '#6B7280' };
