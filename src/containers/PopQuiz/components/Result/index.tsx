@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, ActivityIndicator, BackHandler } from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, ActivityIndicator } from 'react-native';
 import { palette } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { ScaledSheet } from 'react-native-size-matters';
@@ -8,9 +8,13 @@ import Svg, { Circle } from 'react-native-svg';
 import usePopQuizResult from './hooks/usePopQuizResult';
 import { ExamStatus } from '@/utils/enums';
 import { navigate } from '@/navigators/NavigationHelpers';
-import { getSolveTargetLabel, navigateToPopQuizList } from '../../helpers';
+import { getSolveTargetLabel } from '../../helpers';
+import { checkIsParent } from '@/utils/helpers';
+import useAccountLinkingStore from '@/store/useAccountLinkingStore';
 
 const PopQuizResult = () => {
+  const isParent = checkIsParent();
+  const requestByLinkId = useAccountLinkingStore(state => state.requestByLinkId);
   const {
     t,
     loading,
@@ -19,15 +23,6 @@ const PopQuizResult = () => {
     handleRetry,
     fetchResult,
   } = usePopQuizResult();
-
-  useEffect(() => {
-    const onBackPress = () => {
-      navigateToPopQuizList();
-      return true;
-    };
-    const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => subscription.remove();
-  }, []);
 
   if (loading) {
     return (
@@ -71,7 +66,7 @@ const PopQuizResult = () => {
       <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
         <View style={styles.header}>
           <View style={styles.headerButtonsRow}>
-            <TouchableOpacity onPress={navigateToPopQuizList} style={styles.headerIconBtn}>
+            <TouchableOpacity onPress={() => navigate(Routes.Auth.PopQuiz)} style={styles.headerIconBtn}>
               <Ionicons name="arrow-back" size={24} color={palette.grey[600]} />
             </TouchableOpacity>
             <TouchableOpacity onPress={fetchResult} style={styles.headerIconBtn}>
@@ -162,7 +157,7 @@ const PopQuizResult = () => {
       </ScrollView>
 
       <View style={styles.footer}>
-        {(resultData?.popQuizStatus ? (resultData.popQuizStatus !== ExamStatus.Completed && resultData.popQuizStatus !== 'Completed') : true) && (
+        {!isParent && (resultData?.popQuizStatus ? (resultData.popQuizStatus !== ExamStatus.Completed && resultData.popQuizStatus !== 'Completed') : true) && (
           <TouchableOpacity style={styles.retryBtn} onPress={handleRetry}>
             <Ionicons name="refresh-outline" size={16} color={palette.grey[700]} />
             <Text style={styles.retryBtnText}>{t('retry_quiz')}</Text>

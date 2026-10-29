@@ -11,8 +11,12 @@ export const navigate = (routeName: string, params?: object) => {
 };
 
 export const replace = (routeName: string, params?: object) => {
-  if (navigationRef.current.isReady()) {
-  navigationRef?.current?.replace(routeName, params);
+  if (navigationRef.current?.isReady()) {
+    try {
+      navigationRef.current.dispatch(StackActions.replace(routeName, params));
+    } catch {
+      navigationRef.current.navigate(routeName, params);
+    }
   }
 };
 
@@ -22,6 +26,24 @@ export const reset = (routeName: string, params?: object) => {
       CommonActions.reset({
         index: 0,
         routes: [{ name: !!Object.values(Routes.Auth).find( i => i === routeName) ? MainRoutes.AuthStack : MainRoutes.UnAuthStack, state: { index: 0, routes: [{ name: routeName, params }] } }],
+      })
+    );
+  }
+};
+
+export const resetToHome = (params?: object) => {
+  if (navigationRef.current?.isReady()) {
+    navigationRef.current.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [
+          {
+            name: Routes.Auth.MainTabs,
+            state: {
+              routes: [{ name: Routes.Auth.Home, params }],
+            },
+          },
+        ],
       })
     );
   }

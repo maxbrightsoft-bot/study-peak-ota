@@ -1,12 +1,20 @@
-import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ActivityIndicator, Image, BackHandler } from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity, SafeAreaView, ActivityIndicator, Image } from 'react-native';
 import { palette } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { ScaledSheet } from 'react-native-size-matters';
 import usePopQuizIntro from './hooks/usePopQuizIntro';
-import { getSolveTargetLabel, navigateToPopQuizList } from '../../helpers';
+import { navigate } from '@/navigators/NavigationHelpers';
+import { Routes } from '@/navigators/RouteName';
+import { getSolveTargetLabel } from '../../helpers';
+import { checkIsParent } from '@/utils/helpers';
+import useAccountLinkingStore from '@/store/useAccountLinkingStore';
+import useAuthStore from '@/store/useAuthStore';
 
 const PopQuizIntro = () => {
+  const isParent = checkIsParent();
+  const user = useAuthStore(state => state.user);
+  const requestByLinkId = useAccountLinkingStore(state => state.requestByLinkId);
   const {
     t,
     loading,
@@ -14,17 +22,8 @@ const PopQuizIntro = () => {
     startLoading,
     handleStart,
     error
-  } = usePopQuizIntro();
-
-  useEffect(() => {
-    const onBackPress = () => {
-      navigateToPopQuizList();
-      return true;
-    };
-    const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => subscription.remove();
-  }, []);
-
+  } = usePopQuizIntro()
+ 
   if (loading) {
     return (
       <View style={[styles.container, styles.center]}>
@@ -38,7 +37,7 @@ const PopQuizIntro = () => {
       <View style={[styles.container, styles.center]}>
         <SafeAreaView />
         <View style={styles.header}>
-          <TouchableOpacity onPress={navigateToPopQuizList} style={styles.closeButton}>
+          <TouchableOpacity onPress={() => navigate(Routes.Auth.PopQuiz)} style={styles.closeButton}>
             <Ionicons name="close" size={24} color="#FFF" />
           </TouchableOpacity>
         </View>
@@ -46,7 +45,7 @@ const PopQuizIntro = () => {
           <Ionicons name="alert-circle-outline" size={64} color="#FFF" style={styles.errorIcon} />
           <Text style={styles.errorTitle}>{t('error') || 'Error'}</Text>
           <Text style={styles.errorMessage}>{error}</Text>
-          <TouchableOpacity onPress={navigateToPopQuizList} style={styles.errorBackBtn}>
+          <TouchableOpacity onPress={() => navigate(Routes.Auth.PopQuiz)} style={styles.errorBackBtn}>
             <Text style={styles.errorBackBtnText}>{t('go_back') || 'Go Back'}</Text>
           </TouchableOpacity>
         </View>
@@ -58,7 +57,7 @@ const PopQuizIntro = () => {
     return (
       <View style={[styles.container, styles.center]}>
         <Text style={styles.errorText}>{t('quiz_not_found')}</Text>
-        <TouchableOpacity onPress={navigateToPopQuizList} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => navigate(Routes.Auth.PopQuiz)} style={styles.backBtn}>
           <Text style={styles.backBtnText}>{t('go_back')}</Text>
         </TouchableOpacity>
       </View>
@@ -69,7 +68,7 @@ const PopQuizIntro = () => {
     <View style={styles.container}>
       <SafeAreaView />
       <View style={styles.header}>
-        <TouchableOpacity onPress={navigateToPopQuizList} style={styles.closeButton}>
+        <TouchableOpacity onPress={() => navigate(Routes.Auth.PopQuiz)} style={styles.closeButton}>
           <Ionicons name="close" size={24} color="#FFF" />
         </TouchableOpacity>
       </View>
@@ -109,37 +108,41 @@ const PopQuizIntro = () => {
           {t('pop_quiz_info_format', { count: quizInfo.questionCount || 0, score: quizInfo.totalScore || 0 })}
         </Text>
 
-        <Text style={styles.subtitle}>
-          {t('pop_quiz_intro_desc') || '지금 팝퀴즈를 시작해 보세요. 집중해서 최선을 다해 풀어주세요!'}
-        </Text>
+        {(!isParent || (!user?.academyDomain && !requestByLinkId)) && (
+          <Text style={styles.subtitle}>
+            {t('pop_quiz_intro_desc') || '지금 팝퀴즈를 시작해 보세요. 집중해서 최선을 다해 풀어주세요!'}
+          </Text>
+        )}
       </View>
 
-      <View style={styles.footer}>
-        <TouchableOpacity 
-          style={styles.startBtn}
-          onPress={handleStart}
-          disabled={startLoading}
-        >
-          {startLoading ? (
-            <ActivityIndicator size="small" color={palette.main[500]} />
-          ) : (
-            <>
-              <Ionicons 
-                name={quizInfo && quizInfo.studentExamSessionId && quizInfo.isSessionFinished ? "eye-outline" : "play"} 
-                size={14} 
-                color={palette.main[500]} 
-              />
-              <Text style={styles.startBtnText}>
-                {quizInfo && quizInfo.studentExamSessionId && quizInfo.isSessionFinished
-                  ? (t('view_result') || 'Xem kết quả')
-                  : quizInfo && quizInfo.studentExamSessionId && !quizInfo.isSessionFinished
-                  ? (t('resume') || 'Tiếp tục')
-                  : (t('start') || '시작하기')}
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
+      {(!isParent || quizInfo.isSessionFinished) && (
+        <View style={styles.footer}>
+          <TouchableOpacity 
+            style={styles.startBtn}
+            onPress={handleStart}
+            disabled={startLoading}
+          >
+            {startLoading ? (
+              <ActivityIndicator size="small" color={palette.main[500]} />
+            ) : (
+              <>
+                <Ionicons 
+                  name={quizInfo && quizInfo.studentExamSessionId && quizInfo.isSessionFinished ? "eye-outline" : "play"} 
+                  size={14} 
+                  color={palette.main[500]} 
+                />
+                <Text style={styles.startBtnText}>
+                  {quizInfo && quizInfo.studentExamSessionId && quizInfo.isSessionFinished
+                    ? (t('view_result') || 'Xem kết quả')
+                    : quizInfo && quizInfo.studentExamSessionId && !quizInfo.isSessionFinished
+                    ? (t('resume') || 'Tiếp tục')
+                    : (t('start') || '시작하기')}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };

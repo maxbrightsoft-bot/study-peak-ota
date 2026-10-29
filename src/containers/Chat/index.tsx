@@ -17,6 +17,7 @@ import MathRender from '@/components/MathRender'
 import { Ionicons } from '@expo/vector-icons'
 import { useFocusEffect } from '@react-navigation/native'
 import TextTooltip from '@/components/Tooltip/TextTooltip'
+import useAuthStore from '@/store/useAuthStore'
 import { ConversationListSkeleton } from '@/components/Skeleton'
 
 const getConversationTitle = (
@@ -182,6 +183,7 @@ const Card = React.memo(({
 ))
 
 export default function Question() {
+  const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
   const {
     t,
     search,
@@ -263,11 +265,19 @@ export default function Question() {
   return (
     <View style={styles.container}>
       <View style={[styles.header]}>
-        <Text style={styles.headerTitle}>{t('question')}</Text>
-        <TouchableOpacity style={styles.floatingButton} onPress={openCreateConversationDialog}>
-          <AddChatIcon />
-          <Text style={styles.floatingButtonText}>{t('ask_question')}</Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: "row" }}>
+          <Text style={styles.headerTitle}>{t('question')}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <BotIcon />
+            <Text style={styles.headerSub}>{t('chatbot')}</Text>
+          </View>
+        </View>
+        {!isParentMode && (
+          <TouchableOpacity style={styles.floatingButton} onPress={openCreateConversationDialog}>
+            <AddChatIcon />
+            <Text style={styles.floatingButtonText}>{t('ask_question')}</Text>
+          </TouchableOpacity>
+        )}
       </View>
       <View style={{ backgroundColor: palette.bg[100], flex: 1, paddingHorizontal: 20, paddingTop: 30, gap: 16 }}>
         <View style={styles.tabsContainer}>

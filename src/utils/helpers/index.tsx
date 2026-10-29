@@ -12,6 +12,8 @@ import { palette } from '@/theme'
 import { Language, Role } from '../enums'
 import { PauseOrResumeExamRequest } from '../types'
 import { trackErrorStandalone } from '@/hooks/useActivityTracking'
+import useAuthStore from '@/store/useAuthStore'
+import useAccountLinkingStore from '@/store/useAccountLinkingStore'
 
 export const toast = {
   success: (message: string) =>
@@ -19,8 +21,8 @@ export const toast = {
       type: 'success',
       text1: message
     }),
-  error: (message: string) => {
-    if (message === 'DEMO_BLOCKED' || message === UPDATE_REQUIRED) return;
+  error: (message?: string) => {
+    if (!message || !message.trim() || message === 'DEMO_BLOCKED' || message === UPDATE_REQUIRED) return;
     Toast.show({
       type: 'error',
       text1: message
@@ -122,6 +124,10 @@ export const formatGrade = (grade: number, t: any, language?: string) => {
 }
 
 export const getErrorMessage = (t: TFunction<"translation", undefined>, error: any, defaultErrorMessage?: string): string => {
+    if (error?.isSilent) {
+      return ""
+    }
+
     if (error) {
       trackErrorStandalone(error).catch(() => {})
     }
@@ -149,6 +155,10 @@ export const getErrorMessage = (t: TFunction<"translation", undefined>, error: a
     return defaultErrorMessage || t("an_unexpected_error_has_occurred");
 }
 export const getMessageFromError = (t: TFunction<"translation", undefined>, error: any, defaultErrorMessage?: string): string => {
+    if (error?.isSilent) {
+      return ""
+    }
+
     const message = error?.response?.data?.title
     const errorStatus = error?.response?.status
     if(errorStatus === 420 && !!message) {
@@ -372,6 +382,31 @@ export const stripHtml = (html?: string): string => {
     .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
     .replace(/\s+/g, ' ')
     .trim()
+}
+
+export const getCurrentRole = (roles?: string[]): Role => {
+  const userRoles = roles || useAuthStore.getState().user?.roles
+  if (!userRoles) return Role.Student
+  return userRoles.includes(Role.Parent) ? Role.Parent : Role.Student
+}
+
+export const checkIsParent = (roles?: string[]): boolean => {
+  return getCurrentRole(roles) === Role.Parent
+}
+
+export const checkIsStudent = (roles?: string[]): boolean => {
+  return getCurrentRole(roles) === Role.Student
+}
+
+export const getIdLinkAccount = (): number | undefined => {
+  const parentViewMode = useAuthStore.getState().parentViewMode
+  return (parentViewMode?.isActive && parentViewMode?.linkId) ? parentViewMode.linkId : undefined
+}
+
+export const getIdLinkAccountForPopQuiz = (): number | undefined => {
+  const requestByLinkId = useAccountLinkingStore.getState().requestByLinkId;
+  if (!requestByLinkId) return undefined;
+  return getIdLinkAccount();
 }
 
 export * from './times'
