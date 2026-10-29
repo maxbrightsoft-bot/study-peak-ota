@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { View, Text, TouchableOpacity, Alert, Image } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
@@ -12,24 +12,47 @@ import LinkedStateCard from '../components/LinkedStateCard'
 import ExpiryProgressBar from '../components/ExpiryProgressBar'
 import useAccountLinkingStore from '@/store/useAccountLinkingStore'
 import useAuthStore from '@/store/useAuthStore'
-import { rejectLinkAccountApi, deleteLinkApi, acceptLinkAccountApi } from '../apiClients'
+import { rejectLinkAccountApi, deleteLinkApi, acceptLinkAccountApi, getAccountLinkDetailApi } from '../apiClients'
+import { AccountLinkStatus } from '@/utils/enums'
 
 const StudentLinkApproval = () => {
   const { t } = useTranslation()
   const navigation = useNavigation<any>()
   const setLoading = useAuthStore((state) => state.setLoading)
   const setAcceptedLinkData = useAccountLinkingStore((state) => state.setAcceptedLinkData)
+  const setAcceptedLinkId = useAccountLinkingStore((state) => state.setAcceptedLinkId)
   const setParentRequestLink = useAccountLinkingStore((state) => state.setParentRequestLink)
 
   const parentRequestLink = useAccountLinkingStore((state) => state.parentRequestLink)
   const acceptedLinkData = useAccountLinkingStore((state) => state.acceptedLinkData)
+  const acceptedLinkId = useAccountLinkingStore((state) => state.acceptedLinkId)
+  const [isApprovedByStudent, setIsApprovedByStudent] = useState(false)
 
   useEffect(() => {
     return () => {
       setParentRequestLink(null)
       setAcceptedLinkData(null)
+      setAcceptedLinkId(null)
     }
   }, [])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    if (acceptedLinkId) {
+      getAccountLinkDetailApi(acceptedLinkId, controller.signal)
+        .then((res) => {
+          if (res.data?.data) {
+            setAcceptedLinkData(res.data.data)
+          }
+        })
+        .catch((err) => {
+          if (err.name !== 'CanceledError' && err.message !== 'canceled') {
+            toast.error(getMessageFromError(t, err))
+          }
+        })
+    }
+    return () => controller.abort()
+  }, [acceptedLinkId, t])
 
   const handleExpire = useCallback(() => {
     toast.info(t('link_request_expired'))
@@ -50,8 +73,9 @@ const StudentLinkApproval = () => {
           onPress: async () => {
             try {
               setLoading(true)
-              if (parentRequestLink?.linkId) {
-                await rejectLinkAccountApi(parentRequestLink.linkId)
+              const targetId = parentRequestLink?.id ?? parentRequestLink?.linkId
+              if (targetId) {
+                await rejectLinkAccountApi(targetId)
               }
               toast.success(t('link_request_declined'))
               navigation.goBack()
@@ -69,12 +93,18 @@ const StudentLinkApproval = () => {
   const handleAccept = async () => {
     try {
       setLoading(true)
-      const response = await acceptLinkAccountApi(parentRequestLink?.linkId!)
-      const acceptedData = response.data?.data
-      if (acceptedData) {
-        setAcceptedLinkData(acceptedData)
+      const targetId = parentRequestLink?.id ?? parentRequestLink?.linkId
+      if (targetId) {
+        await acceptLinkAccountApi(targetId)
       }
-      toast.success(t('link_completed_student'))
+      setIsApprovedByStudent(true)
+      if (parentRequestLink) {
+        setParentRequestLink({
+          ...parentRequestLink,
+          status: AccountLinkStatus.StudentApproval,
+        })
+      }
+      toast.success(t('link_approve_success_waiting_parent'))
     } catch (error: any) {
       toast.error(getMessageFromError(t, error))
     } finally {
@@ -94,7 +124,7 @@ const StudentLinkApproval = () => {
           onPress: async () => {
             try {
               setLoading(true)
-              const id = acceptedLinkData?.id || parentRequestLink?.linkId
+              const id = acceptedLinkData?.id || (parentRequestLink?.id ?? parentRequestLink?.linkId)
               if (id) {
                 await deleteLinkApi(id)
               }
@@ -119,7 +149,7 @@ const StudentLinkApproval = () => {
       {/* Navbar đầu trang */}
       <Navbar
         title={t('family_link')}
-        showBack={!!acceptedLinkData}
+        showBack={!!acceptedLinkData || isApprovedByStudent}
         onBackPress={() => {
           navigation.reset({
             index: 0,
@@ -175,40 +205,62 @@ const StudentLinkApproval = () => {
               )}
 
               {/* Banner thông tin giới thiệu bước tiếp theo */}
-              <View style={styles.infoBanner}>
-                <Text style={styles.infoBannerText}>
-                  {t('link_approve_description')}
+              <View style={[styles.infoBanner, isApprovedByStudent && { backgroundColor: '#F4F0FA' }]}>
+                <Text style={[styles.infoBannerText, isApprovedByStudent && { color: '#5F30AA', fontWeight: '600' }]}>
+                  {isApprovedByStudent
+                    ? (t('student_waiting_parent_select_academy'))
+                    : t('link_approve_description')}
                 </Text>
               </View>
 
               {/* Thanh tiến trình đếm ngược thời gian hết hạn */}
-              <ExpiryProgressBar
-                expiredTime={parentRequestLink?.expiredTime}
-                createdAt={parentRequestLink?.createdAt}
-                onExpire={handleExpire}
-              />
+              {!isApprovedByStudent && (
+                <ExpiryProgressBar
+                  expiredTime={parentRequestLink?.expiredTime}
+                  onExpire={handleExpire}
+                />
+              )}
 
-              {/* Nút bấm hành động Từ chối / Tiếp theo */}
+              {/* Nút bấm hành động */}
               <View style={styles.buttonRow}>
-                <TouchableOpacity
-                  style={[styles.btn, styles.ghostBtn]}
-                  onPress={handleDecline}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.ghostBtnText}>
-                    {t('decline')}
-                  </Text>
-                </TouchableOpacity>
+                {isApprovedByStudent ? (
+                  <TouchableOpacity
+                    style={[styles.btn, styles.primaryBtn, { flex: 1 }]}
+                    onPress={() => {
+                      navigation.reset({
+                        index: 0,
+                        routes: [{ name: Routes.Auth.StudentAccountLinking }],
+                      })
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.primaryBtnText}>
+                      {t('close')}
+                    </Text>
+                  </TouchableOpacity>
+                ) : (
+                  <>
+                    <TouchableOpacity
+                      style={[styles.btn, styles.ghostBtn]}
+                      onPress={handleDecline}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.ghostBtnText}>
+                        {t('decline')}
+                      </Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={[styles.btn, styles.primaryBtn]}
-                  onPress={handleAccept}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.primaryBtnText}>
-                    {t('accept')}
-                  </Text>
-                </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.btn, styles.primaryBtn]}
+                      onPress={handleAccept}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.primaryBtnText}>
+                        {t('accept')}
+                      </Text>
+                    </TouchableOpacity>
+                  </>
+                )}
               </View>
             </View>
           </>

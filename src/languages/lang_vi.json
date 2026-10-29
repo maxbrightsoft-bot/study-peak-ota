@@ -2642,6 +2642,7 @@
   "teacher_comment": "Nhận xét của giáo viên",
 
   "convert_parent_role_title": "Chuyển sang vai trò Phụ huynh",
+  "convert_parent_role_other_academies": "Chuyển sang vai trò Phụ huynh cho các học viện khác",
   "convert_parent_role_desc": "Tài khoản này đang được đăng ký vai trò Học sinh trong Bản đồ tư duy. Bạn có muốn chuyển sang tài khoản Phụ huynh không?",
   "convert_parent_role_to_view_results": "Chuyển đổi sang vai trò Phụ huynh để xem kết quả",
   "convert_parent_role_to_view_results_desc": "Để xem được kết quả bài kiểm tra, bạn cần chuyển đổi học viện chỉ định sang vai trò Phụ huynh. Bạn có muốn chuyển đổi ngay bây giờ không?",
@@ -2670,5 +2671,15 @@
   "sent_message_successfully": "Gửi tin nhắn thành công",
   "please_select_a_question": "Vui lòng chọn câu hỏi",
   "textbook_inquiry": "Hỏi đáp giáo trình",
-  "required": "Bắt buộc"
+  "required": "Bắt buộc",
+  "academies_already_parent_role": "Học viện đã có vai trò Phụ huynh",
+  "academies_already_parent_role_desc": "Đã có sẵn vai trò Phụ huynh, tự động được liên kết",
+  "academies_auto_add_parent_role": "Học viện sẽ tự động thêm vai trò Phụ huynh",
+  "academies_auto_add_parent_role_desc": "Chưa tham gia học viện, sẽ tự động thêm vai trò Phụ huynh khi hoàn tất liên kết",
+  "already_has_parent_role": "Đã là Phụ huynh",
+  "will_auto_add_role": "Tự động thêm",
+  "request_link_sent": "Đã gửi yêu cầu liên kết thành công!",
+  "conflict_error_occurred": "Đã xảy ra xung đột dữ liệu",
+  "student_waiting_parent_select_academy": "Bạn đã đồng ý cho phụ huynh liên kết. Phụ huynh đang trong quá trình chọn academy để tham gia với vai trò phụ huynh. Bạn có thể chờ xem kết quả hoặc thoát ra đều không ảnh hưởng.",
+  "link_approve_success_waiting_parent": "Đã đồng ý liên kết thành công"
 }

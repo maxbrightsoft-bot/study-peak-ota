@@ -27,7 +27,6 @@ import { AlarmResponse } from "@/utils/types/alarm";
 import { api } from "@/services/api/apiClient";
 import { autoReconnectPusher } from "@/utils/helpers/pusher";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
-import { disconnectSocket } from "@/services/socket";
 import { toast } from "@/utils/helpers";
 import crashlytics from '@react-native-firebase/crashlytics'
 import { ParentLinkResponse, getLinkedStudentsForParentApi } from "@/containers/AccountLinking/apiClients";
@@ -48,6 +47,7 @@ export interface SubscribeOptions {
 export interface ParentViewModeState {
   isActive: boolean;
   linkId: number | null;
+  studentSuperId?: number | null;
   studentAcademyUserId?: number | null;
   studentName: string | null;
   studentEmail: string | null;
@@ -150,6 +150,7 @@ const computeParentViewMode = (
     return {
       isActive: true,
       linkId: null,
+      studentSuperId: null,
       studentAcademyUserId: null,
       studentName: null,
       studentEmail: null,
@@ -158,12 +159,13 @@ const computeParentViewMode = (
   }
 
   const currentLinkId = currentViewMode?.linkId;
-  const exists = currentLinkId ? studentsList.some((item) => item.id === currentLinkId) : false;
-  if (!currentLinkId || !exists) {
+  const matchedChild = currentLinkId ? studentsList.find((item) => item.id === currentLinkId) : undefined;
+  if (!currentLinkId || !matchedChild) {
     const firstChild = studentsList[0];
     return {
       isActive: true,
       linkId: firstChild.id,
+      studentSuperId: firstChild.studentSuperId || null,
       studentAcademyUserId: firstChild.studentAcademyUserId || null,
       studentName: firstChild.studentName || null,
       studentEmail: firstChild.studentEmail || null,
@@ -171,7 +173,10 @@ const computeParentViewMode = (
     };
   }
 
-  return currentViewMode;
+  return {
+    ...currentViewMode,
+    studentSuperId: currentViewMode.studentSuperId ?? matchedChild.studentSuperId ?? null,
+  };
 };
 
 const useAuthStore = create<AuthStore>()(
@@ -571,7 +576,6 @@ const useAuthStore = create<AuthStore>()(
         await GoogleSignin.signOut();
 
         await disconnectPusher(pusher, channel);
-        disconnectSocket();
         toast.dismiss()
         clearCrashlyticsUser()
 

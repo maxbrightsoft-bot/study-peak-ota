@@ -1,10 +1,10 @@
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import { Role } from "@/utils/enums";
+import { Role, AccountLinkMethod, AccountLinkStatus } from "@/utils/enums";
 import {
-  AccountLinkMethod,
   AccountLinkResponse,
-  getPendingLinkRequestsApi,
+  getWaitingApprovalLinkRequestsApi,
+  checkUnsyncedAccountLinksApi,
 } from "@/containers/AccountLinking/apiClients";
 import { toast, getMessageFromError, checkIsStudent } from "@/utils/helpers";
 import i18n from "@/languages/i18n";
@@ -12,12 +12,14 @@ import useAuthStore from "@/store/useAuthStore";
 import { PusherMember } from "@pusher/pusher-websocket-react-native";
 
 export interface ParentRequestLink {
-  linkId: number;
+  id: number;
+  linkId?: number;
   parentName: string;
   parentEmail?: string;
   parentAvatar?: string;
   createdAt?: string;
   expiredTime?: string;
+  status?: AccountLinkStatus;
 }
 
 interface AccountLinkingState {
@@ -37,6 +39,9 @@ interface AccountLinkingState {
   isCancelledByStudent: boolean;
   requestByLinkId: boolean;
   isFromShareLink: boolean;
+  hasUnsyncedLinks: boolean;
+  isStudentAccepted: boolean;
+  targetDomain: string | null;
 }
 
 interface AccountLinkingActions {
@@ -47,14 +52,17 @@ interface AccountLinkingActions {
   setAcceptedLinkData: (data: AccountLinkResponse | null) => void;
   setAcceptedLinkId: (id: number | null) => void;
   setLinkedAccounts: (accounts: AccountLinkResponse[]) => void;
-  fetchPendingRequestsApi: () => Promise<AccountLinkResponse[]>;
-  clearPendingRequests: () => void;
+  fetchWaitingApprovalRequestsApi: () => Promise<AccountLinkResponse[]>;
   setSubscribedChannel: (channelName: string | null) => void;
   setRequestByLinkId: (val: boolean) => void;
   setLinkData: (data: { key: string; code: string; image: string; expiredTime: string }, studentEmail?: string) => void;
   clearLinkData: () => void;
   setIsCancelledByStudent: (val: boolean) => void;
+  setIsStudentAccepted: (val: boolean) => void;
   setIsFromShareLink: (val: boolean) => void;
+  setTargetDomain: (domain: string | null) => void;
+  setHasUnsyncedLinks: (val: boolean) => void;
+  checkUnsyncedLinksApi: () => Promise<boolean>;
 }
 
 type AccountLinkingStore = AccountLinkingState & AccountLinkingActions;
@@ -91,6 +99,40 @@ const useAccountLinkingStore = create<AccountLinkingStore>()(
     isCancelledByStudent: false,
     subscribedChannel: null,
     isFromShareLink: false,
+    hasUnsyncedLinks: false,
+    isStudentAccepted: false,
+    targetDomain: null,
+
+    setTargetDomain: (domain) => {
+      set((state) => {
+        state.targetDomain = domain;
+      });
+    },
+
+    setIsStudentAccepted: (val) => {
+      set((state) => {
+        state.isStudentAccepted = val;
+      });
+    },
+
+    setHasUnsyncedLinks: (val) => {
+      set((state) => {
+        state.hasUnsyncedLinks = val;
+      });
+    },
+
+    checkUnsyncedLinksApi: async () => {
+      try {
+        const res = await checkUnsyncedAccountLinksApi();
+        const hasUnsynced = Boolean(res?.data?.data);
+        set((state) => {
+          state.hasUnsyncedLinks = hasUnsynced;
+        });
+        return hasUnsynced;
+      } catch {
+        return false;
+      }
+    },
 
     setIsFromShareLink: (val) => {
       set((state) => {
@@ -177,7 +219,7 @@ const useAccountLinkingStore = create<AccountLinkingStore>()(
       });
     },
 
-    fetchPendingRequestsApi: async () => {
+    fetchWaitingApprovalRequestsApi: async () => {
       if (!checkIsStudent()) {
         return [];
       }
@@ -189,7 +231,7 @@ const useAccountLinkingStore = create<AccountLinkingStore>()(
       const currentController = pendingRequestsAbortController;
 
       try {
-        const response = await getPendingLinkRequestsApi(currentController.signal);
+        const response = await getWaitingApprovalLinkRequestsApi(currentController.signal);
         const data = response.data?.data || [];
         set((state) => {
           state.pendingRequests = data;
@@ -207,12 +249,6 @@ const useAccountLinkingStore = create<AccountLinkingStore>()(
       }
     },
 
-    clearPendingRequests: () => {
-      set((state) => {
-        state.pendingRequests = [];
-      });
-    },
-
     clearLinkData: () => {
       set((state) => {
         state.linkKey = null;
@@ -226,6 +262,8 @@ const useAccountLinkingStore = create<AccountLinkingStore>()(
         state.acceptedLinkId = null;
         state.linkedAccounts = [];
         state.isCancelledByStudent = false;
+        state.isStudentAccepted = false;
+        state.targetDomain = null;
         state.requestByLinkId = true;
       });
     },

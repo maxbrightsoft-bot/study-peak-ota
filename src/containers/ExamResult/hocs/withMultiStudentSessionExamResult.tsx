@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useRoute, useNavigation } from "@react-navigation/native";
+import { useRoute, useNavigation, useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useAcademyDeepLink } from "@/hooks/useAcademyDeepLink";
@@ -202,11 +202,13 @@ export const withMultiStudentSessionExamResult = <P extends object>(
       loadSessions(page + 1);
     }, [isLoadingMore, hasMore, sessions, page, loadSessions]);
 
-    useEffect(() => {
-      if (isReady && isMultiSessionMode) {
-        loadSessions(0);
-      }
-    }, [isReady, isMultiSessionMode, studentExamSessionIds, loadSessions]);
+    useFocusEffect(
+      useCallback(() => {
+        if (isReady && isMultiSessionMode) {
+          loadSessions(0);
+        }
+      }, [isReady, isMultiSessionMode, studentExamSessionIds, loadSessions])
+    );
 
     const activeExamCode = isMultiSessionMode
       ? selectedSession?.code || selectedSession?.examCode

@@ -1003,6 +1003,7 @@
   "progress": "Progress",
   "grammar": "Grammar",
   "team": "Team",
+  "study_space": "Study space",
   "my_study_space": "My study space",
   "continue_solving_the_problem_book": "Continue solving the problem book",
   "view_all": "View All",
@@ -2625,6 +2626,7 @@
   "teacher_comment": "Teacher's Comment",
 
   "convert_parent_role_title": "Switch to Parent Role",
+  "convert_parent_role_other_academies": "Switch to Parent Role for other academies",
   "convert_parent_role_desc": "This account is registered as a Student in Thought Map. Would you like to switch to a Parent account?",
   "convert_parent_role_to_view_results": "Switch to Parent role to view results",
   "convert_parent_role_to_view_results_desc": "To view the exam results, you need to switch the specified academy to a Parent account. Would you like to switch now?",
@@ -2653,5 +2655,15 @@
   "sent_message_successfully": "Message sent successfully",
   "please_select_a_question": "Please select a question",
   "textbook_inquiry": "Textbook inquiry",
-  "required": "Required"
+  "required": "Required",
+  "academies_already_parent_role": "Academies with Parent Role",
+  "academies_already_parent_role_desc": "Already has Parent role, will be linked automatically",
+  "academies_auto_add_parent_role": "Academies to automatically link Parent role",
+  "academies_auto_add_parent_role_desc": "Not yet joined, will automatically add Parent role upon link completion",
+  "already_has_parent_role": "Parent",
+  "will_auto_add_role": "Auto-add",
+  "request_link_sent": "Link request sent successfully!",
+  "conflict_error_occurred": "A data conflict occurred",
+  "student_waiting_parent_select_academy": "You have approved the link request. The parent is currently selecting academies to join. You can wait or exit without impact.",
+  "link_approve_success_waiting_parent": "Link approved successfully"
 }

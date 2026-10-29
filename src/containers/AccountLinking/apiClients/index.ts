@@ -2,8 +2,18 @@ import { AxiosResponse } from "axios";
 import { api } from "@/services/api/apiClient";
 import { BASE_URL } from "@/utils/constants";
 import { LoginResponse } from "@/utils/types";
+import { AccountLinkStatus, AccountLinkMethod } from "@/utils/enums";
 
 const ACCOUNT_LINKS_URL = `${BASE_URL}/api/accountlinks`;
+
+const triggerCheckUnsyncedLinks = () => {
+  try {
+    const useAccountLinkingStore = require("@/store/useAccountLinkingStore").default;
+    useAccountLinkingStore?.getState()?.checkUnsyncedLinksApi?.();
+  } catch (e) {
+    // ignore store call error
+  }
+};
 
 export interface ResponseModel<T = undefined> {
   status: number;
@@ -21,17 +31,6 @@ export interface GenerateCodeResponse {
   expiredTime: string;
   image: string;
   key: string;
-}
-
-export enum AccountLinkStatus {
-  Pending = 0,
-  Accept = 2,
-  Reject = 1,
-}
-
-export enum AccountLinkMethod {
-  Code = 0,
-  ShareLink = 1,
 }
 
 export interface ParentLinkResponse {
@@ -104,10 +103,13 @@ export const rejectLinkAccountApi = (
 ): Promise<AxiosResponse<ResponseModel<AccountLinkResponse>>> =>
   api.post(`${ACCOUNT_LINKS_URL}/reject/${linkId}`, {});
 
-export const deleteLinkApi = (
+export const deleteLinkApi = async (
   linkId: number
-): Promise<AxiosResponse<ResponseModel>> =>
-  api.delete(`${ACCOUNT_LINKS_URL}/${linkId}`);
+): Promise<AxiosResponse<ResponseModel>> => {
+  const response = await api.delete(`${ACCOUNT_LINKS_URL}/${linkId}`);
+  triggerCheckUnsyncedLinks();
+  return response;
+};
 
 const PARENTS_URL = `${BASE_URL}/api/parents`;
 
@@ -128,11 +130,23 @@ export interface ConvertParentRoleAcademiesRequest {
   academyIds: number[];
 }
 
+export interface SubmitConvertAcademiesRequest {
+  academyIds: number[];
+}
+
+export interface ParentPendingAcademiesResponse {
+  convertAcademies: AcademySimpleResponse[];
+  alreadyParentAcademies: AcademySimpleResponse[];
+  autoAddAcademies: AcademySimpleResponse[];
+}
+
 export const getParentPendingAcademiesApi = (
   linkId: number,
   signal?: AbortSignal
-): Promise<AxiosResponse<ResponseModel<AcademySimpleResponse[]>>> =>
-  api.get(`${ACCOUNT_LINKS_URL}/parent-pending-academies/${linkId}`, { signal });
+): Promise<AxiosResponse<ResponseModel<ParentPendingAcademiesResponse>>> =>
+  api.get(`${ACCOUNT_LINKS_URL}/parent-pending-academies/${linkId}`, {
+    signal
+  });
 
 export const convertParentRoleAcademiesApi = (
   linkId: number,
@@ -140,18 +154,32 @@ export const convertParentRoleAcademiesApi = (
 ): Promise<AxiosResponse<ResponseModel<LoginResponse | null>>> =>
   api.post(`${ACCOUNT_LINKS_URL}/convert-parent-role-academies/${linkId}`, data);
 
+export const submitConvertAcademiesApi = (
+  linkId: number,
+  data: SubmitConvertAcademiesRequest
+): Promise<AxiosResponse<ResponseModel<LoginResponse | null>>> =>
+  api.post(`${ACCOUNT_LINKS_URL}/submit-convert-academies/${linkId}`, data);
+
 export interface SyncAccountLinksRequest {
   userSuperId?: number;
   isAll?: boolean;
 }
 
-export const syncAccountLinksApi = (
+export const syncAccountLinksApi = async (
   data?: SyncAccountLinksRequest
-): Promise<AxiosResponse<ResponseModel>> =>
-  api.post(`${ACCOUNT_LINKS_URL}/sync`, data || {});
+): Promise<AxiosResponse<ResponseModel>> => {
+  const response = await api.post(`${ACCOUNT_LINKS_URL}/sync`, data || {});
+  triggerCheckUnsyncedLinks();
+  return response;
+};
 
 export const requestLinkByStudentIdApi = (studentId: number): Promise<AxiosResponse<ResponseModel<AccountLinkResponse>>> =>
-  api.post(`${ACCOUNT_LINKS_URL}/request-by-student-id`, { studentId });
+  api.post(`${ACCOUNT_LINKS_URL}/account-link-request/${studentId}`);
 
-export const getPendingLinkRequestsApi = (signal?: AbortSignal): Promise<AxiosResponse<ResponseModel<AccountLinkResponse[]>>> =>
-  api.get(`${ACCOUNT_LINKS_URL}/pending-requests`, { signal });
+export const getWaitingApprovalLinkRequestsApi = (signal?: AbortSignal): Promise<AxiosResponse<ResponseModel<AccountLinkResponse[]>>> =>
+  api.get(`${ACCOUNT_LINKS_URL}/waiting-approval-requests`, { signal });
+
+export const checkUnsyncedAccountLinksApi = (
+  signal?: AbortSignal
+): Promise<AxiosResponse<ResponseModel<boolean>>> =>
+  api.get(`${ACCOUNT_LINKS_URL}/check-unsynced`, { signal });

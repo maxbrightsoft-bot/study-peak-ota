@@ -15,10 +15,12 @@ import { palette, TYPO } from '@/theme'
 import { Routes, MainRoutes } from '@/navigators/RouteName'
 import { navigationRef } from '@/navigators/NavigationHelpers'
 import Navbar from '../components/Navbar'
+import usePreventBack from '@/hooks/usePreventBack'
 import {
   AcademySimpleResponse,
   getParentPendingAcademiesApi,
-  convertParentRoleAcademiesApi
+  submitConvertAcademiesApi,
+  convertParentRoleAcademiesApi,
 } from '../apiClients'
 import { getSafeUrl, toast, getMessageFromError } from '@/utils/helpers'
 import { ACCESS_TOKEN } from '@/utils/constants'
@@ -31,14 +33,34 @@ const ConvertParentRole = () => {
   const navigation = useNavigation<any>()
   const route = useRoute<any>()
   const setUserCustom = useAuthStore((state) => state.setUserCustom)
+  const acceptedLinkData = useAccountLinkingStore((state) => state.acceptedLinkData)
+  const acceptedLinkId = useAccountLinkingStore((state) => state.acceptedLinkId)
+  const isFromShareLink = useAccountLinkingStore((state) => state.isFromShareLink)
 
   const linkId = route.params?.linkId
-  const targetDomain = route.params?.targetDomain
+  const targetDomain = useAccountLinkingStore((state) => state.targetDomain)
+  const isLinkingFlow = Boolean(route.params?.isLinkingFlow)
+  const linkData = route.params?.linkData
+  const hasAcceptedId = Boolean(acceptedLinkData?.id || acceptedLinkId)
+
+  usePreventBack(() => {
+    if (!isLinkingFlow || isFromShareLink) return false
+    const isAccepted = Boolean(
+      useAccountLinkingStore.getState().acceptedLinkId ||
+      useAccountLinkingStore.getState().acceptedLinkData?.id
+    )
+    return !isAccepted
+  })
 
   const [academies, setAcademies] = useState<AcademySimpleResponse[]>([])
+  const [alreadyParentAcademies, setAlreadyParentAcademies] = useState<AcademySimpleResponse[]>([])
+  const [autoAddAcademies, setAutoAddAcademies] = useState<AcademySimpleResponse[]>([])
   const [selectedIds, setSelectedIds] = useState<number[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isAutoSubmitting, setIsAutoSubmitting] = useState(false)
+
+  const targetAcademy = targetDomain ? academies.find((a) => a.domain === targetDomain) : undefined
 
   useEffect(() => {
     if (!linkId) {
@@ -51,17 +73,30 @@ const ConvertParentRole = () => {
 
     getParentPendingAcademiesApi(linkId, controller.signal)
       .then((res) => {
-        const list = res.data?.data || []
-        setAcademies(list)
-        if (targetDomain) {
-          const matched = list.find((a) => a.domain === targetDomain)
-          if (matched) {
-            setSelectedIds([matched.id])
-          } else {
-            setSelectedIds([])
-          }
+        const data = res.data?.data
+        const convertList = data?.convertAcademies ?? (Array.isArray(data) ? data : [])
+        const alreadyList = data?.alreadyParentAcademies ?? []
+        const autoList = data?.autoAddAcademies ?? []
+
+        setAcademies(convertList)
+        setAlreadyParentAcademies(alreadyList)
+        setAutoAddAcademies(autoList)
+
+        const matched = targetDomain ? convertList.find((a) => a.domain === targetDomain) : undefined
+
+        // Trường hợp không có academy nào cần chuyển đổi,
+        // hoặc có targetDomain nhưng không nằm trong convertList (tức đã thuộc alreadyParent hoặc autoAdd):
+        // Tự động gọi handleSubmitNewFlow([]) để chuyển sang màn chờ duyệt
+        if (isLinkingFlow && (convertList.length === 0 || (targetDomain && !matched))) {
+          setIsAutoSubmitting(true)
+          handleSubmit([])
+          return
+        }
+
+        if (targetDomain && matched) {
+          setSelectedIds([matched.id])
         } else {
-          setSelectedIds([])
+          setSelectedIds(isLinkingFlow ? convertList.map((a) => a.id) : [])
         }
       })
       .catch((err) => {
@@ -75,19 +110,23 @@ const ConvertParentRole = () => {
       })
 
     return () => controller.abort()
-  }, [linkId, targetDomain])
+  }, [linkId, targetDomain, isLinkingFlow])
 
   const isAllSelected = academies.length > 0 && selectedIds.length === academies.length
 
   const handleToggleAll = () => {
     if (isAllSelected) {
-      setSelectedIds([])
+      setSelectedIds(targetAcademy ? [targetAcademy.id] : [])
     } else {
       setSelectedIds(academies.map((a) => a.id))
     }
   }
 
   const handleToggleAcademy = (id: number) => {
+    if (targetAcademy && id === targetAcademy.id) {
+      return
+    }
+
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     )
@@ -99,14 +138,18 @@ const ConvertParentRole = () => {
     }
   }, [])
 
-  const handleConfirm = async () => {
-    if (selectedIds.length === 0 || isSubmitting || !linkId) return
+  const handleSubmit = async (academyIdsToSubmit: number[]) => {
+    if (isSubmitting || !linkId) return
 
     try {
       setIsSubmitting(true)
-      const res = await convertParentRoleAcademiesApi(linkId, {
-        academyIds: selectedIds
-      })
+      const res = isLinkingFlow
+        ? await submitConvertAcademiesApi(linkId, {
+            academyIds: academyIdsToSubmit
+          })
+        : await convertParentRoleAcademiesApi(linkId, {
+            academyIds: academyIdsToSubmit
+          })
       const { token, user: userData } = res?.data?.data || {}
       if (token) {
         await setDataStorage(ACCESS_TOKEN, token)
@@ -116,9 +159,14 @@ const ConvertParentRole = () => {
       }
       toast.success(t('convert_role_success'))
 
-      const isFromShareLink = useAccountLinkingStore.getState().isFromShareLink
+      if (isLinkingFlow) {
+        useAccountLinkingStore.getState().setAcceptedLinkData({ id: linkId, ...linkData } as any)
+      }
+      useAccountLinkingStore.getState().setAcceptedLinkId(linkId)
+      useAccountLinkingStore.getState().fetchWaitingApprovalRequestsApi()
+      useAccountLinkingStore.getState().checkUnsyncedLinksApi()
+
       if (isFromShareLink) {
-        useAccountLinkingStore.getState().setIsFromShareLink(false)
         const pendingRedirectUrl = route.params?.redirectUrl || useAuthStore.getState().pendingRedirectUrl
         const pendingRedirectParams = route.params?.redirectParams || useAuthStore.getState().pendingRedirectParams
         useAuthStore.getState().clearRedirectUrl()
@@ -156,22 +204,42 @@ const ConvertParentRole = () => {
       navigation.goBack()
     } catch (error) {
       toast.error(getMessageFromError(t, error))
+      setIsAutoSubmitting(false)
     } finally {
       setIsSubmitting(false)
     }
   }
 
+  const handleSkip = () => {
+    if(isFromShareLink) {
+      navigation.pop(2);
+      return
+    }
+    navigation.goBack()
+  }
+
+  const handleConfirm = async () => {
+    if(isLinkingFlow && alreadyParentAcademies.length === 0 && autoAddAcademies.length === 0 && selectedIds.length === 0){
+      toast.warning(t('please_select_at_least_one_academy'))
+      return
+    }
+    await handleSubmit(selectedIds)
+  }
+
   const renderContent = () => {
-    if (isLoading) {
+    if (isLoading || isAutoSubmitting) {
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#5F30AA" />
-          <Text style={styles.loadingText}>{t('loading_academies')}</Text>
         </View>
       )
     }
 
-    if (academies.length === 0) {
+    const hasConvertAcademies = academies.length > 0
+    const hasAlreadyParent = alreadyParentAcademies.length > 0
+    const hasAutoAdd = autoAddAcademies.length > 0
+
+    if (!hasConvertAcademies && !hasAlreadyParent && !hasAutoAdd) {
       return (
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIconCircle}>
@@ -181,10 +249,22 @@ const ConvertParentRole = () => {
           <Text style={styles.emptyDesc}>{t('no_academies_to_convert_desc')}</Text>
           <TouchableOpacity
             style={styles.emptyCloseButton}
-            onPress={() => navigation.goBack()}
+            onPress={handleSkip}
+            disabled={isSubmitting}
             activeOpacity={0.8}
           >
-            <Text style={styles.emptyCloseButtonText}>{t('close')}</Text>
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color="#FFF" />
+            ) : (
+              <Text
+                style={styles.emptyCloseButtonText}
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}
+              >
+                {isLinkingFlow ? t('continue') : t('close')}
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
       )
@@ -194,30 +274,34 @@ const ConvertParentRole = () => {
       <>
         {/* Instruction Subtitle */}
         <Text style={styles.instructionText}>
-          {t('select_academies_to_convert', 'Vui lòng chọn các học viện bạn muốn chuyển đổi sang vai trò Phụ huynh.')}
+          {hasConvertAcademies
+            ? t('select_academies_to_convert')
+            : t('no_academies_to_convert_desc')}
         </Text>
 
         {/* Select all row */}
-        <View style={styles.selectAllRow}>
-          <TouchableOpacity
-            style={styles.selectAllButton}
-            onPress={handleToggleAll}
-            activeOpacity={0.7}
-            disabled={isSubmitting}
-          >
-            <View style={[styles.checkbox, isAllSelected && styles.checkboxActive]}>
-              {isAllSelected && <Ionicons name="checkmark" size={14} color="#FFF" />}
+        {hasConvertAcademies && (
+          <View style={styles.selectAllRow}>
+            <TouchableOpacity
+              style={styles.selectAllButton}
+              onPress={handleToggleAll}
+              activeOpacity={0.7}
+              disabled={isSubmitting}
+            >
+              <View style={[styles.checkbox, isAllSelected && styles.checkboxActive]}>
+                {isAllSelected && <Ionicons name="checkmark" size={14} color="#FFF" />}
+              </View>
+              <Text style={styles.selectAllText}>
+                {isAllSelected ? t('deselect_all') : t('select_all')}
+              </Text>
+            </TouchableOpacity>
+            <View style={styles.countBadge}>
+              <Text style={styles.countBadgeText}>
+                {t('selected_academies_count', { count: selectedIds.length })}
+              </Text>
             </View>
-            <Text style={styles.selectAllText}>
-              {isAllSelected ? t('deselect_all', 'Bỏ chọn tất cả') : t('select_all')}
-            </Text>
-          </TouchableOpacity>
-          <View style={styles.countBadge}>
-            <Text style={styles.countBadgeText}>
-              {t('selected_academies_count', { count: selectedIds.length })}
-            </Text>
           </View>
-        </View>
+        )}
 
         {/* Academy list */}
         <ScrollView
@@ -239,7 +323,7 @@ const ConvertParentRole = () => {
                 ]}
                 onPress={() => handleToggleAcademy(academy.id)}
                 activeOpacity={0.7}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isTargetAcademy}
               >
                 {/* Checkbox */}
                 <View style={[styles.checkbox, isSelected && styles.checkboxActive]}>
@@ -262,7 +346,7 @@ const ConvertParentRole = () => {
                 <View style={styles.academyInfo}>
                   <View style={styles.academyNameRow}>
                     <Text style={styles.academyName} numberOfLines={1}>
-                      {academy.name}
+                      {!academy.domain ? t('my_study_space') : academy.name}
                     </Text>
                     {isTargetAcademy && (
                       <View style={styles.targetBadge}>
@@ -276,32 +360,124 @@ const ConvertParentRole = () => {
               </TouchableOpacity>
             )
           })}
+
+          {/* Nhóm học viện đã có sẵn vai trò Phụ huynh */}
+          {hasAlreadyParent && (
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>
+                {t('academies_already_parent_role')}
+              </Text>
+              <Text style={styles.sectionSubtitle}>
+                {t('academies_already_parent_role_desc')}
+              </Text>
+              {alreadyParentAcademies.map((academy) => (
+                <View key={`already-${academy.id}`} style={[styles.academyCard, styles.academyCardReadOnly]}>
+                  <View style={styles.readOnlyIndicator}>
+                    <Ionicons name="checkmark-circle" size={22} color="#10B981" />
+                  </View>
+                  {academy.image ? (
+                    <Image
+                      source={{ uri: getSafeUrl(academy.image) }}
+                      style={styles.academyLogo}
+                    />
+                  ) : (
+                    <View style={styles.academyLogoFallback}>
+                      <Ionicons name="business" size={20} color="#5F30AA" />
+                    </View>
+                  )}
+                  <View style={styles.academyInfo}>
+                    <View style={styles.academyNameRow}>
+                      <Text style={styles.academyName} numberOfLines={1}>
+                        {!academy.domain ? t('my_study_space') : academy.name}
+                      </Text>
+                      <View style={styles.alreadyParentBadge}>
+                        <Text style={styles.alreadyParentBadgeText}>
+                          {t('already_has_parent_role')}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Nhóm học viện chưa tham gia (sẽ tự động thêm vai trò Phụ huynh) */}
+          {hasAutoAdd && (
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>
+                {t('academies_auto_add_parent_role')}
+              </Text>
+              <Text style={styles.sectionSubtitle}>
+                {t('academies_auto_add_parent_role_desc')}
+              </Text>
+              {autoAddAcademies.map((academy) => (
+                <View key={`auto-${academy.id}`} style={[styles.academyCard, styles.academyCardReadOnly]}>
+                  <View style={styles.readOnlyIndicator}>
+                    <Ionicons name="add-circle" size={22} color="#6366F1" />
+                  </View>
+                  {academy.image ? (
+                    <Image
+                      source={{ uri: getSafeUrl(academy.image) }}
+                      style={styles.academyLogo}
+                    />
+                  ) : (
+                    <View style={styles.academyLogoFallback}>
+                      <Ionicons name="business" size={20} color="#5F30AA" />
+                    </View>
+                  )}
+                  <View style={styles.academyInfo}>
+                    <View style={styles.academyNameRow}>
+                      <Text style={styles.academyName} numberOfLines={1}>
+                        {!academy.domain ? t('my_study_space') : academy.name}
+                      </Text>
+                      <View style={styles.autoAddBadge}>
+                        <Text style={styles.autoAddBadgeText}>
+                          {t('will_auto_add_role')}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
         </ScrollView>
 
         {/* Footer Actions */}
         <View style={styles.footer}>
-          <TouchableOpacity
-            style={styles.skipButton}
-            onPress={() => navigation.goBack()}
-            disabled={isSubmitting}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.skipButtonText}>{t('skip')}</Text>
-          </TouchableOpacity>
+          {!isLinkingFlow && (
+            <TouchableOpacity
+              style={styles.skipButton}
+              onPress={handleSkip}
+              disabled={isSubmitting}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.skipButtonText}>{t('cancel')}</Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             style={[
               styles.confirmButton,
-              (selectedIds.length === 0 || isSubmitting) && styles.disabledButton
+              isLinkingFlow && { flex: 1 },
+              ((!isLinkingFlow && selectedIds.length === 0) || isSubmitting) && styles.disabledButton
             ]}
             onPress={handleConfirm}
-            disabled={selectedIds.length === 0 || isSubmitting}
+            disabled={(!isLinkingFlow && selectedIds.length === 0) || isSubmitting}
             activeOpacity={0.8}
           >
             {isSubmitting ? (
               <ActivityIndicator size="small" color="#FFF" />
             ) : (
-              <Text style={styles.confirmButtonText}>{t('confirm_convert')}</Text>
+              <Text
+                style={styles.confirmButtonText}
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}
+              >
+                {isLinkingFlow ? t('continue') : t('confirm_convert')}
+              </Text>
             )}
           </TouchableOpacity>
         </View>
@@ -313,8 +489,8 @@ const ConvertParentRole = () => {
     <View style={styles.container}>
       <Navbar
         title={t('convert_parent_role_title')}
-        showBack={true}
-        onBackPress={() => navigation.goBack()}
+        showBack={!isAutoSubmitting && (!isLinkingFlow || hasAcceptedId || isFromShareLink)}
+        onBackPress={handleSkip}
       />
       <View style={styles.body}>{renderContent()}</View>
     </View>
@@ -465,6 +641,59 @@ const styles = ScaledSheet.create({
     ...TYPO.caption,
     fontSize: '12@ms',
     color: palette.grey[500]
+  },
+  sectionContainer: {
+    marginTop: '14@ms',
+    gap: '8@ms'
+  },
+  sectionTitle: {
+    ...TYPO.body2,
+    fontSize: '13@ms',
+    fontWeight: '700',
+    color: palette.grey[700],
+    marginBottom: '2@ms'
+  },
+  sectionSubtitle: {
+    fontSize: '11@ms',
+    color: palette.grey[500],
+    marginBottom: '8@ms',
+    marginTop: '2@ms'
+  },
+  academyCardReadOnly: {
+    backgroundColor: '#F8F9FA',
+    borderColor: '#E9ECEF'
+  },
+  readOnlyIndicator: {
+    width: '22@ms',
+    height: '22@ms',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  alreadyParentBadge: {
+    backgroundColor: '#D1FAE5',
+    paddingHorizontal: '8@ms',
+    paddingVertical: '2@ms',
+    borderRadius: '8@ms',
+    borderWidth: 1,
+    borderColor: '#A7F3D0'
+  },
+  alreadyParentBadgeText: {
+    fontSize: '10@ms',
+    fontWeight: '700',
+    color: '#065F46'
+  },
+  autoAddBadge: {
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: '8@ms',
+    paddingVertical: '2@ms',
+    borderRadius: '8@ms',
+    borderWidth: 1,
+    borderColor: '#E0E7FF'
+  },
+  autoAddBadgeText: {
+    fontSize: '10@ms',
+    fontWeight: '700',
+    color: '#4338CA'
   },
   footer: {
     flexDirection: 'row',

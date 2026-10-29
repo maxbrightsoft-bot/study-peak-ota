@@ -62,7 +62,14 @@ const LinkedStateCard = ({
           activeOpacity={0.8}
         >
           <Ionicons name="close-outline" size={16} color="#E74C3C" />
-          <Text style={styles.dangerBtnText}>{t('unlink')}</Text>
+          <Text
+            style={styles.dangerBtnText}
+            numberOfLines={2}
+            adjustsFontSizeToFit
+            minimumFontScale={0.85}
+          >
+            {t('unlink')}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -188,7 +195,9 @@ const styles = ScaledSheet.create({
     width: '100%'
   },
   actionBtn: {
-    height: '44@ms',
+    minHeight: '44@ms',
+    paddingVertical: '8@ms',
+    paddingHorizontal: '12@ms',
     borderRadius: '12@ms',
     flexDirection: 'row',
     alignItems: 'center',
@@ -201,8 +210,10 @@ const styles = ScaledSheet.create({
   },
   primaryBtnText: {
     color: '#FFF',
-    fontSize: '13@ms',
-    fontWeight: '700'
+    fontSize: '12@ms',
+    fontWeight: '700',
+    textAlign: 'center',
+    flexShrink: 1
   },
   dangerBtn: {
     flex: 1,
@@ -212,7 +223,9 @@ const styles = ScaledSheet.create({
   },
   dangerBtnText: {
     color: '#E74C3C',
-    fontSize: '13@ms',
-    fontWeight: '700'
+    fontSize: '12@ms',
+    fontWeight: '700',
+    textAlign: 'center',
+    flexShrink: 1
   }
 })

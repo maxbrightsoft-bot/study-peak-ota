@@ -6,7 +6,8 @@ import { useTranslation } from 'react-i18next'
 import { palette, TYPO } from '@/theme'
 import { useNavigation } from '@react-navigation/native'
 import { Routes } from '@/navigators/RouteName'
-import { AccountLinkResponse, AccountLinkStatus } from '../apiClients'
+import { AccountLinkResponse } from '../apiClients'
+import { AccountLinkStatus } from '@/utils/enums'
 
 export type LinkedAccount = AccountLinkResponse
 

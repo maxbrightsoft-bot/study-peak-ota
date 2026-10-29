@@ -65,7 +65,15 @@ const Header = ({ headerProps }: Props) => {
       child?: ParentLinkResponse | null
     }> = []
 
-    academies.forEach((academy) => {
+    const sortedAcademies = [...academies].sort((a, b) => {
+      const aEmpty = !a.domain
+      const bEmpty = !b.domain
+      if (aEmpty && !bEmpty) return -1
+      if (!aEmpty && bEmpty) return 1
+      return 0
+    })
+
+    sortedAcademies.forEach((academy) => {
       const roles = (academy.roles || []).map((r) => r.toLowerCase())
       const hasStudentRole = roles.includes('student') || roles.length === 0
       const hasParentRole = roles.includes('parent')
@@ -103,21 +111,52 @@ const Header = ({ headerProps }: Props) => {
     return items
   }, [academies])
 
+  const getAcademyItemName = (item: {
+    academy: AcademyResponse
+    role: Role
+    child?: ParentLinkResponse | null
+  }) => {
+    if (!item.academy.domain) {
+      return item.child ? t('study_space') : t('my_study_space')
+    }
+    return item.academy.name
+  }
+
+  const headerAcademyTitle = useMemo(() => {
+    const isSpaceStudy = !selectedAcademy?.domain
+    if (isSpaceStudy) {
+      return isParentMode && parentViewMode?.linkId ? t('study_space') : t('my_study_space')
+    }
+    return selectedAcademy?.name
+  }, [selectedAcademy, isParentMode, t])
+
   const isItemSelected = (item: {
     academy: AcademyResponse
     role: Role
     child?: ParentLinkResponse | null
   }) => {
-    if (!selectedAcademy?.domain || selectedAcademy.domain !== item.academy.domain) {
+    const isCurrentSpace = !selectedAcademy?.domain
+    const isItemSpace = !item.academy.domain
+
+    if (isCurrentSpace !== isItemSpace) {
       return false
     }
+
+    if (!isCurrentSpace && selectedAcademy?.domain !== item.academy.domain) {
+      return false
+    }
+
     if (isParentMode) {
       if (item.role !== Role.Parent) return false
-      if (item.child && parentViewMode?.linkId) {
-        return item.child.id === parentViewMode.linkId
+      if (item.child) {
+        return Boolean(
+          parentViewMode?.studentSuperId &&
+          item.child.studentSuperId === parentViewMode.studentSuperId
+        )
       }
-      return !item.child && !parentViewMode?.linkId
+      return !parentViewMode?.studentSuperId
     }
+
     return item.role === Role.Student
   }
 
@@ -145,7 +184,7 @@ const Header = ({ headerProps }: Props) => {
                 <View style={{ alignItems: 'center', flexDirection: 'row', gap: 6, width: '100%' }}>
                   <View style={{ flex: 1 }}>
                     <Text numberOfLines={1} style={{ fontSize: 20, fontWeight: 700, color: '#FFF' }}>
-                      {selectedAcademy ? selectedAcademy?.name || t('my_study_space') : t('my_study_space')}
+                      {headerAcademyTitle}
                     </Text>
                     {isParentMode ? (
                      <>
@@ -195,40 +234,6 @@ const Header = ({ headerProps }: Props) => {
               </View>
             ) : (
               <Fragment>
-
-                <TouchableRipple
-                  onPress={() => {
-                    closeAcademyMenu()
-                    handleSwitchAcademy(true, undefined, false)
-                  }}
-                  style={{
-                    width: '100%',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    borderColor: '#E0E0E0',
-                    borderBottomWidth: 1
-                  }}
-                >
-                  <View
-                    style={{
-                      flex: 1,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      paddingVertical: 12,
-                      paddingHorizontal: 10,
-                      backgroundColor: !selectedAcademy?.domain ? palette.main[500] : '#FFF'
-                    }}
-                  >
-                    <Avatar.Image
-                      size={36}
-                      style={{ backgroundColor: '#fff', marginRight: 10 }}
-                      source={{ uri: user?.avatar }}
-                    />
-                    <Text style={{ color: !selectedAcademy?.domain ? '#FFF' : '#000', fontWeight: '600' }}>
-                      {t('my_study_space')}
-                    </Text>
-                  </View>
-                </TouchableRipple>
                 {academyDropdownItems.map((item) => {
                   const selected = isItemSelected(item)
                   return (
@@ -236,7 +241,7 @@ const Header = ({ headerProps }: Props) => {
                       key={item.key}
                       onPress={() => {
                         closeAcademyMenu()
-                        handleSwitchAcademy(false, item.academy, true, item.role, item.child)
+                        handleSwitchAcademy(!item.academy?.domain, item.academy, true, item.role, item.child)
                       }}
                       style={{
                         width: '100%',
@@ -259,7 +264,7 @@ const Header = ({ headerProps }: Props) => {
                         <Avatar.Image
                           size={36}
                           style={{ backgroundColor: '#fff', marginRight: 10 }}
-                          source={{ uri: item.academy?.image }}
+                          source={{ uri: item.academy?.image || (item.child?.studentAvatar || user?.avatar) }}
                         />
                         <View
                           style={{
@@ -278,7 +283,7 @@ const Header = ({ headerProps }: Props) => {
                               marginRight: 8
                             }}
                           >
-                            {item.academy.name}
+                            {getAcademyItemName(item)}
                           </Text>
                           {Boolean(item.child?.studentName) && (
                             <View

@@ -11,7 +11,8 @@ import { toast, getMessageFromError } from '@/utils/helpers'
 import Navbar from '../components/Navbar'
 import CodeInput from '../components/CodeInput'
 import ParentLinkTabs from '../components/ParentLinkTabs'
-import { verifyCodeLinkAccountApi, AccountLinkMethod } from '../apiClients'
+import { verifyCodeLinkAccountApi } from '../apiClients'
+import { AccountLinkMethod } from '@/utils/enums'
 import useAccountLinkingStore, {
   buildAccountLinkingChannelName,
   waitForPusherSubscribed,
@@ -103,10 +104,9 @@ const ParentLinkRequest = () => {
 
       const response = await verifyCodeLinkAccountApi(trimmedCode, trimmedEmail, abortControllerRef.current.signal)
       if (response.data?.data) {
-        toast.success(t('link_request_sent'))
-        // Chuyển thẳng sang trang ParentWaitingApproval không cần Alert
         navigate(Routes.Auth.ParentWaitingApproval, {
-          linkData: response.data?.data
+          linkData: response.data.data,
+          approved: false,
         })
       }
     } catch (error: any) {
@@ -210,7 +210,14 @@ const ParentLinkRequest = () => {
             {loading ? (
               <ActivityIndicator size="small" color="#FFF" />
             ) : (
-              <Text style={styles.ctaText}>{t('next')}</Text>
+              <Text
+                style={styles.ctaText}
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}
+              >
+                {t('next')}
+              </Text>
             )}
           </TouchableOpacity>
         </View>
@@ -311,7 +318,9 @@ const styles = ScaledSheet.create({
     backgroundColor: 'transparent'
   },
   ctaButton: {
-    height: '54@ms',
+    minHeight: '48@ms',
+    paddingVertical: '10@ms',
+    paddingHorizontal: '16@ms',
     borderRadius: '14@ms',
     backgroundColor: palette.main[700] || '#5F30AA',
     alignItems: 'center',
@@ -329,7 +338,9 @@ const styles = ScaledSheet.create({
   },
   ctaText: {
     color: '#FFF',
-    fontSize: '16@ms',
-    fontWeight: '700'
+    fontSize: '15@ms',
+    fontWeight: '700',
+    textAlign: 'center',
+    flexShrink: 1
   }
 })

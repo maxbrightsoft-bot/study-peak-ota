@@ -17,18 +17,18 @@ import { TYPO } from '@/theme'
 import { toast, getMessageFromError } from '@/utils/helpers'
 import Navbar from '../components/Navbar'
 import {
-  AccountLinkMethod,
   AccountLinkResponse,
   acceptLinkAccountApi,
   rejectLinkAccountApi,
 } from '../apiClients'
+import { AccountLinkMethod } from '@/utils/enums'
 import useAccountLinkingStore from '@/store/useAccountLinkingStore'
 import useAuthStore from '@/store/useAuthStore'
 
 const PendingLinkRequests = () => {
   const { t } = useTranslation()
   const requests = useAccountLinkingStore((state) => state.pendingRequests)
-  const fetchPendingRequestsApi = useAccountLinkingStore((state) => state.fetchPendingRequestsApi)
+  const fetchWaitingApprovalRequestsApi = useAccountLinkingStore((state) => state.fetchWaitingApprovalRequestsApi)
   const [loading, setLoading] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [processingId, setProcessingId] = useState<number | null>(null)
@@ -50,19 +50,19 @@ const PendingLinkRequests = () => {
       } else {
         setLoading(true)
       }
-      await fetchPendingRequestsApi()
+      await fetchWaitingApprovalRequestsApi()
     } finally {
       setLoading(false)
       setRefreshing(false)
     }
-  }, [fetchPendingRequestsApi])
+  }, [fetchWaitingApprovalRequestsApi])
 
   const handleAccept = async (item: AccountLinkResponse) => {
     try {
       setProcessingId(item.id)
       await acceptLinkAccountApi(item.id)
       toast.success(t('link_completed_student', 'Đã kết nối tài khoản thành công'))
-      await fetchPendingRequestsApi()
+      await fetchWaitingApprovalRequestsApi()
     } catch (error: any) {
       toast.error(getMessageFromError(t, error))
     } finally {
@@ -84,7 +84,7 @@ const PendingLinkRequests = () => {
               setProcessingId(item.id)
               await rejectLinkAccountApi(item.id)
               toast.success(t('link_request_declined', 'Đã từ chối yêu cầu kết nối'))
-              await fetchPendingRequestsApi()
+              await fetchWaitingApprovalRequestsApi()
             } catch (error: any) {
               toast.error(getMessageFromError(t, error))
             } finally {
@@ -134,7 +134,12 @@ const PendingLinkRequests = () => {
             disabled={isProcessing}
             activeOpacity={0.7}
           >
-            <Text style={styles.declineText}>
+            <Text
+              style={styles.declineText}
+              numberOfLines={2}
+              adjustsFontSizeToFit
+              minimumFontScale={0.85}
+            >
               {t('decline', 'Từ chối')}
             </Text>
           </TouchableOpacity>
@@ -148,7 +153,12 @@ const PendingLinkRequests = () => {
             {isProcessing ? (
               <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
-              <Text style={styles.acceptText}>
+              <Text
+                style={styles.acceptText}
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}
+              >
                 {t('accept', 'Chấp nhận')}
               </Text>
             )}
@@ -287,7 +297,9 @@ const styles = ScaledSheet.create({
   },
   actionButton: {
     flex: 1,
-    height: '40@ms',
+    minHeight: '40@ms',
+    paddingVertical: '8@ms',
+    paddingHorizontal: '8@ms',
     borderRadius: '8@ms',
     justifyContent: 'center',
     alignItems: 'center',
@@ -299,14 +311,20 @@ const styles = ScaledSheet.create({
   },
   declineText: {
     ...TYPO.medium14,
+    fontSize: '13@ms',
     color: '#4B5563',
+    textAlign: 'center',
+    flexShrink: 1,
   },
   acceptButton: {
     backgroundColor: '#5F30AA',
   },
   acceptText: {
     ...TYPO.semiBold14,
+    fontSize: '13@ms',
     color: '#FFFFFF',
+    textAlign: 'center',
+    flexShrink: 1,
   },
 })
 

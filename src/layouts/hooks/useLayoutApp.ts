@@ -36,7 +36,7 @@ const useLayoutApp = () => {
   const redirectUrl = useAuthStore(state => state.redirectUrl)
   const redirectParams = useAuthStore(state => state.redirectParams)
   const clearRedirectUrl = useAuthStore(state => state.clearRedirectUrl)
-  const fetchPendingRequestsApi = useAccountLinkingStore(state => state.fetchPendingRequestsApi)
+  const fetchWaitingApprovalRequestsApi = useAccountLinkingStore(state => state.fetchWaitingApprovalRequestsApi)
   const { handleLoginAccessToken } = useLogin()
   const superId = user?.superId
   const [academyMenuVisible, setAcademyMenuVisible] = useState(false)
@@ -134,7 +134,7 @@ const useLayoutApp = () => {
     if (checkIsParent()) {
       setUserCustom(user)
     } else {
-      fetchPendingRequestsApi()
+      fetchWaitingApprovalRequestsApi()
     }
   }, [])
 
@@ -283,19 +283,18 @@ const useLayoutApp = () => {
         redirectUrlProp
       )
 
-      if (!isLearningSpace) {
-        if (userRole === Role.Parent && targetChild) {
-          setParentViewMode({
-            isActive: true,
-            linkId: targetChild.id,
-            studentAcademyUserId: targetChild.studentAcademyUserId || null,
-            studentName: targetChild.studentName || null,
-            studentEmail: targetChild.studentEmail || null,
-            studentAcademyDomain: selectedAcademy?.domain || null,
-          });
-        } else if (userRole === Role.Student) {
-          setParentViewMode(null);
-        }
+      if (userRole === Role.Parent && targetChild) {
+        setParentViewMode({
+          isActive: true,
+          linkId: targetChild.id,
+          studentSuperId: targetChild.studentSuperId || null,
+          studentAcademyUserId: targetChild.studentAcademyUserId || null,
+          studentName: targetChild.studentName || null,
+          studentEmail: targetChild.studentEmail || null,
+          studentAcademyDomain: selectedAcademy?.domain || null,
+        });
+      } else if (userRole === Role.Student) {
+        setParentViewMode(null);
       }
 
       setSelectAcademy(selectedAcademy)
@@ -321,10 +320,10 @@ const useLayoutApp = () => {
           ? `${parentDisplayName}: ${t('received_link_request')}`
           : t('received_link_request')
         toast.info(message)
-        fetchPendingRequestsApi()
+        fetchWaitingApprovalRequestsApi()
       },
       "parent-link-cancelled": (data: any) => {
-        fetchPendingRequestsApi()
+        fetchWaitingApprovalRequestsApi()
       }
     } : {})
   }
