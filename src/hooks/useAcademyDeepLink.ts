@@ -104,6 +104,7 @@ export const useAcademyDeepLink = (targetRoute: string, targetDomain?: string) =
         useAuthStore.getState().setParentViewMode({
           isActive: true,
           linkId: matchedStudent.id,
+          studentSuperId: matchedStudent.studentSuperId || null,
           studentAcademyUserId: matchedStudent.studentAcademyUserId || null,
           studentName: matchedStudent.studentName || null,
           studentEmail: matchedStudent.studentEmail || null,

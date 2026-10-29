@@ -106,7 +106,12 @@ const RoleSelection = () => {
           onPress={handleStartLinking}
           activeOpacity={0.85}
         >
-          <Text style={styles.ctaText}>
+          <Text
+            style={styles.ctaText}
+            numberOfLines={2}
+            adjustsFontSizeToFit
+            minimumFontScale={0.85}
+          >
             {t('start_linking')}
           </Text>
         </TouchableOpacity>
@@ -211,7 +216,9 @@ const styles = ScaledSheet.create({
     backgroundColor: '#F8F9FA'
   },
   ctaButton: {
-    height: '50@ms',
+    minHeight: '48@ms',
+    paddingVertical: '10@ms',
+    paddingHorizontal: '16@ms',
     borderRadius: '14@ms',
     backgroundColor: '#5F30AA', // brand purple
     alignItems: 'center',
@@ -220,6 +227,8 @@ const styles = ScaledSheet.create({
   ctaText: {
     color: '#FFF',
     fontSize: '15@ms',
-    fontWeight: '700'
+    fontWeight: '700',
+    textAlign: 'center',
+    flexShrink: 1
   }
 })

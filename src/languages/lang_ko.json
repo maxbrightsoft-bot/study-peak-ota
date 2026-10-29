@@ -1026,6 +1026,7 @@
   "progress": "진행도",
   "grammar": "문법",
   "team": "챕터",
+  "study_space": "스터디 스페이스",
   "my_study_space": "나의 스터디 스페이스",
   "continue_solving_the_problem_book": "문제집 이어 풀기",
   "view_all": "전체 보기",
@@ -2620,6 +2621,7 @@
   "teacher_comment": "선생님 코멘트",
 
   "convert_parent_role_title": "학부모 역할로 전환",
+  "convert_parent_role_other_academies": "다른 학원의 학부모 역할로 전환",
   "convert_parent_role_desc": "생각의 지도에 학생으로 등록되어 있는 계정입니다. 학부모 계정으로 전환하시겠습니까?",
   "convert_parent_role_to_view_results": "시험 결과를 확인하려면 학부모 역할로 전환",
   "convert_parent_role_to_view_results_desc": "시험 결과를 확인하려면 지정된 학원을 학부모 역할로 전환해야 합니다. 지금 전환하시겠습니까?",
@@ -2648,5 +2650,15 @@
   "sent_message_successfully": "메시지를 성공적으로 전송했습니다",
   "please_select_a_question": "문항을 선택해주세요",
   "textbook_inquiry": "교재 문의",
-  "required": "필수 항목입니다"
+  "required": "필수 항목입니다",
+  "academies_already_parent_role": "이미 학부모 역할인 학원",
+  "academies_already_parent_role_desc": "이미 학부모 역할이 있어 자동으로 연결됩니다",
+  "academies_auto_add_parent_role": "학부모 역할로 자동 연결될 학원",
+  "academies_auto_add_parent_role_desc": "미가입 학원으로, 연결 완료 시 학부모 역할이 자동 추가됩니다",
+  "already_has_parent_role": "학부모",
+  "will_auto_add_role": "자동 추가",
+  "request_link_sent": "연결 요청이 성공적으로 전송되었습니다!",
+  "conflict_error_occurred": "데이터 충돌이 발생했습니다",
+  "student_waiting_parent_select_academy": "학부모 연결을 승인했습니다. 학부모가 참여할 학원을 선택 중입니다. 결과를 기다리거나 화면을 나가셔도 연결에 영향을 주지 않습니다.",
+  "link_approve_success_waiting_parent": "연결이 승인되었습니다"
 }

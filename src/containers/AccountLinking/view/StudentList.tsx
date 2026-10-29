@@ -19,6 +19,7 @@ const StudentList = () => {
   const route = useRoute<any>()
   const accounts = useAccountLinkingStore((state) => state.linkedAccounts)
   const setLinkedAccounts = useAccountLinkingStore((state) => state.setLinkedAccounts)
+  const hasUnsyncedLinks = useAccountLinkingStore((state) => state.hasUnsyncedLinks)
   const [loading, setLoading] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const preventFirstFetch = route.params?.preventFirstFetch
@@ -124,7 +125,14 @@ const StudentList = () => {
             {syncing ? (
               <ActivityIndicator size="small" color={palette.main[600] || '#5F30AA'} />
             ) : (
-              <Ionicons name="sync-outline" size={22} color={palette.grey[900] || '#171719'} />
+              <View style={styles.syncIconContainer}>
+                <Ionicons name="sync-outline" size={22} color={palette.grey[900] || '#171719'} />
+                {hasUnsyncedLinks && (
+                  <View style={styles.syncBadge}>
+                    <Text style={styles.syncBadgeText}>!</Text>
+                  </View>
+                )}
+              </View>
             )}
           </TouchableOpacity>
         }
@@ -222,7 +230,32 @@ const styles = ScaledSheet.create({
   },
   ctaText: {
     color: '#FFF',
-    fontSize: '16@ms',
-    fontWeight: '700'
+    fontSize: '15@ms',
+    fontWeight: '700',
+    textAlign: 'center',
+    flexShrink: 1
+  },
+  syncIconContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  syncBadge: {
+    position: 'absolute',
+    top: '-4@ms',
+    right: '-6@ms',
+    backgroundColor: '#FF3B30',
+    width: '13@ms',
+    height: '13@ms',
+    borderRadius: '7@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  syncBadgeText: {
+    color: '#FFFFFF',
+    fontSize: '9@ms',
+    fontWeight: '800',
+    lineHeight: '11@ms',
+    textAlign: 'center',
   }
 })

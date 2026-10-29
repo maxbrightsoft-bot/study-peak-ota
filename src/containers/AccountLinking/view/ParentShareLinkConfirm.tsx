@@ -9,21 +9,20 @@ import { toast, getMessageFromError } from '@/utils/helpers'
 import { resetToHome } from '@/navigators/NavigationHelpers'
 import Navbar from '../components/Navbar'
 import {
-  AccountLinkMethod,
   requestLinkByStudentIdApi,
-  AccountLinkStatus,
   AccountLinkResponse,
   getLinkedAccountsApi
 } from '../apiClients'
 import useAccountLinkingStore, { buildAccountLinkingChannelName, waitForPusherSubscribed } from '@/store/useAccountLinkingStore'
 import useAuthStore from '@/store/useAuthStore'
-import { Role } from '@/utils/enums'
+import { Role, AccountLinkStatus, AccountLinkMethod } from '@/utils/enums'
 
 const ParentShareLinkConfirm = () => {
   const { t } = useTranslation()
   const navigation = useNavigation<any>()
   const route = useRoute<any>()
   const [loading, setLoading] = useState(false)
+  const [isCheckingLink, setIsCheckingLink] = useState(true)
   const [existingLink, setExistingLink] = useState<AccountLinkResponse | null>(null)
   const setStudentEmail = useAccountLinkingStore((state) => state.setStudentEmail)
   const setAcceptedLinkData = useAccountLinkingStore((state) => state.setAcceptedLinkData)
@@ -34,9 +33,13 @@ const ParentShareLinkConfirm = () => {
   const studentAvatar = route.params?.studentAvatar || route.params?.avatar || ''
 
   const checkLink = useCallback(async () => {
-    if (!idSuperStudent) return
+    if (!idSuperStudent) {
+      setIsCheckingLink(false)
+      return
+    }
 
     try {
+      setIsCheckingLink(true)
       const res = await getLinkedAccountsApi(Role.Parent)
       const data = res.data?.data
       if (Array.isArray(data)) {
@@ -50,6 +53,8 @@ const ParentShareLinkConfirm = () => {
     } catch (e) {
       console.error('[ParentShareLinkConfirm] checkLink error:', e)
       setExistingLink(null)
+    } finally {
+      setIsCheckingLink(false)
     }
   }, [idSuperStudent])
 
@@ -82,6 +87,7 @@ const ParentShareLinkConfirm = () => {
   const handleGoToConvertRole = () => {
     if (existingLink?.id) {
       useAccountLinkingStore.getState().setIsFromShareLink(true)
+      useAccountLinkingStore.getState().setTargetDomain(route.params?.domain || null)
       navigation.replace(Routes.Auth.ConvertParentRole, {
         linkId: existingLink.id,
         targetDomain: route.params?.domain,
@@ -116,6 +122,9 @@ const ParentShareLinkConfirm = () => {
       const res = await requestLinkByStudentIdApi(Number(idSuperStudent))
       const linkData = res?.data?.data
 
+      useAccountLinkingStore.getState().setIsFromShareLink(true)
+      useAccountLinkingStore.getState().setTargetDomain(route.params?.domain || null)
+
       const isAccepted =
         linkData?.status === AccountLinkStatus.Accept;
 
@@ -127,20 +136,16 @@ const ParentShareLinkConfirm = () => {
           await useAuthStore.getState().syncParentLinkedStudents()
         } catch {
         }
-        navigation.push(Routes.Auth.ParentWaitingApproval, {
-          approved: true,
-          idSuperStudent: Number(idSuperStudent),
-          targetDomain: route.params?.domain,
+        useAccountLinkingStore.getState().setIsFromShareLink(true)
+        navigation.push(Routes.Auth.ConvertParentRole, {
+          linkId: linkData?.id,
           redirectUrl: route.params?.redirectUrl,
           redirectParams: route.params?.redirectParams,
         })
       } else {
-
         navigation.push(Routes.Auth.ParentWaitingApproval, {
           linkData,
           approved: false,
-          idSuperStudent: Number(idSuperStudent),
-          targetDomain: route.params?.domain,
           redirectUrl: route.params?.redirectUrl,
           redirectParams: route.params?.redirectParams,
         })
@@ -255,44 +260,52 @@ const ParentShareLinkConfirm = () => {
         onBackPress={handleCancel}
       />
 
-      <View style={styles.content}>
-        <View style={styles.card}>
-          {/* Avatar / Icon học sinh */}
-          <View style={styles.avatarCircle}>
-            {studentAvatar ? (
-              <Image
-                source={{ uri: studentAvatar }}
-                style={styles.avatarImage}
-                resizeMode="cover"
-              />
-            ) : (
-              <Ionicons name="person" size={40} color="#5F30AA" />
-            )}
+      {isCheckingLink ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#5F30AA" />
+        </View>
+      ) : (
+        <>
+          <View style={styles.content}>
+            <View style={styles.card}>
+              {/* Avatar / Icon học sinh */}
+              <View style={styles.avatarCircle}>
+                {studentAvatar ? (
+                  <Image
+                    source={{ uri: studentAvatar }}
+                    style={styles.avatarImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <Ionicons name="person" size={40} color="#5F30AA" />
+                )}
+              </View>
+
+              {/* Tên học sinh */}
+              <Text style={styles.studentNameText} numberOfLines={1}>
+                {studentName || t('student')}
+              </Text>
+
+              {/* Email học sinh */}
+              {Boolean(studentEmail) && (
+                <Text style={styles.studentEmailText} numberOfLines={1}>
+                  {studentEmail}
+                </Text>
+              )}
+
+              <View style={styles.divider} />
+
+              {/* Câu hỏi xác nhận / Chuyển đổi vai trò */}
+              {renderQuestionAndActions()}
+            </View>
           </View>
 
-          {/* Tên học sinh */}
-          <Text style={styles.studentNameText} numberOfLines={1}>
-            {studentName || t('student')}
-          </Text>
-
-          {/* Email học sinh */}
-          {Boolean(studentEmail) && (
-            <Text style={styles.studentEmailText} numberOfLines={1}>
-              {studentEmail}
-            </Text>
-          )}
-
-          <View style={styles.divider} />
-
-          {/* Câu hỏi xác nhận / Chuyển đổi vai trò */}
-          {renderQuestionAndActions()}
-        </View>
-      </View>
-
-      {/* Nút hành động */}
-      <View style={styles.ctaWrapper}>
-        {renderButtons()}
-      </View>
+          {/* Nút hành động */}
+          <View style={styles.ctaWrapper}>
+            {renderButtons()}
+          </View>
+        </>
+      )}
     </View>
   )
 }
@@ -303,6 +316,11 @@ const styles = ScaledSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FAFAFB',
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   content: {
     flex: 1,

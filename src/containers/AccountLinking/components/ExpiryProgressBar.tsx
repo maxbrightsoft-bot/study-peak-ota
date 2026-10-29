@@ -51,28 +51,69 @@ const ExpiryProgressBar: React.FC<ExpiryProgressBarProps> = ({
     }
     if (localExpiry) {
       const diff = localExpiry.diff(moment(), 'seconds')
-      if (diff > 300) return 1800
+      // Nếu còn hơn 10 phút (> 600s), link là dạng dài hạn 30 phút (1800s)
+      if (diff > 600) {
+        return Math.max(1800, diff)
+      }
+      // Mặc định liên kết mã / OTP thông thường là 5 phút (300s)
+      return Math.max(300, diff)
     }
     return 300
   }
 
-  const totalSeconds = calculateTotalSeconds()
-  const [secondsLeft, setSecondsLeft] = useState<number>(getExactSecondsLeft)
-  const progressVal = useRef(new Animated.Value(0)).current
+  // Cố định totalSeconds theo expiredTime để tránh tính lại làm nhảy giật giá trị
+  const totalSecondsRef = useRef<number>(calculateTotalSeconds())
+  useEffect(() => {
+    totalSecondsRef.current = calculateTotalSeconds()
+  }, [expiredTime, createdAt, totalSecondsProp])
+
+  const initialRemaining = getExactSecondsLeft()
+  const [secondsLeft, setSecondsLeft] = useState<number>(() =>
+    initialRemaining > 0 ? initialRemaining : (totalSecondsProp || 300)
+  )
+
+  // Bắt đầu vạch tím từ 0% (khi chưa có dữ liệu hoặc vừa bắt đầu đếm)
+  const localExpiryInit = getLocalMoment(expiredTime)
+  const initialRatio =
+    localExpiryInit && totalSecondsRef.current > 0
+      ? Math.min(
+          1,
+          Math.max(0, (totalSecondsRef.current - initialRemaining) / totalSecondsRef.current)
+        )
+      : 0
+
+  const progressVal = useRef(new Animated.Value(initialRatio)).current
   const pulseVal = useRef(new Animated.Value(0.85)).current
   const hasExpiredRef = useRef(false)
 
   useEffect(() => {
     hasExpiredRef.current = false
 
+    const localExpiry = getLocalMoment(expiredTime)
+    // Nếu chưa có expiredTime, giữ vạch tím ở 0% và không trigger expire
+    if (!localExpiry) {
+      Animated.timing(progressVal, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: false,
+      }).start()
+      return
+    }
+
     const updateProgress = () => {
       const remaining = getExactSecondsLeft()
       setSecondsLeft(remaining)
 
-      if (totalSeconds > 0) {
-        const ratio = Math.min(1, Math.max(0, (totalSeconds - remaining) / totalSeconds))
-        progressVal.setValue(ratio)
-      }
+      const total = totalSecondsRef.current > 0 ? totalSecondsRef.current : 300
+      // Vạch tím bắt đầu từ 0 và TĂNG DẦN lên theo thời gian đã trôi qua
+      const elapsed = Math.max(0, total - remaining)
+      const ratio = Math.min(1, Math.max(0, elapsed / total))
+
+      Animated.timing(progressVal, {
+        toValue: ratio,
+        duration: 250,
+        useNativeDriver: false,
+      }).start()
 
       if (remaining <= 0) {
         if (!hasExpiredRef.current) {
@@ -87,7 +128,7 @@ const ExpiryProgressBar: React.FC<ExpiryProgressBarProps> = ({
     const isRunning = updateProgress()
     if (!isRunning) return
 
-    // Mỗi giây gọi Date.now() để trừ lại theo thời gian thực (Real-time Clock Sync)
+    // Mỗi giây gọi để trừ lại theo thời gian thực (Real-time Clock Sync)
     const timer = setInterval(() => {
       const stillRunning = updateProgress()
       if (!stillRunning) {
@@ -115,7 +156,7 @@ const ExpiryProgressBar: React.FC<ExpiryProgressBarProps> = ({
       clearInterval(timer)
       pulseAnimation.stop()
     }
-  }, [expiredTime, createdAt, totalSeconds])
+  }, [expiredTime, createdAt])
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)

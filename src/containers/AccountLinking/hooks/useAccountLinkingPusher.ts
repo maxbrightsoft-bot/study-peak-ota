@@ -2,12 +2,11 @@ import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PusherMember } from '@pusher/pusher-websocket-react-native'
 import useAuthStore from '@/store/useAuthStore'
-import useAccountLinkingStore, { ParentRequestLink, buildAccountLinkingChannelName } from '@/store/useAccountLinkingStore'
+import useAccountLinkingStore, { buildAccountLinkingChannelName } from '@/store/useAccountLinkingStore'
 import { navigate, goBack, resetToHome } from '@/navigators/NavigationHelpers'
 import { toast, checkIsParent } from '@/utils/helpers'
-import { Role } from '@/utils/enums'
-import { AccountLinkMethod } from '../apiClients'
 import { Routes } from '@/navigators/RouteName'
+import { Role, AccountLinkMethod, AccountLinkStatus } from '@/utils/enums'
 
 // Serialize unsubscribe -> subscribe so a late unsubscribe never kills a fresh subscription
 let pendingUnsubscribe: Promise<unknown> = Promise.resolve()
@@ -24,20 +23,17 @@ export const useAccountLinkingPusher = () => {
   const methodLink = useAccountLinkingStore((state) => state.methodLink)
   const selectedRole = useAccountLinkingStore((state) => state.selectedRole)
 
-  const determinedRole: Role = selectedRole
-    ? selectedRole
-    : checkIsParent()
+  const determinedRole: Role = checkIsParent()
     ? Role.Parent
-    : Role.Student
+    : selectedRole ?? Role.Student
 
   // Lấy hàm setParentRequestLink, setAcceptedLinkData, setAcceptedLinkId và clearLinkData từ store
   const setParentRequestLink = useAccountLinkingStore((state) => state.setParentRequestLink)
   const setAcceptedLinkId = useAccountLinkingStore((state) => state.setAcceptedLinkId)
 
   // Handlers ref tránh stale closure khi state hoặc params thay đổi
-  const handlersRef = useRef<{ [event: string]: (data: any) => void }>({})
+  const handlersRef = useRef<{ [event: string]: (data: any) => void | Promise<void> }>({})
   const onMemberRemovedRef = useRef<((member: PusherMember) => void) | undefined>(undefined)
-  console.log(determinedRole);
 
   useEffect(() => {
     if (determinedRole === Role.Student) {
@@ -50,7 +46,7 @@ export const useAccountLinkingPusher = () => {
         const currentAcceptedData = useAccountLinkingStore.getState().acceptedLinkData
 
         // Chỉ xử lý khi đang ở giai đoạn link-requested (đã nhận request và chưa hoàn thành accept)
-        if (!currentParentRequest || currentAcceptedData) return
+        if (!currentParentRequest || currentAcceptedData || currentParentRequest?.status === AccountLinkStatus.StudentApproval) return
 
         const memberEmail = (member.userInfo?.email || '').trim().toLowerCase()
         const parentEmail = (currentParentRequest.parentEmail || '').trim().toLowerCase()
@@ -69,13 +65,17 @@ export const useAccountLinkingPusher = () => {
 
       handlersRef.current = {
         // ✨ Dành riêng cho Student: Phụ huynh gửi yêu cầu -> Học sinh nhận thông báo và điều hướng phê duyệt
-        'link-requested': (data: ParentRequestLink) => {
+        'link-requested': (data: any) => {
           toast.info(t('received_link_request'))
           const currentMethod = useAccountLinkingStore.getState().methodLink
           if (currentMethod === AccountLinkMethod.ShareLink) {
             return
           }
-          setParentRequestLink(data)
+          const id = Number(data?.id)
+          setParentRequestLink({
+            ...data,
+            id,
+          })
           navigate(Routes.Auth.StudentLinkApproval, { approved: false })
         },
 
@@ -87,6 +87,15 @@ export const useAccountLinkingPusher = () => {
             return
           }
           goBack()
+        },
+
+        // ✨ Dành riêng cho Student: Phụ huynh đã chọn academy và hoàn tất kết nối
+        'parent-accepted': (data: any) => {
+          toast.success(t('link_completed_student'))
+          const id = Number(data?.id)
+          if (id) {
+            setAcceptedLinkId(id)
+          }
         },
       }
     } else {
@@ -123,9 +132,15 @@ export const useAccountLinkingPusher = () => {
 
         'student-accepted': (data: any) => {
           toast.info(t('student_accepted_request'))
-          const linkId = data?.id || data?.linkId
-          setAcceptedLinkId(linkId)
-          useAccountLinkingStore.getState().clearPendingRequests()
+          useAccountLinkingStore.getState().setIsStudentAccepted(true)
+          const id = Number(data?.id)
+          if (id) {
+            navigate(Routes.Auth.ConvertParentRole, {
+              linkId: id,
+              isLinkingFlow: true,
+              linkData: data,
+            })
+          }
         },
       }
     }

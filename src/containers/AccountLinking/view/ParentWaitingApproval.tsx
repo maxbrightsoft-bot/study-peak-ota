@@ -6,7 +6,7 @@ import { ScaledSheet } from 'react-native-size-matters'
 import { useNavigation, useRoute, CommonActions, useFocusEffect } from '@react-navigation/native'
 import { palette, TYPO } from '@/theme'
 import { Routes, MainRoutes } from '@/navigators/RouteName'
-import { toast, getMessageFromError } from '@/utils/helpers'
+import { toast, getMessageFromError, checkIsParent } from '@/utils/helpers'
 import { navigationRef, resetToHome } from '@/navigators/NavigationHelpers'
 import Navbar from '../components/Navbar'
 import LinkedStateCard from '../components/LinkedStateCard'
@@ -15,11 +15,10 @@ import {
   rejectLinkAccountApi,
   getAccountLinkDetailApi,
   deleteLinkApi,
-  AccountLinkMethod,
   getParentPendingAcademiesApi,
   AcademySimpleResponse
 } from '../apiClients'
-import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
+import { AccountLinkMethod, AccountLinkStatus } from '@/utils/enums'
 import useAccountLinkingStore from '@/store/useAccountLinkingStore'
 import useAuthStore from '@/store/useAuthStore'
 
@@ -29,13 +28,14 @@ const ParentWaitingApproval = () => {
   const route = useRoute<any>()
   const setLoading = useAuthStore((state) => state.setLoading)
   const linkedStudents = useAuthStore((state) => state.linkedStudents)
-  const setLinkedStudents = useAuthStore((state) => state.setLinkedStudents)
+  const syncParentLinkedStudents = useAuthStore((state) => state.syncParentLinkedStudents)
   const linkData = route.params?.linkData
   const acceptedLinkData = useAccountLinkingStore((state) => state.acceptedLinkData)
   const isShareLink = Boolean(
     (acceptedLinkData?.linkMethod ?? linkData?.linkMethod) === AccountLinkMethod.ShareLink
   );
   const acceptedLinkId = useAccountLinkingStore((state) => state.acceptedLinkId)
+  const isStudentAccepted = useAccountLinkingStore((state) => state.isStudentAccepted)
   const setAcceptedLinkData = useAccountLinkingStore((state) => state.setAcceptedLinkData)
   const setStudentEmail = useAccountLinkingStore((state) => state.setStudentEmail)
   const isApproved = Boolean(acceptedLinkData || route.params?.approved)
@@ -43,12 +43,10 @@ const ParentWaitingApproval = () => {
   const pendingRedirectUrl = route.params?.redirectUrl || useAuthStore((state) => state.pendingRedirectUrl)
   const pendingRedirectParams = route.params?.redirectParams || useAuthStore((state) => state.pendingRedirectParams)
   const clearRedirectUrl = useAuthStore((state) => state.clearRedirectUrl)
-  const [isPromptModalVisible, setIsPromptModalVisible] = useState(false)
   const [pendingAcademies, setPendingAcademies] = useState<AcademySimpleResponse[]>([])
   const targetLinkId = acceptedLinkData?.id || acceptedLinkId || linkData?.id
-  const hasPromptShownRef = useRef<number | null>(null)
 
-  const idSuperStudent = route.params?.idSuperStudent
+  const idSuperStudent = route.params?.redirectParams?.idSuperStudent
 
   const isStudentLinked = Boolean(
     idSuperStudent &&
@@ -56,8 +54,6 @@ const ParentWaitingApproval = () => {
       (s) => s.studentSuperId === Number(idSuperStudent)
     )
   )
-
-  const targetDomain = route.params?.targetDomain
 
   const linkStateRef = useRef({
     isApproved,
@@ -81,9 +77,7 @@ const ParentWaitingApproval = () => {
           if (res.data?.data) {
             const linkDetail = res.data.data
             setAcceptedLinkData(linkDetail)
-            if ((!linkedStudents || linkedStudents.length === 0)) {
-              setLinkedStudents([{...linkDetail,id:linkDetail.linkIdAcademy!}])
-            }
+            if(checkIsParent()) syncParentLinkedStudents(controller.signal)
           }
         })
         .catch((err) => {
@@ -102,12 +96,9 @@ const ParentWaitingApproval = () => {
         const controller = new AbortController()
         getParentPendingAcademiesApi(linkId, controller.signal)
           .then((res) => {
-            const list = res.data?.data || []
+            const data = res.data?.data
+            const list = data?.convertAcademies ?? (Array.isArray(data) ? data : [])
             setPendingAcademies(list)
-            if (list.length > 0 && hasPromptShownRef.current !== linkId) {
-                hasPromptShownRef.current = linkId
-                setIsPromptModalVisible(true)
-              }
           })
           .catch((err) => {
             if (err.name !== 'CanceledError' && err.message !== 'canceled') {
@@ -139,11 +130,14 @@ const ParentWaitingApproval = () => {
   }, [])
 
   const handleExpire = useCallback(() => {
+    if (isStudentAccepted) {
+      return
+    }
     toast.info(t('link_request_expired'))
     if (navigation.canGoBack()) {
       navigation.goBack()
     }
-  }, [t])
+  }, [t, isStudentAccepted])
 
   const handleBack = () => {
       navigation.popTo(Routes.Auth.ParentAccountLinking)
@@ -183,23 +177,10 @@ const ParentWaitingApproval = () => {
     }
   }
 
-  const handleConfirmPrompt = () => {
-    setIsPromptModalVisible(false)
-    if (targetLinkId) {
-      navigation.navigate(Routes.Auth.ConvertParentRole, {
-        linkId: targetLinkId,
-        targetDomain,
-        redirectUrl: pendingRedirectUrl,
-        redirectParams: pendingRedirectParams,
-      })
-    }
-  }
-
   const handleOpenConvertScreen = () => {
     if (targetLinkId) {
       navigation.navigate(Routes.Auth.ConvertParentRole, {
         linkId: targetLinkId,
-        targetDomain,
         redirectUrl: pendingRedirectUrl,
         redirectParams: pendingRedirectParams,
       })
@@ -309,7 +290,6 @@ const ParentWaitingApproval = () => {
             {!isShareLink && (
               <ExpiryProgressBar
                 expiredTime={linkData?.expiredTime}
-                createdAt={linkData?.createdAt}
                 onExpire={handleExpire}
               />
             )}
@@ -344,7 +324,7 @@ const ParentWaitingApproval = () => {
                 <Text style={styles.convertRoleButtonText}>
                   {isShareLink
                     ? t('convert_parent_role_to_view_results')
-                    : t('convert_parent_role_title')}
+                    : t('convert_parent_role_other_academies')}
                 </Text>
               </TouchableOpacity>
             )}
@@ -377,25 +357,6 @@ const ParentWaitingApproval = () => {
           </TouchableOpacity>
         )}
       </View>
-
-      {/* Modal thông báo có học viện cần chuyển đổi sang vai trò Phụ huynh */}
-      <ConfirmDialog
-        open={isPromptModalVisible}
-        toggle={() => setIsPromptModalVisible(false)}
-        title={
-          isShareLink
-            ? t('convert_parent_role_to_view_results')
-            : t('convert_parent_role_title')
-        }
-        text={
-          isShareLink
-            ? t('convert_parent_role_to_view_results_desc')
-            : t('convert_parent_role_desc')
-        }
-        cancelText={t('close')}
-        okText={t('confirm')}
-        onConfirm={handleConfirmPrompt}
-      />
     </View>
   )
 }

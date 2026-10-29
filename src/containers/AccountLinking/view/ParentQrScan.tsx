@@ -9,7 +9,8 @@ import { palette } from '@/theme'
 import { Routes } from '@/navigators/RouteName'
 import Navbar from '../components/Navbar'
 import ParentLinkTabs from '../components/ParentLinkTabs'
-import { verifyCodeLinkAccountApi, AccountLinkMethod } from '../apiClients'
+import { verifyCodeLinkAccountApi } from '../apiClients'
+import { AccountLinkMethod } from '@/utils/enums'
 import { toast, getMessageFromError } from '@/utils/helpers'
 import useAccountLinkingStore, {
   buildAccountLinkingChannelName,
@@ -219,9 +220,9 @@ const ParentQrScan = () => {
       const response = await verifyCodeLinkAccountApi(trimmedCode, trimmedEmail, abortControllerRef.current.signal)
       if (response.data?.status === 200 || response.status === 200) {
         lastFailedQrRef.current = null
-        toast.success(t('link_request_sent'))
         navigate(Routes.Auth.ParentWaitingApproval, {
-          linkData: response.data?.data
+          linkData: response.data?.data,
+          approved: false,
         })
       } else {
         lastFailedQrRef.current = { data, timestamp: Date.now() }
@@ -271,7 +272,12 @@ const ParentQrScan = () => {
                 : t('camera_permission_desc')}
             </Text>
             <TouchableOpacity style={styles.grantButton} onPress={handleGrantPermission} activeOpacity={0.8}>
-              <Text style={styles.grantButtonText}>
+              <Text
+                style={styles.grantButtonText}
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}
+              >
                 {isPermanentlyDenied ? t('open_settings') : t('grant_permission')}
               </Text>
             </TouchableOpacity>
@@ -395,18 +401,21 @@ const styles = ScaledSheet.create({
     marginBottom: '20@ms'
   },
   grantButton: {
-    height: '46@ms',
+    minHeight: '46@ms',
+    paddingVertical: '8@ms',
+    paddingHorizontal: '16@ms',
     borderRadius: '12@ms',
     backgroundColor: palette.main[700] || '#5F30AA',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: '24@ms',
     width: '100%'
   },
   grantButtonText: {
     color: '#FFF',
-    fontSize: '14@ms',
-    fontWeight: '700'
+    fontSize: '13@ms',
+    fontWeight: '700',
+    textAlign: 'center',
+    flexShrink: 1
   },
   scanContainer: {
     flex: 1,

@@ -20,7 +20,7 @@ import PolicyViewer from '../components/PolicyViewer'
 import { PRIVACY_POLICY_CONTENT, TERMS_OF_SERVICE_CONTENT } from '../configs/policyContent'
 import useAppStore from '@/store/useAppStore'
 import DeviceInfo from 'react-native-device-info'
-import { AccountLinkResponse, getLinkedAccountsApi, syncAccountLinksApi } from '@/containers/AccountLinking/apiClients'
+import { AccountLinkResponse, ParentLinkResponse, getLinkedAccountsApi, syncAccountLinksApi } from '@/containers/AccountLinking/apiClients'
 import { checkIsParent, checkIsStudent, getMessageFromError, toast } from '@/utils/helpers'
 import PremiumSwitch from '@/components/Switch/PremiumSwitch'
 import useAuthStore from '@/store/useAuthStore'
@@ -105,6 +105,7 @@ const Setting = ({ open, onClose }: Props) => {
   const appVersion = DeviceInfo.getVersion();
   const navigation = useNavigation<any>();
   const pendingRequests = useAccountLinkingStore((state) => state.pendingRequests);
+  const hasUnsyncedLinks = useAccountLinkingStore((state) => state.hasUnsyncedLinks);
 
   const { isBiometricEnabled, handleToggleBiometric, authenticateBiometric } = useBiometric()
 
@@ -125,7 +126,7 @@ const Setting = ({ open, onClose }: Props) => {
     return () => controller.abort()
   }, [open])
 
-  const handleSelectChild = (child: AccountLinkResponse) => {
+  const handleSelectChild = (child: ParentLinkResponse) => {
     if (parentViewMode?.linkId === child.id) {
       return
     }
@@ -133,6 +134,7 @@ const Setting = ({ open, onClose }: Props) => {
     setParentViewMode({
       isActive: true,
       linkId: child.id,
+      studentSuperId: child.studentSuperId || null,
       studentAcademyUserId: child.studentAcademyUserId || null,
       studentName: child.studentName || null,
       studentEmail: child.studentEmail || null,
@@ -200,7 +202,14 @@ const Setting = ({ open, onClose }: Props) => {
       {isSyncing ? (
         <ActivityIndicator size="small" color="#5F30AA" />
       ) : (
-        <Ionicons name="sync-outline" size={20} color="#5F30AA" />
+        <View style={styles.syncIconContainer}>
+          <Ionicons name="sync-outline" size={20} color="#5F30AA" />
+          {hasUnsyncedLinks && (
+            <View style={styles.syncBadge}>
+              <Text style={styles.syncBadgeText}>!</Text>
+            </View>
+          )}
+        </View>
       )}
     </TouchableOpacity>
   )
@@ -700,6 +709,29 @@ const styles = ScaledSheet.create({
     backgroundColor: '#F3EDF7',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  syncIconContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  syncBadge: {
+    position: 'absolute',
+    top: '-4@ms',
+    right: '-6@ms',
+    backgroundColor: '#FF3B30',
+    width: '13@ms',
+    height: '13@ms',
+    borderRadius: '7@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  syncBadgeText: {
+    color: '#FFFFFF',
+    fontSize: '9@ms',
+    fontWeight: '800',
+    lineHeight: '11@ms',
+    textAlign: 'center',
   },
   sectionTitle: {
     fontSize: '14@ms',

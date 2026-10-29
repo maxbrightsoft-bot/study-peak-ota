@@ -8,7 +8,8 @@ import { palette, TYPO } from '@/theme'
 import { toast, getMessageFromError } from '@/utils/helpers'
 import Navbar from '../components/Navbar'
 import CodeInput from '../components/CodeInput'
-import { generateLinkCodeApi, AccountLinkMethod } from '../apiClients'
+import { generateLinkCodeApi } from '../apiClients'
+import { AccountLinkMethod } from '@/utils/enums'
 import useAccountLinkingStore, { buildAccountLinkingChannelName, waitForPusherSubscribed } from '@/store/useAccountLinkingStore'
 import useAuthStore from '@/store/useAuthStore'
 import moment from 'moment'
@@ -190,7 +191,12 @@ const StudentLinkShare = () => {
       {/* Trạng thái đang chờ Phụ huynh đồng ý */}
       <View style={styles.ctaWrapper}>
         <View style={styles.ctaButtonDisabled}>
-          <Text style={styles.ctaText}>
+          <Text
+            style={styles.ctaText}
+            numberOfLines={2}
+            adjustsFontSizeToFit
+            minimumFontScale={0.85}
+          >
             {t('waiting_for_parent_request')}
           </Text>
         </View>
@@ -344,7 +350,9 @@ const styles = ScaledSheet.create({
     backgroundColor: 'transparent'
   },
   ctaButtonDisabled: {
-    height: '54@ms',
+    minHeight: '48@ms',
+    paddingVertical: '10@ms',
+    paddingHorizontal: '16@ms',
     borderRadius: '14@ms',
     backgroundColor: '#B9A9D8', // disabled purple --main-300
     alignItems: 'center',
@@ -352,7 +360,9 @@ const styles = ScaledSheet.create({
   },
   ctaText: {
     color: '#FFF',
-    fontSize: '16@ms',
-    fontWeight: '700'
+    fontSize: '15@ms',
+    fontWeight: '700',
+    textAlign: 'center',
+    flexShrink: 1
   }
 })

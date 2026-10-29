@@ -33,6 +33,7 @@ import PendingLinkRequestsScreen from '@/screens/AccountLinking/PendingLinkReque
 import ParentShareLinkConfirmScreen from '@/screens/AccountLinking/ParentShareLinkConfirm'
 import ConvertParentRoleScreen from '@/screens/AccountLinking/ConvertParentRole'
 import useAccountLinkingPusher from '@/containers/AccountLinking/hooks/useAccountLinkingPusher'
+import useAccountLinkingStore from '@/store/useAccountLinkingStore'
 import ConsentScreen from '@/containers/Setting/components/ConsentScreen'
 import { getConsentStatusApi, agreeConsentApi } from '@/containers/Setting/apiClients'
 import Loading from '@/components/Loading'
@@ -181,6 +182,10 @@ const Authorized = ({ route }: { route: any }) => {
     () => user?.email && user?.isNotEnoughStatements,
     [user?.email, user?.isNotEnoughStatements]
   )
+
+  useEffect(() => {
+    useAccountLinkingStore.getState().checkUnsyncedLinksApi()
+  }, [])
 
   useEffect(() => {
     if (checkIsParent()) return
