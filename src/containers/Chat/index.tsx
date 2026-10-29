@@ -7,6 +7,7 @@ import { TabList, getCategoryTitle } from './configs/constants'
 import { palette } from '@/theme'
 import { ConversationType } from '@/utils/enums'
 import { ConversationsResponse } from '@/utils/types'
+import BotIcon from '@/assets/iconJSX/bot'
 import AddChatIcon from '@/assets/iconJSX/addChat'
 import useCreateQuestionConversationDialog from './hooks/useCreateQuestionConversationDialog'
 import CreateQuestionConversationDialog from './components/dialog/CreateQuestionConversationDialog'
@@ -450,7 +451,12 @@ const styles = ScaledSheet.create({
   headerTitle: {
     fontSize: '20@ms',
     fontWeight: 'bold',
-    color: "#222"
+    marginRight: '12@ms',
+    color: '#222'
+  },
+  headerSub: {
+    fontSize: '20@ms',
+    color: palette.grey[400]
   },
   tabsContainer: {
     flexDirection: 'row',
