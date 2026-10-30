@@ -133,10 +133,14 @@ const useLayoutApp = () => {
   useEffect(() => {
     if (checkIsParent()) {
       setUserCustom(user)
-    } else {
-      fetchWaitingApprovalRequestsApi()
     }
   }, [])
+
+  useEffect(() => {
+    if (checkIsStudent()) {
+      fetchWaitingApprovalRequestsApi();
+    }
+  }, [user])
 
 
   useEffect(() => {

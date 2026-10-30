@@ -168,6 +168,20 @@ const PendingLinkRequests = () => {
     )
   }
 
+  const renderEmptyComponent = () => (
+    <View style={styles.centered}>
+      <View style={styles.emptyIconContainer}>
+        <Ionicons name="mail-open-outline" size={48} color="#999999" />
+      </View>
+      <Text style={styles.emptyText}>
+        {t('no_pending_link_requests')}
+      </Text>
+      <Text style={styles.emptySubText}>
+        {t('no_pending_link_requests_desc')}
+      </Text>
+    </View>
+  )
+
   return (
     <View style={styles.container}>
       <Navbar title={t('pending_link_requests', 'Yêu cầu kết nối')} />
@@ -176,24 +190,16 @@ const PendingLinkRequests = () => {
         <View style={styles.centered}>
           <ActivityIndicator size="large" color="#5F30AA" />
         </View>
-      ) : requests.length === 0 ? (
-        <View style={styles.centered}>
-          <View style={styles.emptyIconContainer}>
-            <Ionicons name="mail-open-outline" size={48} color="#999999" />
-          </View>
-          <Text style={styles.emptyText}>
-            {t('no_pending_link_requests', 'Không có yêu cầu kết nối nào đang chờ')}
-          </Text>
-          <Text style={styles.emptySubText}>
-            {t('no_pending_link_requests_desc', 'Khi phụ huynh gửi yêu cầu kết nối, thông tin sẽ xuất hiện tại đây.')}
-          </Text>
-        </View>
       ) : (
         <FlatList
           data={requests}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
+          ListEmptyComponent={renderEmptyComponent}
+          contentContainerStyle={[
+            styles.listContent,
+            requests.length === 0 && styles.emptyListContent,
+          ]}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -221,6 +227,9 @@ const styles = ScaledSheet.create({
   listContent: {
     padding: '16@ms',
     gap: '12@ms',
+  },
+  emptyListContent: {
+    flexGrow: 1,
   },
   emptyIconContainer: {
     width: '80@ms',
