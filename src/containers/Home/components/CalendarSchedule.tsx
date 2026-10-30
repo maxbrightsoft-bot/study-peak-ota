@@ -10,6 +10,7 @@ import { ScaledSheet } from 'react-native-size-matters'
 import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 import CreateNewScheduleDialog from './Dialog/CreateNewScheduleDialog'
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
+import useAuthStore from '@/store/useAuthStore'
 
 type Props = {
   isVisible: boolean
@@ -17,6 +18,7 @@ type Props = {
 }
 
 const CalendarSchedule = ({ isVisible, onClose }: Props) => {
+  const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
   const {
     t,
     schedules,
@@ -48,13 +50,18 @@ const CalendarSchedule = ({ isVisible, onClose }: Props) => {
   return (
     <SlideDrawerRoot visible={isVisible} onClose={onClose}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onClose}>
-          <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={onClose}
+          activeOpacity={0.7}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <Ionicons name="chevron-back-outline" size={24} color={palette.grey[800] || '#222'} />
         </TouchableOpacity>
         <View>
-          <Text style={{ fontSize: 16, fontWeight: 600, color: '#222222' }}>{t('schedule_detail')}</Text>
+          <Text style={{ fontSize: 16, fontWeight: '600', color: '#222222' }}>{t('schedule_detail')}</Text>
         </View>
-        <View></View>
+        <View style={{ width: 40 }} />
       </View>
       <View style={{ flex: 1, paddingHorizontal: 20, paddingVertical: 25, backgroundColor: palette.grey[50] }}>
         <Calendar
@@ -86,14 +93,16 @@ const CalendarSchedule = ({ isVisible, onClose }: Props) => {
             handleUpdateScheduleStatus={handleUpdateScheduleStatus}
           />
         </View>
-        <View style={{ position: 'absolute', bottom: 20, left: 20, right: 20 }}>
-          <TouchableOpacity
-            style={styles.newScheduleButton}
-            onPress={() => handleOpenDialog()}
-          >
-            <Text style={styles.newScheduleButtonText}>{t('add_new_schedule')}</Text>
-          </TouchableOpacity>
-        </View>
+        {!isParentMode && (
+          <View style={{ position: 'absolute', bottom: 20, left: 20, right: 20 }}>
+            <TouchableOpacity
+              style={styles.newScheduleButton}
+              onPress={() => handleOpenDialog()}
+            >
+              <Text style={styles.newScheduleButtonText}>{t('add_new_schedule')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
       <CreateNewScheduleDialog
         open={isOpenDialog}
@@ -130,8 +139,10 @@ const styles = ScaledSheet.create({
     backgroundColor: '#fff'
   },
   backButton: {
-    flexDirection: 'row',
-    alignItems: 'center'
+    width: '40@ms',
+    height: '40@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   backText: {
     ...TYPO.button2,

@@ -21,13 +21,18 @@ const FilterModal = ({ t, title, open, textbookFilter, onClose = () => {}, handl
   return (
     <SlideDrawerRoot onClose={onClose} visible={open}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onClose}>
-          <Ionicons name="close" size={20} color={palette.grey[900]} />
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={onClose}
+          activeOpacity={0.7}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <Ionicons name="close" size={24} color={palette.grey[900]} />
         </TouchableOpacity>
         <View>
-          <Text style={{ fontSize: 16, fontWeight: 600, color: '#222222' }}>{title}</Text>
+          <Text style={{ fontSize: 16, fontWeight: '600', color: '#222222' }}>{title}</Text>
         </View>
-        <View></View>
+        <View style={{ width: 40 }} />
       </View>
       <FilterForm onSubmit={handleChangeFilter} textbookFilter={textbookFilter} />
     </SlideDrawerRoot>
@@ -47,8 +52,10 @@ const styles = ScaledSheet.create({
     marginBottom: '12@ms',
   },
   backButton: {
-    flexDirection: 'row',
-    alignItems: 'center'
+    width: '40@ms',
+    height: '40@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   backText: {
     ...TYPO.button2,

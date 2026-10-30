@@ -13,12 +13,18 @@ import CreateNewScheduleDialog from '../components/Dialog/CreateNewScheduleDialo
 import { ScaledSheet } from 'react-native-size-matters'
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
 import StudyTimerCard from '../components/StudyTimerCard'
+import useAuthStore from '@/store/useAuthStore'
+import useAccountLinkingStore from '@/store/useAccountLinkingStore'
+import { checkIsParent } from '@/utils/helpers'
 import { Ionicons } from '@expo/vector-icons'
 import { navigate } from '@/navigators/NavigationHelpers'
 import { Routes } from '@/navigators/RouteName'
 import { TEXTBOOK_TABS } from '@/containers/Textbook/configs/constants'
 
 const StudySpaceView = () => {
+  const isParent = checkIsParent()
+  const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
+  const setRequestByLinkId = useAccountLinkingStore(state => state.setRequestByLinkId)
   const {
     t,
     user,
@@ -64,12 +70,13 @@ const StudySpaceView = () => {
       >
         <View style={{ position: 'absolute', top: -1000, left: 0, right: 0, height: 1200, backgroundColor: palette.main[600] }} />
         <View style={styles.container}>
-            <View style={{ marginBottom: 28 }}>
-              <StudyTimerCard />
-            </View>
-            <View>
-              <Text style={{ fontSize: 11, color: palette.main[600], fontWeight: 500 }}>{t('schedule_detail')}</Text>
-            </View>
+          <View style={{ marginBottom: 28 }}>
+            <StudyTimerCard />
+          </View>
+          <View>
+            <Text style={{ fontSize: 11, color: palette.main[600], fontWeight: 500 }}>{t('schedule_detail')}</Text>
+          </View>
+          {!isParentMode && (
             <TouchableOpacity
               style={styles.fabButton}
               onPress={() => handleOpenDialog()}
@@ -78,6 +85,7 @@ const StudySpaceView = () => {
               <Text style={styles.fabIcon}>＋</Text>
               <Text style={styles.fabText}>{t('add_new_schedule')}</Text>
             </TouchableOpacity>
+          )}
 
             <View style={{ marginBottom: 24 }}>
               <Calendar
@@ -155,6 +163,7 @@ const StudySpaceView = () => {
             <View style={styles.popQuizHeaderRow}>
               <Text style={styles.popQuizHeaderTitle}>{t('received_pop_quiz')}</Text>
               <TouchableOpacity onPress={() => {
+                setRequestByLinkId(true);
                 navigate(Routes.Auth.PopQuiz as any);
               }}>
                 <Text style={styles.popQuizViewAll}>{t('view_all') || '전체보기'}</Text>
@@ -168,6 +177,7 @@ const StudySpaceView = () => {
                     key={item.id || item.code || idx}
                     style={styles.popQuizItemCard}
                     onPress={() => {
+                      setRequestByLinkId(true);
                       navigate(Routes.Auth.PopQuizIntro as any, { code: item.code, popQuizStatus: item.popQuizStatus });
                     }}
                     activeOpacity={0.8}
@@ -200,6 +210,7 @@ const StudySpaceView = () => {
               <TouchableOpacity
                 style={[styles.popQuizItemCard, { marginTop: 10 }]}
                 onPress={() => {
+                  setRequestByLinkId(true);
                   navigate(Routes.Auth.PopQuiz as any);
                 }}
                 activeOpacity={0.8}

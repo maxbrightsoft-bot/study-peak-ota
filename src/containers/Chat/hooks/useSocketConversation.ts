@@ -13,12 +13,15 @@ const useSocketConversation = ({
   conversationEvents
 }: Props) => {
   const user = useAuthStore(state => state.user)
+  const parentViewMode = useAuthStore(state => state.parentViewMode)
+  const isParentMode = !!parentViewMode?.isActive
   const academyDomain: string | undefined = user?.academyDomain
   const eventsRef = useRef(conversationEvents)
   eventsRef.current = conversationEvents
 
   // Register event listeners on socket once
   useEffect(() => {
+    if (isParentMode) return
     const socket = getSocket()
     if (!socket) return
 
@@ -45,11 +48,11 @@ const useSocketConversation = ({
         socket.off(name, handlers[name])
       })
     }
-  }, [])
+  }, [isParentMode])
 
   // Subscribe to the presence channel of the active conversation
   useEffect(() => {
-    if (!academyDomain || !selectedConversation?.id) return
+    if (!academyDomain || !selectedConversation?.id || isParentMode) return
 
     const socket = getSocket()
     const normalizedDomain = academyDomain.trim().toUpperCase()
@@ -75,7 +78,7 @@ const useSocketConversation = ({
         socket?.emit('unsubscribe', conversationChannel)
       }
     }
-  }, [selectedConversation?.id, academyDomain])
+  }, [selectedConversation?.id, academyDomain, isParentMode])
 
   return {}
 }

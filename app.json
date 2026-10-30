@@ -104,6 +104,19 @@
             "enablePagesizeMigration": true
           }
         }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Study Peak needs camera access to scan a QR code to link your account with another user, such as a parent or tutor account.",
+          "barcodeScannerEnabled": true
+        }
       ]
     ],
     "experiments": {

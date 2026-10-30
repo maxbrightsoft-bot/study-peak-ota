@@ -28,7 +28,7 @@ const useLogin = () => {
   const {
     setLoading,
     logout,
-    setUser,
+    setUserCustom,
     setHasEnteredSelectAcademy,
     setRedirectUrl,
   } = useAuthStore();
@@ -44,7 +44,7 @@ const useLogin = () => {
   const handleRedirectAfterSuccess = async (
     data: any,
     token: string,
-    redirectUrl: string,
+    redirectUrl?: string,
     redirectParams?: any
   ) => {
     await setDataStorage(ACCESS_TOKEN, token);
@@ -58,13 +58,16 @@ const useLogin = () => {
       ? await setDataStorage(LEARNING_SPACE, 'true')
       : await removeDataStorage(LEARNING_SPACE);
 
-    setRedirectUrl(redirectUrl, redirectParams);
-    setUser(data);
+    if (redirectUrl) {
+      setRedirectUrl(redirectUrl, redirectParams);
+    }
+    await setUserCustom(data);
   };
   const handleLogin = async (
     apiLogin: () => Promise<LoginResponse>,
     isLogout = true,
-    redirectUrlProp?: string
+    redirectUrlProp?: string,
+    skipRedirect = false
   ) => {
     setLoading(true);
     const academyDomain = await getAcademyDomain();
@@ -73,24 +76,27 @@ const useLogin = () => {
       const { isFirstLogin, token, user, loginMethod } = await apiLogin();
       const isAcademy = !!user?.academyDomain || !!user?.isLearningSpace;
 
-      const pendingRedirectUrl = useAuthStore.getState().pendingRedirectUrl;
-      const pendingRedirectParams = useAuthStore.getState().pendingRedirectParams;
-
-      let redirectUrl: string;
+      let redirectUrl: string | undefined;
       let redirectParams: any;
 
-      if (pendingRedirectUrl) {
-        redirectUrl = pendingRedirectUrl;
-        redirectParams = pendingRedirectParams;
-      } else if (isFirstLogin && isAcademy) {
-        redirectUrl = Platform.OS === 'ios' ? Routes.Auth.Home : Routes.Auth.Onboarding;
-      } else if (redirectUrlProp) {
-        redirectUrl = redirectUrlProp;
-      } else if (isAcademy) {
-        redirectUrl = Routes.Auth.Home;
-      } else {
-        setHasEnteredSelectAcademy(false);
-        redirectUrl = Routes.Auth.SelectAcademy;
+      if (!skipRedirect) {
+        const pendingRedirectUrl = useAuthStore.getState().pendingRedirectUrl;
+        const pendingRedirectParams = useAuthStore.getState().pendingRedirectParams;
+
+        if (pendingRedirectUrl) {
+          redirectUrl = pendingRedirectUrl;
+          redirectParams = pendingRedirectParams;
+          useAuthStore.getState().setPendingRedirectUrl(null, null);
+        } else if (isFirstLogin && isAcademy) {
+          redirectUrl = Platform.OS === 'ios' ? Routes.Auth.Home : Routes.Auth.Onboarding;
+        } else if (redirectUrlProp) {
+          redirectUrl = redirectUrlProp;
+        } else if (isAcademy) {
+          redirectUrl = Routes.Auth.Home;
+        } else {
+          setHasEnteredSelectAcademy(false);
+          redirectUrl = Routes.Auth.SelectAcademy;
+        }
       }
 
       await handleRedirectAfterSuccess(
@@ -239,7 +245,8 @@ const useLogin = () => {
     isLearningSpace?: boolean,
     domain?: string,
     isLogout = true,
-    redirectUrlProps?: string
+    redirectUrlProps?: string,
+    skipRedirect = false
   ) => {
     await handleLogin(
       async () => {
@@ -251,7 +258,8 @@ const useLogin = () => {
         return res.data;
       },
       isLogout,
-      redirectUrlProps
+      redirectUrlProps,
+      skipRedirect
     );
   };
 

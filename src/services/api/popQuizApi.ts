@@ -1,19 +1,39 @@
 import { api } from '@/services/api/apiClient';
+import { getIdLinkAccountForPopQuiz } from '@/utils/helpers';
 
 const EXAM_URL = '/api/exam';
 const POP_QUIZ_URL = '/api/pop-quiz';
 
-export const getRecentPopQuizzesApi = (pageSize?: number) =>
-    api.get(`${POP_QUIZ_URL}/recent`, { params: { pageSize } });
+export const getRecentPopQuizzesApi = (pageSize?: number) => {
+    const idLinkAccount = getIdLinkAccountForPopQuiz();
+    return api.get(`${POP_QUIZ_URL}/recent`, {
+        params: {
+            pageSize,
+            ...(idLinkAccount ? { idLinkAccount } : {})
+        }
+    });
+};
 
-export const getPopQuizLiveStatusApi = () =>
-    api.get(`${POP_QUIZ_URL}/live-status`);
+export const getPopQuizLiveStatusApi = () => {
+    const idLinkAccount = getIdLinkAccountForPopQuiz();
+    return api.get(`${POP_QUIZ_URL}/live-status`, {
+        params: {
+            ...(idLinkAccount ? { idLinkAccount } : {})
+        }
+    });
+};
 
 export const joinPopQuizApi = (code: string) =>
     api.post(`${EXAM_URL}/pop-quiz/join`, { code });
 
-export const getMyPopQuizzesApi = () =>
-    api.get(`${POP_QUIZ_URL}/my`);
+export const getMyPopQuizzesApi = () => {
+    const idLinkAccount = getIdLinkAccountForPopQuiz();
+    return api.get(`${POP_QUIZ_URL}/my`, {
+        params: {
+            ...(idLinkAccount ? { idLinkAccount } : {})
+        }
+    });
+};
 
 export const createPopQuizApi = (data: any) =>
     api.post(`${POP_QUIZ_URL}`, data);
