@@ -43,8 +43,7 @@
 			</array>
 		</dict>
 	</array>
-	<key>CFBundleVersion</key>
-	<string>12</string>
+	<key>CFBundleVersion</key>\r\n\t<string>13</string>
 	<key>FirebaseCrashlyticsCollectionEnabled</key>
 	<true/>
 	<key>ITSAppUsesNonExemptEncryption</key>
