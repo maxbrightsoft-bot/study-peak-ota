@@ -1,13 +1,19 @@
 import { BASE_URL } from "@/utils/constants";
 import { ScheduleQuery, ScheduleRequest, ScheduleStatusRequest } from "../configs/type";
 import { api } from "@/services/api/apiClient";
+import { getIdLinkAccount } from "@/utils/helpers";
 
 const SCHEDULE_URL = `${BASE_URL}/api/schedules`;
 
-export const getSchedulesApi = (query: ScheduleQuery) =>
-  api.get(`${SCHEDULE_URL}`, {
-    params: query
+export const getSchedulesApi = (query: ScheduleQuery) => {
+  const idLinkAccount = getIdLinkAccount();
+  return api.get(`${SCHEDULE_URL}`, {
+    params: {
+      ...query,
+      ...(idLinkAccount ? { idLinkAccount } : {})
+    }
   });
+};
 
 export const createScheduleApi = (values: ScheduleRequest) =>
   api.post(`${SCHEDULE_URL}`, {
@@ -29,6 +35,13 @@ export const updateScheduleStatusApi = (scheduleId: number, status: ScheduleStat
 export const deleteScheduleApi = (scheduleId: number) =>
   api.delete(`${SCHEDULE_URL}/${scheduleId}`);
 
-export const getScheduleCountApi = (values: { startDate: string, endDate: string }) =>
-  api.get(`${SCHEDULE_URL}/count`, { params: values });
+export const getScheduleCountApi = (values: { startDate: string, endDate: string }) => {
+  const idLinkAccount = getIdLinkAccount();
+  return api.get(`${SCHEDULE_URL}/count`, {
+    params: {
+      ...values,
+      ...(idLinkAccount ? { idLinkAccount } : {})
+    }
+  });
+};
 

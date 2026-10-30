@@ -5,6 +5,7 @@ import NotesContainer from './components/NoteContainer'
 import { NotesContainerProps } from './configs/interfaces'
 import { palette } from '@/theme'
 import { useTranslation } from 'react-i18next'
+import useAuthStore from '@/store/useAuthStore'
 
 type Props = {
   onCreateNote?: () => void
@@ -12,6 +13,7 @@ type Props = {
 }
 const IncorrectAnswerNotes = ({ onCreateNote, notesContainerProps }: Props) => {
   const { t } = useTranslation()
+  const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
   const handleCreateNote = () => {
     onCreateNote?.()
   }
@@ -28,7 +30,7 @@ const IncorrectAnswerNotes = ({ onCreateNote, notesContainerProps }: Props) => {
       >
         <Text style={{ color: palette.main[600], fontSize: 16, fontWeight: 600 }}>{t('incorrect_answer_notes')}</Text>
       </View>
-      <NewNoteButton onPress={handleCreateNote} />
+      {!isParentMode && !!onCreateNote && <NewNoteButton onPress={handleCreateNote} />}
       <NotesContainer {...notesContainerProps} />
     </View>
   )

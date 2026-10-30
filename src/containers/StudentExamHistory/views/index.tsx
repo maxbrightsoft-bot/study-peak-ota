@@ -17,6 +17,7 @@ import { utcToLocalTime } from "@/utils/helpers";
 import { ConfirmDialog } from "@/components/ModalBase/ConfirmDialog";
 import Checkbox from "@/components/Button/Checkbox";
 import ExamResult from "@/containers/ExamResult/views";
+import useAuthStore from "@/store/useAuthStore";
 
 const StudentExamHistory = ({
   examSessionId,
@@ -25,6 +26,7 @@ const StudentExamHistory = ({
   examSessionId: string;
   examCode: string;
 }) => {
+  const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive);
   const {
     t,
     search,
@@ -83,9 +85,10 @@ const StudentExamHistory = ({
     return (
       <TouchableOpacity
         style={[styles.item, isSelected && styles.selectedItem]}
-        onPress={() => handleSelect(item.studentExamSessionId!)}
+        disabled={isParentMode}
+        onPress={isParentMode ? undefined : () => handleSelect(item.studentExamSessionId!)}
       >
-        <Checkbox checked={isSelected} />
+        {!isParentMode && <Checkbox checked={isSelected} />}
 
         <View style={styles.cell}>
           <View style={styles.row}>
@@ -123,22 +126,24 @@ const StudentExamHistory = ({
         </View>
 
         <View style={styles.actionGroup}>
-          <TouchableOpacity
-            disabled={item.isSelected}
-            onPress={() =>
-              handleChooseSession(item.studentExamSessionId!)
-            }
-          >
-            <Text
-              style={{
-                color: item.isSelected
-                  ? palette.grey[300]
-                  : "#2196F3"
-              }}
+          {!isParentMode && (
+            <TouchableOpacity
+              disabled={item.isSelected}
+              onPress={() =>
+                handleChooseSession(item.studentExamSessionId!)
+              }
             >
-              {t("choose")}
-            </Text>
-          </TouchableOpacity>
+              <Text
+                style={{
+                  color: item.isSelected
+                    ? palette.grey[300]
+                    : "#2196F3"
+                }}
+              >
+                {t("choose")}
+              </Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             onPress={() =>
@@ -170,30 +175,32 @@ const StudentExamHistory = ({
         />
       </View>
 
-      <View style={styles.actionBar}>
-        <TouchableOpacity
-          onPress={handleSelectAll}
-          style={styles.selectAll}
-        >
-          <Checkbox checked={isAllSelected} />
-          <Text style={styles.selectAllText}>
-            {t("select_all")}
-          </Text>
-        </TouchableOpacity>
+      {!isParentMode && (
+        <View style={styles.actionBar}>
+          <TouchableOpacity
+            onPress={handleSelectAll}
+            style={styles.selectAll}
+          >
+            <Checkbox checked={isAllSelected} />
+            <Text style={styles.selectAllText}>
+              {t("select_all")}
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
-            styles.deleteButton,
-            selectedIds.length === 0 && styles.disabled
-          ]}
-          disabled={selectedIds.length === 0}
-          onPress={() => setConfirmDeleteOpen(true)}
-        >
-          <Text style={styles.deleteText}>
-            {t("delete")}
-          </Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            style={[
+              styles.deleteButton,
+              selectedIds.length === 0 && styles.disabled
+            ]}
+            disabled={selectedIds.length === 0}
+            onPress={() => setConfirmDeleteOpen(true)}
+          >
+            <Text style={styles.deleteText}>
+              {t("delete")}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}

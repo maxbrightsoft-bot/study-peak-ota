@@ -82,6 +82,7 @@ const ChatContainer = ({
   const [isFocused, setIsFocused] = useState(false)
   const { selectedItem, handleUploadImage: handleUpdateUploadImage, openDialog: openUpdateDialog, openConfirmDialog, toggleConfirmDialog, toggleDialog: toggleUpdateDialog, selectedFile } = useDialog()
   const flatListRef = useRef<FlatList>(null)
+  const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
   const disabled = isCompleted || isSending
   const filterMessage = useMemo(() => {
     let prevTime = 0
@@ -124,13 +125,18 @@ const ChatContainer = ({
   return (
     <SlideDrawerRoot visible={open} onClose={onClose}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onClose}>
-          <Ionicons name="close" size={20} color={palette.grey[900]} />
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={onClose}
+          activeOpacity={0.7}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <Ionicons name="close" size={24} color={palette.grey[900]} />
         </TouchableOpacity>
         <View>
-          <Text style={{ fontSize: 16, fontWeight: 600, color: '#222222' }}>{t('ask_a_question')}</Text>
+          <Text style={{ fontSize: 16, fontWeight: '600', color: '#222222' }}>{t('ask_a_question')}</Text>
         </View>
-        <View></View>
+        <View style={{ width: 40 }} />
       </View>
       <KeyboardAvoidingView
         keyboardVerticalOffset={0}
@@ -227,64 +233,66 @@ const ChatContainer = ({
             )}
           </View>
 
-          <View style={styles.footerWrapper}>
-            <View style={[styles.footer, isFocused && styles.footerFocused]}>
-              <View style={styles.actionGroup}>
-                <TouchableOpacity
-                  disabled={disabled}
-                  onPress={() => setShowImagePicker(true)}
-                  style={styles.iconButton}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="image-outline" size={20} color={palette.grey[700]} />
-                </TouchableOpacity>
+          {!isParentMode && (
+            <View style={styles.footerWrapper}>
+              <View style={[styles.footer, isFocused && styles.footerFocused]}>
+                <View style={styles.actionGroup}>
+                  <TouchableOpacity
+                    disabled={disabled}
+                    onPress={() => setShowImagePicker(true)}
+                    style={styles.iconButton}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="image-outline" size={20} color={palette.grey[700]} />
+                  </TouchableOpacity>
 
-                <TouchableOpacity
-                  disabled={disabled}
-                  onPress={() => setShowDrawPicker(true)}
-                  style={styles.sketchButton}
-                  activeOpacity={0.7}
-                >
-                  <MaterialIcons name="draw" size={20} color={palette.main[600]} />
-                </TouchableOpacity>
-              </View>
+                  <TouchableOpacity
+                    disabled={disabled}
+                    onPress={() => setShowDrawPicker(true)}
+                    style={styles.sketchButton}
+                    activeOpacity={0.7}
+                  >
+                    <MaterialIcons name="draw" size={20} color={palette.main[600]} />
+                  </TouchableOpacity>
+                </View>
 
-              <View style={styles.inputWrapper}>
-                <MathRichInput
-                  ref={inputRef}
-                  disabled={disabled}
-                  placeholder={t('chat_input_placeholder')}
-                  compact
-                  hideToolbar
-                  onFocus={() => setIsFocused(true)}
-                  onBlur={() => setIsFocused(false)}
-                  style={styles.input}
-                  onChange={(value) => onChangeInput(value)}
-                />
-              </View>
-
-              <TouchableOpacity
-                disabled={disabled || !text?.trim()}
-                onPress={() => onSubmit()}
-                activeOpacity={0.8}
-                style={[
-                  styles.sendButton,
-                  text?.trim() ? styles.sendButtonActive : styles.sendButtonDisabled
-                ]}
-              >
-                {isSending ? (
-                  <ActivityIndicator size={16} color="#FFF" />
-                ) : (
-                  <Ionicons
-                    name="send"
-                    size={16}
-                    color={text?.trim() ? '#FFF' : '#94A3B8'}
-                    style={{ marginLeft: 2 }}
+                <View style={styles.inputWrapper}>
+                  <MathRichInput
+                    ref={inputRef}
+                    disabled={disabled}
+                    placeholder={t('chat_input_placeholder')}
+                    compact
+                    hideToolbar
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    style={styles.input}
+                    onChange={(value) => onChangeInput(value)}
                   />
-                )}
-              </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  disabled={disabled || !text?.trim()}
+                  onPress={() => onSubmit()}
+                  activeOpacity={0.8}
+                  style={[
+                    styles.sendButton,
+                    text?.trim() ? styles.sendButtonActive : styles.sendButtonDisabled
+                  ]}
+                >
+                  {isSending ? (
+                    <ActivityIndicator size={16} color="#FFF" />
+                  ) : (
+                    <Ionicons
+                      name="send"
+                      size={16}
+                      color={text?.trim() ? '#FFF' : '#94A3B8'}
+                      style={{ marginLeft: 2 }}
+                    />
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          )}
           {openSketchCanvasDialog && (
             <SketchCanvas
               t={t}
@@ -435,8 +443,10 @@ const styles = ScaledSheet.create({
     flex: 1
   },
   backButton: {
-    flexDirection: 'row',
-    alignItems: 'center'
+    width: '40@ms',
+    height: '40@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   header: {
     flexDirection: 'row',

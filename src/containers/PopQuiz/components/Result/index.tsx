@@ -9,8 +9,12 @@ import usePopQuizResult from './hooks/usePopQuizResult';
 import { ExamStatus } from '@/utils/enums';
 import { navigate } from '@/navigators/NavigationHelpers';
 import { getSolveTargetLabel, navigateToPopQuizList } from '../../helpers';
+import { checkIsParent } from '@/utils/helpers';
+import useAccountLinkingStore from '@/store/useAccountLinkingStore';
 
 const PopQuizResult = () => {
+  const isParent = checkIsParent();
+  const requestByLinkId = useAccountLinkingStore(state => state.requestByLinkId);
   const {
     t,
     loading,
@@ -162,7 +166,7 @@ const PopQuizResult = () => {
       </ScrollView>
 
       <View style={styles.footer}>
-        {(resultData?.popQuizStatus ? (resultData.popQuizStatus !== ExamStatus.Completed && resultData.popQuizStatus !== 'Completed') : true) && (
+        {!isParent && (resultData?.popQuizStatus ? (resultData.popQuizStatus !== ExamStatus.Completed && resultData.popQuizStatus !== 'Completed') : true) && (
           <TouchableOpacity style={styles.retryBtn} onPress={handleRetry}>
             <Ionicons name="refresh-outline" size={16} color={palette.grey[700]} />
             <Text style={styles.retryBtnText}>{t('retry_quiz')}</Text>

@@ -30,6 +30,7 @@ export type ExamSessionResponse = {
     examId: number;
     questionCount: number
     score: number;
+    totalScore?: number;
     startTime: string;
     status: ExamStatus;
     isLate: boolean
