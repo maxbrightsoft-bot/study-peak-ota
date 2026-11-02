@@ -105,7 +105,7 @@
           }
         }
       ],
-      "expo-audio",
+
       [
         "expo-local-authentication",
         {
@@ -115,7 +115,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "cameraPermission": "Study Peak needs camera access to scan a QR code to link your account with another user, such as a parent or tutor account.",
           "barcodeScannerEnabled": true
         }      ]
     ],
