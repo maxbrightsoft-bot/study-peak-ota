@@ -9,10 +9,11 @@ import {
     switchAcademy
 } from "@/services/api/academyService"
 import { getSocket } from "@/services"
-import { getCurrentRole, getErrorMessage, toast } from "@/utils/helpers"
+import { getCurrentRole, getErrorMessage, getMessageFromError, toast } from "@/utils/helpers"
 import { ErrorMessageCodes } from "@/utils/constants/error"
 import { LoginAccessTokenRequest } from "@/utils/types"
 import { MainRoutes, Routes } from "@/navigators/RouteName"
+import { Role } from "@/utils/enums"
 
 export enum AcademyEnrollmentRequestStatus {
     PendingApproval = 0,
