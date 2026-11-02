@@ -3,7 +3,7 @@
     "name": "Study Peak",
     "slug": "touch-study-mobile",
     "jsEngine": "jsc",
-    "version": "1.0.9",
+    "version": "1.0.10",
     "orientation": "portrait",
     "icon": "./assets/app-icon.png",
     "scheme": "com.max.britghtsoft.touchstudymobile",
