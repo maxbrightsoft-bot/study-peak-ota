@@ -1,4 +1,4 @@
-import { Action, ExamResult, NoteResponse, QuestionData } from "@/utils/types"
+import { Action, ExamResult, NoteResponse, QuestionData, TextbookResult } from "@/utils/types"
 import { MouseEvent, RefObject } from "react"
 
 export interface NotesContainerProps{
