@@ -18,7 +18,6 @@ import CupIcon from '@/assets/iconJSX/cup'
 import ChatIcon from '@/assets/iconJSX/chat'
 import BookIcon from '@/assets/iconJSX/book'
 import useAuthStore from '@/store/useAuthStore'
-import useAccountLinkingStore from '@/store/useAccountLinkingStore'
 import { useTranslation } from 'react-i18next'
 import { ScaledSheet, ms } from 'react-native-size-matters'
 import { Language } from '@/utils/enums'
@@ -180,8 +179,6 @@ const TabItem = React.memo(({ item, isFocused, isEnOrVi, onPress }: TabItemProps
 const Footer = ({ state, navigation }: BottomTabBarProps) => {
   const user = useAuthStore(state => state.user)
   const language = useAuthStore(state => state.language)
-  const requestByLinkId = useAccountLinkingStore(state => state.requestByLinkId)
-  const setRequestByLinkId = useAccountLinkingStore(state => state.setRequestByLinkId)
   const { t, i18n } = useTranslation()
   const insets = useSafeAreaInsets()
 
@@ -263,11 +260,6 @@ const Footer = ({ state, navigation }: BottomTabBarProps) => {
   const currentTabName = state?.routes[state?.index]?.name || currentScreen()
 
   const handlePressTab = useCallback((item: TabItemData) => {
-    if (item.name === Routes.Auth.PopQuiz && !user?.academyDomain && isParent) {
-      setRequestByLinkId(false);
-    } else {
-      setRequestByLinkId(true);
-    }
     navigation.navigate(item.name)
   }, [navigation])
 
@@ -277,10 +269,7 @@ const Footer = ({ state, navigation }: BottomTabBarProps) => {
     <View style={[styles.tabBar, { paddingBottom: bottomPadding }]}>
       <View style={styles.tabBarInner}>
         {displayItems.map((item) => {
-        let isFocused = currentScreen() == item.name
-        if (!user?.academyDomain && isParent && requestByLinkId && item.name === Routes.Auth.PopQuiz) {
-          isFocused = false
-        }
+        const isFocused = currentScreen() == item.name
           return (
             <TabItem
               key={item.name}

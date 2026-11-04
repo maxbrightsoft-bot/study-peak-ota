@@ -10,11 +10,9 @@ import { ExamStatus } from '@/utils/enums';
 import { navigate } from '@/navigators/NavigationHelpers';
 import { getSolveTargetLabel, navigateToPopQuizList } from '../../helpers';
 import { checkIsParent } from '@/utils/helpers';
-import useAccountLinkingStore from '@/store/useAccountLinkingStore';
 
 const PopQuizResult = () => {
   const isParent = checkIsParent();
-  const requestByLinkId = useAccountLinkingStore(state => state.requestByLinkId);
   const {
     t,
     loading,

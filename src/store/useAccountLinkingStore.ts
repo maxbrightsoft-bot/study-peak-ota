@@ -37,7 +37,6 @@ interface AccountLinkingState {
   pendingRequests: AccountLinkResponse[];
   subscribedChannel: string | null;
   isCancelledByStudent: boolean;
-  requestByLinkId: boolean;
   isFromShareLink: boolean;
   hasUnsyncedLinks: boolean;
   isStudentAccepted: boolean;
@@ -54,7 +53,6 @@ interface AccountLinkingActions {
   setLinkedAccounts: (accounts: AccountLinkResponse[]) => void;
   fetchWaitingApprovalRequestsApi: () => Promise<AccountLinkResponse[]>;
   setSubscribedChannel: (channelName: string | null) => void;
-  setRequestByLinkId: (val: boolean) => void;
   setLinkData: (data: { key: string; code: string; image: string; expiredTime: string }, studentEmail?: string) => void;
   clearLinkData: () => void;
   setIsCancelledByStudent: (val: boolean) => void;
@@ -145,7 +143,6 @@ const useAccountLinkingStore = create<AccountLinkingStore>()(
         state.subscribedChannel = channelName;
       });
     },
-    requestByLinkId: true,
 
     setLinkKey: (key) => {
       set((state) => {
@@ -200,11 +197,6 @@ const useAccountLinkingStore = create<AccountLinkingStore>()(
       });
     },
 
-    setRequestByLinkId: (val) => {
-      set((state) => {
-        state.requestByLinkId = val;
-      });
-    },
 
     setLinkData: (data, studentEmail) => {
       set((state) => {
@@ -264,7 +256,6 @@ const useAccountLinkingStore = create<AccountLinkingStore>()(
         state.isCancelledByStudent = false;
         state.isStudentAccepted = false;
         state.targetDomain = null;
-        state.requestByLinkId = true;
       });
     },
   }))

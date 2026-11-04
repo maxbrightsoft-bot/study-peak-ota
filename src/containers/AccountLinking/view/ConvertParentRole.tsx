@@ -43,15 +43,6 @@ const ConvertParentRole = () => {
   const linkData = route.params?.linkData
   const hasAcceptedId = Boolean(acceptedLinkData?.id || acceptedLinkId)
 
-  usePreventBack(() => {
-    if (!isLinkingFlow || isFromShareLink) return false
-    const isAccepted = Boolean(
-      useAccountLinkingStore.getState().acceptedLinkId ||
-      useAccountLinkingStore.getState().acceptedLinkData?.id
-    )
-    return !isAccepted
-  })
-
   const [academies, setAcademies] = useState<AcademySimpleResponse[]>([])
   const [alreadyParentAcademies, setAlreadyParentAcademies] = useState<AcademySimpleResponse[]>([])
   const [autoAddAcademies, setAutoAddAcademies] = useState<AcademySimpleResponse[]>([])
@@ -59,8 +50,22 @@ const ConvertParentRole = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isAutoSubmitting, setIsAutoSubmitting] = useState(false)
+  const [popTargetIndexRoute, setPopTargetIndexRoute] = useState<number>(1)
+  const hasConvertAcademies = academies.length > 0
+  const hasAlreadyParent = alreadyParentAcademies.length > 0
+  const hasAutoAdd = autoAddAcademies.length > 0
+  const isAllEmpty = !hasConvertAcademies && !hasAlreadyParent && !hasAutoAdd
 
   const targetAcademy = targetDomain ? academies.find((a) => a.domain === targetDomain) : undefined
+
+  usePreventBack(() => {
+    if (!isLinkingFlow || isFromShareLink || isAllEmpty) return false
+    const isAccepted = Boolean(
+      useAccountLinkingStore.getState().acceptedLinkId ||
+      useAccountLinkingStore.getState().acceptedLinkData?.id
+    )
+    return !isAccepted
+  })
 
   useEffect(() => {
     if (!linkId) {
@@ -77,17 +82,22 @@ const ConvertParentRole = () => {
         const convertList = data?.convertAcademies ?? (Array.isArray(data) ? data : [])
         const alreadyList = data?.alreadyParentAcademies ?? []
         const autoList = data?.autoAddAcademies ?? []
+        const isListsAllEmpty = convertList.length === 0 && alreadyList.length === 0 && autoList.length === 0
 
         setAcademies(convertList)
         setAlreadyParentAcademies(alreadyList)
         setAutoAddAcademies(autoList)
+
+        if (isLinkingFlow && isListsAllEmpty) {
+          setPopTargetIndexRoute(2)
+        }
 
         const matched = targetDomain ? convertList.find((a) => a.domain === targetDomain) : undefined
 
         // Trường hợp không có academy nào cần chuyển đổi,
         // hoặc có targetDomain nhưng không nằm trong convertList (tức đã thuộc alreadyParent hoặc autoAdd):
         // Tự động gọi handleSubmitNewFlow([]) để chuyển sang màn chờ duyệt
-        if (isLinkingFlow && (convertList.length === 0 || (targetDomain && !matched))) {
+        if (isLinkingFlow && !isListsAllEmpty && (convertList.length === 0 || (targetDomain && !matched))) {
           setIsAutoSubmitting(true)
           handleSubmit([])
           return
@@ -211,11 +221,14 @@ const ConvertParentRole = () => {
   }
 
   const handleSkip = () => {
-    if(isFromShareLink) {
-      navigation.pop(2);
+    if (popTargetIndexRoute) {
+      navigation.pop(popTargetIndexRoute)
       return
     }
-    navigation.goBack()
+    if (isFromShareLink) {
+      navigation.pop(2)
+      return
+    }
   }
 
   const handleConfirm = async () => {
@@ -235,11 +248,7 @@ const ConvertParentRole = () => {
       )
     }
 
-    const hasConvertAcademies = academies.length > 0
-    const hasAlreadyParent = alreadyParentAcademies.length > 0
-    const hasAutoAdd = autoAddAcademies.length > 0
-
-    if (!hasConvertAcademies && !hasAlreadyParent && !hasAutoAdd) {
+    if (isAllEmpty) {
       return (
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIconCircle}>
@@ -346,7 +355,7 @@ const ConvertParentRole = () => {
                 <View style={styles.academyInfo}>
                   <View style={styles.academyNameRow}>
                     <Text style={styles.academyName} numberOfLines={1}>
-                      {!academy.domain ? t('my_study_space') : academy.name}
+                      {academy.name}
                     </Text>
                     {isTargetAcademy && (
                       <View style={styles.targetBadge}>
@@ -429,7 +438,7 @@ const ConvertParentRole = () => {
                   <View style={styles.academyInfo}>
                     <View style={styles.academyNameRow}>
                       <Text style={styles.academyName} numberOfLines={1}>
-                        {!academy.domain ? t('my_study_space') : academy.name}
+                        {academy.name}
                       </Text>
                       <View style={styles.autoAddBadge}>
                         <Text style={styles.autoAddBadgeText}>

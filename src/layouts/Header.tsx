@@ -117,7 +117,7 @@ const Header = ({ headerProps }: Props) => {
     child?: ParentLinkResponse | null
   }) => {
     if (!item.academy.domain) {
-      return item.child ? t('study_space') : t('my_study_space')
+      return t('my_study_space')
     }
     return item.academy.name
   }
@@ -125,7 +125,7 @@ const Header = ({ headerProps }: Props) => {
   const headerAcademyTitle = useMemo(() => {
     const isSpaceStudy = !selectedAcademy?.domain
     if (isSpaceStudy) {
-      return isParentMode && parentViewMode?.linkId ? t('study_space') : t('my_study_space')
+      return t('my_study_space')
     }
     return selectedAcademy?.name
   }, [selectedAcademy, isParentMode, t])
@@ -264,7 +264,7 @@ const Header = ({ headerProps }: Props) => {
                         <Avatar.Image
                           size={36}
                           style={{ backgroundColor: '#fff', marginRight: 10 }}
-                          source={{ uri: item.academy?.image || (item.child?.studentAvatar || user?.avatar) }}
+                          source={{ uri: item.academy?.image || (!item.academy?.domain && user?.avatar) || '' }}
                         />
                         <View
                           style={{

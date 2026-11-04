@@ -5,16 +5,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { ScaledSheet } from 'react-native-size-matters';
 import usePopQuizIntro from './hooks/usePopQuizIntro';
 import { getSolveTargetLabel, navigateToPopQuizList } from '../../helpers';
-import { navigate } from '@/navigators/NavigationHelpers';
-import { Routes } from '@/navigators/RouteName';
 import { checkIsParent } from '@/utils/helpers';
-import useAccountLinkingStore from '@/store/useAccountLinkingStore';
-import useAuthStore from '@/store/useAuthStore';
 
 const PopQuizIntro = () => {
   const isParent = checkIsParent();
-  const user = useAuthStore(state => state.user);
-  const requestByLinkId = useAccountLinkingStore(state => state.requestByLinkId);
   const {
     t,
     loading,
@@ -117,7 +111,7 @@ const PopQuizIntro = () => {
           {t('pop_quiz_info_format', { count: quizInfo.questionCount || 0, score: quizInfo.totalScore || 0 })}
         </Text>
 
-        {(!isParent || (!user?.academyDomain && !requestByLinkId)) && (
+        {!isParent && (
           <Text style={styles.subtitle}>
             {t('pop_quiz_intro_desc') || '지금 팝퀴즈를 시작해 보세요. 집중해서 최선을 다해 풀어주세요!'}
           </Text>

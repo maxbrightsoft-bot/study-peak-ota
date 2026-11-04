@@ -1,6 +1,5 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Modal, ActivityIndicator, Alert, Share, Clipboard } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
 import { palette } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { ScaledSheet } from 'react-native-size-matters';
@@ -13,17 +12,8 @@ import { STUDENT_URL } from '@/utils/constants';
 import { ExamStatus } from '@/utils/enums';
 import { getSolveTargetLabel } from './helpers';
 import TextField from '@/components/Input/TextField';
-import useAccountLinkingStore from '@/store/useAccountLinkingStore';
 const PopQuiz = () => {
   const isParent = checkIsParent();
-  const requestByLinkId = useAccountLinkingStore(state => state.requestByLinkId);
-  const setRequestByLinkId = useAccountLinkingStore(state => state.setRequestByLinkId);
-
-  useEffect(() => {
-    return () => {
-      setRequestByLinkId(true);
-    };
-  }, []);
 
   const {
     t,
@@ -48,7 +38,7 @@ const PopQuiz = () => {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      {!user?.academyDomain && (!isParent || !requestByLinkId) && (
+      {!user?.academyDomain && (
         <View style={styles.bannerContainer}>
           <View style={styles.bannerHeader}>
             <Text style={styles.bannerTag}>{t('pop_quiz_banner_tag')}</Text>
@@ -188,7 +178,7 @@ const PopQuiz = () => {
             </View>
           </View>
 
-          {!user?.academyDomain && (!isParent || !requestByLinkId) && (
+          {!user?.academyDomain && (
             <View style={[styles.sectionContainer, { paddingBottom: 40 }]}>
               <Text style={styles.sectionTitle}>{t('my_pop_quiz')}</Text>
               <View style={styles.quizList}>

@@ -13,7 +13,6 @@ import { Language, Role } from '../enums'
 import { PauseOrResumeExamRequest } from '../types'
 import { trackErrorStandalone } from '@/hooks/useActivityTracking'
 import useAuthStore from '@/store/useAuthStore'
-import useAccountLinkingStore from '@/store/useAccountLinkingStore'
 
 export const toast = {
   success: (message: string) =>
@@ -405,8 +404,6 @@ export const getIdLinkAccount = (): number | undefined => {
 }
 
 export const getIdLinkAccountForPopQuiz = (): number | undefined => {
-  const requestByLinkId = useAccountLinkingStore.getState().requestByLinkId;
-  if (!requestByLinkId) return undefined;
   return getIdLinkAccount();
 }
 
