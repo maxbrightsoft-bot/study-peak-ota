@@ -5,6 +5,7 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { View, Text, TouchableOpacity } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
+import useAppStore from '@/store/useAppStore'
 
 interface Props {
   codeExam: string
@@ -16,6 +17,8 @@ interface Props {
 
 const ConfirmExamCode = ({ codeExam, onClose, open, examSession, handleCodeExam }: Props) => {
   const { t } = useTranslation()
+  const isAutoNextQuestion = useAppStore(state => state.isAutoNextQuestion)
+  const setIsAutoNextQuestion = useAppStore(state => state.setIsAutoNextQuestion)
 
   return (
     <CommonDialog
@@ -53,6 +56,36 @@ const ConfirmExamCode = ({ codeExam, onClose, open, examSession, handleCodeExam 
           <Text style={styles.value}>{examSession?.teacherName}</Text>
         </View>
 
+        <View style={[styles.row, styles.autoNextRow]}>
+          <Text style={styles.label}>{t('auto_next_question')}</Text>
+          <View style={styles.toggleContainer}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setIsAutoNextQuestion(true)}
+              style={[
+                styles.toggleBtn,
+                isAutoNextQuestion && styles.toggleBtnActive
+              ]}
+            >
+              <Text style={[styles.toggleBtnText, isAutoNextQuestion && styles.toggleBtnTextActive]}>
+                ON
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setIsAutoNextQuestion(false)}
+              style={[
+                styles.toggleBtn,
+                !isAutoNextQuestion && styles.toggleBtnActiveOff
+              ]}
+            >
+              <Text style={[styles.toggleBtnText, !isAutoNextQuestion && styles.toggleBtnTextActive]}>
+                OFF
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         <TouchableOpacity>
           <Text style={styles.startText}>{t('confirm_exam_start')}</Text>
         </TouchableOpacity>
@@ -84,6 +117,50 @@ const styles = ScaledSheet.create({
     fontWeight: '500',
     color: '#222222',
     textAlign: 'right'
+  },
+
+  autoNextRow: {
+    marginTop: '6@ms',
+    paddingTop: '10@ms',
+    borderTopWidth: 1,
+    borderTopColor: palette.grey[200]
+  },
+
+  toggleContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#F3F4F6',
+    borderRadius: '8@ms',
+    padding: '3@ms',
+    borderWidth: 1,
+    borderColor: '#E5E7EB'
+  },
+
+  toggleBtn: {
+    paddingHorizontal: '12@ms',
+    paddingVertical: '4@ms',
+    borderRadius: '6@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: '42@ms'
+  },
+
+  toggleBtnActive: {
+    backgroundColor: palette.main[600]
+  },
+
+  toggleBtnActiveOff: {
+    backgroundColor: palette.grey[700]
+  },
+
+  toggleBtnText: {
+    fontSize: '12@ms',
+    fontWeight: '600',
+    color: palette.grey[500]
+  },
+
+  toggleBtnTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '700'
   },
 
   startText: {

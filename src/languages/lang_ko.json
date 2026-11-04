@@ -1285,6 +1285,10 @@
   "asterisks": "별표",
   "confidence_rate": "확신률",
   "how_confident": "얼마나 확신하나요",
+  "please_select_confidence": "확신도를 선택해주세요",
+  "auto_next_question": "문제 자동넘김",
+  "auto_next_on": "문제 자동넘김 켜기",
+  "auto_next_off": "문제 자동넘김 끄기",
   "confidence_sure": "확신",
   "confidence_unsure": "애매",
   "confidence_random": "찍음",
@@ -2693,5 +2697,6 @@
   "confidence_cell_wrong_unsure_title": "근접 발달 구간",
   "confidence_cell_wrong_unsure_sub": "가장 빨리 오르는 자리",
   "confidence_cell_wrong_random_title": "미학습",
-  "confidence_cell_wrong_random_sub": "개념부터 다시"
+  "confidence_cell_wrong_random_sub": "개념부터 다시",
+  "confidence_total_count": "총 {{count}}문제"
 }

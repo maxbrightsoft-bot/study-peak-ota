@@ -5,6 +5,7 @@ import { ExamStatus, QuestionAnswerType, SubjectType, ConfidenceLevel } from '@/
 import { QuestionGroupResponse, QuestionResponse } from '../config/types'
 import React, { useCallback, useMemo } from 'react'
 import MathRender from '@/components/MathRender'
+import ConfidenceIcon from '@/components/ConfidenceIcon'
 import { useTranslation } from 'react-i18next'
 import { ScaledSheet } from 'react-native-size-matters'
 
@@ -82,23 +83,7 @@ const QuestionRow = React.memo(({
         )}
       </View>
       <View style={{ justifyContent: 'center', alignItems: 'center', paddingRight: 8 }}>
-        {item.confidence === ConfidenceLevel.Sure ? (
-          <View style={{ width: 26, height: 26, borderRadius: 6, borderWidth: 1.5, borderColor: palette.confidence.sure.border, backgroundColor: palette.confidence.sure.bg, justifyContent: 'center', alignItems: 'center' }}>
-            <Text style={{ color: palette.confidence.sure.text, fontWeight: '800', fontSize: 13 }}>○</Text>
-          </View>
-        ) : item.confidence === ConfidenceLevel.Unsure ? (
-          <View style={{ width: 26, height: 26, borderRadius: 6, borderWidth: 1.5, borderColor: palette.confidence.unsure.border, backgroundColor: palette.confidence.unsure.bg, justifyContent: 'center', alignItems: 'center' }}>
-            <Text style={{ color: palette.confidence.unsure.text, fontWeight: '800', fontSize: 12 }}>△</Text>
-          </View>
-        ) : item.confidence === ConfidenceLevel.Random ? (
-          <View style={{ width: 26, height: 26, borderRadius: 6, borderWidth: 1.5, borderColor: palette.confidence.random.border, backgroundColor: palette.confidence.random.bg, justifyContent: 'center', alignItems: 'center' }}>
-            <Text style={{ color: palette.confidence.random.text, fontWeight: '800', fontSize: 13 }}>×</Text>
-          </View>
-        ) : (
-          <View style={{ width: 26, height: 26, borderRadius: 6, borderWidth: 1, borderStyle: 'dashed', borderColor: palette.grey[400], backgroundColor: '#F9FAFB', justifyContent: 'center', alignItems: 'center' }}>
-            <Text style={{ color: palette.grey[500], fontWeight: '700', fontSize: 13 }}>?</Text>
-          </View>
-        )}
+        <ConfidenceIcon confidence={item.confidence} size={26} />
       </View>
     </TouchableOpacity>
   )

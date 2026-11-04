@@ -1290,6 +1290,10 @@
   "asterisks": "Asterisks",
   "confidence_rate": "Confidence Rate",
   "how_confident": "How confident are you?",
+  "please_select_confidence": "Please select confidence level",
+  "auto_next_question": "Auto-advance question",
+  "auto_next_on": "Turn ON Auto-advance",
+  "auto_next_off": "Turn OFF Auto-advance",
   "confidence_sure": "Sure",
   "confidence_unsure": "Unsure",
   "confidence_random": "Guessed",
@@ -2698,5 +2702,6 @@
   "confidence_cell_wrong_unsure_title": "Zone of Proximal Development",
   "confidence_cell_wrong_unsure_sub": "Quickest area to improve",
   "confidence_cell_wrong_random_title": "Unlearned",
-  "confidence_cell_wrong_random_sub": "Start over from basic concepts"
+  "confidence_cell_wrong_random_sub": "Start over from basic concepts",
+  "confidence_total_count": "Total: {{count}}"
 }

@@ -1304,6 +1304,10 @@
   "asterisks": "Dấu sao",
   "confidence_rate": "Tỷ lệ tự tin",
   "how_confident": "Bạn tự tin đến mức nào?",
+  "please_select_confidence": "Vui lòng chọn mức độ tự tin",
+  "auto_next_question": "Tự động chuyển câu",
+  "auto_next_on": "Bật tự động chuyển câu",
+  "auto_next_off": "Tắt tự động chuyển câu",
   "confidence_sure": "Chắc chắn",
   "confidence_unsure": "Phân vân",
   "confidence_random": "Đoán mò",
@@ -2709,5 +2713,6 @@
   "confidence_cell_wrong_unsure_title": "Vùng phát triển gần",
   "confidence_cell_wrong_unsure_sub": "Vị trí giúp tăng điểm nhanh nhất",
   "confidence_cell_wrong_random_title": "Chưa học",
-  "confidence_cell_wrong_random_sub": "Học lại từ khái niệm căn bản"
+  "confidence_cell_wrong_random_sub": "Học lại từ khái niệm căn bản",
+  "confidence_total_count": "Tổng: {{count}} câu"
 }

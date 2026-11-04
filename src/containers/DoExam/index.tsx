@@ -174,24 +174,22 @@ const DoExam = ({ examCode, reqTime }: Props) => {
             )}
           </View>
           <View style={styles.headerSideRight}>
-            {(exam?.isLate || (!exam?.isLate && exam?.lateStatus === ExamStatus.Completed)) && (
-              <FloatingActionButton
-                t={t}
-                status={exam?.lateStatus}
-                onTogglePauseResume={handlePauseAndResumeExam}
-                onOpenConfirmDialog={handleOpenConfirmDialog}
-                onSolveItLater={!isLoadingQuestions && !isAllQuestionsAnswered(questionList) ? handleOpenUnsolvedLeaveDialog : undefined}
-                onEndExam={!isLoadingQuestions && isAllQuestionsAnswered(questionList) ? handleOpenFinishConfirmDialog : undefined}
-                keys={{
-                  pause: 'pause_exam',
-                  resume: 'resume_exam',
-                  restart: 'restart_exam',
-                  solveItLater: 'solve_it_later',
-                  endExam: 'exam_end'
-                }}
-                ariaLabel="exam-actions"
-              />
-            )}
+            <FloatingActionButton
+              t={t}
+              status={exam?.isLate ? exam?.lateStatus : exam?.status}
+              onTogglePauseResume={exam?.isLate ? handlePauseAndResumeExam : undefined}
+              onOpenConfirmDialog={exam?.isLate ? handleOpenConfirmDialog : undefined}
+              onSolveItLater={exam?.isLate && !isLoadingQuestions && !isAllQuestionsAnswered(questionList) ? handleOpenUnsolvedLeaveDialog : undefined}
+              onEndExam={!isLoadingQuestions && isAllQuestionsAnswered(questionList) ? handleOpenFinishConfirmDialog : undefined}
+              keys={{
+                pause: 'pause_exam',
+                resume: 'resume_exam',
+                restart: 'restart_exam',
+                solveItLater: 'solve_it_later',
+                endExam: 'exam_end'
+              }}
+              ariaLabel="exam-actions"
+            />
           </View>
         </View>
         {questionStarList.length > 0 && (

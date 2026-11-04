@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useFocusEffect } from '@react-navigation/native'
 import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
+import useAppStore from '@/store/useAppStore'
 
 type Props = {
   t: (key: string) => string
@@ -39,6 +40,9 @@ const FloatingActionButton: React.FC<Props> = ({
   const [menuOpen, setMenuOpen] = useState(false)
   const scaleAnim = React.useRef(new Animated.Value(0.9)).current
   const opacityAnim = React.useRef(new Animated.Value(0)).current
+
+  const isAutoNextQuestion = useAppStore(state => state.isAutoNextQuestion)
+  const setIsAutoNextQuestion = useAppStore(state => state.setIsAutoNextQuestion)
 
   const isPaused = status === ExamStatus.Paused
   const isCompleted = status === ExamStatus.Completed
@@ -103,6 +107,11 @@ const FloatingActionButton: React.FC<Props> = ({
     toggleMenu()
   }
 
+  const handleToggleAutoNext = () => {
+    setIsAutoNextQuestion(!isAutoNextQuestion)
+    toggleMenu()
+  }
+
   useFocusEffect(
     useCallback(() => {
       return () =>
@@ -161,7 +170,7 @@ const FloatingActionButton: React.FC<Props> = ({
             </View>
           )}
 
-          {!isOnlyRestart && (
+          {!!onTogglePauseResume && !isOnlyRestart && (
             <View style={styles.buttonWrapper}>
               <TouchableOpacity
                 onPress={handlePauseResume}
@@ -188,15 +197,38 @@ const FloatingActionButton: React.FC<Props> = ({
 
           <View style={styles.buttonWrapper}>
             <TouchableOpacity
-              onPress={handleRestart}
-              style={[styles.menuButton, styles.restartButton]}
+              onPress={handleToggleAutoNext}
+              style={[
+                styles.menuButton,
+                isAutoNextQuestion ? styles.autoNextOnButton : styles.autoNextOffButton
+              ]}
             >
               <View style={styles.buttonContent}>
-                <Ionicons name={'refresh-circle-sharp'} size={20} color={'#FFF'} />
-                <Text style={styles.buttonLabel}>{t(restartKey)}</Text>
+                <Ionicons
+                  name={isAutoNextQuestion ? 'pause-circle-sharp' : 'arrow-forward-circle-sharp'}
+                  size={20}
+                  color={'#FFF'}
+                />
+                <Text style={styles.buttonLabel}>
+                  {t(isAutoNextQuestion ? 'auto_next_off' : 'auto_next_on')}
+                </Text>
               </View>
             </TouchableOpacity>
           </View>
+
+          {!!onOpenConfirmDialog && (
+            <View style={styles.buttonWrapper}>
+              <TouchableOpacity
+                onPress={handleRestart}
+                style={[styles.menuButton, styles.restartButton]}
+              >
+                <View style={styles.buttonContent}>
+                  <Ionicons name={'refresh-circle-sharp'} size={20} color={'#FFF'} />
+                  <Text style={styles.buttonLabel}>{t(restartKey)}</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          )}
         </Animated.View>
       )}
       <TouchableOpacity
@@ -248,6 +280,12 @@ const styles = ScaledSheet.create({
   },
   restartButton: {
     backgroundColor: '#2196F3'
+  },
+  autoNextOnButton: {
+    backgroundColor: '#0284C7'
+  },
+  autoNextOffButton: {
+    backgroundColor: '#64748B'
   },
   buttonContent: {
     flexDirection: 'row',

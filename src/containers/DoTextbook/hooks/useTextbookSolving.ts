@@ -5,6 +5,7 @@ import { answerQuestionTextbook } from "../apiClients";
 import _ from "lodash";
 import { useTranslation } from "react-i18next";
 import useAuthStore from "@/store/useAuthStore";
+import useAppStore from "@/store/useAppStore";
 import moment from "moment";
 import { diffFromNow, getErrorMessage, toast, toISOString, hasAnyTextualAnswer } from "@/utils/helpers";
 import { DATE_TIME_MIN_VALUE } from "@/utils/constants";
@@ -57,6 +58,7 @@ const useTextbookSolving = (props: Props) => {
   const academyDomain: string | undefined = user?.academyDomain;
   const userId: number | undefined = user?.id;
   const { t } = useTranslation();
+  const isAutoNextQuestion = useAppStore(state => state.isAutoNextQuestion);
   const { getServerNow } = useServerTime();
   const { track, trackError } = useActivityTracking({ screen: AppScreen.DoTextbook })
 
@@ -172,7 +174,7 @@ const useTextbookSolving = (props: Props) => {
           if (ltAnswerTime.current && isValid && moment(rollBackLastAnswerTime).isAfter(startTime) && moment(rollBackLastAnswerTime).isAfter(ltAnswerTime.current))
             ltAnswerTime.current = rollBackLastAnswerTime;
         }
-        if (!skipAutoNext) {
+        if (!skipAutoNext && isAutoNextQuestion) {
           handleNextQuestion(true);
         }
 
@@ -235,7 +237,7 @@ const useTextbookSolving = (props: Props) => {
     );
     updateQuestionList?.(arrQuestionNew);
 
-    !skipAutoNext && handleNextQuestion()
+    (!skipAutoNext && isAutoNextQuestion) && handleNextQuestion()
 
     const body: StudentTextbookAnswerRequest = {
       lastAnswerTime: lastAnswerTimeNum,
@@ -301,6 +303,7 @@ const useTextbookSolving = (props: Props) => {
     if (!textbook || isPaused || isMockTimeOut || textbook.status === ExamStatus.Paused || textbook.status === ExamStatus.Completed) return;
     const { now, nowTime } = getServerTimeFormatted();
 
+    let shouldAutoNext = false;
     const listQuestionNews = _.cloneDeep(questionList);
     const arrQuestionNew = listQuestionNews.map((item: PreparedQuestionResponse) => {
       if (item.id === questionId) {
@@ -330,12 +333,15 @@ const useTextbookSolving = (props: Props) => {
             break;
         }
 
-        const isAnswered =
-          (item.selectedAnswers && item.selectedAnswers.length > 0) ||
-          hasAnyTextualAnswer(item.textualAnswers);
         if (confidence !== undefined) {
           item.confidence = confidence;
         }
+
+        const isAnswered =
+          (item.selectedAnswers && item.selectedAnswers.length > 0) ||
+          hasAnyTextualAnswer(item.textualAnswers);
+        const hasConfidence = item.confidence !== undefined && item.confidence !== null;
+        shouldAutoNext = Boolean(isAnswered && hasConfidence && isAutoNextQuestion);
 
         const diff = getDiffTime(now, nowTime);
         item.duration = (item.duration || 0) + +diff;
@@ -367,7 +373,7 @@ const useTextbookSolving = (props: Props) => {
         }
       })
 
-      handleUpdateAnswer(arrQuestionNew, now, nowTime, questionId);
+      handleUpdateAnswer(arrQuestionNew, now, nowTime, questionId, !shouldAutoNext);
     } catch (error) {
       logError(error, {
         action: 'ANSWER_QUESTION',
@@ -415,10 +421,18 @@ const useTextbookSolving = (props: Props) => {
   const updateQuestionConfidence = (questionId: number, confidence?: ConfidenceLevel) => {
     if (!textbook || isPaused || isMockTimeOut || textbook.status === ExamStatus.Paused || textbook.status === ExamStatus.Completed) return;
     const { now, nowTime } = getServerTimeFormatted();
+    let shouldAutoNext = false;
     const listQuestionNews = _.cloneDeep(questionList);
     const arrQuestionNew = listQuestionNews.map((item: PreparedQuestionResponse) => {
       if (item.id === questionId) {
         item.confidence = confidence;
+
+        const isAnswered =
+          (item.selectedAnswers && item.selectedAnswers.length > 0) ||
+          hasAnyTextualAnswer(item.textualAnswers);
+        const hasConfidence = item.confidence !== undefined && item.confidence !== null;
+        shouldAutoNext = Boolean(isAnswered && hasConfidence && isAutoNextQuestion);
+
         const diff = getDiffTime(now, nowTime);
         item.duration = (item.duration || 0) + +diff;
         item.answerTime = item.answerTime && item.answerTime !== 0 ? item.answerTime : nowTime;
@@ -429,7 +443,7 @@ const useTextbookSolving = (props: Props) => {
       return item;
     });
 
-    handleUpdateAnswer(arrQuestionNew, now, nowTime, questionId, true);
+    handleUpdateAnswer(arrQuestionNew, now, nowTime, questionId, !shouldAutoNext);
   };
 
   const updateQuestionStar = (questionId: number, isStar: boolean) => {
