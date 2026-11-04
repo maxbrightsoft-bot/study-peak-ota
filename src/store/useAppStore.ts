@@ -11,6 +11,7 @@ interface AppStoreState {
   latestVersionName: string;
   otaCheckTriggerCount: number;
   forceWebVersion: boolean;
+  isAutoNextQuestion: boolean;
 }
 
 interface AppStoreActions {
@@ -20,6 +21,7 @@ interface AppStoreActions {
   setLatestVersionName: (version: string) => void;
   triggerOtaCheck: () => void;
   setForceWebVersion: (val: boolean) => void;
+  setIsAutoNextQuestion: (val: boolean) => void;
 }
 
 type AppStore = AppStoreState & AppStoreActions;
@@ -33,6 +35,7 @@ const useAppStore = create<AppStore>()(
       latestVersionName: "",
       otaCheckTriggerCount: 0,
       forceWebVersion: false,
+      isAutoNextQuestion: true,
 
       setBundleVersion: (version) => {
         set((state) => {
@@ -69,12 +72,19 @@ const useAppStore = create<AppStore>()(
           state.forceWebVersion = val;
         });
       },
+
+      setIsAutoNextQuestion: (val) => {
+        set((state) => {
+          state.isAutoNextQuestion = val;
+        });
+      },
     })),
     {
       name: "app-storage-settings",
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         bundleVersion: state.bundleVersion,
+        isAutoNextQuestion: state.isAutoNextQuestion,
       }),
     }
   )

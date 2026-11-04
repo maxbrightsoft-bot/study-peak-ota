@@ -12,6 +12,7 @@ import * as Yup from 'yup'
 import AnswerContent from './AnswerContent'
 import { ScaledSheet } from 'react-native-size-matters'
 import { toast } from '@/utils/helpers'
+import useAppStore from '@/store/useAppStore'
 
 interface Props {
   t: any
@@ -33,6 +34,7 @@ const schema = (t: any) => {
 }
 
 const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer, updateQuestionConfidence, disabled }: Props) => {
+  const isAutoNextQuestion = useAppStore(state => state.isAutoNextQuestion)
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>(question?.selectedAnswers ?? [])
   const [confidence, setConfidence] = useState<ConfidenceLevel | undefined>(question?.confidence)
   const confidenceRef = useRef<ConfidenceLevel | undefined>(question?.confidence)
@@ -65,14 +67,30 @@ const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer
 
     setSelectedAnswers(nextSelected)
     updateQuestionAnswer({ questionId: question?.id || 0, answer: num })
+    const willBeAnswered = nextSelected.length > 0
+    const hasConfidence = confidenceRef.current !== undefined && confidenceRef.current !== null
+    if (isLastQuestion && willBeAnswered && hasConfidence && isAutoNextQuestion) {
+      onClose()
+    }
   }
 
+
+  const isAnswerChecked = useMemo(() => {
+    if (selectedAnswers && selectedAnswers.length > 0) return true
+    if (question.textualAnswers && hasAnyTextualAnswer(question.textualAnswers)) return true
+    return false
+  }, [selectedAnswers, question.textualAnswers])
+
+  const isConfidenceMissing = isAnswerChecked && (confidence === undefined || confidence === null)
 
   const handleConfidenceSelect = (level: ConfidenceLevel) => {
     if (disabled) return
     confidenceRef.current = level
     setConfidence(level)
     updateQuestionConfidence?.(question.id, level)
+    if (isLastQuestion && isAnswerChecked && isAutoNextQuestion) {
+      onClose()
+    }
   }
 
   const renderAnswer = (question: Question, type: QuestionAnswerType) => {
@@ -94,7 +112,8 @@ const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer
                 textualAnswers: values.textualAnswers,
                 confidence: confidenceRef.current
               })
-              isLastQuestion && onClose()
+              const hasConf = confidenceRef.current !== undefined && confidenceRef.current !== null
+              if (isLastQuestion && hasConf && isAutoNextQuestion) onClose()
             }}
             enableReinitialize
           >
@@ -161,7 +180,7 @@ const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer
                       onPress={() => {
                         if (disabled) return
                         handleSelectAnswer(num + 1, question.questionAnswerType)
-                        isLastQuestion && onClose()
+                        
                       }}
                     >
                       <Text style={{ color: isSelected ? '#FFF' : '#222222', fontSize: 15, fontWeight: '600' }}>
@@ -182,7 +201,7 @@ const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer
                       onPress={() => {
                         if (disabled) return
                         handleSelectAnswer(num + 1, question.questionAnswerType)
-                        isLastQuestion && onClose()
+                        
                       }}
                     >
                       <Text style={{ color: isSelected ? '#FFF' : '#222222' }}>{num + 1}</Text>
@@ -203,10 +222,29 @@ const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer
 
   const renderConfidenceSelector = () => {
     return (
-      <View style={{ marginTop: 16, paddingTop: 14, borderTopWidth: 1, borderTopColor: palette.grey[200] }}>
-        <Text style={{ fontSize: 13, fontWeight: '700', color: palette.grey[800], marginBottom: 10, textAlign: 'center' }}>
-          {t('how_confident')}
-        </Text>
+      <View
+        style={[
+          styles.confidenceContainer,
+          isConfidenceMissing && styles.confidenceContainerHighlight
+        ]}
+      >
+        <View style={styles.confidenceHeaderRow}>
+          <Text
+            style={[
+              styles.confidenceTitle,
+              isConfidenceMissing && styles.confidenceTitleHighlight
+            ]}
+          >
+            {t('how_confident')}
+          </Text>
+          {isConfidenceMissing && (
+            <View style={styles.confidenceBadge}>
+              <Text style={styles.confidenceBadgeText}>
+                {t('please_select_confidence')}
+              </Text>
+            </View>
+          )}
+        </View>
         <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'space-between' }}>
           <TouchableOpacity
             disabled={disabled}
@@ -217,8 +255,8 @@ const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer
               paddingHorizontal: 6,
               borderRadius: 10,
               borderWidth: confidence === ConfidenceLevel.Sure ? 1.5 : 1,
-              borderColor: confidence === ConfidenceLevel.Sure ? palette.confidence.sure.border : '#E5E7EB',
-              backgroundColor: confidence === ConfidenceLevel.Sure ? palette.confidence.sure.border : '#F9FAFB',
+              borderColor: confidence === ConfidenceLevel.Sure ? palette.confidence.sure.border : isConfidenceMissing ? '#BAE6FD' : '#E5E7EB',
+              backgroundColor: confidence === ConfidenceLevel.Sure ? palette.confidence.sure.border : '#FFFFFF',
               alignItems: 'center',
               justifyContent: 'center'
             }}
@@ -237,8 +275,8 @@ const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer
               paddingHorizontal: 6,
               borderRadius: 10,
               borderWidth: confidence === ConfidenceLevel.Unsure ? 1.5 : 1,
-              borderColor: confidence === ConfidenceLevel.Unsure ? palette.confidence.unsure.border : '#E5E7EB',
-              backgroundColor: confidence === ConfidenceLevel.Unsure ? palette.confidence.unsure.border : '#F9FAFB',
+              borderColor: confidence === ConfidenceLevel.Unsure ? palette.confidence.unsure.border : isConfidenceMissing ? '#BAE6FD' : '#E5E7EB',
+              backgroundColor: confidence === ConfidenceLevel.Unsure ? palette.confidence.unsure.border : '#FFFFFF',
               alignItems: 'center',
               justifyContent: 'center'
             }}
@@ -257,8 +295,8 @@ const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer
               paddingHorizontal: 6,
               borderRadius: 10,
               borderWidth: confidence === ConfidenceLevel.Random ? 1.5 : 1,
-              borderColor: confidence === ConfidenceLevel.Random ? palette.confidence.random.border : '#E5E7EB',
-              backgroundColor: confidence === ConfidenceLevel.Random ? palette.confidence.random.border : '#F9FAFB',
+              borderColor: confidence === ConfidenceLevel.Random ? palette.confidence.random.border : isConfidenceMissing ? '#BAE6FD' : '#E5E7EB',
+              backgroundColor: confidence === ConfidenceLevel.Random ? palette.confidence.random.border : '#FFFFFF',
               alignItems: 'center',
               justifyContent: 'center'
             }}
@@ -280,6 +318,52 @@ const ExamAnswer = ({ t, question, isLastQuestion, onClose, updateQuestionAnswer
 }
 
 const styles = ScaledSheet.create({
+  confidenceContainer: {
+    marginTop: '16@ms',
+    paddingTop: '14@ms',
+    borderTopWidth: 1,
+    borderTopColor: palette.grey[200],
+    borderRadius: '12@ms',
+    paddingHorizontal: '4@ms',
+    paddingBottom: '4@ms'
+  },
+  confidenceContainerHighlight: {
+    borderTopWidth: 1.5,
+    borderWidth: 1.5,
+    borderColor: '#36BFEC',
+    backgroundColor: 'rgba(54, 191, 236, 0.08)',
+    paddingTop: '12@ms',
+    paddingHorizontal: '10@ms',
+    paddingBottom: '12@ms'
+  },
+  confidenceHeaderRow: {
+    alignItems: 'center',
+    marginBottom: '10@ms'
+  },
+  confidenceTitle: {
+    fontSize: '13@ms',
+    fontWeight: '700',
+    color: palette.grey[800],
+    textAlign: 'center'
+  },
+  confidenceTitleHighlight: {
+    color: '#0284C7',
+    fontWeight: '800',
+    fontSize: '13@ms',
+    marginBottom: '4@ms'
+  },
+  confidenceBadge: {
+    backgroundColor: '#36BFEC',
+    paddingHorizontal: '8@ms',
+    paddingVertical: '2@ms',
+    borderRadius: '10@ms',
+    marginTop: '2@ms'
+  },
+  confidenceBadgeText: {
+    color: '#FFFFFF',
+    fontSize: '11@ms',
+    fontWeight: '700'
+  },
   container: {
     flex: 1,
     padding: '20@ms',

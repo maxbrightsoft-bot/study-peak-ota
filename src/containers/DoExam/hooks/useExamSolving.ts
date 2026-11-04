@@ -8,6 +8,7 @@ import {
 import { answerQuestionExam } from "../apiClients";
 import _ from "lodash";
 import useAuthStore from "@/store/useAuthStore";
+import useAppStore from "@/store/useAppStore";
 import { useTranslation } from "react-i18next";
 import { diffFromNow, getErrorMessage, toast, toISOString, hasAnyTextualAnswer } from "@/utils/helpers";
 import { ActivityAction, ActivityResource, AppScreen, ExamStatus, QuestionAnswerType, ConfidenceLevel } from "@/utils/enums";
@@ -58,6 +59,7 @@ const useExamSolving = (props: Props) => {
     handleUpdateSlider,
     handleNextQuestion
   } = props;
+  const isAutoNextQuestion = useAppStore(state => state.isAutoNextQuestion);
   const { getServerNow } = useServerTime();
   const { track, trackError } = useActivityTracking({ screen: AppScreen.DoExam })
 
@@ -162,7 +164,7 @@ const useExamSolving = (props: Props) => {
           if (ltAnswerTime.current && (diffFromNow(rollBackQuestions.lastAnswerTime, serverNow, ltAnswerTime.current) || 0) > 0)
             ltAnswerTime.current = rollBackQuestions.lastAnswerTime;
         }
-        if (!skipAutoNext) {
+        if (!skipAutoNext && isAutoNextQuestion) {
           handleNextQuestion(true);
         }
 
@@ -229,7 +231,7 @@ const useExamSolving = (props: Props) => {
       ltAnswerTime.current = lastAnswerTime;
     updateQuestionList?.(arrQuestionNew);
 
-    !skipAutoNext && handleNextQuestion()
+    (!skipAutoNext && isAutoNextQuestion) && handleNextQuestion()
 
     const mappedQuestions = arrQuestionNew.map((i) => {
       let duration = Math.max(0, Math.round(i.duration || 0));
@@ -333,6 +335,7 @@ const useExamSolving = (props: Props) => {
       calculatedRunningTime || 0
     );
 
+    let shouldAutoNext = false;
     const listQuestionNews = _.cloneDeep(questionList);
     const arrQuestionNew = listQuestionNews.map((item: Question) => {
       if (item.id === questionId) {
@@ -362,12 +365,15 @@ const useExamSolving = (props: Props) => {
             break;
         }
 
-        const isAnswered =
-          (item.selectedAnswers && item.selectedAnswers.length > 0) ||
-          hasAnyTextualAnswer(item.textualAnswers);
         if (confidence !== undefined) {
           item.confidence = confidence;
         }
+
+        const isAnswered =
+          (item.selectedAnswers && item.selectedAnswers.length > 0) ||
+          hasAnyTextualAnswer(item.textualAnswers);
+        const hasConfidence = item.confidence !== undefined && item.confidence !== null;
+        shouldAutoNext = Boolean(isAnswered && hasConfidence && isAutoNextQuestion);
 
         const diff = Math.max(0, getDiffTime(exam, now, totalRunningTime));
         item.duration = Math.max(1000, (item.duration || 0) + diff);
@@ -399,7 +405,7 @@ const useExamSolving = (props: Props) => {
         }
       })
 
-      handleUpdateAnswer(arrQuestionNew, now, nowTime, totalRunningTime, questionId);
+      handleUpdateAnswer(arrQuestionNew, now, nowTime, totalRunningTime, questionId, !shouldAutoNext);
     } catch (error) {
       logError(error, {
         action: 'ANSWER_QUESTION',
@@ -467,10 +473,19 @@ const useExamSolving = (props: Props) => {
 
     const totalRunningTime = moment(now).diff(moment.utc(!exam.isLate ? exam.startTime : exam.startTimeSession).local(), "milliseconds") - exam.totalPausedTime;
 
+    let shouldAutoNext = false;
+
     const listQuestionNews = _.cloneDeep(questionList);
     const arrQuestionNew = listQuestionNews.map((item: Question) => {
       if (item.id === questionId) {
         item.confidence = confidence;
+
+        const isAnswered =
+          (item.selectedAnswers && item.selectedAnswers.length > 0) ||
+          hasAnyTextualAnswer(item.textualAnswers);
+        const hasConfidence = item.confidence !== undefined && item.confidence !== null;
+        shouldAutoNext = Boolean(isAnswered && hasConfidence && isAutoNextQuestion);
+
         const diff = Math.max(0, getDiffTime(exam, now, totalRunningTime));
         item.duration = (item.duration || 0) + diff;
         if (item.duration > 0 && (!item.answerTime || item.answerTime <= 0)) {
@@ -482,7 +497,7 @@ const useExamSolving = (props: Props) => {
       return item;
     });
 
-    handleUpdateAnswer(arrQuestionNew, now, nowTime, totalRunningTime, questionId, true);
+    handleUpdateAnswer(arrQuestionNew, now, nowTime, totalRunningTime, questionId, !shouldAutoNext);
   };
 
   const updateQuestionStar = (questionId: number, isStar: boolean) => {
