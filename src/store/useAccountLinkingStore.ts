@@ -5,6 +5,8 @@ import {
   AccountLinkResponse,
   getWaitingApprovalLinkRequestsApi,
   checkUnsyncedAccountLinksApi,
+  ParentLinkResponse,
+  getLinkedStudentsForParentApi,
 } from "@/containers/AccountLinking/apiClients";
 import { toast, getMessageFromError, checkIsStudent } from "@/utils/helpers";
 import i18n from "@/languages/i18n";
@@ -41,6 +43,9 @@ interface AccountLinkingState {
   hasUnsyncedLinks: boolean;
   isStudentAccepted: boolean;
   targetDomain: string | null;
+  studySpaceSelectedStudent: ParentLinkResponse | null;
+  studySpaceLinkedStudents: ParentLinkResponse[];
+  studySpaceLastSelectedStudent: ParentLinkResponse | null;
 }
 
 interface AccountLinkingActions {
@@ -61,6 +66,11 @@ interface AccountLinkingActions {
   setTargetDomain: (domain: string | null) => void;
   setHasUnsyncedLinks: (val: boolean) => void;
   checkUnsyncedLinksApi: () => Promise<boolean>;
+  setStudySpaceSelectedStudent: (student: ParentLinkResponse | null) => void;
+  setStudySpaceLastSelectedStudent: (student: ParentLinkResponse | null) => void;
+  setStudySpaceLinkedStudents: (students: ParentLinkResponse[]) => void;
+  syncStudySpaceLinkedStudents: (signal?: AbortSignal) => Promise<ParentLinkResponse[]>;
+  resetStudySpaceState: (clearSaved?: boolean) => void;
 }
 
 type AccountLinkingStore = AccountLinkingState & AccountLinkingActions;
@@ -100,6 +110,9 @@ const useAccountLinkingStore = create<AccountLinkingStore>()(
     hasUnsyncedLinks: false,
     isStudentAccepted: false,
     targetDomain: null,
+    studySpaceSelectedStudent: null,
+    studySpaceLinkedStudents: [],
+    studySpaceLastSelectedStudent: null,
 
     setTargetDomain: (domain) => {
       set((state) => {
@@ -256,6 +269,51 @@ const useAccountLinkingStore = create<AccountLinkingStore>()(
         state.isCancelledByStudent = false;
         state.isStudentAccepted = false;
         state.targetDomain = null;
+      });
+    },
+
+    setStudySpaceSelectedStudent: (student) => {
+      set((state) => {
+        state.studySpaceSelectedStudent = student;
+        state.studySpaceLastSelectedStudent = student;
+      });
+    },
+
+    setStudySpaceLastSelectedStudent: (student) => {
+      set((state) => {
+        state.studySpaceLastSelectedStudent = student;
+      });
+    },
+
+    setStudySpaceLinkedStudents: (students) => {
+      set((state) => {
+        state.studySpaceLinkedStudents = students;
+        if (state.studySpaceSelectedStudent && !students.some((s) => s.id === state.studySpaceSelectedStudent?.id)) {
+          state.studySpaceSelectedStudent = null;
+          state.studySpaceLastSelectedStudent = null;
+        }
+      });
+    },
+
+    syncStudySpaceLinkedStudents: async (signal?: AbortSignal) => {
+      try {
+        const response = await getLinkedStudentsForParentApi(signal);
+        const studentsList = response.data?.data || [];
+        get().setStudySpaceLinkedStudents(studentsList);
+        return studentsList;
+      } catch (error) {
+        console.error("Failed to fetch Study Space linked students:", error);
+        return [];
+      }
+    },
+
+    resetStudySpaceState: (clearSaved = false) => {
+      set((state) => {
+        state.studySpaceSelectedStudent = null;
+        state.studySpaceLinkedStudents = [];
+        if (clearSaved) {
+          state.studySpaceLastSelectedStudent = null;
+        }
       });
     },
   }))

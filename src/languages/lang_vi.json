@@ -2701,5 +2701,9 @@
   "confidence_cell_wrong_unsure_title": "Vùng phát triển gần",
   "confidence_cell_wrong_unsure_sub": "Vị trí giúp tăng điểm nhanh nhất",
   "confidence_cell_wrong_random_title": "Chưa học",
-  "confidence_cell_wrong_random_sub": "Học lại từ khái niệm căn bản"
+  "confidence_cell_wrong_random_sub": "Học lại từ khái niệm căn bản",
+  "select_student_statistics": "Chọn tài khoản xem thống kê",
+  "viewing_statistics_of": "Đang xem thống kê của",
+  "linked_students": "Danh sách học sinh liên kết",
+  "change": "Đổi"
 }

@@ -9,10 +9,10 @@ import NoteDialog from './NoteDialog'
 import GroupedNoteCard from './GroupedNoteCard'
 import FilterBottomSheet from './FilterBottomSheet'
 import { ScaledSheet } from 'react-native-size-matters'
-import useAuthStore from '@/store/useAuthStore'
+import { checkIsParentMode } from '@/utils/helpers'
 
 export default function IncorrectNotes({ contentRef }: { contentRef?: React.RefObject<FlatList | null> }) {
-  const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
+  const isParentMode = checkIsParentMode()
   const {
     t,
     notes,

@@ -12,14 +12,14 @@ import SettingIcon from '@/assets/iconJSX/setting'
 import { palette } from '@/theme'
 import { currentScreen } from '@/navigators/NavigationHelpers'
 import { Routes } from '@/navigators/RouteName'
-import { checkIsParent } from '@/utils/helpers'
+import { checkIsParentMode } from '@/utils/helpers'
 
 const HeaderAction = () => {
   const isFocused = useIsFocused()
   const isOpenTimerDialog = useAuthStore(state => state.isOpenTimerDialog)
   const setIsOpenTimerDialog = useAuthStore(state => state.setIsOpenTimerDialog)
   const [openSettingDialog, setOpenSettingDialog] = useState<boolean>(false)
-  const isParent = checkIsParent();
+  const isParent = checkIsParentMode();
 
   const handleTimerDialogToggle = () => {
     setIsOpenTimerDialog(!isOpenTimerDialog)

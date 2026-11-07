@@ -398,8 +398,40 @@ export const checkIsStudent = (roles?: string[]): boolean => {
   return getCurrentRole(roles) === Role.Student
 }
 
+export const checkIsParentMode = (): boolean => {
+  const authState = useAuthStore.getState()
+  const user = authState.user
+  if (authState.parentViewMode?.isActive || checkIsParent(user?.roles)) {
+    return true
+  }
+
+  if (!user?.academyDomain) {
+    try {
+      const useAccountLinkingStore = require('@/store/useAccountLinkingStore').default
+      return !!useAccountLinkingStore.getState().studySpaceSelectedStudent
+    } catch {
+      return false
+    }
+  }
+
+  return false
+}
+
 export const getIdLinkAccount = (): number | undefined => {
-  const parentViewMode = useAuthStore.getState().parentViewMode
+  const state = useAuthStore.getState()
+  const user = state.user
+  const isStudySpace = !user?.academyDomain || user?.isLearningSpace
+
+  if (isStudySpace) {
+    try {
+      const useAccountLinkingStore = require('@/store/useAccountLinkingStore').default
+      return useAccountLinkingStore.getState().studySpaceSelectedStudent?.id ?? undefined
+    } catch {
+      return undefined
+    }
+  }
+
+  const parentViewMode = state.parentViewMode
   return (parentViewMode?.isActive && parentViewMode?.linkId) ? parentViewMode.linkId : undefined
 }
 

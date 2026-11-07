@@ -50,16 +50,14 @@ const ConvertParentRole = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isAutoSubmitting, setIsAutoSubmitting] = useState(false)
-  const [popTargetIndexRoute, setPopTargetIndexRoute] = useState<number>(1)
   const hasConvertAcademies = academies.length > 0
   const hasAlreadyParent = alreadyParentAcademies.length > 0
   const hasAutoAdd = autoAddAcademies.length > 0
-  const isAllEmpty = !hasConvertAcademies && !hasAlreadyParent && !hasAutoAdd
 
   const targetAcademy = targetDomain ? academies.find((a) => a.domain === targetDomain) : undefined
 
   usePreventBack(() => {
-    if (!isLinkingFlow || isFromShareLink || isAllEmpty) return false
+    if (!isLinkingFlow || isFromShareLink) return false
     const isAccepted = Boolean(
       useAccountLinkingStore.getState().acceptedLinkId ||
       useAccountLinkingStore.getState().acceptedLinkData?.id
@@ -82,22 +80,17 @@ const ConvertParentRole = () => {
         const convertList = data?.convertAcademies ?? (Array.isArray(data) ? data : [])
         const alreadyList = data?.alreadyParentAcademies ?? []
         const autoList = data?.autoAddAcademies ?? []
-        const isListsAllEmpty = convertList.length === 0 && alreadyList.length === 0 && autoList.length === 0
 
         setAcademies(convertList)
         setAlreadyParentAcademies(alreadyList)
         setAutoAddAcademies(autoList)
-
-        if (isLinkingFlow && isListsAllEmpty) {
-          setPopTargetIndexRoute(2)
-        }
 
         const matched = targetDomain ? convertList.find((a) => a.domain === targetDomain) : undefined
 
         // Trường hợp không có academy nào cần chuyển đổi,
         // hoặc có targetDomain nhưng không nằm trong convertList (tức đã thuộc alreadyParent hoặc autoAdd):
         // Tự động gọi handleSubmitNewFlow([]) để chuyển sang màn chờ duyệt
-        if (isLinkingFlow && !isListsAllEmpty && (convertList.length === 0 || (targetDomain && !matched))) {
+        if (isLinkingFlow && (convertList.length === 0 || (targetDomain && !matched))) {
           setIsAutoSubmitting(true)
           handleSubmit([])
           return
@@ -221,14 +214,11 @@ const ConvertParentRole = () => {
   }
 
   const handleSkip = () => {
-    if (popTargetIndexRoute) {
-      navigation.pop(popTargetIndexRoute)
-      return
-    }
     if (isFromShareLink) {
       navigation.pop(2)
       return
     }
+    navigation.goBack()
   }
 
   const handleConfirm = async () => {
@@ -244,37 +234,6 @@ const ConvertParentRole = () => {
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#5F30AA" />
-        </View>
-      )
-    }
-
-    if (isAllEmpty) {
-      return (
-        <View style={styles.emptyContainer}>
-          <View style={styles.emptyIconCircle}>
-            <Ionicons name="checkmark-done-circle" size={48} color="#2ECC71" />
-          </View>
-          <Text style={styles.emptyTitle}>{t('no_academies_to_convert')}</Text>
-          <Text style={styles.emptyDesc}>{t('no_academies_to_convert_desc')}</Text>
-          <TouchableOpacity
-            style={styles.emptyCloseButton}
-            onPress={handleSkip}
-            disabled={isSubmitting}
-            activeOpacity={0.8}
-          >
-            {isSubmitting ? (
-              <ActivityIndicator size="small" color="#FFF" />
-            ) : (
-              <Text
-                style={styles.emptyCloseButtonText}
-                numberOfLines={2}
-                adjustsFontSizeToFit
-                minimumFontScale={0.85}
-              >
-                {isLinkingFlow ? t('continue') : t('close')}
-              </Text>
-            )}
-          </TouchableOpacity>
         </View>
       )
     }
@@ -753,49 +712,5 @@ const styles = ScaledSheet.create({
     ...TYPO.body2,
     fontSize: '13@ms',
     color: palette.grey[500]
-  },
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: '20@ms'
-  },
-  emptyIconCircle: {
-    width: '72@ms',
-    height: '72@ms',
-    borderRadius: '36@ms',
-    backgroundColor: '#EAFDF3',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: '16@ms'
-  },
-  emptyTitle: {
-    ...TYPO.heading2,
-    fontSize: '17@ms',
-    fontWeight: '800',
-    color: palette.grey[900],
-    marginBottom: '6@ms',
-    textAlign: 'center'
-  },
-  emptyDesc: {
-    ...TYPO.body2,
-    fontSize: '13@ms',
-    color: palette.grey[500],
-    textAlign: 'center',
-    lineHeight: '19@ms',
-    marginBottom: '24@ms'
-  },
-  emptyCloseButton: {
-    height: '44@ms',
-    paddingHorizontal: '32@ms',
-    borderRadius: '12@ms',
-    backgroundColor: '#5F30AA',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  emptyCloseButtonText: {
-    color: '#FFF',
-    fontSize: '14@ms',
-    fontWeight: '700'
   }
 })

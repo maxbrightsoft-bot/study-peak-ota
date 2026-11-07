@@ -1,7 +1,7 @@
 import useAuthStore from '@/store/useAuthStore'
 import { palette, TYPO } from '@/theme'
 import { useTranslation } from 'react-i18next'
-import { View, Text, TouchableOpacity, Platform, useWindowDimensions, ActivityIndicator } from 'react-native'
+import { View, Text, TouchableOpacity, Platform, useWindowDimensions, ActivityIndicator, ScrollView } from 'react-native'
 import { Menu, Avatar, TouchableRipple } from 'react-native-paper'
 import { ScaledSheet } from 'react-native-size-matters'
 import ArrowDown from '@/assets/iconJSX/arrowDown'
@@ -20,6 +20,9 @@ import { Fragment, useEffect, useState, useMemo } from 'react'
 type Props = {
   headerProps: any
 }
+
+const ACADEMY_ITEM_HEIGHT = 61 // 36 (avatar size) + 24 (vertical padding) + 1 (borderBottomWidth)
+const MAX_ACADEMY_ITEMS_VISIBLE = 4.7
 
 const Header = ({ headerProps }: Props) => {
   const { t } = useTranslation()
@@ -233,7 +236,11 @@ const Header = ({ headerProps }: Props) => {
                 <ActivityIndicator size="small" color={palette.main[500]} />
               </View>
             ) : (
-              <Fragment>
+              <ScrollView
+                style={{ maxHeight: ACADEMY_ITEM_HEIGHT * MAX_ACADEMY_ITEMS_VISIBLE }}
+                showsVerticalScrollIndicator={true}
+                bounces={false}
+              >
                 {academyDropdownItems.map((item) => {
                   const selected = isItemSelected(item)
                   return (
@@ -315,7 +322,7 @@ const Header = ({ headerProps }: Props) => {
                     </TouchableRipple>
                   )
                 })}
-              </Fragment>
+              </ScrollView>
             )
             }
             <TouchableRipple

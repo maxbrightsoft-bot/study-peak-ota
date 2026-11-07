@@ -2685,5 +2685,9 @@
   "confidence_cell_wrong_unsure_title": "Zone of Proximal Development",
   "confidence_cell_wrong_unsure_sub": "Quickest area to improve",
   "confidence_cell_wrong_random_title": "Unlearned",
-  "confidence_cell_wrong_random_sub": "Start over from basic concepts"
+  "confidence_cell_wrong_random_sub": "Start over from basic concepts",
+  "select_student_statistics": "Select account to view statistics",
+  "viewing_statistics_of": "Viewing statistics of",
+  "linked_students": "Linked Students",
+  "change": "Change"
 }

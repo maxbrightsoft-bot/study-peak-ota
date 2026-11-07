@@ -85,16 +85,12 @@ export const useAcademyDeepLink = (targetRoute: string, targetDomain?: string) =
   }
 
   const checkStudentLinked = async (superStudentId: number): Promise<boolean> => {
-    let currentLinked = useAuthStore.getState().linkedStudents || []
-    let matchedStudent = currentLinked.find((s) => s.studentSuperId === superStudentId)
-
-    if (!matchedStudent) {
-      try {
-        const freshLinked = await useAuthStore.getState().syncParentLinkedStudents()
-        matchedStudent = (freshLinked || []).find((s) => s.studentSuperId === superStudentId)
-      } catch (error) {
-        console.error('[useAcademyDeepLink] syncParentLinkedStudents error:', error)
-      }
+    let matchedStudent;
+    try {
+      const freshLinked = await useAuthStore.getState().syncParentLinkedStudents()
+      matchedStudent = (freshLinked || []).find((s) => s.studentSuperId === superStudentId)
+    } catch (error) {
+      console.error('[useAcademyDeepLink] syncParentLinkedStudents error:', error)
     }
 
     if (matchedStudent) {
@@ -186,15 +182,13 @@ export const useAcademyDeepLink = (targetRoute: string, targetDomain?: string) =
 
         try {
           // BƯỚC 1: Lấy danh sách academies (nếu store đang rỗng, tự nạp để tránh false-negative)
-          let currentAcademies = useAuthStore.getState().academies || []
-          if (!currentAcademies || currentAcademies.length === 0) {
-            try {
-              const res = await getUserAcademies()
-              currentAcademies = res.data?.items || []
-              useAuthStore.getState().setAcademies(currentAcademies)
-            } catch (e) {
-              console.error('[useAcademyDeepLink] sync academies error:', e)
-            }
+          let currentAcademies: AcademyResponse[] = []
+          try {
+            const res = await getUserAcademies()
+            currentAcademies = res.data?.items || []
+            useAuthStore.getState().setAcademies(currentAcademies)
+          } catch (e) {
+            console.error('[useAcademyDeepLink] sync academies error:', e)
           }
 
           const targetAcademy = currentAcademies.find((a) => a.domain === targetDomain)

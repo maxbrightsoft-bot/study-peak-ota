@@ -2680,5 +2680,9 @@
   "confidence_cell_wrong_unsure_title": "근접 발달 구간",
   "confidence_cell_wrong_unsure_sub": "가장 빨리 오르는 자리",
   "confidence_cell_wrong_random_title": "미학습",
-  "confidence_cell_wrong_random_sub": "개념부터 다시"
+  "confidence_cell_wrong_random_sub": "개념부터 다시",
+  "select_student_statistics": "통계를 확인할 계정 선택",
+  "viewing_statistics_of": "통계 보기 대상",
+  "linked_students": "연결된 학생 목록",
+  "change": "변경"
 }

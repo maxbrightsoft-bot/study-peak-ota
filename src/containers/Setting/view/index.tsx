@@ -106,6 +106,7 @@ const Setting = ({ open, onClose }: Props) => {
   const navigation = useNavigation<any>();
   const pendingRequests = useAccountLinkingStore((state) => state.pendingRequests);
   const hasUnsyncedLinks = useAccountLinkingStore((state) => state.hasUnsyncedLinks);
+  const fetchWaitingApprovalRequestsApi = useAccountLinkingStore((state) => state.fetchWaitingApprovalRequestsApi);
 
   const { isBiometricEnabled, handleToggleBiometric, authenticateBiometric } = useBiometric()
 
@@ -121,6 +122,9 @@ const Setting = ({ open, onClose }: Props) => {
                toast.error(getMessageFromError(t, err))
              }
           })
+      }
+      if (checkIsStudent()) {
+        fetchWaitingApprovalRequestsApi()
       }
     }
     return () => controller.abort()

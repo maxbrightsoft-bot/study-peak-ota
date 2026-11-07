@@ -223,6 +223,7 @@ const useAuthStore = create<AuthStore>()(
       setUser: (user) => {
         set((state) => {
           state.user = user;
+          state.isUserCustomLoaded = true;
         });
       },
 
@@ -368,6 +369,10 @@ const useAuthStore = create<AuthStore>()(
       },
 
       setSelectAcademy: (academy = null) => {
+        try {
+          const useAccountLinkingStore = require('@/store/useAccountLinkingStore').default;
+          useAccountLinkingStore?.getState()?.resetStudySpaceState?.(true);
+        } catch {}
         set((state) => {
           state.selectedAcademy = academy;
         });
@@ -608,6 +613,11 @@ const useAuthStore = create<AuthStore>()(
         disconnectSocket();
         toast.dismiss()
         clearCrashlyticsUser()
+
+        try {
+          const useAccountLinkingStore = require('@/store/useAccountLinkingStore').default;
+          useAccountLinkingStore?.getState()?.resetStudySpaceState?.(true);
+        } catch {}
 
         set((state) => ({
           isLoading: false,

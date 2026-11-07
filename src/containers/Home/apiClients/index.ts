@@ -54,8 +54,15 @@ export const getNoteByIdApi = (id: number) => {
   });
 };
 
-export const getListCommentApi = (noteId: number, params?: any) =>
-    api.get(`${NOTES_URL}/${noteId}/comments`, { params })
+export const getListCommentApi = (noteId: number, params?: any) => {
+  const idLinkAccount = getIdLinkAccount();
+  return api.get(`${NOTES_URL}/${noteId}/comments`, {
+    params: {
+      ...params,
+      ...(idLinkAccount ? { idLinkAccount } : {})
+    }
+  });
+};
 
 export const postCommentApi = (noteId: number, data: any) =>
     api.post(`${NOTES_URL}/${noteId}/comments`, data)
