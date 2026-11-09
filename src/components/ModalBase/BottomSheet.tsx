@@ -1,4 +1,4 @@
-import { StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { ReactNode } from 'react'
 import { ScaledSheet } from 'react-native-size-matters'
 import { Ionicons } from '@expo/vector-icons'
@@ -13,11 +13,10 @@ interface PropsBottomSheet {
   children: ReactNode
   titleChildren?: ReactNode
   closeChildren?: ReactNode
-  styleContainer?: StyleProp<ViewStyle>
 }
 
 function BottomSheet(props: PropsBottomSheet) {
-  const { isVisible, onClose, children, title, titleChildren, closeChildren, styleContainer } = props
+  const { isVisible, onClose, children, title, titleChildren, closeChildren } = props
   const { isLoading } = useAuthStore()
 
   return (
@@ -25,7 +24,7 @@ function BottomSheet(props: PropsBottomSheet) {
       isVisible={isVisible}
       onClose={onClose}
       position="bottom"
-      styleContainer={[styles.container, styleContainer]}
+      styleContainer={styles.container}
     >
       <View style={styles.header}>
         {titleChildren ?? <Text style={styles.title}>{title}</Text>}
