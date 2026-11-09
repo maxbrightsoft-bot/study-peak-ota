@@ -1,8 +1,8 @@
 import { palette, TYPO } from '@/theme'
-import { Action, NoteResponse, Question } from '@/utils/types'
+import { Action, NoteResponse, Question, RestartTextbookRequest } from '@/utils/types'
 import { FontAwesome, FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
-import { useMemo, useState } from 'react'
-import { Platform, Pressable, Text, TouchableOpacity, View } from 'react-native'
+import { useEffect, useMemo, useState } from 'react'
+import { Platform, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 import { ExamStatus, ExamStatusView } from '@/utils/enums'
 import ExamMyAnswer from '@/containers/MyAnswer/views/ExamMyAnswer'
@@ -14,6 +14,10 @@ import { NotesContainerProps } from '@/containers/IncorrectAnswerNotes/configs/i
 import ExamNoteDialog from '@/containers/IncorrectAnswerNotes/components/ExamNoteDialog'
 import CreateNewQuestionDialog from '../components/CreateNewQuestionDialog'
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
+import StartPageDialog from '@/containers/Textbook/components/Dialog/StartPageDialog'
+import { getTextbookByIdApi, restartTextbookApi, startPageApi } from '@/containers/Textbook/apiClients/textbookService'
+import useAuthStore from '@/store/useAuthStore'
+import { getErrorMessage, toast } from '@/utils/helpers'
 import { examStatusViewOptions } from '../configs/constants'
 import useExamResult from '../hooks/useExamResult'
 import PrintExamResult from './PrintExamResult'
@@ -127,6 +131,141 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapter
     handleCreateQuestion,
     handleOpenQuestionDialog
   } = QADialog
+
+  const { setLoading } = useAuthStore()
+  const [isOpenStartPageDialog, setOpenStartPageDialog] = useState(false)
+  const [isOpenRestartConfirmDialog, setOpenRestartConfirmDialog] = useState(false)
+  const [textbookDetail, setTextbookDetail] = useState<any>(null)
+
+  const effectiveTextbookId = textbookResult?.textbookId || textbookId
+
+  useEffect(() => {
+    if (!effectiveTextbookId) return
+    getTextbookByIdApi(effectiveTextbookId)
+      .then(res => {
+        if (res?.data?.data) {
+          setTextbookDetail(res.data.data)
+        }
+      })
+      .catch(() => {})
+  }, [effectiveTextbookId])
+
+  const startPageOptions = useMemo(() => {
+    const arrOptions: { label: string; value: number }[] = []
+    const obj: any = {}
+
+    textbookDetail?.chapters?.forEach((chapter: any) => {
+      if (chapter.pageFrom) {
+        const label =
+          chapter.pageTo && chapter.pageTo > chapter.pageFrom
+            ? `${chapter.pageFrom}~${chapter.pageTo}`
+            : `${chapter.pageFrom}`
+
+        arrOptions.push({
+          label,
+          value: chapter.pageFrom
+        })
+      }
+    })
+
+    return arrOptions
+      .filter(option => {
+        if (!obj[option.label]) {
+          obj[option.label] = 1
+          return true
+        }
+        return false
+      })
+      .sort((a, b) => a.value - b.value)
+  }, [textbookDetail])
+
+  const isMockTextbook = Boolean(textbookResult?.isMock ?? textbookDetail?.isMock)
+
+  const handleDoTextbook = async () => {
+    if (!effectiveTextbookId) return
+    setLoading(true)
+    try {
+      await startPageApi({ textbookId: effectiveTextbookId })
+    } catch {}
+    finally {
+      setLoading(false)
+      onClose?.()
+      navigate(Routes.Auth.DoTextbook, { textbookId: effectiveTextbookId })
+    }
+  }
+
+  const handleStartFromPage = async (values: { startPage: number }) => {
+    if (!effectiveTextbookId || !values.startPage) return
+    setLoading(true)
+    try {
+      await startPageApi({
+        textbookId: effectiveTextbookId,
+        startPage: values.startPage
+      })
+    } catch {}
+    finally {
+      setLoading(false)
+      setOpenStartPageDialog(false)
+      onClose?.()
+      navigate(Routes.Auth.DoTextbook, {
+        textbookId: effectiveTextbookId,
+        page: values.startPage,
+        reqTime: Date.now().toString()
+      })
+    }
+  }
+
+  const handleConfirmRestartResultPart = async () => {
+    if (!effectiveTextbookId) return
+    setLoading(true)
+    try {
+      const questions = (textbookResult?.studentQuestionResults || []) as any[]
+      let minPage: number | undefined
+      let maxPage: number | undefined
+      let firstQuestion: any = null
+
+      if (questions.length > 0) {
+        firstQuestion = questions[0]
+        questions.forEach(q => {
+          const p = q.pageNumber || q.pageFrom || q.page || 0
+          if (p > 0) {
+            if (minPage === undefined || p < minPage) minPage = p
+            if (maxPage === undefined || p > maxPage) maxPage = p
+          }
+        })
+      }
+
+      let freshRowVersion = textbookResult?.rowVersion || textbookDetail?.rowVersion
+      try {
+        const latestRes = await getTextbookByIdApi(effectiveTextbookId)
+        const latestData = latestRes?.data?.data
+        if (latestData?.rowVersion) freshRowVersion = latestData.rowVersion
+      } catch {}
+
+      if (!isMockTextbook) {
+        const req: RestartTextbookRequest = {
+          rowVersion: freshRowVersion,
+          startPage: minPage,
+          endPage: maxPage
+        }
+        await restartTextbookApi(effectiveTextbookId, req)
+      }
+
+      const firstPage = firstQuestion?.pageNumber || firstQuestion?.pageFrom || minPage
+      setOpenRestartConfirmDialog(false)
+      onClose?.()
+      navigate(Routes.Auth.DoTextbook, {
+        textbookId: effectiveTextbookId,
+        page: firstPage,
+        questionId: firstQuestion?.questionId || firstQuestion?.id,
+        reqTime: Date.now().toString()
+      })
+    } catch (error) {
+      toast.error(getErrorMessage(t, error))
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const questionActions: Action<Question>[] = chapterId
     ? [
@@ -297,7 +436,7 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapter
           <Text style={{ fontSize: 16, fontWeight: 600, color: '#222222' }}>{t('exam_results')}</Text>
         </View>
         <View>
-          {resultData && <Menu
+          {(resultData || textbookResult) && <Menu
             visible={openActionMenu}
             onDismiss={handleCloseActionMenu}
             anchorPosition="bottom"
@@ -320,108 +459,217 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapter
               top: Platform.OS === 'ios' ? -50 : 10
             }}
           >
-            <TouchableRipple
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                borderColor: '#E0E0E0'
-              }}
-              onPress={() => {
-                handleCloseActionMenu()
-                onClose?.()
-                navigate(Routes.Auth.StudentExamHistory, { examCode, examSessionId })
-              }}
-            >
-              <View
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  paddingVertical: 12,
-                  gap: 12
-                }}
-              >
-                <FontAwesome5 name="history" size={18} color={palette.main[600]} />
-                <Text style={{ fontWeight: '600', color: palette.main[600] }}>{t('history')}</Text>
-              </View>
-            </TouchableRipple>
-            <TouchableRipple
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                borderColor: '#E0E0E0'
-              }}
-              onPress={(e) => {
-                handleCloseActionMenu()
-                handleOpenQuestionDialog(e);
-              }}
-            >
-              <View
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  paddingVertical: 12,
-                  gap: 12
-                }}
-              >
-                <Ionicons name="chatbubble-ellipses" size={18} color={palette.main[600]} />
-                <Text style={{ fontWeight: '600', color: palette.main[600] }}>{t('ask_a_question2')}</Text>
-              </View>
-            </TouchableRipple>
-            <TouchableRipple
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                borderColor: '#E0E0E0'
-              }}
-              onPress={() => {
-                handleCloseActionMenu()
-                handleOpenConfirmRestartExamDialog()
-              }}
-            >
-              <View
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  paddingVertical: 12,
-                  gap: 12
-                }}
-              >
-                <FontAwesome name="refresh" size={18} color="#3498db" />
-                <Text style={{ fontWeight: '600', color: '#3498db' }}>{t('restart_exam')}</Text>
-              </View>
-            </TouchableRipple>
-            {isLatestSessionUnfinished && (
-              <TouchableRipple
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  borderColor: '#E0E0E0'
-                }}
-                onPress={() => {
-                  handleCloseActionMenu()
-                  handleSolveExam()
-                }}
-              >
-                <View
+            {resultData ? (
+              <>
+                <TouchableRipple
                   style={{
-                    flex: 1,
                     flexDirection: 'row',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    paddingVertical: 12,
-                    gap: 12
+                    borderColor: '#E0E0E0'
+                  }}
+                  onPress={() => {
+                    handleCloseActionMenu()
+                    onClose?.()
+                    navigate(Routes.Auth.StudentExamHistory, { examCode, examSessionId })
                   }}
                 >
-                  <FontAwesome5 name="edit" size={18} color="#3498db" />
-                  <Text style={{ fontWeight: '600', color: '#3498db' }}>{t('solve_undone_questions')}</Text>
-                </View>
-              </TouchableRipple>
+                  <View
+                    style={{
+                      flex: 1,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      paddingVertical: 12,
+                      gap: 12
+                    }}
+                  >
+                    <FontAwesome5 name="history" size={18} color={palette.main[600]} />
+                    <Text style={{ fontWeight: '600', color: palette.main[600] }}>{t('history')}</Text>
+                  </View>
+                </TouchableRipple>
+                <TouchableRipple
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    borderColor: '#E0E0E0'
+                  }}
+                  onPress={(e) => {
+                    handleCloseActionMenu()
+                    handleOpenQuestionDialog(e);
+                  }}
+                >
+                  <View
+                    style={{
+                      flex: 1,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      paddingVertical: 12,
+                      gap: 12
+                    }}
+                  >
+                    <Ionicons name="chatbubble-ellipses" size={18} color={palette.main[600]} />
+                    <Text style={{ fontWeight: '600', color: palette.main[600] }}>{t('ask_a_question2')}</Text>
+                  </View>
+                </TouchableRipple>
+                <TouchableRipple
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    borderColor: '#E0E0E0'
+                  }}
+                  onPress={() => {
+                    handleCloseActionMenu()
+                    handleOpenConfirmRestartExamDialog()
+                  }}
+                >
+                  <View
+                    style={{
+                      flex: 1,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      paddingVertical: 12,
+                      gap: 12
+                    }}
+                  >
+                    <FontAwesome name="refresh" size={18} color="#3498db" />
+                    <Text style={{ fontWeight: '600', color: '#3498db' }}>{t('restart_exam')}</Text>
+                  </View>
+                </TouchableRipple>
+                {isLatestSessionUnfinished && (
+                  <TouchableRipple
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      borderColor: '#E0E0E0'
+                    }}
+                    onPress={() => {
+                      handleCloseActionMenu()
+                      handleSolveExam()
+                    }}
+                  >
+                    <View
+                      style={{
+                        flex: 1,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        paddingVertical: 12,
+                        gap: 12
+                      }}
+                    >
+                      <FontAwesome5 name="edit" size={18} color="#3498db" />
+                      <Text style={{ fontWeight: '600', color: '#3498db' }}>{t('solve_undone_questions')}</Text>
+                    </View>
+                  </TouchableRipple>
+                )}
+              </>
+            ) : (
+              <>
+                <TouchableRipple
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    borderColor: '#E0E0E0'
+                  }}
+                  onPress={() => {
+                    handleCloseActionMenu()
+                    handleDoTextbook()
+                  }}
+                >
+                  <View
+                    style={{
+                      flex: 1,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      paddingVertical: 12,
+                      gap: 12
+                    }}
+                  >
+                    <FontAwesome5 name="edit" size={18} color={palette.main[600]} />
+                    <Text style={{ fontWeight: '600', color: palette.main[600] }}>{t('continue_solving')}</Text>
+                  </View>
+                </TouchableRipple>
+                {!isMockTextbook && (
+                  <TouchableRipple
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      borderColor: '#E0E0E0'
+                    }}
+                    onPress={() => {
+                      handleCloseActionMenu()
+                      setOpenStartPageDialog(true)
+                    }}
+                  >
+                    <View
+                      style={{
+                        flex: 1,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        paddingVertical: 12,
+                        gap: 12
+                      }}
+                    >
+                      <Ionicons name="book-outline" size={18} color={palette.main[600]} />
+                      <Text style={{ fontWeight: '600', color: palette.main[600] }}>{t('unravel_from_page')}</Text>
+                    </View>
+                  </TouchableRipple>
+                )}
+                <TouchableRipple
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    borderColor: '#E0E0E0'
+                  }}
+                  onPress={() => {
+                    handleCloseActionMenu()
+                    setOpenRestartConfirmDialog(true)
+                  }}
+                >
+                  <View
+                    style={{
+                      flex: 1,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      paddingVertical: 12,
+                      gap: 12
+                    }}
+                  >
+                    <FontAwesome name="refresh" size={18} color="#3498db" />
+                    <Text style={{ fontWeight: '600', color: '#3498db' }}>{t('solve_again')}</Text>
+                  </View>
+                </TouchableRipple>
+                <TouchableRipple
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    borderColor: '#E0E0E0'
+                  }}
+                  onPress={(e) => {
+                    handleCloseActionMenu()
+                    handleOpenQuestionDialog(e)
+                  }}
+                >
+                  <View
+                    style={{
+                      flex: 1,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      paddingVertical: 12,
+                      gap: 12
+                    }}
+                  >
+                    <Ionicons name="chatbubble-ellipses" size={18} color={palette.main[600]} />
+                    <Text style={{ fontWeight: '600', color: palette.main[600] }}>{t('ask_a_question2')}</Text>
+                  </View>
+                </TouchableRipple>
+              </>
             )}
           </Menu>}
         </View>
@@ -457,9 +705,38 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapter
         )}
         <View style={styles.contentContainer}>{renderBody()}</View>
       </View>
+      {!!textbookResult && (
+        <View style={styles.bottomBar}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.bottomBarContent}>
+            {!isMockTextbook && (
+              <TouchableOpacity
+                style={[styles.button, styles.pageBtn]}
+                onPress={() => setOpenStartPageDialog(true)}
+              >
+                <Text style={styles.outlineButtonText}>{t('unravel_from_page')}</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={[styles.button, styles.continueBtn]}
+              onPress={handleDoTextbook}
+            >
+              <Text style={styles.buttonText}>{t('continue_solving')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.button, styles.outlineButton]}
+              onPress={() => setOpenRestartConfirmDialog(true)}
+            >
+              <Ionicons name="refresh" size={18} color={palette.main[500]} />
+              <Text style={styles.outlineButtonText}>{t('solve_again')}</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+      )}
       <View style={{ opacity: 0, position: 'absolute', top: -9999 }} pointerEvents="none">
         <PrintExamResult
-          contentRef={contentRef}
+          contentRef={contentRef as any}
           categoryResponses={categoryResponses}
           resultData={resultData}
           overallChartContainer={overallChartContainer}
@@ -516,6 +793,23 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapter
           onClose?.()
           handleRestartExam?.()
         }}
+      />
+      <StartPageDialog
+        options={startPageOptions}
+        t={t}
+        loading={false}
+        open={isOpenStartPageDialog}
+        onClose={() => setOpenStartPageDialog(false)}
+        onSubmit={handleStartFromPage}
+      />
+      <ConfirmDialog
+        open={isOpenRestartConfirmDialog}
+        toggle={() => setOpenRestartConfirmDialog(false)}
+        title={t('solve_again')}
+        text={t('this_will_delete_the_previous_one')}
+        okText={t('solve_again')}
+        cancelText={t('cancel')}
+        onConfirm={handleConfirmRestartResultPart}
       />
       <ExamNoteDialog examResultData={resultData} textbookResult={textbookResult} {...noteDialogProps} selectedQuestion={selectedQuestion} />
     </SlideDrawerRoot>
@@ -652,5 +946,55 @@ const styles = ScaledSheet.create({
     padding: '20@ms',
     backgroundColor: palette.grey[100],
     paddingBottom: '40@ms'
+  },
+  bottomBar: {
+    borderTopWidth: '1@ms',
+    borderColor: palette.grey[100],
+    backgroundColor: '#FFF'
+  },
+  bottomBarContent: {
+    flexDirection: 'row',
+    gap: '12@ms',
+    paddingHorizontal: '24@ms',
+    paddingTop: '12@ms',
+    paddingBottom: '32@ms'
+  },
+  button: {
+    paddingHorizontal: '16@ms',
+    paddingVertical: '14@ms',
+    borderRadius: '8@ms',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: '8@ms'
+  },
+  pageBtn: {
+    borderWidth: '1@ms',
+    borderColor: '#C7C7C8',
+    borderRadius: '6@ms',
+    alignItems: 'center',
+    minWidth: '120@ms',
+    justifyContent: 'center'
+  },
+  continueBtn: {
+    backgroundColor: palette.main[600],
+    borderRadius: '6@ms',
+    alignItems: 'center',
+    minWidth: '160@ms',
+    justifyContent: 'center'
+  },
+  outlineButton: {
+    borderWidth: '1@ms',
+    borderColor: palette.main[600],
+    backgroundColor: 'white'
+  },
+  buttonText: {
+    fontSize: '14@ms',
+    fontWeight: '600',
+    color: 'white'
+  },
+  outlineButtonText: {
+    fontSize: '14@ms',
+    fontWeight: '600',
+    color: '#222222'
   }
 })
