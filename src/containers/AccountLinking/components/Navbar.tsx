@@ -35,13 +35,10 @@ const Navbar = ({
   const handleHome = () => {
     if (onHomePress) {
       onHomePress()
-    } else {
-      try {
-        resetToHome({ refreshKey: Date.now() })
-      } catch {
-        navigation.navigate(Routes.Auth.MainTabs, { screen: Routes.Auth.Home })
-      }
+      return
     }
+
+    resetToHome({ refreshKey: Date.now() })
   }
 
   const handleBack = () => {

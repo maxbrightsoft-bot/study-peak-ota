@@ -1,6 +1,15 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react'
-import { View, Text, TouchableOpacity, Alert, TextInput, ActivityIndicator } from 'react-native'
-import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller'
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
+  TextInput,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform
+} from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -136,70 +145,73 @@ const ParentLinkRequest = () => {
         onTabChange={handleTabChange}
       />
 
-      <KeyboardAwareScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        bottomOffset={90}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={styles.tabContent}>
-          {/* Block nhập mã Code 6 ký tự */}
-          <View style={styles.msgCard}>
-            <Text style={styles.instructionLine}>
-              {t('enter_child_code_line1')}
-            </Text>
-            <Text style={[styles.instructionLine, { marginTop: 2 }]}>
-              {t('enter_child_code_line2')}
-            </Text>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.tabContent}>
+            {/* Block nhập mã Code 6 ký tự */}
+            <View style={styles.msgCard}>
+              <Text style={styles.instructionLine}>
+                {t('enter_child_code_line1')}
+              </Text>
+              <Text style={[styles.instructionLine, { marginTop: 2 }]}>
+                {t('enter_child_code_line2')}
+              </Text>
 
-            {/* Component nhập code dùng chung ở trạng thái Editable */}
-            <CodeInput value={code} onChangeText={setCode} editable={true} />
-          </View>
-
-          {/* Block nhập Email học sinh */}
-          <View style={[styles.msgCard, { marginTop: 14 }]}>
-            <Text style={styles.instructionLine}>
-              {t('enter_student_email_line1')}
-            </Text>
-            <Text style={[styles.instructionLine, { marginTop: 2 }]}>
-              {t('enter_student_email_line2')}
-            </Text>
-
-            <View style={styles.emailInputBox}>
-              <TextInput
-                style={styles.emailInput}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="slinkydaisy@gmail.com"
-                placeholderTextColor={palette.grey[400] || '#999'}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
+              {/* Component nhập code dùng chung ở trạng thái Editable */}
+              <CodeInput value={code} onChangeText={setCode} editable={true} />
             </View>
-          </View>
 
-          {/* Banner hướng dẫn chuyển sang QR */}
-          <TouchableOpacity
-            style={styles.qrBanner}
-            onLayout={handleQrBannerLayout}
-            onPress={() => replace(Routes.Auth.ParentQrScan)}
-            activeOpacity={0.8}
-          >
-            <View style={styles.qrIconWrapper}>
-              <Ionicons name="qr-code-outline" size={20} color="#5F30AA" />
+            {/* Block nhập Email học sinh */}
+            <View style={[styles.msgCard, { marginTop: 14 }]}>
+              <Text style={styles.instructionLine}>
+                {t('enter_student_email_line1')}
+              </Text>
+              <Text style={[styles.instructionLine, { marginTop: 2 }]}>
+                {t('enter_student_email_line2')}
+              </Text>
+
+              <View style={styles.emailInputBox}>
+                <TextInput
+                  style={styles.emailInput}
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="slinkydaisy@gmail.com"
+                  placeholderTextColor={palette.grey[400] || '#999'}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+              </View>
             </View>
-            <Text style={styles.qrBannerText}>
-              {t('qr_convenient_tip')}
-              <Text style={styles.qrBoldText}>{t('scan_qr')}</Text>
-              {t('qr_convenient_tip_end')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAwareScrollView>
 
-      {/* Nút bấm CTA "Tiếp theo" được dính và đẩy lên đồng bộ với bàn phím */}
-      <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
+            {/* Banner hướng dẫn chuyển sang QR */}
+            <TouchableOpacity
+              style={styles.qrBanner}
+              onLayout={handleQrBannerLayout}
+              onPress={() => replace(Routes.Auth.ParentQrScan)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.qrIconWrapper}>
+                <Ionicons name="qr-code-outline" size={20} color="#5F30AA" />
+              </View>
+              <Text style={styles.qrBannerText}>
+                {t('qr_convenient_tip')}
+                <Text style={styles.qrBoldText}>{t('scan_qr')}</Text>
+                {t('qr_convenient_tip_end')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+
+        {/* Nút bấm CTA "Tiếp theo" */}
         <View style={styles.ctaWrapper}>
           <TouchableOpacity
             style={[styles.ctaButton, (!isFormValid || loading) && styles.ctaButtonDisabled]}
@@ -221,7 +233,7 @@ const ParentLinkRequest = () => {
             )}
           </TouchableOpacity>
         </View>
-      </KeyboardStickyView>
+      </KeyboardAvoidingView>
     </View>
   )
 }
@@ -235,7 +247,8 @@ const styles = ScaledSheet.create({
   },
   scrollContent: {
     padding: '20@ms',
-    paddingBottom: '110@ms'
+    paddingBottom: '20@ms',
+    flexGrow: 1
   },
   tabContent: {
     width: '100%'
@@ -308,14 +321,10 @@ const styles = ScaledSheet.create({
     color: palette.grey[900]
   },
   ctaWrapper: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     paddingHorizontal: '20@ms',
-    paddingBottom: '28@ms',
+    paddingBottom: Platform.OS === 'ios' ? '28@ms' : '16@ms',
     paddingTop: '10@ms',
-    backgroundColor: 'transparent'
+    backgroundColor: '#FAFAFB'
   },
   ctaButton: {
     minHeight: '48@ms',

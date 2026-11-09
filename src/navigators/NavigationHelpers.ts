@@ -33,19 +33,35 @@ export const reset = (routeName: string, params?: object) => {
 
 export const resetToHome = (params?: object) => {
   if (navigationRef.current?.isReady()) {
-    navigationRef.current.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [
-          {
-            name: Routes.Auth.MainTabs,
-            state: {
-              routes: [{ name: Routes.Auth.Home, params }],
+    try {
+      navigationRef.current.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [
+            {
+              name: MainRoutes.AuthStack,
+              state: {
+                routes: [
+                  {
+                    name: Routes.Auth.MainTabs,
+                    state: {
+                      routes: [{ name: Routes.Auth.Home, params }],
+                    },
+                  },
+                ],
+              },
             },
-          },
-        ],
-      })
-    );
+          ],
+        })
+      );
+    } catch {
+      try {
+        navigationRef.current.navigate(MainRoutes.AuthStack, {
+          screen: Routes.Auth.MainTabs,
+          params: { screen: Routes.Auth.Home, params },
+        });
+      } catch {}
+    }
   }
 };
 
