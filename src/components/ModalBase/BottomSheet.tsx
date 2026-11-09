@@ -1,4 +1,4 @@
-import { Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { ReactNode } from 'react'
 import { ScaledSheet } from 'react-native-size-matters'
 import { Ionicons } from '@expo/vector-icons'
@@ -37,7 +37,7 @@ function BottomSheet(props: PropsBottomSheet) {
 
       {children}
 
-      <View pointerEvents="none">
+      <View pointerEvents="none" style={StyleSheet.absoluteFillObject}>
         {isLoading ? <Loading fullScreen={false} /> : null}
       </View>
     </ModalBase>

@@ -23,7 +23,7 @@ const AlarmClockTab: FC<AlarmClockTabProps> = ({ isLoading, isPlaying, panelProp
     <View style={styles.container}>
       <ScrollView>
         {isLoading && (
-          <Loading isOverlay={false} />
+          <Loading isOverlay={false} fullScreen={false} />
         )}
 
         {!isPlaying ? <AlarmClockPanel {...panelProps} /> : <AlarmClock {...alarmProps} />}

@@ -120,7 +120,7 @@ const StudyTimerTab: FC<StudyTimerTabProps> = ({
   return (
     <View style={styles.container}>
       <View style={{ width: '100%', gap: 11 }}>
-        {loadingItem && <Loading isOverlay={false} />}
+        {loadingItem && <Loading isOverlay={false} fullScreen={false} />}
         {itemStart ? (
           <TimerClock
             isLoading={loadingItem}
@@ -182,7 +182,7 @@ const styles = ScaledSheet.create({
   center: {
     justifyContent: 'center',
     alignItems: 'center',
-    minHeight: '50@ms'
+    minHeight: '120@ms'
   },
   emptyText: {
     fontSize: '16@ms',

@@ -1,9 +1,9 @@
 import CommonDialog from '@/components/ModalBase/CommonDialog'
 import TextField from '@/components/Input/TextField'
 import { palette, TYPO } from '@/theme'
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { View, Text } from 'react-native'
+import { View, Text, TextInput, TouchableWithoutFeedback } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 import Loading from '@/components/Loading'
 
@@ -18,6 +18,17 @@ interface Props {
 
 const ModalExamCode = ({ codeExam, loading, setCodeExam, onClose, open, handleGetInfoExam }: Props) => {
   const { t } = useTranslation()
+  const inputRef = useRef<TextInput>(null)
+
+  useEffect(() => {
+    if (open) {
+      inputRef.current?.focus()
+      const timer = setTimeout(() => {
+        inputRef.current?.focus()
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [open])
 
   return (
     <CommonDialog
@@ -29,10 +40,19 @@ const ModalExamCode = ({ codeExam, loading, setCodeExam, onClose, open, handleGe
     >
       {loading && <Loading isOverlay={false} />}
       <View style={styles.container}>
-        <View style={styles.inputWrapper}>
-          <Text style={styles.label}>{t('code_exam')}</Text>
-          <TextField value={codeExam} onChangeText={setCodeExam} isExamCode />
-        </View>
+        <TouchableWithoutFeedback onPress={() => inputRef.current?.focus()}>
+          <View style={styles.inputWrapper}>
+            <Text style={styles.label}>{t('code_exam')}</Text>
+            <TextField
+              inputRef={inputRef}
+              autoFocus
+              autoCorrect={false}
+              value={codeExam}
+              onChangeText={setCodeExam}
+              isExamCode
+            />
+          </View>
+        </TouchableWithoutFeedback>
       </View>
     </CommonDialog>
   )
