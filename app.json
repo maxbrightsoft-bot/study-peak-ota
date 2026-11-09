@@ -74,12 +74,6 @@
     },
     "plugins": [
       "react-native-ota-hot-update",
-      [
-        "react-native-bootsplash",
-        {
-          "assetsDir": "assets/bootsplash"
-        }
-      ],
       "@react-native-community/datetimepicker",
       [
         "expo-font",
