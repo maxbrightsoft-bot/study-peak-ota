@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { View, Text, TouchableOpacity, Alert, Image } from 'react-native'
+import { View, Text, TouchableOpacity, Alert, Image, ActivityIndicator } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { ScaledSheet } from 'react-native-size-matters'
@@ -11,14 +11,13 @@ import Navbar from '../components/Navbar'
 import LinkedStateCard from '../components/LinkedStateCard'
 import ExpiryProgressBar from '../components/ExpiryProgressBar'
 import useAccountLinkingStore from '@/store/useAccountLinkingStore'
-import useAuthStore from '@/store/useAuthStore'
 import { rejectLinkAccountApi, deleteLinkApi, acceptLinkAccountApi, getAccountLinkDetailApi } from '../apiClients'
 import { AccountLinkStatus } from '@/utils/enums'
 
 const StudentLinkApproval = () => {
   const { t } = useTranslation()
   const navigation = useNavigation<any>()
-  const setLoading = useAuthStore((state) => state.setLoading)
+  const [loading, setLoading] = useState(false)
   const setAcceptedLinkData = useAccountLinkingStore((state) => state.setAcceptedLinkData)
   const setAcceptedLinkId = useAccountLinkingStore((state) => state.setAcceptedLinkId)
   const setParentRequestLink = useAccountLinkingStore((state) => state.setParentRequestLink)
@@ -241,8 +240,9 @@ const StudentLinkApproval = () => {
                 ) : (
                   <>
                     <TouchableOpacity
-                      style={[styles.btn, styles.ghostBtn]}
+                      style={[styles.btn, styles.ghostBtn, loading && { opacity: 0.6 }]}
                       onPress={handleDecline}
+                      disabled={loading}
                       activeOpacity={0.8}
                     >
                       <Text style={styles.ghostBtnText}>
@@ -251,13 +251,18 @@ const StudentLinkApproval = () => {
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={[styles.btn, styles.primaryBtn]}
+                      style={[styles.btn, styles.primaryBtn, loading && { opacity: 0.7 }]}
                       onPress={handleAccept}
+                      disabled={loading}
                       activeOpacity={0.8}
                     >
-                      <Text style={styles.primaryBtnText}>
-                        {t('accept')}
-                      </Text>
+                      {loading ? (
+                        <ActivityIndicator size="small" color="#FFF" />
+                      ) : (
+                        <Text style={styles.primaryBtnText}>
+                          {t('accept')}
+                        </Text>
+                      )}
                     </TouchableOpacity>
                   </>
                 )}

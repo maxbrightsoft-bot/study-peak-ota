@@ -243,47 +243,50 @@ const Authorized = ({ route }: { route: any }) => {
     return <ConsentScreen onAgree={handleConsentAgree} />
   }
 
-  if (isNotEnoughStatements && !isParent && Platform.OS !== 'ios')
-    return (
-      <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={() => null}>
-        <Tab.Screen name={Routes.Auth.Onboarding} component={OnboardingScreen} />
-      </Tab.Navigator>
-    )
-
   return (
     <>
       <AuthStack.Navigator screenOptions={{ headerShown: false }}>
-        <AuthStack.Screen name={Routes.Auth.MainTabs}>
-          {() => (
-            <LayoutApp headerProps={headerProps} key={languageKey}>
-              <MainTabNavigator />
-            </LayoutApp>
-          )}
-        </AuthStack.Screen>
-        <AuthStack.Screen name={Routes.Auth.AccountLinkingGroup}>
-          {() => (
-            <LayoutApp headerProps={headerProps} hideHeader={true} key={languageKey}>
-              <StatusBar barStyle="dark-content" backgroundColor="#FAFAFB" animated />
-              <AccountLinkingNavigator />
-            </LayoutApp>
-          )}
-        </AuthStack.Screen>
+        {isNotEnoughStatements && !isParent && Platform.OS !== 'ios' ? (
+          <AuthStack.Screen name={Routes.Auth.Onboarding} component={OnboardingScreen} />
+        ) : (
+          <>
+            <AuthStack.Screen name={Routes.Auth.MainTabs}>
+              {() => (
+                <LayoutApp headerProps={headerProps} key={languageKey}>
+                  <MainTabNavigator />
+                </LayoutApp>
+              )}
+            </AuthStack.Screen>
+            <AuthStack.Screen name={Routes.Auth.AccountLinkingGroup}>
+              {() => (
+                <LayoutApp headerProps={headerProps} hideHeader={true} key={languageKey}>
+                  <StatusBar barStyle="dark-content" backgroundColor="#FAFAFB" animated />
+                  <AccountLinkingNavigator />
+                </LayoutApp>
+              )}
+            </AuthStack.Screen>
+          </>
+        )}
       </AuthStack.Navigator>
-      <ChangePasswordDialog
-        visible={(mustChangePassword || isWeakPassword) && hasConfirmedWarning && !isMustChangePasswordDismissed}
-        onClose={handleClosePasswordModal}
-        cancelText={t('change_later')}
-      />
-      <ResetPasswordWarningDialog
-        visible={
-          !isMustChangePasswordDismissed &&
-          !hasConfirmedWarning &&
-          (mustChangePassword || isWeakPassword)
-        }
-        onClose={handleClosePasswordModal}
-        onConfirm={() => setHasConfirmedWarning(true)}
-        isMustChange={mustChangePassword}
-      />
+      {!(isNotEnoughStatements && !isParent && Platform.OS !== 'ios') && (
+        <>
+          <ChangePasswordDialog
+            visible={(mustChangePassword || isWeakPassword) && hasConfirmedWarning && !isMustChangePasswordDismissed}
+            onClose={handleClosePasswordModal}
+            cancelText={t('change_later')}
+          />
+          <ResetPasswordWarningDialog
+            visible={
+              !isMustChangePasswordDismissed &&
+              !hasConfirmedWarning &&
+              (mustChangePassword || isWeakPassword)
+            }
+            onClose={handleClosePasswordModal}
+            onConfirm={() => setHasConfirmedWarning(true)}
+            isMustChange={mustChangePassword}
+          />
+        </>
+      )}
     </>
   )
 }
