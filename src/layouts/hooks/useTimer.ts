@@ -16,8 +16,15 @@ import {
 import { SubjectTimerResponse } from "../../utils/types"
 import { StudyTimerTabProps } from "../partials/Timer/StudyTimerTab"
 import { TimeUpdateDialogProps } from "../partials/Timer/TimeUpdateDialog"
-import { INTERVAL_SAVE_TIMER, TIMER_KEY } from "../configs/constants"
-import { convertInactiveTimer, sortTimersBySubject } from "../configs/fn"
+import {
+    INTERVAL_SAVE_TIMER,
+    STUDY_SYNC_CHANNEL_PREFIX,
+    TIMER_CHANGED_EVENT,
+    TIMER_KEY
+} from "../configs/constants"
+import { sortTimersBySubject } from "../configs/fn"
+import { isNewerRowVersion } from "@/utils/rowVersion"
+import { parsePayload } from "@/utils/pusherChannels"
 import useAuthStore from "@/store/useAuthStore"
 import { TimerStatus } from "@/utils/enums"
 import { getCountTime, getErrorMessage, toast } from "@/utils/helpers"
@@ -34,10 +41,21 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
     const activeTimerSeconds = useAuthStore(state => state.activeTimerSeconds)
     const setActiveTimerId = useAuthStore(state => state.setActiveTimerId)
     const setActiveTimerSeconds = useAuthStore(state => state.setActiveTimerSeconds)
+    const pusher = useAuthStore(state => state.pusher)
+    const subscribeChannel = useAuthStore(state => state.subscribeChannel)
+    const unsubscribeChannelSafe = useAuthStore(state => state.unsubscribeChannelSafe)
     const saveIntervalRef = useRef<NodeJS.Timeout | null>(null)
     const timerIntervalRef = useRef<NodeJS.Timeout | null>(null)
     const fetchedRef = useRef<string | null | undefined>(undefined)
     const { t } = useTranslation()
+    const timersRef = useRef<SubjectTimerResponse[]>(timers)
+    timersRef.current = timers
+    const getTimersRef = useRef<((
+        page?: number,
+        isLoadMore?: boolean,
+        force?: boolean,
+        isRetry?: boolean
+    ) => Promise<void>) | undefined>(undefined)
 
     const [loadingItem, setLoadingItem] = useState(false)
     const [isFetching, setFetching] = useState(false)
@@ -88,6 +106,7 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
             await removeDataStorage(timerKey)
         } catch (error) {
             toast.error(getErrorMessage(t, error))
+            getTimers(1, false, true, true)
         } finally {
             setLoadingItem(false)
         }
@@ -124,7 +143,8 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
 
     const handlePauseAllTimers = async (
         exceptId?: number,
-        timerData?: SubjectTimerResponse[]
+        timerData?: SubjectTimerResponse[],
+        onError?: (error: any) => void
     ) => {
         !exceptId && setLoadingItem(true)
         const tasks = (timerData ?? timers)
@@ -133,7 +153,7 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
                 i.id !== exceptId &&
                 i.timerId
             )
-            .map(i => handlePauseTimer(i, false))
+            .map(i => handlePauseTimer(i, false, undefined, onError))
         const paused = await Promise.all(tasks)
         !exceptId && setLoadingItem(false)
         return paused
@@ -209,19 +229,27 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
             await removeDataStorage(timerKey)
         } catch (error) {
             toast.error(getErrorMessage(t, error))
+            getTimers(1, false, true, true)
         } finally {
             setLoadingItem(false)
         }
     }
 
-    const getTimers = async (page: number = 1, isLoadMore: boolean = false) => {
+    const getTimers = async (
+        page: number = 1,
+        isLoadMore: boolean = false,
+        force: boolean = false,
+        isRetry: boolean = false
+    ) => {
         if (!user?.superId || isFetching) return
         if (
+            !force &&
             ((onAcademy && fetchedRef.current === academyDomain) ||
                 (!onAcademy && fetchedRef.current === null)) &&
             !open && !isLoadMore
         ) return
 
+        let shouldRetry = false
         setFetching(true)
         try {
             const res = onAcademy
@@ -231,9 +259,7 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
             const items: SubjectTimerResponse[] = res.data?.items ?? []
             fetchedRef.current = onAcademy ? academyDomain : null
 
-            const newItems = await Promise.all(
-                items.map(item => convertInactiveTimer(item, user.superId))
-            )
+            const newItems = items
 
             const activeId = newItems.find(
                 i =>
@@ -242,7 +268,10 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
                     !i.limitedTimeReached
             )?.id
 
-            const paused = await handlePauseAllTimers(activeId, newItems)
+            let pauseFailed = false
+            const paused = await handlePauseAllTimers(activeId, newItems, () => {
+                pauseFailed = true
+            })
 
             const finalItems = newItems.map(i =>
                 paused.find(p => p.id === i.id) ?? i
@@ -255,13 +284,52 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
             
             setHasMore(items.length === pageSize)
             setCurrentPage(page)
+            shouldRetry = pauseFailed && !isRetry
         } catch (error) {
             if (!isLoadMore) setTimers([])
             toast.error(getErrorMessage(t, error))
         } finally {
             setFetching(false)
         }
+        if (shouldRetry) await getTimers(1, false, true, true)
     }
+
+    getTimersRef.current = getTimers
+
+    useEffect(() => {
+        if (!pusher || !user?.superId) return
+        const channelName = `${STUDY_SYNC_CHANNEL_PREFIX}${user.superId}`
+        const handleTimerChanged = (raw: unknown) => {
+            const payload = parsePayload<SubjectTimerResponse>(raw)
+            if (!payload?.id) return
+            if (payload.isDeleted) {
+                getTimersRef.current?.(1, false, true, true)
+                return
+            }
+            const current = timersRef.current.find(i => i.id === payload.id)
+            // unknown subject ids are ignored: the list is the source of truth for which subjects exist
+            if (!current || !isNewerRowVersion(payload.rowVersion, current.rowVersion)) return
+            // only the current session or a newer one: a late event for an older timer must not replace it
+            const isCurrentOrNewerSession =
+                payload.timerId === current.timerId ||
+                !current.startTime ||
+                moment(payload.startTime).valueOf() >= moment(current.startTime).valueOf()
+            if (!isCurrentOrNewerSession) return
+            const newList = timersRef.current.map(i => (i.id === payload.id ? payload : i))
+            timersRef.current = newList
+            setTimers(newList)
+            const currentActiveId = useAuthStore.getState().activeTimerId
+            if (payload.status === TimerStatus.Started) setActiveTimerId(payload.id)
+            else if (currentActiveId === payload.id) setActiveTimerId(undefined)
+        }
+        const getEventHandlers = () => [
+            { eventName: TIMER_CHANGED_EVENT, handler: handleTimerChanged }
+        ]
+        subscribeChannel(pusher, channelName, getEventHandlers).catch(() => { })
+        return () => {
+            unsubscribeChannelSafe(pusher, channelName, getEventHandlers)
+        }
+    }, [pusher, user?.superId])
 
     const loadMoreTimers = () => {
         if (!hasMore || isFetching) return
@@ -286,13 +354,18 @@ const useTimers = (open: boolean, handleToggle: () => void) => {
                 selectedTimer.timerId,
                 { savedTime: moment(nowTime).utc().valueOf() }
             )
+            const timerResponse = res.data.data
             setTimers(
-                sortTimersBySubject(timers.map(timer =>
+                sortTimersBySubject(timersRef.current.map(timer =>
                     timer.id === selectedTimer.id
-                        ? res.data.data
+                        ? timerResponse
                         : timer
                 ))
             )
+            if (
+                timerResponse.status !== TimerStatus.Started &&
+                useAuthStore.getState().activeTimerId === selectedTimer.id
+            ) setActiveTimerId(undefined)
         } catch { }
     }, [
         selectedTimer?.id,

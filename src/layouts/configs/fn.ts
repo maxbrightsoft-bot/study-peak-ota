@@ -1,15 +1,11 @@
 import { TimerStatus } from "@/utils/enums"
-import { SubjectTimerResponse } from "../../utils/types"
 import {
     DEFAULT_TIME_IN_MINUTES,
-    TIMER_KEY,
     TOTAL_SECONDS_IN_A_MINUTE,
     TOTAL_SECONDS_IN_AN_HOUR
 } from "./constants"
 import { TimerBase } from "./types"
 import moment from "moment"
-import { DATE_TIME_MIN_VALUE } from "@/utils/constants"
-import { getDataStorage, removeDataStorage } from "@/utils/storage"
 
 export const formatTime = (totalSeconds: number, t: any): string => {
     const hours = Math.floor(totalSeconds / TOTAL_SECONDS_IN_AN_HOUR)
@@ -89,33 +85,6 @@ export const isNextTimeValid = (date: moment.Moment, timeValue?: moment.Moment) 
     const endMoment = timeValue ? timeValue.clone().add(DEFAULT_TIME_IN_MINUTES + 1, "minutes") : date.clone().startOf("days").add(DEFAULT_TIME_IN_MINUTES + 1, "minutes")
     if (moment().isBefore(endMoment)) return false;
     return date.isSame(endMoment, "day")
-}
-
-export const convertInactiveTimer = async (item: SubjectTimerResponse, userSuperId: number): Promise<SubjectTimerResponse> => {
-    const { startTime, status, lastResumeTime, limitedInactiveTime, checkPointTime } = item
-    if (status !== TimerStatus.Started || !checkPointTime || !limitedInactiveTime) return item
-    const timerKey = `${TIMER_KEY}.${userSuperId}.${item.id}.${item.timerId}`
-    const savedTime = await getDataStorage(timerKey) ?? ""
-    const savedMoment = moment.utc(+savedTime)
-    const startTimeValue = moment.utc(startTime)
-    const lastResumeTimeValue = lastResumeTime === DATE_TIME_MIN_VALUE ? null : moment.utc(lastResumeTime)
-    const checkPointTimeValue = moment.utc(checkPointTime)
-    let limitedInactiveTimeValue = moment.utc(limitedInactiveTime)
-    const now = moment().utc()
-    const isValidSavedTime = !!savedTime && savedMoment.isValid() && savedMoment.isBefore(now) && savedMoment.isAfter(startTimeValue) && (!lastResumeTimeValue || savedMoment.isBefore(lastResumeTimeValue))
-
-    if (!isValidSavedTime)
-        await removeDataStorage(timerKey)
-
-    const diff = savedMoment.diff(checkPointTimeValue, "seconds")
-    limitedInactiveTimeValue = diff <= 0 ? limitedInactiveTimeValue : limitedInactiveTimeValue.clone().add(diff, "seconds")
-
-    const isReachedLimited = limitedInactiveTimeValue.isBefore(now)
-    const newItem = {
-        ...item,
-        pauseTime: isReachedLimited ? limitedInactiveTimeValue.valueOf() : undefined
-    }
-    return newItem
 }
 
 export const getDefaultAltName = (name: string) => {
