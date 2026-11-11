@@ -26,7 +26,7 @@ import {
 } from "@/utils/types";
 import { AlarmResponse } from "@/utils/types/alarm";
 import { api } from "@/services/api/apiClient";
-import { autoReconnectPusher } from "@/utils/helpers/pusher";
+import { autoReconnectPusher, setPusherDisconnectRequested } from "@/utils/helpers/pusher";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { disconnectSocket } from "@/services/socket";
 import { toast } from "@/utils/helpers";
@@ -59,6 +59,8 @@ interface StoreState {
   isOpenTimerDialog: boolean;
 
   pusher?: Pusher;
+  /** The academy the live Pusher connection was opened for (its authorizer sends this academy header). */
+  pusherAcademyDomain?: string;
   channel?: PusherChannel;
   hasSeenTutorial: boolean;
   isDemoMode: boolean;
@@ -317,10 +319,13 @@ const useAuthStore = create<AuthStore>()(
           },
         });
 
+        // A new connection is wanted again: drops from now on may auto-reconnect.
+        setPusherDisconnectRequested(false);
         await instance.connect();
 
         set((state) => {
           state.pusher = instance;
+          state.pusherAcademyDomain = academyDomain;
         });
 
         return instance;
@@ -418,10 +423,13 @@ const useAuthStore = create<AuthStore>()(
           if (pusher && channel?.channelName) {
             await pusher.unsubscribe({ channelName: channel.channelName });
           }
+          // Closed on purpose (academy switch / logout): its DISCONNECTED must not auto-reconnect.
+          setPusherDisconnectRequested(true);
           if (pusher) await pusher.disconnect();
         } finally {
           set((state) => {
             state.pusher = undefined;
+            state.pusherAcademyDomain = undefined;
             state.channel = undefined;
           });
         }

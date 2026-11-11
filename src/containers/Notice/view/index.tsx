@@ -6,16 +6,19 @@ import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
 import moment from 'moment'
 import NoticeDetailDialog from '../components/NoticeDetailDialog'
-import { TabList } from '../configs/constants'
+import { DEFAULT_NOTICE_TAB, noticeTab, PERSONAL_NOTICE_TAB, TabList } from '../configs/constants'
+import AnnouncementList from '@/containers/Announcements/views/AnnouncementList'
 import { useState } from 'react'
 import { stripHtml } from '@/utils/helpers'
 
 type Props = {
   open: boolean
   onClose: () => void
+  /** Tab shown on open (default: the institute notice). The header bell passes PERSONAL_NOTICE_TAB. */
+  initialTab?: number
 }
 
-const Notice = ({ open, onClose }: Props) => {
+const Notice = ({ open, onClose, initialTab = DEFAULT_NOTICE_TAB }: Props) => {
   const [isNew, setNew] = useState<any>({});
   const {
     t,
@@ -26,7 +29,7 @@ const Notice = ({ open, onClose }: Props) => {
     openNoticeDetailDialog,
     handleOpenDetailDialog,
     handleCloseDetailDialog
-  } = useNotice(setNew, open)
+  } = useNotice(setNew, open, initialTab)
 
   const renderItem = ({ item }: any) => {
     const isNote = !!item?.isNote
@@ -77,7 +80,7 @@ const Notice = ({ open, onClose }: Props) => {
           <Ionicons name="chevron-back-outline" size={24} color={palette.grey[800]} />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>{t('institute_notice')}</Text>
+        <Text style={styles.headerTitle}>{t(noticeTab(selected).label)}</Text>
 
         <View style={{ width: 24 }} />
       </View>
@@ -101,13 +104,17 @@ const Notice = ({ open, onClose }: Props) => {
             })}
           </ScrollView>
         </View>
-        <FlatList
-          data={notifications}
-          keyExtractor={(item, index) => `${item.id}_${index}`}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContainer}
-          ListEmptyComponent={renderEmptyComponent}
-        />
+        {selected === PERSONAL_NOTICE_TAB ? (
+          <AnnouncementList onClose={onClose} />
+        ) : (
+          <FlatList
+            data={notifications}
+            keyExtractor={(item, index) => `${item.id}_${index}`}
+            renderItem={renderItem}
+            contentContainerStyle={styles.listContainer}
+            ListEmptyComponent={renderEmptyComponent}
+          />
+        )}
       </View>
       <NoticeDetailDialog
         open={openNoticeDetailDialog}

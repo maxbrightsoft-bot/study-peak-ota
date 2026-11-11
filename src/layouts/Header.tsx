@@ -7,6 +7,8 @@ import { ScaledSheet } from 'react-native-size-matters'
 import ArrowDown from '@/assets/iconJSX/arrowDown'
 import Alarm from '@/assets/iconJSX/alarm'
 import Notice from '@/containers/Notice/view'
+import AnnouncementBellBadge from '@/containers/Announcements/components/AnnouncementBellBadge'
+import { PERSONAL_NOTICE_TAB } from '@/containers/Notice/configs/constants'
 import SignOut from '@/assets/iconJSX/signOut'
 import HeaderAction from './components/HeaderAction'
 import { getUserAcademies } from './apiClients/academyServices'
@@ -209,6 +211,7 @@ const Header = ({ headerProps }: Props) => {
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             {user?.academyDomain && <TouchableOpacity onPress={() => handleOpenNoticeDialog()}>
               <Alarm />
+              <AnnouncementBellBadge />
             </TouchableOpacity>}
 
             <HeaderAction />
@@ -216,7 +219,7 @@ const Header = ({ headerProps }: Props) => {
           </View>
         </>
       </View>
-      <Notice open={openNoticeDialog} onClose={handleCloseNoticeDialog} />
+      <Notice open={openNoticeDialog} onClose={handleCloseNoticeDialog} initialTab={PERSONAL_NOTICE_TAB} />
     </View>
   )
 }

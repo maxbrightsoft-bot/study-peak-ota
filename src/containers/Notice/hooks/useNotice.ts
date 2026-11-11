@@ -8,19 +8,19 @@ import { useFocusEffect } from "@react-navigation/native"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Notification, StudentNoteEvent, StudentNotificationEvent } from "../configs/types"
-import { TabList } from "../configs/constants"
+import { DEFAULT_NOTICE_TAB, isPersonalNoticeTab, noticeTab } from "../configs/constants"
 import { NoteResponse } from "@/utils/types"
 import { setDataStorage } from "@/utils/storage"
 import moment from "moment"
 
-const useNotice = (setNew: any, open?: boolean) => {
+const useNotice = (setNew: any, open?: boolean, initialTab: number = DEFAULT_NOTICE_TAB) => {
   const { pusher, setLoading, user, selectedAcademy, subscribeChannel, unsubscribeChannelSafe } = useAuthStore()
   const userId = user?.id
   const [notifications, setNotifications] = useState<Array<Notification> | null>(null)
   const academyDomain = (selectedAcademy?.domain || user?.academyDomain)?.trim()?.toUpperCase()
   const { t } = useTranslation()
-  const [selected, setSelected] = useState(TabList[0].value)
-  const [typeSelected, setTypeSelected] = useState(TabList[0].type)
+  const [selected, setSelected] = useState(noticeTab(initialTab).value)
+  const [typeSelected, setTypeSelected] = useState(noticeTab(initialTab).type)
   const channel = useRef<PusherChannel | undefined>(undefined)
   const channelName = useRef<string | undefined>(undefined)
   const notifyChannel = useRef<PusherChannel | undefined>(undefined)
@@ -55,10 +55,19 @@ const useNotice = (setNew: any, open?: boolean) => {
     setSelected(newValue);
     setTypeSelected(type)
     handleGetListNotification(type)
+    // Opened on the personal tab: academy notices count as read only once a notice tab is shown.
+    if (open && !isPersonalNoticeTab(newValue)) markNoticesRead()
   };
+
+  const markNoticesRead = () => {
+    const academyKey = selectedAcademy?.id || academyDomain || user?.academyDomain || 'default'
+    setDataStorage(`LAST_READ_NOTICE_TIME_${userId || ''}_${academyKey}`, moment().toISOString())
+  }
 
 
   const handleGetListNotification = async (type: number[]) => {
+    // The personal tab (no notice types) lists announcements itself (AnnouncementList).
+    if (!type.length) return
     setLoading(true)
     setNotifications([])
     try {
@@ -193,9 +202,12 @@ const useNotice = (setNew: any, open?: boolean) => {
 
   useEffect(() => {
     if (open && (userId || academyDomain)) {
-      handleGetListNotification(typeSelected)
-      const academyKey = selectedAcademy?.id || academyDomain || user?.academyDomain || 'default'
-      setDataStorage(`LAST_READ_NOTICE_TIME_${userId || ''}_${academyKey}`, moment().toISOString())
+      // Each entry point opens its own tab: the header bell the personal tab, Home / Settings the institute notice.
+      const tab = noticeTab(initialTab)
+      setSelected(tab.value)
+      setTypeSelected(tab.type)
+      handleGetListNotification(tab.type)
+      if (!isPersonalNoticeTab(tab.value)) markNoticesRead()
     }
   }, [open])
 
