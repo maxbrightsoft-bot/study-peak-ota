@@ -50,6 +50,10 @@ export const INTERVAL_INACTIVITY_LIMIT = 10 * 1000;
 export const INTERVAL_SAVE_TIMER = 15 * 1000; // 15 secs
 export const TIMER_KEY = "tm"
 
+export const STUDY_SYNC_CHANNEL_PREFIX = "presence-study-sync-"
+export const TIMER_CHANGED_EVENT = "subject-timer-changed"
+export const ALARM_CHANGED_EVENT = "user-alarm-changed"
+
 export const ACCEPT_URL_TIMER = ['study-textbook', 'answer-the-check']
 
 export const DEFAULT_AUDIO_URL = "/audio/beep.wav"

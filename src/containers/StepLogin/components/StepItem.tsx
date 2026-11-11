@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native'
+import { View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, StatusBar } from 'react-native'
 import { palette, TYPO } from '@/theme'
 import { Field } from 'formik'
 import TextField from '@/components/Input/TextField'
@@ -11,6 +11,7 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import Verify from '@/assets/iconJSX/verify'
 import SchoolSearchSelect from '@/components/Select/SchoolSearchSelect'
 import { ScaledSheet } from 'react-native-size-matters'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import useAuthStore from '@/store/useAuthStore'
 
 type Props = {
@@ -28,6 +29,8 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
     setFieldTouched
   })
   const logout = useAuthStore(state => state.logout)
+  const insets = useSafeAreaInsets()
+  const topInset = Math.max(insets.top, Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0)
 
   const renderStep = () => {
     switch (step) {
@@ -179,7 +182,8 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
             justifyContent: 'space-between',
             alignItems: 'center',
             paddingHorizontal: 20,
-            paddingVertical: 16,
+            paddingTop: 16 + topInset,
+            paddingBottom: 16,
             backgroundColor: "#FFF"
           }}
         >
@@ -215,7 +219,7 @@ const StepItem = ({ values, errors, touched, setFieldValue, setFieldTouched }: P
           <View
             style={{
               position: 'absolute',
-              bottom: 20,
+              bottom: 20 + insets.bottom,
               width: '100%',
               flexDirection: 'row',
               alignItems: 'center',

@@ -25,7 +25,13 @@ import { SubjectTimerResponse } from '@/utils/types'
 import { AlarmResponse } from '@/utils/types/alarm'
 import { AlarmType, TimerStatus } from '@/utils/enums'
 import { getErrorMessage, toast } from '@/utils/helpers'
-import { DEFAULT_AUDIO_URL } from '../configs/constants'
+import {
+  ALARM_CHANGED_EVENT,
+  DEFAULT_AUDIO_URL,
+  STUDY_SYNC_CHANNEL_PREFIX
+} from '../configs/constants'
+import { isNewerRowVersion } from '@/utils/rowVersion'
+import { parsePayload } from '@/utils/pusherChannels'
 import { getDataStorage, setDataStorage, removeDataStorage } from '@/utils/storage'
 import { ToastExamStatus } from '../configs/enums'
 import { TOAST_EXAM_STATUS, BASE_URL } from '@/utils/constants'
@@ -42,6 +48,12 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
   const user = useAuthStore(state => state.user)
   const alarm = useAuthStore(state => state.alarm)
   const setAlarm = useAuthStore(state => state.setAlarm)
+  const pusher = useAuthStore(state => state.pusher)
+  const subscribeChannel = useAuthStore(state => state.subscribeChannel)
+  const unsubscribeChannelSafe = useAuthStore(state => state.unsubscribeChannelSafe)
+  const alarmRef = useRef<AlarmResponse | null>(alarm)
+  alarmRef.current = alarm
+  const handleUpdateAlarmRef = useRef<((data: AlarmResponse, isGet?: boolean) => void) | undefined>(undefined)
   const [alarmDuration, setAlarmDuration] = useState(DEFAULT_ALARM_DURATION)
   const [loadingItem, setLoadingItem] = useState(false)
   const [isFetching, setFetching] = useState(false)
@@ -397,6 +409,33 @@ const useAlarm = (open: boolean, timers: SubjectTimerResponse[], noAction?: bool
       setFetching(false)
     }
   }
+
+  handleUpdateAlarmRef.current = handleUpdateAlarm
+
+  useEffect(() => {
+    if (!pusher || !user?.superId) return
+    const channelName = `${STUDY_SYNC_CHANNEL_PREFIX}${user.superId}`
+    const handleAlarmChanged = (raw: unknown) => {
+      const payload = parsePayload<AlarmResponse>(raw)
+      if (!payload?.id) return
+      const current = alarmRef.current
+      if (current?.id === payload.id && !isNewerRowVersion(payload.rowVersion, current.rowVersion)) return
+      // only a plain update of the same run keeps the audio flags; a restart resets them
+      handleUpdateAlarmRef.current?.(
+        payload,
+        current?.id === payload.id &&
+          current.status === payload.status &&
+          current.startTime === payload.startTime
+      )
+    }
+    const getEventHandlers = () => [
+      { eventName: ALARM_CHANGED_EVENT, handler: handleAlarmChanged }
+    ]
+    subscribeChannel(pusher, channelName, getEventHandlers).catch(() => {})
+    return () => {
+      unsubscribeChannelSafe(pusher, channelName, getEventHandlers)
+    }
+  }, [pusher, user?.superId])
 
   const remainTime = useCountDownTimer({
     isLoading: loadingItem,

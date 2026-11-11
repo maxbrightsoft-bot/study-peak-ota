@@ -21,6 +21,7 @@ export type SubjectTimerResponse = {
     limitedQuestionCount: number
     limitedTimeInMinutes: number
     audioUrls: string[]
+    isDeleted?: boolean
 }
 export type ResumeOrPauseRequest = {
     status: TimerStatus

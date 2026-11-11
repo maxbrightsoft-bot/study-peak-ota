@@ -67,8 +67,6 @@ export const apiUpload: AxiosInstance = axios.create({
           config.headers['x-dev-mode'] = 'true';
         }
 
-        console.log({ headers: config.headers});
-
         await applyMockAdapter(config);
 
         return config
@@ -90,8 +88,8 @@ export const apiUpload: AxiosInstance = axios.create({
           const logout = useAuthStore.getState().logout;
           await logout();
         }
-        console.log({ error });
-        
+        if (__DEV__) console.log('[API] Request failed:', status, error?.config?.url);
+
         if (status === 426) {
           const data = error?.response?.data;
           console.log({ data });
