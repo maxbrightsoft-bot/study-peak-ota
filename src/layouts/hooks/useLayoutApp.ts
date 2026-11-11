@@ -2,6 +2,7 @@ import { getInfo, getSuperAdminInfoFromWeb } from '@/containers/Login/apiClients
 import useAuthStore from '@/store/useAuthStore'
 import { Role } from '@/utils/enums'
 import { getAcademyDomain, getAccessToken, getErrorMessage, getLearningSpace, toast } from '@/utils/helpers'
+import { isPusherForOtherAcademy } from '@/utils/helpers/pusher'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAcademyDetailApi, getUserAcademies, switchAcademy } from '../apiClients/academyServices'
@@ -15,6 +16,7 @@ import { currentScreen, navigate } from '@/navigators/NavigationHelpers'
 import { MainRoutes, Routes } from '@/navigators/RouteName'
 import { apiJoinExam } from '@/containers/DoExam/apiClients'
 import { PusherChannel } from '@pusher/pusher-websocket-react-native'
+import useAnnouncementRealtime from '@/containers/Announcements/hooks/useAnnouncementRealtime'
 
 const useLayoutApp = () => {
   const { t } = useTranslation()
@@ -40,6 +42,7 @@ const useLayoutApp = () => {
   const [openNoticeDialog, setOpenNoticeDialog] = useState<boolean>(false)
   const appState = useRef(AppState.currentState)
   const generalChannel = useRef<PusherChannel | undefined>(undefined);
+  useAnnouncementRealtime()
 
   const handleOpenNoticeDialog = () => setOpenNoticeDialog(true)
   const handleCloseNoticeDialog = () => setOpenNoticeDialog(false)
@@ -317,7 +320,15 @@ const useLayoutApp = () => {
   };
 
   useEffect(() => {
-    if (pusher) return
+    if (pusher) {
+      // Opened for another academy: the first switch after launch has no cleanup holding the live pusher (they
+      // captured it before it existed), so close it here. pusher → undefined re-runs this effect, which connects
+      // for the new academy.
+      if (isPusherForOtherAcademy(useAuthStore.getState().pusherAcademyDomain, user?.academyDomain)) {
+        void disconnectPusher(pusher, undefined)
+      }
+      return
+    }
     const setupPusher = async () => {
       const academyDomain = await getDataStorage(ACADEMY_DOMAIN) || user?.academyDomain
       const token = await getDataStorage(ACCESS_TOKEN)
