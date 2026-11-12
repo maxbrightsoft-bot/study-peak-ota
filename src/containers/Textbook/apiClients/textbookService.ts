@@ -2,19 +2,30 @@ import { BASE_URL } from "@/utils/constants"
 import { TextbookQuery } from "../configs/type"
 import { api } from "@/services/api/apiClient"
 import { RestartTextbookRequest } from "@/utils/types"
+import { getIdLinkAccount } from "@/utils/helpers"
 
 const TEXTBOOK_URL = `${BASE_URL}/api/textbooks/prepared-textbooks`
 const TEXTBOOK_SESSION_URL = `${BASE_URL}/api/textbooksession`
 
-export const getTextbookListApi = (query: TextbookQuery) =>
-    api.get(`${TEXTBOOK_URL}`, { params: query })
+export const getTextbookListApi = (query: TextbookQuery) => {
+  const idLinkAccount = getIdLinkAccount();
+  return api.get(`${TEXTBOOK_URL}`, {
+    params: {
+      ...query,
+      ...(idLinkAccount ? { idLinkAccount } : {})
+    }
+  });
+};
 
-export const getTextbookByIdApi = (textbookId: number, studentId?: number) =>
-    api.get(`${TEXTBOOK_SESSION_URL}/${textbookId}/student-textbook-detail`, {
+export const getTextbookByIdApi = (textbookId: number, studentId?: number) => {
+    const idLinkAccount = getIdLinkAccount();
+    return api.get(`${TEXTBOOK_SESSION_URL}/${textbookId}/student-textbook-detail`, {
         params: {
-            studentId
+            studentId,
+            ...(idLinkAccount ? { idLinkAccount } : {})
         }
-    })
+    });
+};
 
 export const startTextbook = (textbookId: number) =>
     api.post(`${TEXTBOOK_SESSION_URL}/${textbookId}/start`)

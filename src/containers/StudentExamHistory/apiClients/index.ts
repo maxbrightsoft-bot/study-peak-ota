@@ -1,11 +1,19 @@
 import { api } from "@/services/api/apiClient";
 import { BASE_URL } from "@/utils/constants";
+import { getIdLinkAccount } from "@/utils/helpers";
 import { ExamFormRequest } from "../configs/types";
 
 const EXAM_SESSION_URL = `${BASE_URL}/api/examSession`;
 
-export const getStudentHistoryApi = (examSessionId: number | string, query?: any) => 
-    api.get(`${EXAM_SESSION_URL}/${examSessionId}/student-sessions`, { params: query });
+export const getStudentHistoryApi = (examSessionId: number | string, query?: any) => {
+    const idLinkAccount = getIdLinkAccount();
+    return api.get(`${EXAM_SESSION_URL}/${examSessionId}/student-sessions`, {
+        params: {
+            ...query,
+            ...(idLinkAccount ? { idLinkAccount } : {})
+        }
+    });
+};
 
 export const deleteStudentExamSessionApi = (examSessionId: number | string, studentExamSessionId: number | string) => 
     api.delete(`${EXAM_SESSION_URL}/${examSessionId}/student-sessions/${studentExamSessionId}`);

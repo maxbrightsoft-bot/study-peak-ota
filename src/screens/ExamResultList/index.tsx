@@ -8,7 +8,7 @@ import { Routes } from "@/navigators/RouteName";
 const ExamResultListScreen = () => {
   const route = useRoute<any>();
   const paramDomain = route?.params?.domain;
-  const { isReady } = useAcademyDeepLink(paramDomain, Routes.Auth.ExamResultList);
+  const { isReady } = useAcademyDeepLink(Routes.Auth.ExamResultList, paramDomain);
 
   if (!isReady) {
     return <Loading />;

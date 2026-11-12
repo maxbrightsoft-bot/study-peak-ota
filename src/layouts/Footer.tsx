@@ -21,6 +21,7 @@ import useAuthStore from '@/store/useAuthStore'
 import { useTranslation } from 'react-i18next'
 import { ScaledSheet, ms } from 'react-native-size-matters'
 import { Language } from '@/utils/enums'
+import { checkIsParent } from '@/utils/helpers'
 
 interface TabItemData {
   name: string
@@ -180,7 +181,10 @@ const Footer = ({ state, navigation }: BottomTabBarProps) => {
   const language = useAuthStore(state => state.language)
   const { t, i18n } = useTranslation()
   const insets = useSafeAreaInsets()
-  const isKorean = i18n.language === 'ko'
+
+  const linkedStudents = useAuthStore((state) => state.linkedStudents)
+  const isParent = checkIsParent()
+  const isParentNoChildren = isParent && linkedStudents?.length === 0
 
   const currentLang = language?.code || i18n.language
   const isEnOrVi = currentLang === Language.en || currentLang === Language.vi || currentLang === 'en' || currentLang === 'vi'
@@ -243,13 +247,12 @@ const Footer = ({ state, navigation }: BottomTabBarProps) => {
   const isStudent = user?.roles?.includes('Student')
 
   const filteredStudySpaceTabItems = studySpaceTabItems.filter(item => {
-    if (item.name === Routes.Auth.StudyPerformance && !isStudent) return false
+    if (isParentNoChildren && item.name !== Routes.Auth.PopQuiz && item.name !== Routes.Auth.Home) return false
     return true
   })
 
   const filteredTabItems = tabItems.filter(item => {
-    if (item.name === Routes.Auth.ExamResultList && !isStudent) return false
-    if (item.name === Routes.Auth.StudyPerformance && !isStudent) return false
+    if (item.name === Routes.Auth.Question && !isStudent) return false
     return true
   })
 
@@ -266,8 +269,7 @@ const Footer = ({ state, navigation }: BottomTabBarProps) => {
     <View style={[styles.tabBar, { paddingBottom: bottomPadding }]}>
       <View style={styles.tabBarInner}>
         {displayItems.map((item) => {
-          const isFocused = currentTabName === item.name
-
+        const isFocused = currentScreen() == item.name
           return (
             <TabItem
               key={item.name}

@@ -1,5 +1,6 @@
 import { BASE_URL } from "@/utils/constants";
 import { api } from "@/services/api/apiClient";
+import { getIdLinkAccount } from "@/utils/helpers";
 import { ChangeAnswerTimeRequest } from "../config/types";
 import { PauseOrResumeExamRequest, RestartTextbookRequest, StudentAnswerRequest } from "@/utils/types";
 
@@ -14,4 +15,12 @@ export const pauseOrFinished = (textbookId: number, body: ChangeAnswerTimeReques
 
 export const pauseAndResumeTextbookApi = (textbookId: number, body: PauseOrResumeExamRequest) => api.post(`${TEXTBOOK_SESSION_URL}/${textbookId}/pause-resume`, body);
 export const restartTextbookApi = (textbookId: number, data: RestartTextbookRequest) => api.post(`${TEXTBOOK_SESSION_URL}/${textbookId}/restart`, data);
-export const getTextbookByIdApi = (textbookId: number) => api.get(`${TEXTBOOK_SESSION_URL}/${textbookId}/student-textbook-detail`);
+
+export const getTextbookByIdApi = (textbookId: number) => {
+    const idLinkAccount = getIdLinkAccount();
+    return api.get(`${TEXTBOOK_SESSION_URL}/${textbookId}/student-textbook-detail`, {
+        params: {
+            ...(idLinkAccount ? { idLinkAccount } : {})
+        }
+    });
+};

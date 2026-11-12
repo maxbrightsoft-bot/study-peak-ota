@@ -6,8 +6,8 @@ import MathRender from '@/components/MathRender'
 import { Ionicons } from '@expo/vector-icons'
 import { useState } from 'react'
 import BottomSheet from '@/components/ModalBase/BottomSheet'
-import { BASE_URL } from '@/utils/constants'
 import ImageViewerModal from '@/components/ModalBase/ImageViewerModal'
+import useAuthStore from '@/store/useAuthStore'
 
 type Props = {
   t: any
@@ -20,6 +20,7 @@ type Props = {
 }
 
 const ChatItem = ({ t, item, toggleUpdateDialog, toggleConfirmDialog, isCompleted }: Props) => {
+  const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
   const [openActionSheet, setOpenActionSheet] = useState(false)
   const [showViewer, setShowViewer] = useState(false)
 
@@ -33,7 +34,7 @@ const ChatItem = ({ t, item, toggleUpdateDialog, toggleConfirmDialog, isComplete
 
       {item.isMe ? (
         <View style={{ alignSelf: 'flex-end', flexDirection: 'row', alignItems: 'center' }}>
-          {!isCompleted && (
+          {!isCompleted && !isParentMode && (
             <TouchableOpacity onPress={() => setOpenActionSheet(true)} hitSlop={8}>
               <Ionicons name="ellipsis-vertical-sharp" size={18} color={palette.grey[500]} />
             </TouchableOpacity>

@@ -17,5 +17,13 @@ export const joinExamByCodeApi = (code: string, auto: boolean = true) =>
         params: { auto }
     });
 
-export const getReceivedPopQuizzesApi = () => 
-    api.get(`${BASE_URL}/api/pop-quiz/received`);
+import { getIdLinkAccountForPopQuiz } from "../../utils/helpers";
+
+export const getReceivedPopQuizzesApi = () => {
+    const idLinkAccount = getIdLinkAccountForPopQuiz();
+    return api.get(`${BASE_URL}/api/pop-quiz/received`, {
+        params: {
+            ...(idLinkAccount ? { idLinkAccount } : {})
+        }
+    });
+};

@@ -1,13 +1,20 @@
 import { api, apiUpload } from "@/services/api/apiClient"
+import useAuthStore from "@/store/useAuthStore"
 import { BASE_URL } from "@/utils/constants"
+import { getIdLinkAccount } from "@/utils/helpers"
 import { ConversationFilter, MessageFilter, MessageRequest } from "@/utils/types"
 
 const CONVERSATION_URL = `${BASE_URL}/api/conversation`
 
-export const getListConversation = (query: ConversationFilter) =>
-    api.get(`${CONVERSATION_URL}`, {
-        params: query
-})
+export const getListConversation = (query: ConversationFilter) => {
+    const idLinkAccount = getIdLinkAccount();
+    return api.get(`${CONVERSATION_URL}`, {
+        params: {
+            ...query,
+            ...(idLinkAccount ? { idLinkAccount } : {})
+        }
+    });
+};
 
 export const createConversation = (studentId: number) =>
     api.post(`${CONVERSATION_URL}`, {
@@ -28,15 +35,23 @@ export const apiAddMessage = (
 export const getMessagesByConversation = (
     conversationId: number,
     filter: MessageFilter
-) =>
-    api.get(`${CONVERSATION_URL}/${conversationId}/messages`, {
-        params: filter
-    })
+) => {
+    const idLinkAccount = getIdLinkAccount();
+    return api.get(`${CONVERSATION_URL}/${conversationId}/messages`, {
+        params: {
+            ...filter,
+            ...(idLinkAccount ? { idLinkAccount } : {})
+        }
+    });
+};
 
 export const updateLastTimeReadConversation = (
     conversationId: number
-) =>
-    api.put(`${CONVERSATION_URL}/${conversationId}`)
+) => {
+    const isParentMode = useAuthStore.getState().parentViewMode?.isActive;
+    if (isParentMode) return Promise.resolve();
+    return api.put(`${CONVERSATION_URL}/${conversationId}`);
+};
 
 export const getImage = (content: string) =>
     api.get(`${content}`, {

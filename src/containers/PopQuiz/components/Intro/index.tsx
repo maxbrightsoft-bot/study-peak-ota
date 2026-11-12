@@ -5,8 +5,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { ScaledSheet } from 'react-native-size-matters';
 import usePopQuizIntro from './hooks/usePopQuizIntro';
 import { getSolveTargetLabel, navigateToPopQuizList } from '../../helpers';
+import { checkIsParent } from '@/utils/helpers';
 
 const PopQuizIntro = () => {
+  const isParent = checkIsParent();
   const {
     t,
     loading,
@@ -109,37 +111,41 @@ const PopQuizIntro = () => {
           {t('pop_quiz_info_format', { count: quizInfo.questionCount || 0, score: quizInfo.totalScore || 0 })}
         </Text>
 
-        <Text style={styles.subtitle}>
-          {t('pop_quiz_intro_desc') || '지금 팝퀴즈를 시작해 보세요. 집중해서 최선을 다해 풀어주세요!'}
-        </Text>
+        {!isParent && (
+          <Text style={styles.subtitle}>
+            {t('pop_quiz_intro_desc') || '지금 팝퀴즈를 시작해 보세요. 집중해서 최선을 다해 풀어주세요!'}
+          </Text>
+        )}
       </View>
 
-      <View style={styles.footer}>
-        <TouchableOpacity 
-          style={styles.startBtn}
-          onPress={handleStart}
-          disabled={startLoading}
-        >
-          {startLoading ? (
-            <ActivityIndicator size="small" color={palette.main[500]} />
-          ) : (
-            <>
-              <Ionicons 
-                name={quizInfo && quizInfo.studentExamSessionId && quizInfo.isSessionFinished ? "eye-outline" : "play"} 
-                size={14} 
-                color={palette.main[500]} 
-              />
-              <Text style={styles.startBtnText}>
-                {quizInfo && quizInfo.studentExamSessionId && quizInfo.isSessionFinished
-                  ? (t('view_result') || 'Xem kết quả')
-                  : quizInfo && quizInfo.studentExamSessionId && !quizInfo.isSessionFinished
-                  ? (t('resume') || 'Tiếp tục')
-                  : (t('start') || '시작하기')}
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
+      {(!isParent || quizInfo.isSessionFinished) && (
+        <View style={styles.footer}>
+          <TouchableOpacity 
+            style={styles.startBtn}
+            onPress={handleStart}
+            disabled={startLoading}
+          >
+            {startLoading ? (
+              <ActivityIndicator size="small" color={palette.main[500]} />
+            ) : (
+              <>
+                <Ionicons 
+                  name={quizInfo && quizInfo.studentExamSessionId && quizInfo.isSessionFinished ? "eye-outline" : "play"} 
+                  size={14} 
+                  color={palette.main[500]} 
+                />
+                <Text style={styles.startBtnText}>
+                  {quizInfo && quizInfo.studentExamSessionId && quizInfo.isSessionFinished
+                    ? (t('view_result') || 'Xem kết quả')
+                    : quizInfo && quizInfo.studentExamSessionId && !quizInfo.isSessionFinished
+                    ? (t('resume') || 'Tiếp tục')
+                    : (t('start') || '시작하기')}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };

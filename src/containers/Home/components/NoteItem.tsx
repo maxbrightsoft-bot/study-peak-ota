@@ -11,6 +11,7 @@ import PencilIcon from '@/assets/iconJSX/pencil'
 import TrashIcon from '@/assets/iconJSX/trash'
 import BottomSheet from '@/components/ModalBase/BottomSheet'
 import moment from 'moment'
+import useAuthStore from '@/store/useAuthStore'
 
 type Props = {
   schedule: ScheduleResponse
@@ -35,14 +36,15 @@ const NoteItem = ({
   handleCloseTooltip,
   handleUpdateScheduleStatus
 }: Props) => {
+  const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
   const { t } = useTranslation()
   const startTime = timeSpanToLocalMoment(schedule.startTime, schedule.date)
   const endTime = timeSpanToLocalMoment(schedule.endTime, schedule.date)
   const isFuture = moment().isBefore(startTime)
-  const enableCheckSchedule = !isFuture && (schedule.type === ScheduleType.Personal || schedule.status === ScheduleStatus.Default)
+  const enableCheckSchedule = !isParentMode && !isFuture && (schedule.type === ScheduleType.Personal || schedule.status === ScheduleStatus.Default)
 
   const handleCheckSchedule = () => {
-    if (!enableCheckSchedule) return
+    if (!enableCheckSchedule || isParentMode) return
     if (schedule.type === ScheduleType.Personal) {
       handleUpdateScheduleStatus(schedule)
     } else {
@@ -60,7 +62,7 @@ const NoteItem = ({
   }
 
   const renderTooltipMenu = () => {
-    if (!schedule.id) return null
+    if (!schedule.id || isParentMode) return null
 
     return (
       <BottomSheet
@@ -111,7 +113,7 @@ const NoteItem = ({
         <View style={{ gap: 12, flex: 1 }}>
           <View style={{ flexDirection: 'row', gap: 6, alignItems: 'flex-start' }}>
             {!isFuture && (
-              <TouchableOpacity style={{ padding: 4, marginTop: -2 }} onPress={handleCheckSchedule} disabled={!enableCheckSchedule}>
+              <TouchableOpacity style={{ padding: 4, marginTop: -2 }} onPress={handleCheckSchedule} disabled={!enableCheckSchedule || isParentMode}>
                 {renderStatus(schedule)}
               </TouchableOpacity>
             )}
@@ -124,7 +126,7 @@ const NoteItem = ({
           </View>
         </View>
       </View>
-      {!isFuture && (
+      {!isFuture && !isParentMode && (
         <TouchableOpacity onPress={() => handleOpenTooltip(idx)} style={styles.moreButton}>
           <Ionicons name="ellipsis-vertical-sharp" size={20} color={palette.grey[500]} />
         </TouchableOpacity>

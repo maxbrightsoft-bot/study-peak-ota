@@ -220,7 +220,7 @@ const useNotice = (setNew: any, open?: boolean, initialTab: number = DEFAULT_NOT
     useCallback(() => {
       if (!userId || !academyDomain) return
       handleGetListNotification(typeSelected)
-    }, [selectedAcademy?.id, userId, academyDomain])
+    }, [user?.academyDomain, userId])
   );
 
   const noteHandlersRef = useRef<{ [event: string]: (data: any) => void }>({})

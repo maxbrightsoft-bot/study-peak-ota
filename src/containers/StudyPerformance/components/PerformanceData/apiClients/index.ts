@@ -1,31 +1,40 @@
 import { BASE_URL, SUPER_ADMIN_BASE_URL } from "@/utils/constants";
 import { RankingRequest, SubjectRequest } from "../../../configs/types";
 import { api } from "@/services";
+import { getIdLinkAccount } from "@/utils/helpers";
 
 const SUBJECT_TIMER_URL = `${BASE_URL}/api/subject/timers`;
 const SUBJECT_TIMER_ADMIN_URL = `${SUPER_ADMIN_BASE_URL}/api/subject/timers`;
 const SUBJECT_URL = `${BASE_URL}/api/subject`;
 const SUBJECT_ADMIN_URL = `${SUPER_ADMIN_BASE_URL}/api/subject`;
 
-export const getDataApi = (isSuperAdmin: boolean, data: SubjectRequest) => api.get(`${isSuperAdmin ? SUBJECT_TIMER_ADMIN_URL : SUBJECT_TIMER_URL}/data`, { params: data })
-export const getSubjectDataApi = (isSuperAdmin: boolean, data: SubjectRequest) => api.get(`${isSuperAdmin ? SUBJECT_TIMER_ADMIN_URL : SUBJECT_TIMER_URL}/subject-data`, { params: data })
-export const getRankingDataApi = (isSuperAdmin: boolean, data: RankingRequest) => api.get(`${isSuperAdmin ? SUBJECT_TIMER_ADMIN_URL : SUBJECT_TIMER_URL}/ranking-data`, { params: data })
+const getIdLinkAccountParam = () => {
+  const idLinkAccount = getIdLinkAccount();
+  console.log(idLinkAccount);
+  
+  return idLinkAccount ? { idLinkAccount } : {};
+};
+
+export const getDataApi = (isSuperAdmin: boolean, data: SubjectRequest) => api.get(`${isSuperAdmin ? SUBJECT_TIMER_ADMIN_URL : SUBJECT_TIMER_URL}/data`, { params: { ...data, ...getIdLinkAccountParam() } })
+export const getSubjectDataApi = (isSuperAdmin: boolean, data: SubjectRequest) => api.get(`${isSuperAdmin ? SUBJECT_TIMER_ADMIN_URL : SUBJECT_TIMER_URL}/subject-data`, { params: { ...data, ...getIdLinkAccountParam() } })
+export const getRankingDataApi = (isSuperAdmin: boolean, data: RankingRequest) => api.get(`${isSuperAdmin ? SUBJECT_TIMER_ADMIN_URL : SUBJECT_TIMER_URL}/ranking-data`, { params: { ...data, ...getIdLinkAccountParam() } })
 
 export const getSubjectListApi = async (isSuperAdmin: boolean) =>
   api.get(`${isSuperAdmin ? SUBJECT_ADMIN_URL : SUBJECT_URL}`, {
     params: {
       pageSize: -1,
       currentPage: 1,
-      textSearch: ''
+      textSearch: '',
+      ...getIdLinkAccountParam()
     }
   });
-export const getQuestionDataApi = (id: number, data: SubjectRequest) => api.get(`${SUBJECT_URL}/${id}/questions/data`, { params: data })
-export const getQuestionSubjectDataApi = (id: number, data: SubjectRequest) => api.get(`${SUBJECT_URL}/${id}/questions/subject-data`, { params: data })
-export const getQuestionRankingDataApi = (data: RankingRequest) => api.get(`${SUBJECT_URL}/questions/ranking-data`, { params: data })
-export const getQuestionOverallDataApi = (data: RankingRequest) => api.get(`${SUBJECT_URL}/questions/overall`, { params: data })
+export const getQuestionDataApi = (id: number, data: SubjectRequest) => api.get(`${SUBJECT_URL}/${id}/questions/data`, { params: { ...data, ...getIdLinkAccountParam() } })
+export const getQuestionSubjectDataApi = (id: number, data: SubjectRequest) => api.get(`${SUBJECT_URL}/${id}/questions/subject-data`, { params: { ...data, ...getIdLinkAccountParam() } })
+export const getQuestionRankingDataApi = (data: RankingRequest) => api.get(`${SUBJECT_URL}/questions/ranking-data`, { params: { ...data, ...getIdLinkAccountParam() } })
+export const getQuestionOverallDataApi = (data: RankingRequest) => api.get(`${SUBJECT_URL}/questions/overall`, { params: { ...data, ...getIdLinkAccountParam() } })
 
-export const getPerformanceSummaryApi = (id: number, data: SubjectRequest) => api.get(`${SUBJECT_URL}/${id}/questions/performance/summary`, { params: data })
-export const getPerformanceAnalysisApi = (id: number, data: SubjectRequest) => api.get(`${SUBJECT_URL}/${id}/questions/performance/analysis`, { params: data })
-export const getPerformanceWeaknessApi = (id: number, data: SubjectRequest) => api.get(`${SUBJECT_URL}/${id}/questions/performance/weakness`, { params: data })
+export const getPerformanceSummaryApi = (id: number, data: SubjectRequest) => api.get(`${SUBJECT_URL}/${id}/questions/performance/summary`, { params: { ...data, ...getIdLinkAccountParam() } })
+export const getPerformanceAnalysisApi = (id: number, data: SubjectRequest) => api.get(`${SUBJECT_URL}/${id}/questions/performance/analysis`, { params: { ...data, ...getIdLinkAccountParam() } })
+export const getPerformanceWeaknessApi = (id: number, data: SubjectRequest) => api.get(`${SUBJECT_URL}/${id}/questions/performance/weakness`, { params: { ...data, ...getIdLinkAccountParam() } })
 // Fixed daily summary: today stats + this-week activity + peer comparison — all subjects, not subject-filtered
-export const getPerformanceDailyApi = (data: { timezone?: string; studentId?: number }) => api.get(`${SUBJECT_URL}/questions/performance/daily`, { params: data })
+export const getPerformanceDailyApi = (data: { timezone?: string; studentId?: number }) => api.get(`${SUBJECT_URL}/questions/performance/daily`, { params: { ...data, ...getIdLinkAccountParam() } })

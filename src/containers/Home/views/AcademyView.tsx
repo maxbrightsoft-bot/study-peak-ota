@@ -26,6 +26,7 @@ import { TEXTBOOK_TABS } from '@/containers/Textbook/configs/constants'
 const AcademyView = () => {
   const { t } = useTranslation()
   const selectedAcademy = useAuthStore(state => state.selectedAcademy)
+  const isParentMode = !!useAuthStore(state => state.parentViewMode?.isActive)
   const {
     open,
     user,
@@ -125,7 +126,7 @@ const AcademyView = () => {
                         </Text>
                       )}
                     </View>
-
+                    {!isParentMode && (
                     <TouchableOpacity
                       style={[
                         styles.attendBtn,
@@ -153,6 +154,7 @@ const AcademyView = () => {
                           : t('check_in') || '출석하기'}
                       </Text>
                     </TouchableOpacity>
+                    )}
                   </View>
                 </CustomCard>
 
@@ -214,6 +216,7 @@ const AcademyView = () => {
               </View>
 
               <View style={styles.compactRow}>
+                {!isParentMode && (
                 <CustomCard
                   containerStyle={styles.half}
                   style={styles.compactCard}
@@ -230,7 +233,7 @@ const AcademyView = () => {
                     </Text>
                   </View>
                 </CustomCard>
-
+                )}
                 {/* Right Card: 지난 시험 풀기 */}
                 <CustomCard
                   containerStyle={styles.half}

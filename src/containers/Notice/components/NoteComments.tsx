@@ -19,6 +19,7 @@ import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
 import { ActivityIndicator } from 'react-native-paper'
 import { NoteComment } from '../configs/types'
 import { useNoteComments } from '../hooks/useNoteComments'
+import { checkIsParent } from '@/utils/helpers'
 
 type Props = {
   noteId?: number
@@ -76,6 +77,8 @@ export const NoteComments = ({ noteId, visible, t, headerContent }: Props) => {
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
   const [showImagePicker, setShowImagePicker] = useState(false)
 
+  const isParent = checkIsParent(currentUser?.roles)
+
   const canSend = (text.trim().length > 0 || !!selectedImage) && !isSending
 
   const renderCommentItem = (item: NoteComment, isReply: boolean = false) => {
@@ -132,7 +135,7 @@ export const NoteComments = ({ noteId, visible, t, headerContent }: Props) => {
         )}
 
         {/* Comment Actions */}
-        {!isReply && (
+        {!isReply && !isParent && (
           <View style={styles.actionRow}>
             <TouchableOpacity
               onPress={() => handleSetReplyingTo(item)}
@@ -226,68 +229,70 @@ export const NoteComments = ({ noteId, visible, t, headerContent }: Props) => {
       </ScrollView>
 
       {/* Pinned Input Area */}
-      <View style={styles.inputArea}>
-        {/* Replying Banner */}
-        {replyingTo && (
-          <View style={styles.replyBanner}>
-            <View style={styles.replyBannerContent}>
-              <Ionicons name="return-down-forward" size={14} color={palette.main[600]} />
-              <Text style={styles.replyBannerText} numberOfLines={1}>
-                {t('reply')} @{replyingTo.createBy?.fullName || t('user')}
-              </Text>
+      {!isParent && (
+        <View style={styles.inputArea}>
+          {/* Replying Banner */}
+          {replyingTo && (
+            <View style={styles.replyBanner}>
+              <View style={styles.replyBannerContent}>
+                <Ionicons name="return-down-forward" size={14} color={palette.main[600]} />
+                <Text style={styles.replyBannerText} numberOfLines={1}>
+                  {t('reply')} @{replyingTo.createBy?.fullName || t('user')}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={handleCancelReply} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Ionicons name="close-circle" size={18} color={palette.grey[400]} />
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity onPress={handleCancelReply} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Ionicons name="close-circle" size={18} color={palette.grey[400]} />
+          )}
+
+          {/* Selected Image Preview */}
+          {selectedImage && (
+            <View style={styles.imagePreviewContainer}>
+              <Image source={{ uri: selectedImage.uri }} style={styles.imagePreview} />
+              <TouchableOpacity onPress={handleRemoveImage} style={styles.removeImageBtn}>
+                <Ionicons name="close" size={14} color="#FFF" />
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Input Row */}
+          <View style={styles.inputRow}>
+            <TouchableOpacity
+              onPress={() => setShowImagePicker(true)}
+              style={styles.attachBtn}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              disabled={isSending}
+            >
+              <Ionicons name="image-outline" size={24} color={palette.grey[600]} />
+            </TouchableOpacity>
+
+            <TextInput
+              style={styles.textInput}
+              placeholder={replyingTo ? `${t('reply')}...` : `${t('comments')}...`}
+              placeholderTextColor={palette.grey[400]}
+              value={text}
+              onChangeText={setText}
+              multiline
+              maxLength={1000}
+              editable={!isSending}
+            />
+
+            <TouchableOpacity
+              onPress={handleSendComment}
+              style={[styles.sendBtn, canSend && styles.sendBtnActive]}
+              disabled={!canSend}
+              activeOpacity={0.8}
+            >
+              {isSending ? (
+                <ActivityIndicator size={16} color="#FFF" />
+              ) : (
+                <Ionicons name="send" size={16} color={canSend ? '#FFF' : palette.grey[400]} />
+              )}
             </TouchableOpacity>
           </View>
-        )}
-
-        {/* Selected Image Preview */}
-        {selectedImage && (
-          <View style={styles.imagePreviewContainer}>
-            <Image source={{ uri: selectedImage.uri }} style={styles.imagePreview} />
-            <TouchableOpacity onPress={handleRemoveImage} style={styles.removeImageBtn}>
-              <Ionicons name="close" size={14} color="#FFF" />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Input Row */}
-        <View style={styles.inputRow}>
-          <TouchableOpacity
-            onPress={() => setShowImagePicker(true)}
-            style={styles.attachBtn}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            disabled={isSending}
-          >
-            <Ionicons name="image-outline" size={24} color={palette.grey[600]} />
-          </TouchableOpacity>
-
-          <TextInput
-            style={styles.textInput}
-            placeholder={replyingTo ? `${t('reply')}...` : `${t('comments')}...`}
-            placeholderTextColor={palette.grey[400]}
-            value={text}
-            onChangeText={setText}
-            multiline
-            maxLength={1000}
-            editable={!isSending}
-          />
-
-          <TouchableOpacity
-            onPress={handleSendComment}
-            style={[styles.sendBtn, canSend && styles.sendBtnActive]}
-            disabled={!canSend}
-            activeOpacity={0.8}
-          >
-            {isSending ? (
-              <ActivityIndicator size={16} color="#FFF" />
-            ) : (
-              <Ionicons name="send" size={16} color={canSend ? '#FFF' : palette.grey[400]} />
-            )}
-          </TouchableOpacity>
         </View>
-      </View>
+      )}
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog

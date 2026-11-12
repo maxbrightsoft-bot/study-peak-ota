@@ -239,7 +239,12 @@ const NoticeDetailDialog = ({ open, onClose, notification }: Props) => {
   return (
     <SlideDrawerRoot visible={open} onClose={onClose}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onClose}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={onClose}
+          activeOpacity={0.7}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
           <Ionicons name="chevron-back-outline" size={24} color={palette.grey[800]} />
         </TouchableOpacity>
 
@@ -247,7 +252,7 @@ const NoticeDetailDialog = ({ open, onClose, notification }: Props) => {
           {notification?.isNote ? t('student_notice_notes') : t('notice_detail')}
         </Text>
 
-        <View style={{ width: 24 }} />
+        <View style={{ width: 40 }} />
       </View>
       {notification?.isNote ? (
         <NoteComments
@@ -323,7 +328,10 @@ const styles = ScaledSheet.create({
   },
 
   backButton: {
-    width: '24@ms'
+    width: '40@ms',
+    height: '40@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   item: {

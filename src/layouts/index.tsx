@@ -12,20 +12,24 @@ import { useNavigationState } from '@react-navigation/native'
 
 interface Props {
   children?: React.ReactNode
-  headerProps: any
+  headerProps?: any
+  hideHeader?: boolean
 }
 
-const LayoutApp = ({ children, headerProps }: Props) => {
+const LayoutApp = ({ children, headerProps, hideHeader = false }: Props) => {
   const currentRouteName = useNavigationState((state) => {
     if (!state) return undefined
-    let route = state.routes[state.index]
+    let route: any = state.routes[state.index]
     while (route?.state) {
       route = route.state.routes[route.state.index]
+    }
+    while (route?.params?.screen) {
+      route = { name: route.params.screen, params: route.params.params }
     }
     return route?.name
   })
 
-  const isNoLayout = noLayoutScreens.includes(currentRouteName || currentScreen())
+  const isNoLayout = hideHeader || noLayoutScreens.includes(currentRouteName || currentScreen())
 
   return (
     <SafeAreaView

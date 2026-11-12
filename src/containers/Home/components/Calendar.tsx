@@ -62,16 +62,26 @@ const Calendar = (calendarProps: Props) => {
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <View style={styles.navigationContainer}>
-          <TouchableOpacity style={styles.navButton} onPress={goToPreviousMonth}>
-            <Ionicons name="chevron-back" size={24} color={palette.grey[400]} />
+          <TouchableOpacity
+            style={styles.navButton}
+            onPress={goToPreviousMonth}
+            activeOpacity={0.7}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <Ionicons name="chevron-back" size={24} color={palette.grey[600]} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.dateDisplayButton}>
             <Text style={styles.dateDisplayText}>{moment(selectedDate?.currentDate).format(t('month_format'))}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.navButton} onPress={goToNextMonth}>
-            <Ionicons name="chevron-forward" size={24} color={palette.grey[400]} />
+          <TouchableOpacity
+            style={styles.navButton}
+            onPress={goToNextMonth}
+            activeOpacity={0.7}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <Ionicons name="chevron-forward" size={24} color={palette.grey[600]} />
           </TouchableOpacity>
         </View>
       </View>

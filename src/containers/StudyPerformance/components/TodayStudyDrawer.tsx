@@ -35,13 +35,18 @@ const TodayStudyDrawer = ({
   return (
     <SlideDrawerRoot visible={isOpen} onClose={onClose}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onClose}>
-          <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={onClose}
+          activeOpacity={0.7}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <Ionicons name="chevron-back-outline" size={24} color={palette.grey[800] || '#222'} />
         </TouchableOpacity>
         <View>
-          <Text style={{ fontSize: 16, fontWeight: 600, color: '#222222' }}>{t('today_net_study_time')}</Text>
+          <Text style={{ fontSize: 16, fontWeight: '600', color: '#222222' }}>{t('today_net_study_time')}</Text>
         </View>
-        <View></View>
+        <View style={{ width: 40 }} />
       </View>
       <ScrollView>
         <View style={styles.sidebarContainer}>
@@ -80,9 +85,10 @@ const styles = ScaledSheet.create({
     alignItems: 'center'
   },
   backButton: {
-    flexDirection: 'row',
+    width: '40@ms',
+    height: '40@ms',
     alignItems: 'center',
-    padding: '8@ms'
+    justifyContent: 'center',
   },
   backText: {
     ...TYPO.button2,

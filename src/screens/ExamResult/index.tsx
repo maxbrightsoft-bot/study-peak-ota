@@ -1,16 +1,15 @@
-import ExamResult from "@/containers/ExamResult/views"
+import React from "react";
+import ExamResult from "@/containers/ExamResult/views";
+import withMultiStudentSessionExamResult from "@/containers/ExamResult/hocs/withMultiStudentSessionExamResult";
 
 type Props = {
-  route: any
-}
+  route?: any;
+};
+
+const MultiSessionExamResult = withMultiStudentSessionExamResult(ExamResult);
 
 const ExamResultScreen = ({ route }: Props) => {
-  const examCode = route?.params?.examCode
-  const studentExamSessionId = route?.params?.studentExamSessionId
-  const examSessionId = route?.params?.examSessionId
-  return (
-    <ExamResult examCode={examCode} studentExamSessionId={studentExamSessionId} examSessionId={examSessionId}/>
-  )
-}
+  return <MultiSessionExamResult route={route} />;
+};
 
-export default ExamResultScreen
+export default ExamResultScreen;

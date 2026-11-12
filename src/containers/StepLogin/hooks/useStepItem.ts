@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { GRADE_OPTIONS } from "../configs/constants";
-import { navigate } from "@/navigators/NavigationHelpers";
+import { resetToHome } from "@/navigators/NavigationHelpers";
 import { getErrorMessage, toast } from "@/utils/helpers";
 import useAuthStore from "@/store/useAuthStore";
 import { checkPhoneNumberApi, updateInfoLogin } from "../apiClients/authService";
-import { Routes } from "@/navigators/RouteName";
 import { APPLE_USER_KEY } from "@/utils/constants";
 import { getDataStorage } from "@/utils/storage";
 
@@ -94,7 +93,7 @@ const useStepItem = ({ values, errors, setFieldTouched }: Props) => {
       setUser({ ...res.data, isNotEnoughStatements: false })
 
       setTimeout(() => {
-        navigate(Routes.Auth.Home)
+        resetToHome()
       }, 100)
 
     } catch (error: any) {

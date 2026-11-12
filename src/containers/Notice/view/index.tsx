@@ -10,6 +10,7 @@ import { DEFAULT_NOTICE_TAB, noticeTab, PERSONAL_NOTICE_TAB, TabList } from '../
 import AnnouncementList from '@/containers/Announcements/views/AnnouncementList'
 import { useState } from 'react'
 import { stripHtml } from '@/utils/helpers'
+import useAuthStore from '@/store/useAuthStore'
 
 type Props = {
   open: boolean
@@ -18,7 +19,7 @@ type Props = {
   initialTab?: number
 }
 
-const Notice = ({ open, onClose, initialTab = DEFAULT_NOTICE_TAB }: Props) => {
+const NoticeContent = ({ open, onClose, initialTab = DEFAULT_NOTICE_TAB }: Props) => {
   const [isNew, setNew] = useState<any>({});
   const {
     t,
@@ -76,13 +77,18 @@ const Notice = ({ open, onClose, initialTab = DEFAULT_NOTICE_TAB }: Props) => {
   return (
     <SlideDrawerRoot visible={open} onClose={onClose}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onClose}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={onClose}
+          activeOpacity={0.7}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
           <Ionicons name="chevron-back-outline" size={24} color={palette.grey[800]} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>{t(noticeTab(selected).label)}</Text>
 
-        <View style={{ width: 24 }} />
+        <View style={{ width: 40 }} />
       </View>
       <View style={styles.container}>
         <View style={styles.tabsWrapper}>
@@ -125,6 +131,14 @@ const Notice = ({ open, onClose, initialTab = DEFAULT_NOTICE_TAB }: Props) => {
   )
 }
 
+const Notice = (props: Props) => {
+  const parentViewMode = useAuthStore(state => state.parentViewMode)
+  if (parentViewMode?.isActive && !parentViewMode?.linkId) {
+    return null
+  }
+  return <NoticeContent {...props} />
+}
+
 export default Notice
 
 const styles = ScaledSheet.create({
@@ -161,7 +175,10 @@ const styles = ScaledSheet.create({
   },
 
   backButton: {
-    width: '24@ms'
+    width: '40@ms',
+    height: '40@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tabsWrapper: {
     backgroundColor: '#fff',

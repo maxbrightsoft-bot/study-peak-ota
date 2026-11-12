@@ -3,6 +3,7 @@ import { PagingResponse } from "../types"
 import { QuestionAnswerType } from "../enums"
 export const KEEP_LOGIN = 'KEEP_LOGIN'
 export const ACCESS_TOKEN = 'ACCESS_TOKEN'
+export const IS_BIOMETRIC_ENABLED = 'IS_BIOMETRIC_ENABLED'
 export const LanguageHeaders = "Accept-Language"
 export const ACADEMY_DOMAIN = "ACADEMY_DOMAIN"
 export const LEARNING_SPACE = "LEARNING_SPACE"

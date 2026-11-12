@@ -38,7 +38,7 @@ const useTextbook = ({
   textbookFilter,
   setTextbookFilter
 }: Props) => {
-   const selectedAcademy = useAuthStore(state => state.selectedAcademy)
+  const user = useAuthStore(state => state.user)
   const setLoading = useAuthStore(state => state.setLoading)
   const isDemoMode = useAuthStore(state => state.isDemoMode)
   const { t } = useTranslation();
@@ -306,7 +306,7 @@ const useTextbook = ({
         setSelectedTextbook(undefined);
         handleCloseDialog();
       };
-    }, [selectedAcademy?.id, textbookFilter, preparedType, preparedFilterType])
+    }, [user?.academyDomain, textbookFilter, preparedType, preparedFilterType])
   );
 
   return {
