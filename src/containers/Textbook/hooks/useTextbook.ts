@@ -148,8 +148,8 @@ const useTextbook = ({
       setTotalPages(totalPages);
       setTextbookList((prev) => {
         if (textbookFilter.currentPage === 1) return items;
-        const existingIds = new Set(prev.map((i) => i.id));
-        const newItems = items.filter((i) => !existingIds.has(i.id));
+        const existingIds = new Set(prev.map((i: any) => i.id));
+        const newItems = items.filter((i: any) => !existingIds.has(i.id));
         return [...prev, ...newItems];
       });
     } catch (error: any) {

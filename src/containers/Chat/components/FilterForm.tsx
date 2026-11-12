@@ -1,6 +1,7 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Platform } from 'react-native'
+import { View, Text, TouchableOpacity, SafeAreaView, Platform } from 'react-native'
 import { Formik, FormikHelpers } from 'formik'
+import { useTranslation } from 'react-i18next'
 import { palette } from '@/theme'
 import useFilterForm from '@/containers/Textbook/hooks/useFilterForm'
 import RefreshIcon from '@/assets/iconJSX/refresh'
@@ -24,6 +25,7 @@ const defaultValues: FilterValues = {
 }
 
 const FilterForm: React.FC<FilterFormProps> = ({ onSubmit }) => {
+  const { t } = useTranslation()
   const handleSubmit = (values: FilterValues, _helpers: FormikHelpers<FilterValues>): void => {
     onSubmit?.(values)
   }
@@ -40,7 +42,7 @@ const FilterForm: React.FC<FilterFormProps> = ({ onSubmit }) => {
           return (
             <View style={styles.content}>
               <View>
-                <Text style={styles.sectionTitle}>과목</Text>
+                <Text style={styles.sectionTitle}>{t('subject')}</Text>
               </View>
 
               <View style={styles.bottomBar}>
@@ -49,7 +51,7 @@ const FilterForm: React.FC<FilterFormProps> = ({ onSubmit }) => {
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.submitBtn} onPress={() => formikSubmit()} activeOpacity={0.85}>
-                  <Text style={styles.submitText}>필터 적용</Text>
+                  <Text style={styles.submitText}>{t('apply_filter')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -179,11 +181,11 @@ const styles = ScaledSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: palette.main[600],
-        shadowOffset: { width: 0, height: '4@ms' },
+        shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.35,
-        shadowRadius: '8@ms'
+        shadowRadius: 8
       },
-      android: { elevation: '6@ms' }
+      android: { elevation: 6 }
     })
   },
   submitText: {

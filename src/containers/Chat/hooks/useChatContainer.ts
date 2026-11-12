@@ -2,6 +2,7 @@ import { useRef, useState, useEffect, useMemo, useCallback } from "react";
 import useMessageList from "./useMessageList";
 import { useTranslation } from "react-i18next";
 import { ConversationsResponse, EventsMap, MessageRequest, MessageResponse, StudentsConversationResponse } from "@/utils/types";
+import { ConversationType } from "@/utils/enums";
 import useAuthStore from "@/store/useAuthStore";
 import { getErrorMessage, toast } from "@/utils/helpers";
 import { IChatItemProps } from "../configs/types";
@@ -182,7 +183,7 @@ const useChatContainer = (props: Props) => {
       }
 
       if (!isGranted) {
-        toast.error(t('camera_permission_required') || '카메라 권한이 필요합니다');
+        toast.error(t('camera_permission_required'));
         return;
       }
 
@@ -262,32 +263,52 @@ const useChatContainer = (props: Props) => {
     });
   };
 
-  const handleNewMessageSent = async (data: string) => {
+  const handleNewMessageSent = async (data: any) => {
     if (!data) return
-    const parsedData = JSON.parse(data)
-    isReceivedMessage.current = !!parsedData.id
+    try {
+      const parsedData = typeof data === 'string' ? JSON.parse(data) : data
+      if (!parsedData?.id) return
+      isReceivedMessage.current = true
 
-    setMessages((state: MessageResponse[]) => {
-      const isExist = state.find(i => i.id == parsedData?.id)
-      if (isExist) return state
-      setScrollToEnd(true)
+      setMessages((state: MessageResponse[]) => {
+        const isExist = state.find(i => i.id == parsedData?.id)
+        if (isExist) return state
+        setScrollToEnd(true)
 
-
-      return [parsedData, ...state]
-    });
-    selectedConversation?.id && await updateLastTimeReadConversation(selectedConversation.id)
+        return [parsedData, ...state]
+      });
+      selectedConversation?.id && await updateLastTimeReadConversation(selectedConversation.id)
+    } catch (e) {
+      console.error('Error handling new message sent in chat container:', e)
+    }
   };
 
-  const handleCompletedConversation = (data: string) => {
+  const handleCompletedConversation = (data: any) => {
     if (!data) return
-    const parsedData = JSON.parse(data)
-
-    setSelectedConversation((prev) => prev?.id === parsedData.id ? parsedData : prev)
+    try {
+      const parsedData = typeof data === 'string' ? JSON.parse(data) : data
+      const convId = parsedData?.id ?? parsedData?.conversationId
+      setSelectedConversation((prev) =>
+        prev?.id === convId
+          ? {
+              ...prev,
+              ...(typeof parsedData === 'object' ? parsedData : {}),
+              isCompleted: true,
+              completedAt: parsedData?.completedAt || prev?.completedAt,
+            }
+          : prev
+      )
+    } catch (e) {
+      console.error('Error parsing completed conversation in chat container:', e)
+    }
   };
+  const activeConv = selectedConversation || conversation;
+
   const handleLoadMoreMessages = async () => {
-    if (selectedConversation?.id === undefined) return;
+    const convId = activeConv?.id;
+    if (convId === undefined) return;
 
-    return await handleLoadMore(selectedConversation?.id)
+    return await handleLoadMore(convId)
   }
 
   const conversationEvents: EventsMap = {
@@ -299,7 +320,7 @@ const useChatContainer = (props: Props) => {
 
   useSocketConversation({
     conversationEvents,
-    selectedConversation
+    selectedConversation: activeConv
   })
 
   useEffect(() => {
@@ -312,9 +333,10 @@ const useChatContainer = (props: Props) => {
   }, [conversation?.id]);
 
   const getMessageConversation = async () => {
-    if (selectedConversation?.id === undefined) return;
+    const convId = activeConv?.id;
+    if (convId === undefined) return;
 
-    await getMessageList(selectedConversation?.id);
+    await getMessageList(convId);
   };
 
   const handleConversationChange = () => {
@@ -342,25 +364,33 @@ const useChatContainer = (props: Props) => {
       getMessageConversation()
       return () => {
         setScrollToEnd(false)
-        setSelectedConversation(undefined)
       };
     }, [])
   );
 
   useEffect(() => {
-    if (!selectedConversation?.id) return
+    if (!activeConv?.id) return
     handleConversationChange()
-  }, [selectedConversation?.id])
+  }, [activeConv?.id])
 
   useEffect(() => {
-    getMessageConversation();
-  }, [JSON.stringify(selectedConversation)]);
+    if (activeConv?.id) {
+      getMessageConversation();
+    }
+  }, [activeConv?.id]);
 
   return {
     chatHeaderProps: {
       fullName: student?.fullName,
       roles,
-      ...selectedConversation
+      ...activeConv,
+      teacherName: activeConv?.teacherName || (activeConv as any)?.mainTeacherCourseName || "",
+      isOnlyConversationStudentWithTeacher:
+        !activeConv?.studentExamSessionId &&
+        !activeConv?.studentTextbookSessionId &&
+        !activeConv?.courseId &&
+        !activeConv?.examSessionId &&
+        (!!activeConv?.teacherId || !!activeConv?.teacherName || !!(activeConv as any)?.mainTeacherCourseName || activeConv?.type === ConversationType.StaffStudent || activeConv?.type === ConversationType.TeacherStudent)
     },
     chatListProps: {
       isScrollToEnd,
@@ -380,7 +410,7 @@ const useChatContainer = (props: Props) => {
       handleUploadImage,
       handleTakePhoto,
       handlePickFromGallery,
-      isCompleted: selectedConversation?.isCompleted,
+      isCompleted: activeConv?.isCompleted,
       handleUploadImageCanvas,
       openSketchCanvasDialog,
       handleOpenSketchCanvasDialog,
@@ -388,7 +418,7 @@ const useChatContainer = (props: Props) => {
     },
     isLoadingMessages: isLoadingMessages,
     messageList,
-    selectedConversation,
+    selectedConversation: activeConv,
     messageFilter,
     handleLoadMoreMessages,
     getMessageList,

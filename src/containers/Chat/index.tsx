@@ -1,12 +1,12 @@
 import SearchInput from '@/components/Input/SearchInput'
 import React, { useMemo, useCallback } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native'
+import { View, Text, FlatList, ScrollView, TouchableOpacity, Image, Modal, Pressable, ActivityIndicator, StyleSheet } from 'react-native'
 import useConversationList from './hooks/useConversationList'
 import useChatContainer from './hooks/useChatContainer'
-import { TabList } from './configs/constants'
+import { TabList, getCategoryTitle } from './configs/constants'
 import { palette } from '@/theme'
+import { ConversationType } from '@/utils/enums'
 import { ConversationsResponse } from '@/utils/types'
-import BotIcon from '@/assets/iconJSX/bot'
 import AddChatIcon from '@/assets/iconJSX/addChat'
 import useCreateQuestionConversationDialog from './hooks/useCreateQuestionConversationDialog'
 import CreateQuestionConversationDialog from './components/dialog/CreateQuestionConversationDialog'
@@ -25,34 +25,40 @@ const getConversationTitle = (
 ): string => {
   if (!conversation) return ''
 
-  const isOnlyConversationStudentWithTeacher =
+  if (conversation.textbookId || conversation.textbookName) {
+    return conversation.textbookName || t('textbook_inquiry')
+  }
+
+  if (conversation.examId || conversation.examTitle || conversation.examSessionId) {
+    return conversation.examTitle || t('exam_inquiry')
+  }
+  if (conversation.courseId || conversation.courseName) {
+    const cat = getCategoryTitle(t, conversation.category)
+    const baseCourse = conversation.courseName || t('class_inquiry')
+    return cat ? `${baseCourse} • ${cat}` : baseCourse
+  }
+
+  const isTeacherChat =
     !conversation.studentExamSessionId &&
     !conversation.studentTextbookSessionId &&
     !conversation.courseId &&
     !conversation.examSessionId &&
-    !!conversation.studentId &&
-    !!conversation.teacherId
+    (conversation.type === ConversationType.StaffStudent ||
+      conversation.type === ConversationType.TeacherStudent ||
+      !!conversation.teacherId ||
+      !!conversation.teacherName ||
+      !!(conversation as any).mainTeacherCourseName)
 
-  if (isOnlyConversationStudentWithTeacher) {
-    return conversation.teacherName || t('teacher')
-  }
-
-  if (conversation.textbookId) {
-    return conversation.textbookName || t('textbook_inquiry')
-  }
-
-  if (conversation.examId) {
-    return conversation.examTitle || t('exam_inquiry')
-  }
-  if (conversation.courseId) {
-    return conversation.courseName || t('class_inquiry')
+  if (isTeacherChat) {
+    const teacherName = conversation.teacherName || (conversation as any).mainTeacherCourseName
+    return teacherName ? `${t('teacher')}: ${teacherName}` : t('teacher')
   }
 
   if (conversation.category) {
-    return t(conversation.category)
+    return getCategoryTitle(t, conversation.category)
   }
 
-  return ''
+  return t('general_inquiry')
 }
 
 const isImagePath = (value?: string) => {
@@ -83,7 +89,16 @@ const Card = React.memo(({
       <View style={styles.cardHeaderContent}>
         <View style={styles.titleRow}>
           <Text style={styles.teacherName} numberOfLines={1}>
-            {conversation?.mainTeacherCourseName || conversation.teacherName || t('teacher')}
+            {conversation?.mainTeacherCourseName || conversation.teacherName || (
+              !conversation.courseId &&
+              !conversation.examId &&
+              !conversation.textbookId &&
+              !conversation.teacherId &&
+              conversation.type !== ConversationType.StaffStudent &&
+              conversation.type !== ConversationType.TeacherStudent
+                ? t('general_inquiry')
+                : t('teacher')
+            )}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             {!!conversation.totalUnReadMessage && !conversation.isCompleted && conversation.totalUnReadMessage > 0 && (
@@ -91,7 +106,7 @@ const Card = React.memo(({
                 <Text style={styles.unreadBadgeText}>{conversation.totalUnReadMessage}</Text>
               </View>
             )}
-            <Text style={styles.timeText}>{moment(conversation.createdAt).fromNow()}</Text>
+            <Text style={styles.timeText}>{moment.utc(conversation.lastMessage?.createdAt || conversation?.createdAt).fromNow()}</Text>
           </View>
         </View>
         <TextTooltip
@@ -180,15 +195,20 @@ export default function Question() {
     setSelectedConversation,
     selectedTab,
     handleChangeTab,
+    handleLoadMore,
+    loadingMore,
+    hasMore,
   } = useConversationList()
 
-  const { isLoadingMessages, chatListProps, inputProps, chatHeaderProps, handleLoadMoreMessages } = useChatContainer({
+  const { isLoadingMessages, chatListProps, inputProps, chatHeaderProps, handleLoadMoreMessages, getMessageConversation } = useChatContainer({
     conversation: selectedConversation
   })
 
   const {
     openConversationDialog: openQuestionConversationDialog,
     toggleConversationDialog: toggleQuestionConversationDialog,
+    closeConversationDialog: closeQuestionConversationDialog,
+    openCreateConversationDialog,
     exams,
     questions,
     handleChangeExam,
@@ -197,11 +217,22 @@ export default function Question() {
     courseIdSelected: courseIdSelectedQuestionConversation,
     examSessionIdSelected,
     courseOptions: courseOptionsQuestionConversationDialog,
+    categoryOptions,
     questionOptions,
-    examOptions
+    examOptions,
+    openExistingConvModal,
+    lastActiveConversation,
+    handleGoToExistingConversation,
+    handleCreateNewAnyway,
+    handleCloseExistingConvModal,
   } = useCreateQuestionConversationDialog({
     courses,
-    getConversationList
+    getConversationList,
+    onSelectConversation: handleChangeSelectedConversation,
+    onRefreshConversation: (conv) => {
+      setSelectedConversation(undefined);
+      setTimeout(() => setSelectedConversation(conv), 50);
+    }
   })
 
   useFocusEffect(
@@ -232,14 +263,8 @@ export default function Question() {
   return (
     <View style={styles.container}>
       <View style={[styles.header]}>
-        <View style={{ flexDirection: "row" }}>
-          <Text style={styles.headerTitle}>{t('question')}</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <BotIcon />
-            <Text style={styles.headerSub}>{t('chatbot')}</Text>
-          </View>
-        </View>
-        <TouchableOpacity style={styles.floatingButton} onPress={toggleQuestionConversationDialog}>
+        <Text style={styles.headerTitle}>{t('question')}</Text>
+        <TouchableOpacity style={styles.floatingButton} onPress={openCreateConversationDialog}>
           <AddChatIcon />
           <Text style={styles.floatingButtonText}>{t('ask_question')}</Text>
         </TouchableOpacity>
@@ -291,33 +316,47 @@ export default function Question() {
           </TouchableOpacity> */}
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
-          {loadingList ? (
-            <ConversationListSkeleton count={4} />
-          ) : conversationFilters.length > 0 ? (
-            conversationFilters.map((conversation) => (
-              <Card
-                conversation={conversation}
-                key={conversation.id}
-                t={t}
-                onPress={handleChangeSelectedConversation}
-              />
-            ))
-          ) : (
-            <View style={styles.emptyContainer}>
-              <Ionicons name="chatbubbles-outline" size={60} color={palette.grey[300]} />
-              <Text style={styles.emptyText}>{t('no_data')}</Text>
-            </View>
+        <FlatList
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          data={loadingList ? [] : conversationFilters}
+          keyExtractor={(item) => `${item.id}`}
+          renderItem={({ item }) => (
+            <Card
+              conversation={item}
+              t={t}
+              onPress={handleChangeSelectedConversation}
+            />
           )}
-        </ScrollView>
+          onEndReached={hasMore && !loadingList ? handleLoadMore : undefined}
+          onEndReachedThreshold={0.3}
+          ListEmptyComponent={
+            loadingList ? (
+              <ConversationListSkeleton count={4} />
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="chatbubbles-outline" size={60} color={palette.grey[300]} />
+                <Text style={styles.emptyText}>{t('no_data')}</Text>
+              </View>
+            )
+          }
+          ListFooterComponent={
+            loadingMore ? (
+              <View style={{ paddingVertical: 16, alignItems: 'center' }}>
+                <ActivityIndicator size="small" color={palette.main[600]} />
+              </View>
+            ) : null
+          }
+        />
       </View>
       <CreateQuestionConversationDialog
         t={t}
         open={openQuestionConversationDialog}
         courseOptions={courseOptionsQuestionConversationDialog}
+        categoryOptions={categoryOptions}
         questionOptions={questionOptions}
         examOptions={examOptions}
-        toggleDialog={toggleQuestionConversationDialog}
+        toggleDialog={closeQuestionConversationDialog}
         handleChangeExam={handleChangeExam}
         handleCreateConversation={handleCreateQuestionConversation}
         handleChangeCourse={handleChangeCourseQuestionConversation}
@@ -327,6 +366,47 @@ export default function Question() {
         examSessionValue={examSessionIdSelected}
         courseValue={courseIdSelectedQuestionConversation}
       />
+      {/* Existing active conversation confirm modal */}
+      <Modal
+        visible={openExistingConvModal}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCloseExistingConvModal}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={handleCloseExistingConvModal}
+          />
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>{t('existing_conversation', t('ask_a_question'))}</Text>
+            <Text style={styles.modalDesc}>
+              {t('ask_start_new_or_continue_conversation')}
+            </Text>
+            {lastActiveConversation?.examTitle ? (
+              <Text style={styles.modalSubDesc}>{lastActiveConversation.examTitle}</Text>
+            ) : lastActiveConversation?.courseName ? (
+              <Text style={styles.modalSubDesc}>{lastActiveConversation.courseName}</Text>
+            ) : (lastActiveConversation?.teacherName || (lastActiveConversation as any)?.mainTeacherCourseName || lastActiveConversation?.type === ConversationType.StaffStudent || lastActiveConversation?.type === ConversationType.TeacherStudent || !!(lastActiveConversation as any)?.teacherId) ? (
+              <Text style={styles.modalSubDesc}>
+                {lastActiveConversation?.teacherName || (lastActiveConversation as any)?.mainTeacherCourseName
+                  ? `${t('teacher')}: ${lastActiveConversation?.teacherName || (lastActiveConversation as any)?.mainTeacherCourseName}`
+                  : t('teacher')}
+              </Text>
+            ) : (
+              <Text style={styles.modalSubDesc}>{t('general_inquiry')}</Text>
+            )}
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.modalBtnOutline} onPress={handleCreateNewAnyway} activeOpacity={0.8}>
+                <Text style={styles.modalBtnOutlineText}>{t('start_new_conversation')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalBtnPrimary} onPress={handleGoToExistingConversation} activeOpacity={0.8}>
+                <Text style={styles.modalBtnPrimaryText}>{t('continue_last_conversation')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
       {!!selectedConversation ? (
         <ChatContainer
           t={t}
@@ -360,12 +440,7 @@ const styles = ScaledSheet.create({
   headerTitle: {
     fontSize: '20@ms',
     fontWeight: 'bold',
-    marginRight: '12@ms',
     color: "#222"
-  },
-  headerSub: {
-    fontSize: '20@ms',
-    color: palette.grey[400]
   },
   tabsContainer: {
     flexDirection: 'row',
@@ -566,5 +641,71 @@ const styles = ScaledSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: '14@ms'
+  },
+  // Existing conversation confirm modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: '24@ms'
+  },
+  modalCard: {
+    backgroundColor: '#fff',
+    borderRadius: '16@ms',
+    padding: '24@ms',
+    width: '100%',
+    gap: '12@ms'
+  },
+  modalTitle: {
+    fontSize: '16@ms',
+    fontWeight: '700',
+    color: '#202B37'
+  },
+  modalDesc: {
+    fontSize: '14@ms',
+    color: '#4B5565',
+    lineHeight: '22@ms'
+  },
+  modalSubDesc: {
+    fontSize: '13@ms',
+    color: '#97A1AF'
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: '10@ms',
+    marginTop: '8@ms'
+  },
+  modalBtnOutline: {
+    flex: 1,
+    borderWidth: '1.5@ms',
+    borderColor: palette.main[600],
+    borderRadius: '10@ms',
+    paddingVertical: '12@ms',
+    paddingHorizontal: '8@ms',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  modalBtnOutlineText: {
+    color: palette.main[600],
+    fontWeight: '600',
+    fontSize: '14@ms',
+    textAlign: 'center'
+  },
+  modalBtnPrimary: {
+    flex: 1,
+    backgroundColor: palette.main[600],
+    borderRadius: '10@ms',
+    paddingVertical: '12@ms',
+    paddingHorizontal: '8@ms',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  modalBtnPrimaryText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: '14@ms',
+    textAlign: 'center'
   }
 })
+

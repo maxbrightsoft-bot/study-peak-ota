@@ -18,20 +18,27 @@ type Props = {
   exams?: Array<ExamSessionResponse>
   courses?: Course[]
   questions?: Array<ConversationQuestion>
-  handleChangeExam: (value: string) => void
-  handleChangeCourse: (value: string) => void
+  handleChangeExam: (value?: string) => void
+  handleChangeCourse: (value?: string) => void
   handleCreateConversation: any
   examSessionValue?: string
   courseValue?: string
   courseOptions: { label: string; value: number }[]
+  categoryOptions?: { label: string; value: number }[]
   questionOptions: { label: string; value: number }[]
   examOptions: { label: string; value: string }[]
 }
 
-const schema = Yup.object().shape({
-  content: Yup.string().required(),
-  questionId: Yup.mixed().nullable()
-})
+const getValidationSchema = (isCourseSelected: boolean, isExamSelected: boolean, t: any) =>
+  Yup.object().shape({
+    content: Yup.string().trim().required(t('please_enter_your_question')),
+    questionId: isExamSelected
+      ? Yup.mixed().required(t('please_select_a_question'))
+      : Yup.mixed().nullable(),
+    category: isCourseSelected && !isExamSelected
+      ? Yup.mixed().required(t('please_select_category_or_exam'))
+      : Yup.mixed().nullable()
+  })
 
 const CreateQuestionConversationDialog = ({
   t,
@@ -40,6 +47,7 @@ const CreateQuestionConversationDialog = ({
   handleChangeExam,
   handleChangeCourse,
   courseOptions,
+  categoryOptions,
   examOptions,
   questionOptions,
   questions,
@@ -51,9 +59,18 @@ const CreateQuestionConversationDialog = ({
 
   useEffect(() => {
     if (formikRef.current) {
-      formikRef.current.setFieldValue('questionId', null)
+      formikRef.current.setFieldValue('questionId', null, false)
+      if (examSessionValue) {
+        formikRef.current.setFieldValue('category', null, false)
+      }
     }
   }, [examSessionValue])
+
+  useEffect(() => {
+    if (formikRef.current) {
+      formikRef.current.setFieldValue('category', null, false)
+    }
+  }, [courseValue])
 
   useEffect(() => {
     if (!open && formikRef.current) {
@@ -83,19 +100,29 @@ const CreateQuestionConversationDialog = ({
             innerRef={formikRef}
             initialValues={{
               content: '',
-              questionId: null
+              questionId: null,
+              category: null
             }}
-            validationSchema={schema}
+            validationSchema={getValidationSchema(!!courseValue, !!examSessionValue, t)}
             onSubmit={(values) => {
+              const hasCategory = values.category != null && values.category !== ''
+              const hasExam = !hasCategory && !!examSessionValue
+
               handleCreateConversation({
                 ...values,
                 courseId: courseValue,
-                examSessionId: examSessionValue?.split('.')?.[0],
-                studentExamSessionId: examSessionValue?.split('.')?.[1]
+                category: hasCategory ? Number(values.category) : undefined,
+                examSessionId: hasExam ? examSessionValue?.split('.')?.[0] : undefined,
+                studentExamSessionId: hasExam ? examSessionValue?.split('.')?.[1] : undefined,
+                questionId: hasExam ? values.questionId : undefined
               })
             }}
           >
-            {({ values, errors, handleChange, handleSubmit, setFieldValue }) => {
+            {({ values, errors, touched, handleChange, handleBlur, handleSubmit, setFieldValue, isSubmitting }) => {
+              const hasCategory = values.category != null && values.category !== ''
+              const hasExamAndQuestion = !!examSessionValue && !!values.questionId
+              const isContextValid = !!courseValue ? (hasCategory || hasExamAndQuestion) : hasExamAndQuestion
+
               return (
                 <View style={styles.content}>
                   <ScrollView
@@ -103,62 +130,173 @@ const CreateQuestionConversationDialog = ({
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
                   >
-                    <View style={styles.hintBox}>
-                      <Ionicons name="information-circle-outline" size={15} color={palette.main[500]} />
-                      <Text style={styles.hintText}>{t('select_class_or_exam_hint')}</Text>
-                    </View>
                     <View>
                       <View style={styles.labelRow}>
-                        <Text style={styles.labelText}>{t('half_selection')}</Text>
+                        <Text style={styles.labelText}>
+                          {t('half_selection')}{' '}
+                          {!examSessionValue ? (
+                            <Text style={styles.requiredStar}>*</Text>
+                          ) : (
+                            <Text style={styles.optionalText}>({t('optional')})</Text>
+                          )}
+                        </Text>
+                        {!!courseValue && (
+                          <TouchableOpacity
+                            onPress={() => {
+                              handleChangeCourse(undefined)
+                              setFieldValue('category', null, false)
+                              setFieldValue('questionId', null, false)
+                            }}
+                          >
+                            <Text style={styles.clearText}>{t('clear')}</Text>
+                          </TouchableOpacity>
+                        )}
                       </View>
                       <CustomSelect
                         onValueChange={(v) => {
-                          handleChangeCourse(v as any)
+                          handleChangeCourse(v ? String(v) : undefined)
+                          setFieldValue('category', null, false)
                           if (!v) {
-                            setFieldValue('questionId', null)
+                            setFieldValue('questionId', null, false)
                           }
                         }}
                         value={courseValue && Number(courseValue)}
                         options={courseOptions}
-                        placeholder={t('select_placeholder')}
+                        isClearable
+                        placeholder={!examSessionValue ? t('select_course') : t('select_course_optional')}
                       />
                     </View>
-                    <View>
-                      <View style={styles.labelRow}>
-                        <Text style={styles.labelText}>{t('test_selection')}</Text>
-                      </View>
-                      <CustomSelect
-                        onValueChange={(v) => {
-                          handleChangeExam(v as any)
-                          if (!v) setFieldValue('questionId', null)
-                        }}
-                        value={examSessionValue}
-                        options={examOptions}
-                        placeholder={t('select_placeholder')}
-                      />
-                    </View>
-                    {!!examSessionValue && (
+                    {/* Category selection - ẩn khi đã chọn bài thi (test) */}
+                    {!!courseValue && !examSessionValue && (
                       <View>
                         <View style={styles.labelRow}>
-                          <Text style={styles.labelText}>{t('question_selection')}</Text>
+                          <Text style={styles.labelText}>
+                            {t('_category')}{' '}
+                            {hasCategory ? (
+                              <Text style={styles.requiredStar}>*</Text>
+                            ) : (
+                              <Text style={styles.requiredOneOfTwoText}>* ({t('select_one_of_two')})</Text>
+                            )}
+                          </Text>
+                          {hasCategory && (
+                            <TouchableOpacity
+                              onPress={() => {
+                                setFieldValue('category', null, false)
+                              }}
+                            >
+                              <Text style={styles.clearText}>{t('clear')}</Text>
+                            </TouchableOpacity>
+                          )}
                         </View>
                         <CustomSelect
-                          onValueChange={(value) => {setFieldValue('questionId', value)}}
-                          value={values.questionId}
-                          options={questionOptions}
-                          placeholder={t('select_placeholder')}
+                          onValueChange={(v) => {
+                            const catVal = v ? Number(v) : null
+                            setFieldValue('category', catVal, false)
+                            if (catVal != null) {
+                              handleChangeExam(undefined)
+                              setFieldValue('questionId', null, false)
+                            }
+                          }}
+                          value={values.category}
+                          options={categoryOptions || []}
+                          isClearable
+                          placeholder={t('select_category')}
                         />
+                        {touched.category && errors.category && (
+                          <Text style={styles.errorText}>{errors.category as string}</Text>
+                        )}
                       </View>
                     )}
+
+                    {/* Test selection - ẩn khi đã chọn danh mục (cate) */}
+                    {!hasCategory && (
+                      <>
+                        <View>
+                          <View style={styles.labelRow}>
+                            <Text style={styles.labelText}>
+                              {t('test_selection')}{' '}
+                              {!!examSessionValue ? (
+                                <Text style={styles.requiredStar}>*</Text>
+                              ) : !!courseValue ? (
+                                <Text style={styles.requiredOneOfTwoText}>* ({t('select_one_of_two')})</Text>
+                              ) : (
+                                <Text style={styles.requiredStar}>*</Text>
+                              )}
+                            </Text>
+                            {!!examSessionValue && (
+                              <TouchableOpacity
+                                onPress={() => {
+                                  handleChangeExam(undefined)
+                                  setFieldValue('questionId', null, false)
+                                }}
+                              >
+                                <Text style={styles.clearText}>{t('clear')}</Text>
+                              </TouchableOpacity>
+                            )}
+                          </View>
+                          <CustomSelect
+                            onValueChange={(v) => {
+                              handleChangeExam(v ? String(v) : undefined)
+                              if (!v) setFieldValue('questionId', null, false)
+                              if (v) setFieldValue('category', null, false)
+                            }}
+                            value={examSessionValue}
+                            options={examOptions}
+                            isClearable
+                            placeholder={t('select_exam')}
+                          />
+                          <Text style={styles.examHintSubtext}>
+                            {t('you_can_only_select_the_10_most_recent_exams')}
+                          </Text>
+                        </View>
+                        {!!examSessionValue && (
+                          <View>
+                            <View style={styles.labelRow}>
+                              <Text style={styles.labelText}>
+                                {t('choose_a_problem')} <Text style={styles.requiredStar}>*</Text>
+                              </Text>
+                            </View>
+                            <CustomSelect
+                              onValueChange={(value) => {setFieldValue('questionId', value, false)}}
+                              value={values.questionId}
+                              options={questionOptions}
+                              isClearable={false}
+                              placeholder={t('select_question')}
+                            />
+                            {touched.questionId && errors.questionId && (
+                              <Text style={styles.errorText}>{errors.questionId as string}</Text>
+                            )}
+                          </View>
+                        )}
+                      </>
+                    )}
+                    {!courseValue && !examSessionValue && (
+                      <Text style={styles.contextHintText}>
+                        * {t('please_select_course_or_exam')}
+                      </Text>
+                    )}
+                    {!!courseValue && !hasCategory && !examSessionValue && (
+                      <Text style={styles.contextHintText}>
+                        * {t('please_select_category_or_exam')}
+                      </Text>
+                    )}
                     <View>
-                      <Text style={styles.labelText}>{t('question_content')}</Text>
+                      <View style={styles.labelRow}>
+                        <Text style={styles.labelText}>
+                          {t('question_content')} <Text style={styles.requiredStar}>*</Text>
+                        </Text>
+                      </View>
                       <TextField
                         multiline
                         placeholder={t('please_enter_your_question')}
                         numberOfLines={10}
                         value={values.content}
                         onChangeText={handleChange('content')}
+                        onBlur={handleBlur('content')}
                       />
+                      {touched.content && errors.content && (
+                        <Text style={styles.errorText}>{errors.content as string}</Text>
+                      )}
                     </View>
                   </ScrollView>
                   <View style={styles.footer}>
@@ -166,9 +304,9 @@ const CreateQuestionConversationDialog = ({
                       onPress={() => handleSubmit()}
                       style={[
                         styles.submitBtn,
-                        (!values.content.trim() || (!courseValue && !examSessionValue) || (!!examSessionValue && !values.questionId)) && styles.disabledBtn
+                        (!values.content.trim() || !isContextValid || isSubmitting) && styles.disabledBtn
                       ]}
-                      disabled={!values.content.trim() || (!courseValue && !examSessionValue) || (!!examSessionValue && !values.questionId)}
+                      disabled={!values.content.trim() || !isContextValid || isSubmitting}
                     >
                       <Text style={styles.submitText}>{t('registration')}</Text>
                     </TouchableOpacity>
@@ -221,8 +359,18 @@ const styles = ScaledSheet.create({
   labelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: '6@ms',
+    justifyContent: 'space-between',
     marginBottom: '8@ms'
+  },
+  clearText: {
+    fontSize: '12@ms',
+    color: palette.main[500],
+    fontWeight: '500'
+  },
+  examHintSubtext: {
+    fontSize: '11@ms',
+    color: palette.grey[400],
+    marginTop: '4@ms'
   },
   hintBox: {
     flexDirection: 'row',
@@ -250,6 +398,15 @@ const styles = ScaledSheet.create({
     color: palette.grey[400],
     fontWeight: '400'
   },
+  requiredStar: {
+    color: palette.red[900],
+    fontWeight: '700'
+  },
+  requiredOneOfTwoText: {
+    fontSize: '11@ms',
+    color: palette.red[900],
+    fontWeight: '600'
+  },
   title: {
     fontSize: '16@ms',
     fontWeight: '700',
@@ -276,12 +433,19 @@ const styles = ScaledSheet.create({
     textAlignVertical: 'top'
   },
   errorInput: {
-    borderColor: 'red'
+    borderColor: palette.red[900]
   },
   errorText: {
-    color: 'red',
+    color: palette.red[900],
     fontSize: '12@ms',
     marginTop: '4@ms'
+  },
+  contextHintText: {
+    fontSize: '12@ms',
+    color: palette.red[900],
+    fontWeight: '500',
+    marginTop: '-8@ms',
+    marginBottom: '8@ms'
   },
   footer: {
     flexDirection: 'row',

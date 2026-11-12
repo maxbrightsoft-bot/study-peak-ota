@@ -8,6 +8,7 @@ import { ActivityIndicator } from 'react-native-paper'
 import ChatItem from './ChatItem'
 import { utcToLocalTime } from '@/utils/helpers'
 import { isHTMLContent } from '../configs/helpers'
+import { getCategoryTitle } from '../configs/constants'
 import useAuthStore from '@/store/useAuthStore'
 import _ from 'lodash'
 import SketchCanvas from './dialog/SketchCanvas'
@@ -17,6 +18,7 @@ import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
 import UpdateMessageDialog from './UpdateMessageDialog'
 import MathRichInput from '@/components/Input/MathRichInput'
 import TextTooltip from '@/components/Tooltip/TextTooltip'
+import { ConversationType } from '@/utils/enums'
 
 type prevSender = string | undefined
 
@@ -44,6 +46,9 @@ const ChatContainer = ({
   const { messages, isScrollToEnd, handleUpdateMessage, handleDeleteMessage, handleToggleScrollToEnd } = chatListProps
   const {
     examTitle,
+    courseName,
+    teacherName,
+    examSessionId,
     createdAt,
     score,
     totalScore,
@@ -54,7 +59,8 @@ const ChatContainer = ({
     studentTotalAttemptTime,
     parentQuestionId,
     parentQuestionOrder,
-    isOnlyConversationStudentWithTeacher
+    isOnlyConversationStudentWithTeacher,
+    category
   } = chatHeaderProps
   const {
     isCompleted,
@@ -72,6 +78,8 @@ const ChatContainer = ({
     handleCloseSketchCanvasDialog
   } = inputProps
   const [showImagePicker, setShowImagePicker] = useState(false)
+  const [showDrawPicker, setShowDrawPicker] = useState(false)
+  const [isFocused, setIsFocused] = useState(false)
   const { selectedItem, handleUploadImage: handleUpdateUploadImage, openDialog: openUpdateDialog, openConfirmDialog, toggleConfirmDialog, toggleDialog: toggleUpdateDialog, selectedFile } = useDialog()
   const flatListRef = useRef<FlatList>(null)
   const disabled = isCompleted || isSending
@@ -96,6 +104,23 @@ const ChatContainer = ({
     }
   }, [isScrollToEnd])
 
+  const isTeacherChat =
+    !examSessionId &&
+    !examTitle &&
+    !courseId &&
+    !courseName &&
+    (!!teacherName ||
+      !!chatHeaderProps?.teacherId ||
+      !!chatHeaderProps?.mainTeacherCourseName ||
+      chatHeaderProps?.type === ConversationType.StaffStudent ||
+      chatHeaderProps?.type === ConversationType.TeacherStudent ||
+      !!isOnlyConversationStudentWithTeacher)
+
+  const teacherDisplayName =
+    teacherName ||
+    (chatHeaderProps as any)?.mainTeacherCourseName ||
+    (isTeacherChat ? t('teacher') : undefined)
+
   return (
     <SlideDrawerRoot visible={open} onClose={onClose}>
       <View style={styles.header}>
@@ -116,7 +141,13 @@ const ChatContainer = ({
           <View style={styles.subHeader}>
             <View style={styles.examInfoContainer}>
               <TextTooltip
-                text={examTitle || ''}
+                text={
+                  examTitle ||
+                  courseName ||
+                  (isTeacherChat
+                    ? (teacherDisplayName ? `${t('teacher')}: ${teacherDisplayName}` : t('teacher'))
+                    : t('general_inquiry'))
+                }
                 numberOfLines={1}
                 placement="bottom"
                 textStyle={styles.examTitle}
@@ -130,25 +161,29 @@ const ChatContainer = ({
             </View>
             <View style={styles.headerRight}>
               <View>
-                {courseId ? (
+                {questionOrder != undefined ? (
                   <Text style={styles.courseTitle}>
-                    {questionOrder != undefined
-                      ? t('problem_number_question', {
-                        number: parentQuestionId
-                          ? `${(parentQuestionOrder || 0) + 1}.${questionOrder + 1}`
-                          : questionOrder + 1
-                      })
-                      : courseId
-                        ? t('class_inquiry')
-                        : t('exam_inquiry')}
+                    {t('problem_number_question', {
+                      number: parentQuestionId
+                        ? `${(parentQuestionOrder || 0) + 1}.${questionOrder + 1}`
+                        : questionOrder + 1
+                    })}
                   </Text>
-                ) : (
-                  !isOnlyConversationStudentWithTeacher && (
+                ) : examTitle || examSessionId ? (
+                  (score != null && totalScore != null && totalScore > 0) ? (
                     <View style={styles.scoreContainer}>
                       <Text style={styles.scoreText}>{score || 0}</Text>
                       <Text style={styles.totalScoreText}>/{totalScore || 0}</Text>
                     </View>
+                  ) : (
+                    <Text style={styles.courseTitle}>{t('exam_inquiry')}</Text>
                   )
+                ) : courseId || courseName ? (
+                  <Text style={styles.courseTitle}>{getCategoryTitle(t, category) || t('class_inquiry')}</Text>
+                ) : isTeacherChat ? (
+                  <Text style={styles.courseTitle}>{t('direct_message')}</Text>
+                ) : (
+                  <Text style={styles.courseTitle}>{getCategoryTitle(t, category) || t('general_inquiry')}</Text>
                 )}
               </View>
               <Text style={styles.dateTitle}>{utcToLocalTime(createdAt, t('date_format'))}</Text>
@@ -193,33 +228,59 @@ const ChatContainer = ({
           </View>
 
           <View style={styles.footerWrapper}>
-            <View style={styles.footer}>
+            <View style={[styles.footer, isFocused && styles.footerFocused]}>
               <View style={styles.actionGroup}>
                 <TouchableOpacity
                   disabled={disabled}
-                  onPress={handleOpenSketchCanvasDialog}
-                  style={styles.sketchButton}
+                  onPress={() => setShowImagePicker(true)}
+                  style={styles.iconButton}
+                  activeOpacity={0.7}
                 >
-                  <MaterialIcons name="draw" size={20} color="#FFF" />
+                  <Ionicons name="image-outline" size={20} color={palette.grey[700]} />
                 </TouchableOpacity>
-                <TouchableOpacity disabled={disabled} onPress={() => setShowImagePicker(true)} style={styles.iconButton}>
-                  <Ionicons name="image-outline" size={20} color={palette.grey[600]} />
+
+                <TouchableOpacity
+                  disabled={disabled}
+                  onPress={() => setShowDrawPicker(true)}
+                  style={styles.sketchButton}
+                  activeOpacity={0.7}
+                >
+                  <MaterialIcons name="draw" size={20} color={palette.main[600]} />
                 </TouchableOpacity>
               </View>
 
               <View style={styles.inputWrapper}>
-                <MathRichInput ref={inputRef} disabled={disabled} style={styles.input} onChange={(value) => onChangeInput(value)} />
+                <MathRichInput
+                  ref={inputRef}
+                  disabled={disabled}
+                  placeholder={t('chat_input_placeholder')}
+                  compact
+                  hideToolbar
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setIsFocused(false)}
+                  style={styles.input}
+                  onChange={(value) => onChangeInput(value)}
+                />
               </View>
 
               <TouchableOpacity
                 disabled={disabled || !text?.trim()}
                 onPress={() => onSubmit()}
-                style={[styles.sendButton, { opacity: disabled || !text?.trim() ? 0.4 : 1 }]}
+                activeOpacity={0.8}
+                style={[
+                  styles.sendButton,
+                  text?.trim() ? styles.sendButtonActive : styles.sendButtonDisabled
+                ]}
               >
                 {isSending ? (
                   <ActivityIndicator size={16} color="#FFF" />
                 ) : (
-                  <Ionicons name="send" size={18} color="#FFF" />
+                  <Ionicons
+                    name="send"
+                    size={16}
+                    color={text?.trim() ? '#FFF' : '#94A3B8'}
+                    style={{ marginLeft: 2 }}
+                  />
                 )}
               </TouchableOpacity>
             </View>
@@ -304,6 +365,61 @@ const ChatContainer = ({
             <TouchableOpacity
               style={styles.sheetCancelButton}
               onPress={() => setShowImagePicker(false)}
+            >
+              <Text style={styles.sheetCancelText}>{t('cancel')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {showDrawPicker && (
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalBackdrop}
+            activeOpacity={1}
+            onPress={() => setShowDrawPicker(false)}
+          />
+          <View style={styles.sheetContainer}>
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>{t('select_drawing_tool')}</Text>
+              <TouchableOpacity onPress={() => setShowDrawPicker(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Ionicons name="close" size={22} color={palette.grey[600]} />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={styles.sheetOption}
+              onPress={() => {
+                setShowDrawPicker(false)
+                setTimeout(() => {
+                  handleOpenSketchCanvasDialog?.()
+                }, 200)
+              }}
+            >
+              <View style={[styles.optionIconCircle, { backgroundColor: '#EEF2FF' }]}>
+                <MaterialIcons name="draw" size={22} color={palette.main[600]} />
+              </View>
+              <Text style={styles.optionText}>{t('sketch_canvas')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.sheetOption}
+              onPress={() => {
+                setShowDrawPicker(false)
+                setTimeout(() => {
+                  inputRef.current?.openHandwriting?.()
+                }, 200)
+              }}
+            >
+              <View style={[styles.optionIconCircle, { backgroundColor: '#FEF3C7' }]}>
+                <MaterialIcons name="gesture" size={22} color="#D97706" />
+              </View>
+              <Text style={styles.optionText}>{t('handwriting_math')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.sheetCancelButton}
+              onPress={() => setShowDrawPicker(false)}
             >
               <Text style={styles.sheetCancelText}>{t('cancel')}</Text>
             </TouchableOpacity>
@@ -461,24 +577,40 @@ const styles = ScaledSheet.create({
   },
   footerWrapper: {
     backgroundColor: '#FFF',
-    borderTopWidth: '1@ms',
-    borderTopColor: '#F3F4F6',
-    paddingHorizontal: '10@ms',
-    paddingTop: '12@ms',
-    paddingBottom: Platform.OS === 'ios' ? '32@ms' : '16@ms'
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+    paddingHorizontal: '12@ms',
+    paddingTop: '8@ms',
+    paddingBottom: Platform.OS === 'ios' ? '28@ms' : '10@ms'
   },
 
   footer: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: '4@ms'
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: '24@ms',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    paddingHorizontal: '6@ms',
+    paddingVertical: '4@ms',
+    gap: '6@ms'
+  },
+
+  footerFocused: {
+    borderColor: palette.main[500],
+    backgroundColor: '#FFFFFF',
+    shadowColor: palette.main[500],
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3
   },
 
   actionGroup: {
-    flexDirection: 'column',
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: '8@ms',
-    paddingBottom: '4@ms'
+    gap: '4@ms',
+    paddingLeft: '2@ms'
   },
 
   iconButton: {
@@ -486,30 +618,26 @@ const styles = ScaledSheet.create({
     height: '32@ms',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: '8@ms',
-    backgroundColor: '#F9FAFB',
-    borderWidth: '1@ms',
-    borderColor: '#E5E7EB'
+    borderRadius: '16@ms',
+    backgroundColor: '#F1F5F9'
   },
 
   sketchButton: {
-    backgroundColor: palette.main[600],
+    backgroundColor: '#EEF2FF',
     width: '32@ms',
     height: '32@ms',
-    borderRadius: '8@ms',
+    borderRadius: '16@ms',
     justifyContent: 'center',
     alignItems: 'center'
   },
 
   inputWrapper: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
-    borderRadius: '12@ms',
-    minHeight: '140@ms',
-    paddingHorizontal: '12@ms',
-    paddingVertical: '8@ms',
-    borderWidth: '1@ms',
-    borderColor: '#E5E7EB'
+    backgroundColor: 'transparent',
+    height: '36@ms',
+    minHeight: '36@ms',
+    maxHeight: '120@ms',
+    justifyContent: 'center'
   },
 
   input: {
@@ -520,14 +648,25 @@ const styles = ScaledSheet.create({
   },
 
   sendButton: {
-    width: '36@ms',
-    height: '36@ms',
-    borderRadius: '10@ms',
-    backgroundColor: palette.main[600],
+    width: '34@ms',
+    height: '34@ms',
+    borderRadius: '17@ms',
     justifyContent: 'center',
-    alignItems: 'center',
-    paddingLeft: '2@ms',
-    marginBottom: '6@ms'
+    alignItems: 'center'
+  },
+
+  sendButtonActive: {
+    backgroundColor: palette.main[600],
+    shadowColor: palette.main[600],
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 4,
+    elevation: 3
+  },
+
+  sendButtonDisabled: {
+    backgroundColor: '#E2E8F0',
+    opacity: 0.7
   },
   modalOverlay: {
     position: 'absolute',
