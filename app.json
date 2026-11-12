@@ -22,6 +22,7 @@
         "NSPhotoLibraryUsageDescription": "This app needs access to your photos so you can upload images.",
         "NSPhotoLibraryAddUsageDescription": "Allow StudyPeak to save photos to your library.",
         "NSCameraUsageDescription": "Study Peak needs camera access to scan a QR code to link your account with another user, such as a parent or tutor account.",
+        "NSFaceIDUsageDescription": "Allow Study Peak to use Face ID for fast and secure account authentication.",
         "CFBundleURLTypes": [
           {
             "CFBundleURLSchemes": [
@@ -103,6 +104,19 @@
           "android": {
             "enablePagesizeMigration": true
           }
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow Study Peak to use Face ID for fast and secure account authentication."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Study Peak needs camera access to scan a QR code to link your account with another user, such as a parent or tutor account.",
+          "barcodeScannerEnabled": true
         }
       ]
     ],

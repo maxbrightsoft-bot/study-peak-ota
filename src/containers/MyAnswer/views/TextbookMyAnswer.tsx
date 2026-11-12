@@ -188,7 +188,9 @@ const TextbookMyAnswer: FC<Props> = ({ data, effectSize, onCreateNote, onCreateQ
 }
 
 const styles = ScaledSheet.create({
-  container: {},
+  container: {
+    flex: 1
+  },
   titleContainer: {
     borderRadius: '6@ms',
     justifyContent: 'center',

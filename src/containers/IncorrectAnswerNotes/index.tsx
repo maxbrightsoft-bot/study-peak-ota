@@ -36,6 +36,7 @@ const IncorrectAnswerNotes = ({ onCreateNote, notesContainerProps }: Props) => {
 
 const styles = ScaledSheet.create({
   container: {
+    flex: 1,
     gap: '12@ms'
   }
 })

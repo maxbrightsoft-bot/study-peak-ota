@@ -444,7 +444,7 @@ const SolutionOrderChart: React.FC<Props> = ({ data, loading = false }) => {
   const isLast = dataChartIndex === (data.length - 1)
 
   return (
-    <View>
+    <View style={{ flex: 1 }}>
       <View
         style={{
           borderRadius: 6,

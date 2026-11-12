@@ -25,6 +25,7 @@ interface SlideDrawerProps {
   position?: 'left' | 'right'
   onClose?: () => void
   zIndex?: number
+  backgroundColor?: string
 }
 
 const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
@@ -32,7 +33,8 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
   children,
   position = 'right',
   onClose,
-  zIndex
+  zIndex,
+  backgroundColor
 }) => {
   const insets = useSafeAreaInsets()
   const statusBarHeight = Platform.OS === 'android' ? (StatusBar.currentHeight || 0) : 0
@@ -122,12 +124,13 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
               transform: [{ translateX: slideAnim }],
               top: 0,
               bottom: 0,
-              [position]: 0
+              [position]: 0,
+              ...(backgroundColor ? { backgroundColor } : {})
             }
           ]}
         >
           {visible && <StatusBar barStyle="dark-content" backgroundColor="#FFF" translucent={true} />}
-          <View style={[styles.safeArea, { paddingTop: topInset, paddingBottom: bottomInset }]}>
+          <View style={[styles.safeArea, { paddingTop: topInset, paddingBottom: bottomInset }, backgroundColor ? { backgroundColor } : undefined]}>
             {navigation ? (
               <NavigationContext.Provider value={navigation}>
                 {children}
