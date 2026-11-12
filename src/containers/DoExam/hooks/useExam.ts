@@ -1,4 +1,4 @@
-import { ScrollType } from './../config/types';
+﻿import { ScrollType } from './../config/types';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   getQuestionExam,
@@ -19,6 +19,7 @@ import moment from "moment";
 import { ActivityAction, ActivityResource, AppScreen, ExamEvent, ExamStatus, QuestionAnswerType } from "@/utils/enums";
 import { formatMinutesToTime, getErrorMessage, pauseAndResumeWithConflictRetry, toast } from "@/utils/helpers";
 import { isTextType } from "@/utils/helpers/textbook";
+import { hasAnyTextualAnswer } from "@/utils/helpers";
 import useCountDownTimer from "@/hooks/useCountDownTimer";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { findNodeHandle, UIManager, View, Alert, FlatList, BackHandler } from "react-native";
@@ -43,12 +44,12 @@ type Props = {
   onExamEnded?: (examCode?: string) => void;
 };
 
-export const isQuestionAnswered = (q: Question): boolean => {
+export const hasQuestionAnswer = (q: Question): boolean => {
   if (!q) return false;
   const type = q.questionAnswerType !== undefined ? Number(q.questionAnswerType) : undefined;
 
   if (type !== undefined && isTextType(type)) {
-    return !!q.textualAnswers?.length && q.textualAnswers.some(a => typeof a === 'string' && a.trim() !== '');
+    return hasAnyTextualAnswer(q.textualAnswers);
   }
 
   if (q.selectedAnswers?.length) {
@@ -56,10 +57,15 @@ export const isQuestionAnswered = (q: Question): boolean => {
   }
 
   if (q.textualAnswers?.length) {
-    return q.textualAnswers.some(a => typeof a === 'string' && a.trim() !== '');
+    return hasAnyTextualAnswer(q.textualAnswers);
   }
 
   return false;
+};
+
+export const isQuestionAnswered = (q: Question): boolean => {
+  const hasConfidence = q?.confidence !== undefined && q?.confidence !== null;
+  return hasConfidence && hasQuestionAnswer(q);
 };
 
 const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
@@ -139,12 +145,12 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
 
   const handleOpenFinishConfirmDialog = useCallback(() => {
     if (isLoadingQuestions) return;
-    if (questionList?.length && !isAllQuestionsAnswered(questionList)) {
+    if (exam?.isLate && questionList?.length && !isAllQuestionsAnswered(questionList)) {
       setOpenUnsolvedLeaveDialog(true);
     } else {
       setOpenConfirmFinishDialog(true);
     }
-  }, [questionList, isLoadingQuestions])
+  }, [exam?.isLate, questionList, isLoadingQuestions])
 
   const handleCloseFinishConfirmDialog = useCallback(() => {
     setOpenConfirmFinishDialog(false);
@@ -229,6 +235,18 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     },
     [questionList, currentQuestionId]
   )
+
+  const scrollToFirstUnansweredQuestion = useCallback(() => {
+    if (!questionList?.length) return;
+    const firstUnanswered = questionList.find(q => !isQuestionAnswered(q));
+    if (firstUnanswered) {
+      const index = questionList.findIndex(q => q.id === firstUnanswered.id);
+      setCurrentQuestionId(firstUnanswered.id);
+      if (index !== -1) {
+        requestAnimationFrame(() => onScrollToIndex(index));
+      }
+    }
+  }, [questionList]);
 
   const onScrollToIndex = (index: number) => {
     const ref = questionRefs.current[index];
@@ -433,6 +451,9 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
 
 
   const handleFinishExam = useCallback(async () => {
+    if (!isAllQuestionsAnswered(questionList)) {
+      return;
+    }
     const nowTime = getServerNow();
     setLoadingWithoutOverlay(true);
     handleCloseAnswerSheet();
@@ -615,11 +636,11 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
   }, [exam?.id])
 
   useEffect(() => {
-    if (questionList.length > 0) {
+    if (questionList.length > 0 && (!currentQuestionId || !questionList.some(q => q.id === currentQuestionId))) {
       const noAnswer = questionList.find(i => !isQuestionAnswered(i));
       setCurrentQuestionId(noAnswer?.id || questionList[0].id);
     }
-  }, [questionList]);
+  }, [questionList, currentQuestionId]);
 
   const handleRestartExam = async () => {
     const codeToRestart = exam?.code || examCode || '';
@@ -764,7 +785,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     });
   };
 
-  const { updateQuestionAnswer, updateQuestionStar, handleResetExamSolving, handleClearStorage, flushPendingAnswers } = useExamSolving({
+  const { updateQuestionAnswer, updateQuestionStar, updateQuestionConfidence, handleResetExamSolving, handleClearStorage, flushPendingAnswers } = useExamSolving({
     examId: exam?.id,
     exam,
     examCode: examCode,
@@ -849,14 +870,17 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
           {
             text: t('leave'),
             style: 'destructive',
-            onPress: () => navigation.dispatch(e.data.action)
+            onPress: async () => {
+              await flushPendingAnswers();
+              navigation.dispatch(e.data.action);
+            }
           }
         ]
       );
     });
 
     return unsubscribe;
-  }, [navigation, exam?.status, isLoadingQuestions, t]);
+  }, [navigation, exam?.status, isLoadingQuestions, t, flushPendingAnswers]);
 
   useEffect(() => {
     if (!isLoadingQuestions) return;
@@ -964,13 +988,13 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
 
   const handleConfirmLeave = useCallback(async () => {
     setOpenLeaveDialog(false);
+    if (!isAllQuestionsAnswered(questionList)) {
+      scrollToFirstUnansweredQuestion();
+      return;
+    }
     await handleFinishExam();
-  }, [handleFinishExam]);
+  }, [handleFinishExam, isAllQuestionsAnswered, questionList, scrollToFirstUnansweredQuestion]);
 
-  const handleConfirmExitAnyway = useCallback(() => {
-    setOpenUnsolvedLeaveDialog(false)
-    handleConfirmLeave()
-  }, [handleConfirmLeave])
 
   const remainTimeString = useMemo(() => {
     return formatMinutesToTime((remainTime || 0) / 60);
@@ -1000,7 +1024,6 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     handleOpenUnsolvedLeaveDialog,
     handleCloseUnsolvedLeaveDialog,
     handleSolveItLater,
-    handleConfirmExitAnyway,
     questionStarList,
     handleNextStar,
     handlePrevStar,
@@ -1014,6 +1037,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     handleConfirmLeave,
     updateQuestionAnswer,
     updateQuestionStar,
+    updateQuestionConfidence,
     handleFinishExam,
     getCheckStatus,
     handleRestartExam,
@@ -1038,6 +1062,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     scrollViewRef,
     questionRefs,
     scrollToQuestion,
+    scrollToFirstUnansweredQuestion,
     liveResultDialog,
     handleExamEnd,
     handleDetailExamResult,

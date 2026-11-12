@@ -42,7 +42,6 @@ const DoExam = ({ examCode, reqTime }: Props) => {
     handleOpenUnsolvedLeaveDialog,
     handleCloseUnsolvedLeaveDialog,
     handleSolveItLater,
-    handleConfirmExitAnyway,
     questionListMapped,
     questionList,
     remainTime,
@@ -65,6 +64,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
     handleCloseFinishConfirmDialog,
     openConfirmFinishDialog,
     scrollToQuestion,
+    scrollToFirstUnansweredQuestion,
     currentQuestionId,
     openResultDialog,
     liveResultDialog,
@@ -72,6 +72,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
     handleRestartExam,
     updateQuestionAnswer,
     updateQuestionStar,
+    updateQuestionConfidence,
     isOpenConfirmDialog,
     handleCloseConfirmDialog,
     handleOpenConfirmDialog,
@@ -139,7 +140,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
         keyboardVerticalOffset={80}
       >
         <View style={styles.header}>
-          <View style={{ zIndex: 10 }}>
+          <View style={styles.headerSideLeft}>
             <TouchableOpacity
               disabled={isLoadingQuestions}
               onPress={() => {
@@ -147,7 +148,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
                 if (exam?.isLate && !isAllQuestionsAnswered(questionList)) {
                   handleOpenUnsolvedLeaveDialog()
                 } else {
-                  handleOpenLeaveDialog()
+                  handleOpenFinishConfirmDialog()
                 }
               }}
               style={{ opacity: isLoadingQuestions ? 0.3 : 1 }}
@@ -157,22 +158,22 @@ const DoExam = ({ examCode, reqTime }: Props) => {
               </View>
             </TouchableOpacity>
           </View>
-          <View style={[styles.titleContainer, { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, justifyContent: 'center', pointerEvents: 'none', paddingHorizontal: 60, zIndex: 1 }]}>
-            <Text style={styles.title} numberOfLines={1}>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
               {!exam?.isLate ? t('live_exam_in_progress') : (examSession?.title || exam?.title || t('do_exam'))}
             </Text>
             <Text style={[styles.subtitle, { color: (remainTime || 0) < 10 ? palette.red[900] : palette.grey[400] }]}>
               {remainTimeString || 0}
             </Text>
             {((exam?.isLate ? exam?.lateStatus : exam?.status) === ExamStatus.Paused) && (
-              <View style={{ backgroundColor: '#FF9800', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, alignSelf: 'center', marginTop: 2 }}>
-                <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '600' }}>
+              <View style={styles.pausedBadge}>
+                <Text style={styles.pausedText}>
                   {t('paused')}
                 </Text>
               </View>
             )}
           </View>
-          <View style={{ zIndex: 10, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View style={styles.headerSideRight}>
             {(exam?.isLate || (!exam?.isLate && exam?.lateStatus === ExamStatus.Completed)) && (
               <FloatingActionButton
                 t={t}
@@ -180,7 +181,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
                 onTogglePauseResume={handlePauseAndResumeExam}
                 onOpenConfirmDialog={handleOpenConfirmDialog}
                 onSolveItLater={!isLoadingQuestions && !isAllQuestionsAnswered(questionList) ? handleOpenUnsolvedLeaveDialog : undefined}
-                onEndExam={!isLoadingQuestions && isAllQuestionsAnswered(questionList) ? handleOpenLeaveDialog : undefined}
+                onEndExam={!isLoadingQuestions && isAllQuestionsAnswered(questionList) ? handleOpenFinishConfirmDialog : undefined}
                 keys={{
                   pause: 'pause_exam',
                   resume: 'resume_exam',
@@ -475,13 +476,35 @@ const DoExam = ({ examCode, reqTime }: Props) => {
               ? t('do_you_want_to_quit_your_exam')
               : t('there_are_still_unanswered_questions_do_you_want_to_end_the_exam')
           }
-          onConfirm={handleFinishExam}
+          okText={isAllQuestionsAnswered(questionList) ? t('confirm') : t('go_to_unanswered_question')}
+          cancelText={t('cancel')}
+          onConfirm={
+            isAllQuestionsAnswered(questionList)
+              ? handleFinishExam
+              : () => {
+                  handleCloseFinishConfirmDialog()
+                  scrollToFirstUnansweredQuestion()
+                }
+          }
         />
         <ConfirmDialog
           open={openLeaveDialog}
           toggle={handleCloseLeaveDialog}
-          text={t('are_you_sure_you_want_to_leave')}
-          onConfirm={handleConfirmLeave}
+          text={
+            isAllQuestionsAnswered(questionList)
+              ? t('are_you_sure_you_want_to_leave')
+              : t('there_are_still_unanswered_questions_do_you_want_to_end_the_exam')
+          }
+          okText={isAllQuestionsAnswered(questionList) ? t('confirm') : t('go_to_unanswered_question')}
+          cancelText={t('cancel')}
+          onConfirm={
+            isAllQuestionsAnswered(questionList)
+              ? handleConfirmLeave
+              : () => {
+                  handleCloseLeaveDialog()
+                  scrollToFirstUnansweredQuestion()
+                }
+          }
         />
         <ConfirmDialog
           open={openUnsolvedLeaveDialog}
@@ -489,9 +512,9 @@ const DoExam = ({ examCode, reqTime }: Props) => {
           title={t('notification')}
           text={t('unsolved_questions_exit_warning')}
           okText={t('solve_it_later')}
-          cancelText={t('exit_anyway')}
+          cancelText={t('cancel')}
           onConfirm={handleSolveItLater}
-          onCancel={handleConfirmExitAnyway}
+          onCancel={handleCloseUnsolvedLeaveDialog}
         />
         <ConfirmDialog
           open={showResumeDialog}
@@ -516,6 +539,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
             onClose={handleCloseAnswerSheet}
             scrollToQuestion={scrollToQuestion}
             updateQuestionStar={updateQuestionStar}
+            updateQuestionConfidence={updateQuestionConfidence}
             updateQuestionAnswer={updateQuestionAnswer}
             questionList={questionList}
             currentQuestion={currentQuestion}
@@ -556,19 +580,49 @@ const styles = ScaledSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: '16@ms',
+    paddingVertical: '12@ms',
     alignItems: 'center',
     paddingHorizontal: '20@ms',
     borderBottomWidth: '1@ms',
     borderColor: palette.grey[100],
     zIndex: 10,
     backgroundColor: '#FFF',
+    minHeight: '56@ms',
+  },
+  headerSideLeft: {
+    minWidth: '40@ms',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    zIndex: 10,
+  },
+  headerSideRight: {
+    minWidth: '40@ms',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: '8@ms',
+    zIndex: 10,
   },
   titleContainer: {
     flex: 1,
     marginHorizontal: '8@ms',
-    gap: '4@ms',
+    gap: '3@ms',
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pausedBadge: {
+    backgroundColor: '#FF9800',
+    paddingHorizontal: '8@ms',
+    paddingVertical: '2@ms',
+    borderRadius: '10@ms',
+    alignSelf: 'center',
+    marginTop: '2@ms',
+  },
+  pausedText: {
+    color: '#FFFFFF',
+    fontSize: '11@ms',
+    lineHeight: '14@ms',
+    fontWeight: '600',
   },
   attemptBadge: {
     paddingHorizontal: '8@ms',
@@ -580,13 +634,15 @@ const styles = ScaledSheet.create({
     fontWeight: '600'
   },
   title: {
-    fontSize: '16@ms',
+    fontSize: '15@ms',
+    lineHeight: '20@ms',
     color: '#222222',
     fontWeight: '600',
     textAlign: 'center'
   },
   subtitle: {
-    fontSize: '14@ms',
+    fontSize: '13@ms',
+    lineHeight: '17@ms',
     fontWeight: '500',
     textAlign: 'center',
     color: palette.grey[400]

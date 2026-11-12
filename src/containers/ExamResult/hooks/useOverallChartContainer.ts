@@ -47,14 +47,14 @@ const useOverallChartContainer = (
         const lowLevelQuestions = getPercentage(overallData.data[0].lowLevelQuestions, overallData.maxData.lowLevelQuestions)
         const questionLongestTime = overallData.data[0].questionLongestTime > overallData.maxData.questionLongestTime ? 100 : getPercentage(overallData.data[0].questionLongestTime, overallData.maxData.questionLongestTime)
         const problemSolvingTime = overallData.data[0].problemSolvingTime > overallData.maxData.problemSolvingTime ? 100 : getPercentage(overallData.data[0].problemSolvingTime, overallData.maxData.problemSolvingTime)
-        const totalAsteriskQuestions = overallData.data[0].totalAsteriskQuestions > overallData.maxData.totalAsteriskQuestions ? 100 : getPercentage(overallData.data[0].totalAsteriskQuestions, overallData.maxData.totalAsteriskQuestions)
+        const confidenceRate = overallData.data[0].confidenceRate ?? (overallData.data[0].totalAsteriskQuestions > overallData.maxData.totalAsteriskQuestions ? 100 : getPercentage(overallData.data[0].totalAsteriskQuestions, overallData.maxData.totalAsteriskQuestions))
 
         return [
             overallData.data[0].correctRate,
             highLevelQuestions,
             questionLongestTime,
             problemSolvingTime,
-            totalAsteriskQuestions,
+            confidenceRate,
             lowLevelQuestions
         ]
     }, [JSON.stringify(overallData)])
@@ -64,14 +64,14 @@ const useOverallChartContainer = (
         const lowLevelQuestions = getPercentage(overallData.data[1].lowLevelQuestions, overallData.maxData.lowLevelQuestions)
         const questionLongestTime = overallData.data[0].questionLongestTime > overallData.maxData.questionLongestTime ? getPercentage(overallData.data[1].questionLongestTime, overallData.data[0].questionLongestTime) : getPercentage(overallData.data[1].questionLongestTime, overallData.maxData.questionLongestTime)
         const problemSolvingTime = overallData.data[0].problemSolvingTime > overallData.maxData.problemSolvingTime ? getPercentage(overallData.data[1].problemSolvingTime, overallData.data[0].problemSolvingTime) : getPercentage(overallData.data[1].problemSolvingTime, overallData.maxData.problemSolvingTime)
-        const totalAsteriskQuestions = overallData.data[0].totalAsteriskQuestions > overallData.maxData.totalAsteriskQuestions ? getPercentage(overallData.data[1].totalAsteriskQuestions, overallData.data[0].totalAsteriskQuestions) : getPercentage(overallData.data[1].totalAsteriskQuestions, overallData.maxData.totalAsteriskQuestions)
+        const confidenceRate = overallData.data[1].confidenceRate ?? (overallData.data[0].totalAsteriskQuestions > overallData.maxData.totalAsteriskQuestions ? getPercentage(overallData.data[1].totalAsteriskQuestions, overallData.data[0].totalAsteriskQuestions) : getPercentage(overallData.data[1].totalAsteriskQuestions, overallData.maxData.totalAsteriskQuestions))
 
         return [
             overallData.data[1].correctRate,
             highLevelQuestions,
             questionLongestTime,
             problemSolvingTime,
-            totalAsteriskQuestions,
+            confidenceRate,
             lowLevelQuestions
         ]
     }, [JSON.stringify(overallData)])
@@ -81,7 +81,7 @@ const useOverallChartContainer = (
         t("high_level"),
         t("longest_time"),
         t("solving_time"),
-        t("asterisks"),
+        t("confidence_rate", "확신률"),
         t("low_level")
     ], [t])
 
@@ -115,8 +115,8 @@ const useOverallChartContainer = (
                     avgValue = formatTimeSecond((overallData?.data[1]?.problemSolvingTime ?? 0) / 1000, t)
                     break
                 case 4:
-                    myValue = `${t("n_questions", { total: `${overallData?.data[0]?.totalAsteriskQuestions ?? 0}/${overallData?.maxData.totalAsteriskQuestions ?? 0}` })}`
-                    avgValue = `${t("n_questions", { total: `${Math.round(overallData?.data[1]?.totalAsteriskQuestions ?? 0)}/${overallData?.maxData.totalAsteriskQuestions ?? 0}` })}`
+                    myValue = `${(overallData?.data[0]?.confidenceRate ?? overallData?.data[0]?.totalAsteriskQuestions ?? 0).toFixed(2)}%`
+                    avgValue = `${(overallData?.data[1]?.confidenceRate ?? overallData?.data[1]?.totalAsteriskQuestions ?? 0).toFixed(2)}%`
                     break
                 case 5:
                     myValue = `${t("n_questions", { total: `${overallData?.data[0]?.lowLevelQuestions ?? 0}/${overallData?.maxData.lowLevelQuestions ?? 0}` })}`

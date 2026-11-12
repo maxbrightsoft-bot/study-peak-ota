@@ -1,4 +1,5 @@
-import { PreparedQuestionGroupResponse, PreparedQuestionResponse, SimplePreparedTextbookResponse } from "./types";
+﻿import { PreparedQuestionGroupResponse, PreparedQuestionResponse, SimplePreparedTextbookResponse } from "./types";
+import { hasAnyTextualAnswer } from "@/utils/helpers";
 
 export const isNull = (value: any) => {
   if(Array.isArray(value)) {
@@ -7,11 +8,21 @@ export const isNull = (value: any) => {
   return !value
 }
 
-export const isQuestionAnswered = (q: any) => {
+export const hasQuestionAnswer = (q: any) => {
   if (!q) return false;
   const hasSelected = Boolean(q.selectedAnswers && Array.isArray(q.selectedAnswers) && q.selectedAnswers.length > 0);
-  const hasTextual = Boolean(q.textualAnswers && Array.isArray(q.textualAnswers) && q.textualAnswers.length > 0 && !isNull(q.textualAnswers));
+  const hasTextual = hasAnyTextualAnswer(q.textualAnswers);
   return hasSelected || hasTextual;
+};
+
+export const isQuestionAnswered = (q: any) => {
+  const hasConfidence = q?.confidence !== undefined && q?.confidence !== null;
+  return hasConfidence && hasQuestionAnswer(q);
+};
+
+export const isAllQuestionsAnswered = (questionList: any[]): boolean => {
+  if (!questionList || questionList.length === 0) return true;
+  return questionList.every(isQuestionAnswered);
 };
 
 export const findTargetQuestionForPageRange = (

@@ -132,6 +132,62 @@ export const dark_red = {
   900: '#800202',
 };
 
+export const confidence = {
+  sure: {
+    border: '#2563EB',
+    bg: '#EFF6FF',
+    bgActive: '#DBEAFE',
+    text: '#2563EB',
+    textActive: '#1D4ED8',
+  },
+  unsure: {
+    border: '#F59E0B',
+    bg: '#FFFBEB',
+    bgActive: '#FEF3C7',
+    text: '#F59E0B',
+    textActive: '#D97706',
+  },
+  random: {
+    border: '#EF4444',
+    bg: '#FEF2F2',
+    bgActive: '#FEE2E2',
+    text: '#EF4444',
+    textActive: '#DC2626',
+  },
+  table: {
+    correctSure: {
+      bg: '#DBEAFE',
+      border: '#3B82F6',
+      text: '#1E40AF',
+    },
+    correctUnsure: {
+      bg: '#FEF3C7',
+      border: '#F59E0B',
+      text: '#92400E',
+    },
+    correctRandom: {
+      bg: '#FDE68A',
+      border: '#F59E0B',
+      text: '#78350F',
+    },
+    wrongSure: {
+      bg: '#FFD1D5',
+      border: '#EF4444',
+      text: '#991B1B',
+    },
+    wrongUnsure: {
+      bg: '#EDE9FE',
+      border: '#8B5CF6',
+      text: '#5B21B6',
+    },
+    wrongRandom: {
+      bg: '#F3F4F6',
+      border: '#9CA3AF',
+      text: '#374151',
+    },
+  },
+};
+
 export const common = {
   black: '#000000',
   white: '#FFFFFF',
@@ -149,6 +205,7 @@ export const palette = {
   sub,
   bg,
   common,
+  confidence,
   red,
   yellow,
   green_support,

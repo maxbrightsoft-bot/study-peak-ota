@@ -37,7 +37,7 @@ export const getDb = async (lang?: string): Promise<SQLite.SQLiteDatabase> => {
     return openPromise;
 };
 
-const SCHEMA_VERSION = 12; // v12: Add pop quiz fields to ExamSessions
+const SCHEMA_VERSION = 14; // v14: Add confidenceRate to ChartData OVERALL seed
 const DEMO_SEED_VERSION = 'faker-seed-v7-limit-chat';
 const DEMO_TABLES = [
     'DemoUser', 'Subjects', 'SubjectTimers', 'ExamSessions', 'ExamQuestionGroups',
@@ -95,6 +95,12 @@ const prepareDemoSchema = async (database: SQLite.SQLiteDatabase) => {
     }
 
     await createTables(database);
+    try {
+        await database.execAsync('ALTER TABLE ExamQuestions ADD COLUMN confidence INTEGER;');
+    } catch {}
+    try {
+        await database.execAsync('ALTER TABLE TextbookQuestions ADD COLUMN confidence INTEGER;');
+    } catch {}
 };
 
 const clearDemoTables = async (database: SQLite.SQLiteDatabase) => {
@@ -168,7 +174,7 @@ const createTables = async (db: SQLite.SQLiteDatabase) => {
         );
         CREATE TABLE IF NOT EXISTS ExamQuestions (
             id INTEGER PRIMARY KEY, examSessionCode TEXT, questionGroupId INTEGER, questionOrder INTEGER,
-            answerCount INTEGER DEFAULT 5, isCorrect INTEGER, score REAL, isStar INTEGER DEFAULT 0,
+            answerCount INTEGER DEFAULT 5, isCorrect INTEGER, score REAL, isStar INTEGER DEFAULT 0, confidence INTEGER,
             categoryName TEXT, parentQuestionId INTEGER, parentQuestionOrder INTEGER,
             questionGroupIndex INTEGER, selectedAnswersJson TEXT, correctAnswersJson TEXT,
             correctTextualAnswersJson TEXT, textualAnswersJson TEXT, duration REAL, topDuration REAL,
@@ -208,7 +214,7 @@ const createTables = async (db: SQLite.SQLiteDatabase) => {
             questionTypeCategoriesJson TEXT, categoriesJson TEXT,
             categoryName TEXT, answerTime TEXT,
             parentQuestionId INTEGER DEFAULT 0, parentQuestionOrder INTEGER DEFAULT 0,
-            questionGroupId INTEGER DEFAULT 0, isStar INTEGER DEFAULT 0
+            questionGroupId INTEGER DEFAULT 0, isStar INTEGER DEFAULT 0, confidence INTEGER
         );
         CREATE TABLE IF NOT EXISTS Schedules (
             id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, description TEXT, startDate TEXT,

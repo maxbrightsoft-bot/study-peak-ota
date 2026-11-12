@@ -206,12 +206,14 @@ const seedChartDataForExams = async (db: SQLite.SQLiteDatabase, exams: { code: s
                     highLevelQuestions: faker.number.int({ min: 2, max: qCount }),
                     lowLevelQuestions: faker.number.int({ min: 2, max: qCount }),
                     totalAsteriskQuestions: faker.number.int({ min: 0, max: 3 }),
+                    // confidenceRate: (Σ cᵢ / N) × 100, Sure=1.0, Unsure=0.5, Random=0.0
+                    confidenceRate: faker.number.float({ min: 30, max: 90, fractionDigits: 1 }),
                     problemSolvingTime: faker.number.int({ min: 200, max: 500 }),
                     questionLongestTime: faker.number.int({ min: 40, max: 120 }),
                 }],
                 maxData: {
                     correctRate: 98, highLevelQuestions: qCount, lowLevelQuestions: qCount,
-                    totalAsteriskQuestions: 5, problemSolvingTime: 180, questionLongestTime: 30,
+                    totalAsteriskQuestions: 5, confidenceRate: 100, problemSolvingTime: 180, questionLongestTime: 30,
                 }
             })
         ]);
@@ -457,12 +459,14 @@ const seedTextbooks = async (db: SQLite.SQLiteDatabase) => {
                         highLevelQuestions: faker.number.int({ min: 1, max: Math.ceil(totalQ / 2) }),
                         lowLevelQuestions: faker.number.int({ min: 1, max: Math.ceil(totalQ / 2) }),
                         totalAsteriskQuestions: faker.number.int({ min: 0, max: 3 }),
+                        // confidenceRate: (Σ cᵢ / N) × 100, Sure=1.0, Unsure=0.5, Random=0.0
+                        confidenceRate: faker.number.float({ min: 30, max: 90, fractionDigits: 1 }),
                         problemSolvingTime: faker.number.int({ min: 200, max: 500 }),
                         questionLongestTime: faker.number.int({ min: 40, max: 120 }),
                     }],
                     maxData: {
                         correctRate: 95, highLevelQuestions: totalQ, lowLevelQuestions: totalQ,
-                        totalAsteriskQuestions: 5, problemSolvingTime: 180, questionLongestTime: 30,
+                        totalAsteriskQuestions: 5, confidenceRate: 100, problemSolvingTime: 180, questionLongestTime: 30,
                     }
                 })
             ]);

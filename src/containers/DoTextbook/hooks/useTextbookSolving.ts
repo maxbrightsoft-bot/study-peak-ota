@@ -6,9 +6,9 @@ import _ from "lodash";
 import { useTranslation } from "react-i18next";
 import useAuthStore from "@/store/useAuthStore";
 import moment from "moment";
-import { diffFromNow, getErrorMessage, toast, toISOString } from "@/utils/helpers";
+import { diffFromNow, getErrorMessage, toast, toISOString, hasAnyTextualAnswer } from "@/utils/helpers";
 import { DATE_TIME_MIN_VALUE } from "@/utils/constants";
-import { ActivityAction, ActivityResource, AppScreen, QuestionAnswerType } from "@/utils/enums";
+import { ActivityAction, ActivityResource, AppScreen, QuestionAnswerType, ConfidenceLevel, ExamStatus } from "@/utils/enums";
 import { getDataStorage, removeDataStorage, setDataStorage } from "@/utils/storage";
 import useServerTime from '@/hooks/useServerTime';
 import { logError } from '@/utils/helpers/crashlyticsLogger';
@@ -17,6 +17,13 @@ import { useActivityTracking } from '@/hooks/useActivityTracking';
 const DATE_TIME_FORMAT = "YYYY-MM-DDTHH:mm:ss.SSSZ"
 const rollBackQuestionList = "trb";
 const recoverQuestionList = "trc";
+
+interface ScheduledTextbookAnswerCall {
+  body: StudentTextbookAnswerRequest;
+  callback?: Function;
+  skipAutoNext?: boolean;
+}
+
 interface Props {
   startTime?: moment.Moment
   textbook?: SimplePreparedTextbookResponse;
@@ -28,6 +35,7 @@ interface Props {
   handleNextQuestion: (isError?: boolean) => void;
   totalLocalPausedMs?: number;
   isMockTimeOut?: boolean
+  isPaused?: boolean
 }
 const useTextbookSolving = (props: Props) => {
   const {
@@ -40,7 +48,8 @@ const useTextbookSolving = (props: Props) => {
     handleUpdateSlider,
     handleNextQuestion,
     totalLocalPausedMs = 0,
-    isMockTimeOut
+    isMockTimeOut,
+    isPaused
   } = props;
   const user = useAuthStore(state => state.user)
   const selectedAcademy = useAuthStore(state => state.selectedAcademy)
@@ -66,7 +75,7 @@ const useTextbookSolving = (props: Props) => {
   const totalAnsweredTimeRef = useRef<number | undefined>(undefined);
   const pausedMsConsumedRef = useRef<number>(0);
   const isCallingApi = useRef<boolean>(false);
-  const pendingApiCall = useRef<any>(null);
+  const pendingApiCall = useRef<ScheduledTextbookAnswerCall | null>(null);
 
   const studentTextbookId = textbook?.studentTextbookId;
 
@@ -119,13 +128,14 @@ const useTextbookSolving = (props: Props) => {
     const pending = pendingApiCall.current;
     if (pending) {
       pendingApiCall.current = null;
-      updateAnswers(pending.body, pending.callback);
+      updateAnswers(pending.body, pending.callback, pending.skipAutoNext);
     }
   };
 
   const updateAnswers = async (
     body: StudentTextbookAnswerRequest,
-    callback?: Function
+    callback?: Function,
+    skipAutoNext?: boolean
   ) => {
     isCallingApi.current = true;
     let resData: any = null;
@@ -162,7 +172,9 @@ const useTextbookSolving = (props: Props) => {
           if (ltAnswerTime.current && isValid && moment(rollBackLastAnswerTime).isAfter(startTime) && moment(rollBackLastAnswerTime).isAfter(ltAnswerTime.current))
             ltAnswerTime.current = rollBackLastAnswerTime;
         }
-        handleNextQuestion(true);
+        if (!skipAutoNext) {
+          handleNextQuestion(true);
+        }
 
         const errorMessage = resData?.message || error?.response?.data?.title || error?.response?.data?.message;
         if (errorMessage && typeof errorMessage === "string" && !callback) {
@@ -188,7 +200,7 @@ const useTextbookSolving = (props: Props) => {
     lastAnswerTime: string,
     lastAnswerTimeNum: number,
     questionId?: number,
-    isStar?: boolean
+    skipAutoNext?: boolean
   ) => {
     if (!textbook || !recoverKey) return;
     await setDataStorage(
@@ -201,14 +213,14 @@ const useTextbookSolving = (props: Props) => {
 
     questionId && handleUpdateSlider?.(questionId);
 
-    callApiUpdateAnswers(questions, lastAnswerTime, lastAnswerTimeNum, isStar, undefined, questionId);
+    callApiUpdateAnswers(questions, lastAnswerTime, lastAnswerTimeNum, skipAutoNext, undefined, questionId);
   };
 
   const callApiUpdateAnswers = async (
     arrQuestionNew: PreparedQuestionResponse[],
     lastAnswerTime: string,
     lastAnswerTimeNum: number,
-    isStar?: boolean,
+    skipAutoNext?: boolean,
     callback?: Function,
     questionId?: number
   ) => {
@@ -223,7 +235,7 @@ const useTextbookSolving = (props: Props) => {
     );
     updateQuestionList?.(arrQuestionNew);
 
-    !isStar && handleNextQuestion()
+    !skipAutoNext && handleNextQuestion()
 
     const body: StudentTextbookAnswerRequest = {
       lastAnswerTime: lastAnswerTimeNum,
@@ -234,6 +246,7 @@ const useTextbookSolving = (props: Props) => {
         textualAnswers: i.textualAnswers,
         duration: i.duration,
         isStar: !!i.isStar,
+        confidence: i.confidence,
         answerTime: i.answerTime,
         unit: i.unit,
         isActivelyAnswered: questionId === undefined ? true : i.id === questionId
@@ -247,17 +260,17 @@ const useTextbookSolving = (props: Props) => {
     }
     if (!!callback) {
       if (isCallingApi.current) {
-        pendingApiCall.current = { body, callback };
+        pendingApiCall.current = { body, callback, skipAutoNext };
       } else {
-        await updateAnswers(body, callback);
+        await updateAnswers(body, callback, skipAutoNext);
       }
     } else {
       apiTimeouts.current[rollbackKey] = setTimeout(
         () => {
           if (isCallingApi.current) {
-            pendingApiCall.current = { body };
+            pendingApiCall.current = { body, skipAutoNext };
           } else {
-            updateAnswers(body);
+            updateAnswers(body, undefined, skipAutoNext);
           }
         },
         500
@@ -284,8 +297,8 @@ const useTextbookSolving = (props: Props) => {
     }
   };
 
-  const updateQuestionAnswer = ({ questionId, textualAnswers = [], answer }: TextbookQuestion) => {
-    if (!textbook || isMockTimeOut) return;
+  const updateQuestionAnswer = ({ questionId, textualAnswers = [], answer, confidence }: TextbookQuestion) => {
+    if (!textbook || isPaused || isMockTimeOut || textbook.status === ExamStatus.Paused || textbook.status === ExamStatus.Completed) return;
     const { now, nowTime } = getServerTimeFormatted();
 
     const listQuestionNews = _.cloneDeep(questionList);
@@ -315,6 +328,13 @@ const useTextbookSolving = (props: Props) => {
           default:
             item.textualAnswers = textualAnswers
             break;
+        }
+
+        const isAnswered =
+          (item.selectedAnswers && item.selectedAnswers.length > 0) ||
+          hasAnyTextualAnswer(item.textualAnswers);
+        if (confidence !== undefined) {
+          item.confidence = confidence;
         }
 
         const diff = getDiffTime(now, nowTime);
@@ -365,7 +385,8 @@ const useTextbookSolving = (props: Props) => {
           textualAnswers: i.textualAnswers,
           duration: i.duration,
           isStar: !!i.isStar,
-          answerTime: i.answerTime,
+        confidence: i.confidence,
+        answerTime: i.answerTime,
           unit: i.unit,
           isActivelyAnswered: questionId === undefined ? true : i.id === questionId
         })),
@@ -391,8 +412,28 @@ const useTextbookSolving = (props: Props) => {
   };
 
 
+  const updateQuestionConfidence = (questionId: number, confidence?: ConfidenceLevel) => {
+    if (!textbook || isPaused || isMockTimeOut || textbook.status === ExamStatus.Paused || textbook.status === ExamStatus.Completed) return;
+    const { now, nowTime } = getServerTimeFormatted();
+    const listQuestionNews = _.cloneDeep(questionList);
+    const arrQuestionNew = listQuestionNews.map((item: PreparedQuestionResponse) => {
+      if (item.id === questionId) {
+        item.confidence = confidence;
+        const diff = getDiffTime(now, nowTime);
+        item.duration = (item.duration || 0) + +diff;
+        item.answerTime = item.answerTime && item.answerTime !== 0 ? item.answerTime : nowTime;
+        if (item.answerTime && item.answerTime > 0 && (!item.duration || item.duration <= 0)) {
+          item.duration = 1000;
+        }
+      }
+      return item;
+    });
+
+    handleUpdateAnswer(arrQuestionNew, now, nowTime, questionId, true);
+  };
+
   const updateQuestionStar = (questionId: number, isStar: boolean) => {
-    if (!textbook) return;
+    if (!textbook || isPaused || isMockTimeOut || textbook.status === ExamStatus.Paused || textbook.status === ExamStatus.Completed) return;
     const { now, nowTime } = getServerTimeFormatted();
     const listQuestionNews = _.cloneDeep(questionList);
     const arrQuestionNew = listQuestionNews.map((item: PreparedQuestionResponse) => {
@@ -551,6 +592,7 @@ const useTextbookSolving = (props: Props) => {
     recoverKey,
     updateQuestionAnswer,
     updateQuestionStar,
+    updateQuestionConfidence,
     recoverAnswers,
     handleClearStorage,
     handleResetTextbookSolving

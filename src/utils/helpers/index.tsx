@@ -358,6 +358,30 @@ export const parseEventData = <T = any>(data: any): T | null => {
   }
 }
 
-export { stripHtml } from './html'
+import { stripHtml } from './html'
+export { stripHtml }
+
+export const isTextualAnswerEmpty = (text?: string): boolean => {
+  if (!text) return true
+  if (
+    text.includes('class="math-chip"') ||
+    text.includes('data-latex') ||
+    text.includes('<math')
+  ) {
+    return false
+  }
+  if (text.includes('$')) {
+    const withoutDollars = text.replace(/\$/g, '').trim()
+    if (withoutDollars.length > 0) return false
+    return true
+  }
+  const stripped = stripHtml(text)
+  return stripped.length === 0
+}
+
+export const hasAnyTextualAnswer = (answers?: string[]): boolean => {
+  if (!answers || !Array.isArray(answers) || answers.length === 0) return false
+  return answers.some(ans => !isTextualAnswerEmpty(ans))
+}
 
 export * from './times'
