@@ -8,7 +8,25 @@ import { getListExamMock, getExamInfoMock, joinExamMock, getLessonsMock, getList
 import { getQuestionExamMock, answerQuestionExamMock, finishExamMock, pauseAndResumeExamMock, restartExamMock, createConversationMock, getConversationMessagesMock } from './containers/DoExam/examApi';
 import { getExamResultMock, getExamResultPercentagesMock, getResultsLongTimeSpendMock, getResultsEffectSizeMock, getResultsTimeOrderQuestionMock, getResultsCategoriesMock, getOverallResultsMock, getOverallQuestionTypesResultsMock, getOverallCategoriesResultsMock, getQuestionTimeCategoriesResultsMock, getChapterResultsMock } from './containers/ExamResult/examResultApi';
 import { getListExamMock as getExamResultListMock, getLiveHistoryGroupsMock, getLiveHistoryDetailsMock, uploadImageFileMock } from './containers/ExamResultList/examResultListApi';
-import { getStudyPerformanceDataMock, getSubjectDataMock, getRankingDataMock, getSubjectListMock as getStudySubjectListMock, getQuestionDataMock, getQuestionSubjectDataMock, getQuestionRankingDataMock, getQuestionOverallDataMock, getPerformanceSummaryMock, getPerformanceAnalysisMock, getPerformanceWeaknessMock } from './containers/StudyPerformance/studyPerformanceApi';
+import {
+    getStudyPerformanceDataMock,
+    getSubjectDataMock,
+    getRankingDataMock,
+    getSubjectListMock as getStudySubjectListMock,
+    getQuestionDataMock,
+    getQuestionSubjectDataMock,
+    getQuestionRankingDataMock,
+    getQuestionOverallDataMock,
+    getPerformanceSummaryMock,
+    getPerformanceAnalysisMock,
+    getPerformanceWeaknessMock,
+    getPerformanceDailyMock,
+    getPopQuizPerformanceDailyMock,
+    getPopQuizPerformanceSummaryMock,
+    getPopQuizPerformanceAnalysisMock,
+    getPopQuizPerformanceWeaknessMock,
+    getPopQuizSubjectListMock
+} from './containers/StudyPerformance/studyPerformanceApi';
 import { studyTextbookMock, answerQuestionTextbookMock, getQuestionsTextbookMock, getPreparedTextbookMock, pauseOrFinishedTextbookMock, pauseAndResumeTextbookMock, restartTextbookMock } from './containers/Textbooks/textbookApi';
 import { getStudentHistoryMock, deleteStudentExamSessionMock, hideStudentExamSessionMock, selectStudentExamSessionMock } from './containers/StudentExamHistory/studentHistoryApi';
 import { getSubjectListMock as getSubjectTimerListMock, startSubjectTimerMock, pauseSubjectTimerMock, stopSubjectTimerMock, getTimersMock } from './containers/SubjectTimers/subjectTimerApi';
@@ -455,6 +473,21 @@ const routeToMock = async (config: any, lang: string = 'ko'): Promise<any> => {
     if (url.includes('/api/pop-quiz/my') && method === 'get') {
         return await getMyPopQuizzesMock(lang);
     }
+    if (url.includes('/api/pop-quiz/performance/daily') && method === 'get') {
+        return await getPopQuizPerformanceDailyMock(params);
+    }
+    if (url.includes('/api/pop-quiz/performance/summary') && method === 'get') {
+        return await getPopQuizPerformanceSummaryMock(params);
+    }
+    if (url.includes('/api/pop-quiz/performance/analysis') && method === 'get') {
+        return await getPopQuizPerformanceAnalysisMock(params);
+    }
+    if (url.includes('/api/pop-quiz/performance/weakness') && method === 'get') {
+        return await getPopQuizPerformanceWeaknessMock(params);
+    }
+    if (url.includes('/api/pop-quiz/subjects') && method === 'get') {
+        return await getPopQuizSubjectListMock();
+    }
     if (url.match(/\/api\/pop-quiz\/\d+\/status/) && method === 'put') {
         const id = extractId(/\/api\/pop-quiz\/(\d+)\/status/);
         return await updatePopQuizStatusMock(id, body);
@@ -637,6 +670,9 @@ const routeToMock = async (config: any, lang: string = 'ko'): Promise<any> => {
     }
     if (url.includes('/questions/ranking-data')) {
         return await getQuestionRankingDataMock(params);
+    }
+    if (url.includes('/questions/performance/daily')) {
+        return await getPerformanceDailyMock(params);
     }
     if (url.includes('/questions/performance/summary')) {
         const id = extractId(/\/api\/subject\/(\d+)\/questions\/performance\/summary/);

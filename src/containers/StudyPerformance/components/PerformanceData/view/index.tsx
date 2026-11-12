@@ -6,12 +6,11 @@ import TimePeriodSelector from '../../TimePeriodSelector'
 import { Mode, timeTypeOptions } from '../../../configs/constants'
 import { SubTab } from '../../../configs/types'
 import useStudyPerformanceData from '../hooks/useStudyPerformanceData'
-
 import { ss } from '../styles/styles'
+import { EmptyState } from '../configs/utils'
 import SummaryPanel from '../components/SummaryPanel'
 import PerformancePanel from '../components/PerformancePanel'
 import WeaknessPanel from '../components/WeaknessPanel'
-
 
 type Props = {
   studentId?: number
@@ -85,28 +84,22 @@ const PerformanceData = ({ studentId, handleReadyPrint }: Props) => {
     summaryData,
     performanceData,
     weaknessData,
-    loadingData,
-    subjectDataRequest,
+    loadingSubjects,
     loadingSummary,
     loadingAnalysis,
     loadingWeakness,
-    todayData,
-    loadingToday,
     dailyData,
     loadingDaily
-  } = useStudyPerformanceData({ mode: Mode.Question, studentId }) as any
+  } = useStudyPerformanceData({ mode: Mode.Question, studentId })
 
   useEffect(() => {
     if (handleReadyPrint) handleReadyPrint()
   }, [subTab])
 
-  const handleSubTabChange = (tab: typeof subTab) => {
+  const handleSubTabChange = (tab: SubTab) => {
     setSubTab(tab)
     scrollRef.current?.scrollTo({ y: 0, animated: true })
   }
-
-  const opt = currentTimeOptions?.find((i: any) => i.value === currentTime)
-  const chartTitlePrefix = opt ? `${opt.label} ` : ''
 
   return (
     <View style={ss.mainContainer}>
@@ -140,7 +133,7 @@ const PerformanceData = ({ studentId, handleReadyPrint }: Props) => {
               break
           }
           return (
-            <TouchableOpacity key={tab} style={[ss.subTabButton]} onPress={() => handleSubTabChange(tab)}>
+            <TouchableOpacity key={tab} style={ss.subTabButton} onPress={() => handleSubTabChange(tab)}>
               <Text style={[ss.subTabText, isActive && ss.subTabTextActive]}>{labelText}</Text>
               {isActive && <View style={ss.subTabButtonActiveLine} />}
             </TouchableOpacity>
@@ -150,24 +143,56 @@ const PerformanceData = ({ studentId, handleReadyPrint }: Props) => {
 
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false} contentContainerStyle={ss.scrollContainer}>
         {subTab === SubTab.SUMMARY && (
-          loadingDaily && !dailyData ? <SummarySkeleton /> : (summaryData ? (
+          (!summaryData && (loadingSubjects || loadingSummary || loadingDaily)) ? (
+            <SummarySkeleton />
+          ) : summaryData ? (
             <SummaryPanel
               data={summaryData}
-              todayData={dailyData?.today ?? todayData}
+              todayData={dailyData?.today ?? summaryData.today}
               dailyWeekActivity={dailyData?.weekActivity}
+              dailyWeekTotalProblems={dailyData?.weekTotalProblems}
+              dailyWeekTotalTime={dailyData?.weekTotalTime}
               t={t}
               timeType={timeType}
               loadingSummary={loadingSummary}
             />
-          ) : null)
+          ) : (
+            <EmptyState
+              title={t('perf.emptyTitle', 'No performance data yet')}
+              description={t('perf.emptyDesc', 'Solve more problems to generate performance insights.')}
+            />
+          )
         )}
         {subTab === SubTab.PERFORMANCE && (
-          loadingAnalysis ? <PerformanceSkeleton /> : (performanceData ? <PerformancePanel data={performanceData} t={t} timeType={timeType} periodDelta={summaryData?.period?.delta} dailyPeer={dailyData?.peer} /> : null)
+          (loadingSubjects || loadingAnalysis) ? (
+            <PerformanceSkeleton />
+          ) : performanceData ? (
+            <PerformancePanel
+              data={performanceData}
+              t={t}
+              timeType={timeType}
+              periodDelta={summaryData?.period?.delta}
+              dailyPeer={dailyData?.peer}
+            />
+          ) : (
+            <EmptyState
+              title={t('perf.emptyTitle', 'No performance data yet')}
+              description={t('perf.emptyDesc', 'Solve more problems to generate performance insights.')}
+            />
+          )
         )}
         {subTab === SubTab.WEAKNESS && (
-          loadingWeakness ? <WeaknessSkeleton /> : (weaknessData ? <WeaknessPanel data={weaknessData} t={t} timeType={timeType} /> : null)
+          (loadingSubjects || loadingWeakness) ? (
+            <WeaknessSkeleton />
+          ) : weaknessData ? (
+            <WeaknessPanel data={weaknessData} t={t} timeType={timeType} />
+          ) : (
+            <EmptyState
+              title={t('weak.emptyTitle', 'No weaknesses found')}
+              description={t('weak.emptyDesc', 'Weaknesses will appear after more answered questions.')}
+            />
+          )
         )}
-
       </ScrollView>
     </View>
   )

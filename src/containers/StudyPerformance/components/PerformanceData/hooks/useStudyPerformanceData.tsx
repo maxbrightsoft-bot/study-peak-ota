@@ -1,17 +1,18 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   getDataApi,
-  getQuestionDataApi,
-  getQuestionOverallDataApi,
-  getQuestionRankingDataApi,
-  getQuestionSubjectDataApi,
   getRankingDataApi,
   getSubjectDataApi,
   getSubjectListApi,
   getPerformanceSummaryApi,
   getPerformanceAnalysisApi,
   getPerformanceWeaknessApi,
-  getPerformanceDailyApi
+  getPerformanceDailyApi,
+  getPopQuizPerformanceDailyApi,
+  getPopQuizPerformanceSummaryApi,
+  getPopQuizPerformanceAnalysisApi,
+  getPopQuizPerformanceWeaknessApi,
+  getPopQuizSubjectListApi
 } from '../apiClients'
 import { MILLISECONDS_PER_HOUR, Mode, timeTypeOptions, TOP_WEAKNESS_LIMIT } from '../../../configs/constants'
 import {
@@ -32,20 +33,22 @@ import {
 import {
   Category,
   DataResponse,
-  QuestionAnswerOverallResponse,
+  PerformanceAnalysisResponse,
+  PerformanceDailyResponse,
+  PerformanceRequest,
+  PerformanceSummaryResponse,
+  PerformanceWeaknessResponse,
+  PopQuizSubjectItem,
+  QuestionData,
   RankingDataResponse,
   StudyTimeDistribution,
   Subject,
   SubjectDataNumberResponse,
   SubjectDataQuestionResponse,
   SubjectResponse,
-  PerformanceSummaryResponse,
-  PerformanceAnalysisResponse,
-  PerformanceWeaknessResponse
 } from '../../../configs/types'
 import { useTranslation } from 'react-i18next'
 import moment from 'moment'
-import _ from 'lodash'
 import { Role } from '@/utils/enums'
 import useAuthStore from '@/store/useAuthStore'
 import { getErrorMessage, toast } from '@/utils/helpers'
@@ -56,23 +59,23 @@ type Props = {
   mode?: Mode
 }
 
+type SubjectOptionItem = Pick<SubjectResponse | PopQuizSubjectItem, 'id' | 'name'>
+
 const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
   const { t } = useTranslation()
-  const user = useAuthStore(state => state.user)
+  const user = useAuthStore((state) => state.user)
   const academyDomain = user?.academyDomain
-  const [visible, setVisible] = useState(false)
   const isStudent = user?.roles?.includes(Role.Student)
   const isSuperAdmin = (user?.roles || []).includes(Role.Admin) && !academyDomain
+  const isLearningSpace = Boolean(user?.isLearningSpace)
 
-  const isLearningSpace = user?.isLearningSpace
+  // Tenant user (Academy or My Study Space) vs SuperAdmin/non-tenant for timer endpoints
+  const isTenantUser = isLearningSpace || !!academyDomain
+  const isAdminOrNonAcademy = !isTenantUser || isSuperAdmin
+  // Only true when actively inside an Academy workspace (My Study Space uses Pop Quiz endpoints)
+  const isAcademySpace = !!academyDomain && !isLearningSpace
 
-  const handleToggle = () => {
-    setVisible((prev) => !prev)
-  }
-
-  const isAcademy = isLearningSpace || !!academyDomain
-  const isAdminOrNonAcademy = !isAcademy || isSuperAdmin
-
+  const [visible, setVisible] = useState(false)
   const [load, setLoad] = useState<boolean>(false)
 
   const [loadingData, setLoadingData] = useState(false)
@@ -86,27 +89,31 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
 
   const [data, setData] = useState<DataResponse>()
   const [rankingData, setRankingData] = useState<RankingDataResponse>()
-  const [overallData, setOverallData] = useState<QuestionAnswerOverallResponse>()
 
   const [summaryData, setSummaryData] = useState<PerformanceSummaryResponse>()
   const [performanceData, setPerformanceData] = useState<PerformanceAnalysisResponse>()
   const [weaknessData, setWeaknessData] = useState<PerformanceWeaknessResponse>()
-  const [todayData, setTodayData] = useState<any>(null)
-  // Fixed daily data: today stats + week activity + peer comparison (all subjects, not subject-filtered)
-  const [dailyData, setDailyData] = useState<any>(null)
-  const [loadingDaily, setLoadingDaily] = useState(false)
+  const [dailyData, setDailyData] = useState<PerformanceDailyResponse>()
 
+  const [loadingDaily, setLoadingDaily] = useState(false)
   const [loadingSummary, setLoadingSummary] = useState(false)
   const [loadingAnalysis, setLoadingAnalysis] = useState(false)
   const [loadingWeakness, setLoadingWeakness] = useState(false)
-  const [loadingToday, setLoadingToday] = useState(false)
 
-  const [subjectData, setSubjectData] = useState<any>()
-  const [subjectCumulativeData, setSubjectCumulativeData] = useState<any>()
+  const [subjectData, setSubjectData] = useState<SubjectDataNumberResponse | SubjectDataQuestionResponse>()
+  const [subjectCumulativeData, setSubjectCumulativeData] = useState<SubjectDataNumberResponse | SubjectDataQuestionResponse>()
 
-  const [subjects, setSubjects] = useState<SubjectResponse[]>([])
+  const [subjects, setSubjects] = useState<SubjectOptionItem[]>([])
   const [selectedSubject, setSelectedSubject] = useState<number>()
-  const timeTypes = useMemo(() => timeTypeOptions(t), [t])
+
+  // Monotonic request counters ignore out-of-order responses across filter or space switches
+  const subjectsReqRef = useRef(0)
+  const perfReqRef = useRef(0)
+  const dailyReqRef = useRef(0)
+
+  const handleToggle = () => {
+    setVisible((prev) => !prev)
+  }
 
   const handleChangeTimeType = (value: number) => {
     setTimeType(value)
@@ -121,84 +128,79 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
     setSelectedSubject(value)
   }
 
-  const subjectDataRequest = useMemo(() => {
+  const subjectDataRequest = useMemo<PerformanceRequest>(() => {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
     switch (timeType) {
       case 0:
         return {
           studentId,
+          timezone,
           pTimes: getWeekTimestampArray(currentTime),
           sTimes: getWeekTimestampArray(currentTime - 1)
         }
-      case 1:
+      case 1: {
         const pYear = moment().year()
         const sYear = currentTime === 0 ? moment().add(-1, 'y').year() : moment().year()
         return {
           studentId,
+          timezone,
           pTimes: getMonthTimeStampArray(currentTime, pYear),
           sTimes: getMonthTimeStampArray(currentTime > 0 ? currentTime - 1 : 11, sYear)
         }
+      }
       case 2:
         return {
           studentId,
+          timezone,
           pTimes: getYearTimeStampArray(currentTime),
           sTimes: getYearTimeStampArray(currentTime - 1)
         }
       case 3:
         return {
           studentId,
+          timezone,
           pTimes: getDayTimestampArray(currentTime),
           sTimes: getDayTimestampArray(moment(currentTime).subtract(1, 'day').valueOf())
         }
       default:
-        return { pTimes: [], sTimes: [] }
+        return { studentId, timezone, pTimes: [], sTimes: [] }
     }
-  }, [timeType, currentTime, studentId, timeTypes])
+  }, [timeType, currentTime, studentId])
 
   const handleGetData = async () => {
-    if (mode === Mode.Question && !selectedSubject) return
+    if (mode !== Mode.Timer) return
     setLoadingData(true)
     try {
-      const res =
-        mode === Mode.Timer
-          ? await getDataApi(isAdminOrNonAcademy, {
-              ...subjectDataRequest,
-              retrieveCumulative: false
-            })
-          : await getQuestionDataApi(selectedSubject!, {
-              ...subjectDataRequest,
-              retrieveCumulative: false
-            })
+      const res = await getDataApi(isAdminOrNonAcademy, {
+        ...subjectDataRequest,
+        retrieveCumulative: false
+      })
       setData(res.data)
     } catch (error) {
       toast.error(getErrorMessage(t, error))
+    } finally {
+      setLoadingData(false)
     }
-    setLoadingData(false)
   }
 
   const handleGetSubjectData = async () => {
-    if (mode === Mode.Question && !selectedSubject) return
+    if (mode !== Mode.Timer) return
     setLoadingSubjectData(true)
-
     try {
-      const res =
-        mode === Mode.Timer
-          ? await getSubjectDataApi(isAdminOrNonAcademy, {
-              ...subjectDataRequest,
-              retrieveCumulative: false
-            })
-          : await getQuestionSubjectDataApi(selectedSubject!, {
-              ...subjectDataRequest,
-              retrieveCumulative: false
-            })
+      const res = await getSubjectDataApi(isAdminOrNonAcademy, {
+        ...subjectDataRequest,
+        retrieveCumulative: false
+      })
       setSubjectData(res.data)
     } catch (error) {
       toast.error(getErrorMessage(t, error))
+    } finally {
+      setLoadingSubjectData(false)
     }
-    setLoadingSubjectData(false)
   }
 
   const handleGetSubjectCumulativeData = async () => {
-    if (mode === Mode.Question && !selectedSubject) return
+    if (mode !== Mode.Timer) return
     setLoadingSubjectCumulativeData(true)
     try {
       const dataRequest = {
@@ -206,25 +208,20 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
         pTimes: [moment().startOf('day').valueOf(), moment().endOf('day').valueOf()],
         sTimes: [moment().add(-1, 'd').startOf('day').valueOf(), moment().add(-1, 'd').endOf('day').valueOf()]
       }
-      const res =
-        mode === Mode.Timer
-          ? await getSubjectDataApi(isAdminOrNonAcademy, {
-              ...dataRequest,
-              retrieveCumulative: true
-            })
-          : await getQuestionSubjectDataApi(selectedSubject!, {
-              ...dataRequest,
-              retrieveCumulative: true
-            })
-
+      const res = await getSubjectDataApi(isAdminOrNonAcademy, {
+        ...dataRequest,
+        retrieveCumulative: true
+      })
       setSubjectCumulativeData(res?.data)
     } catch (error) {
       toast.error(getErrorMessage(t, error))
+    } finally {
+      setLoadingSubjectCumulativeData(false)
     }
-    setLoadingSubjectCumulativeData(false)
   }
 
   const handleGetRankingData = async () => {
+    if (mode !== Mode.Timer) return
     setLoadingRankingData(true)
     try {
       const dataRequest = {
@@ -232,70 +229,80 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
         startTime: moment().startOf('day').valueOf(),
         endTime: moment().endOf('day').valueOf()
       }
-      const res =
-        mode === Mode.Timer
-          ? await getRankingDataApi(isAdminOrNonAcademy, dataRequest)
-          : await getQuestionRankingDataApi(dataRequest)
+      const res = await getRankingDataApi(isAdminOrNonAcademy, dataRequest)
       setRankingData(res.data)
     } catch (error) {
       toast.error(getErrorMessage(t, error))
+    } finally {
+      setLoadingRankingData(false)
     }
-    setLoadingRankingData(false)
   }
 
   const getSubjectList = async () => {
     if (mode !== Mode.Question) return
+    const reqId = ++subjectsReqRef.current
     setLoadingSubjects(true)
     try {
-      const res = await getSubjectListApi(isAdminOrNonAcademy)
-      setSubjects(res.data.items || [])
-      if (res.data.items && res.data.items.length > 0) {
-        setSelectedSubject(res.data.items[0]?.id)
-      }
+      const res = isAcademySpace
+        ? await getSubjectListApi(isAdminOrNonAcademy)
+        : await getPopQuizSubjectListApi()
+      if (reqId !== subjectsReqRef.current) return
+
+      const items: SubjectOptionItem[] = res.data?.items || []
+      setSubjects(items)
+      setSelectedSubject((prev) => {
+        if (items.length === 0) return undefined
+        if (prev !== undefined && items.some((item) => item.id === prev)) return prev
+        return items[0].id
+      })
     } catch (error) {
+      if (reqId !== subjectsReqRef.current) return
       setSubjects([])
       toast.error(getErrorMessage(t, error))
+    } finally {
+      if (reqId === subjectsReqRef.current) {
+        setLoadingSubjects(false)
+      }
     }
-    setLoadingSubjects(false)
-  }
-
-  const handleGetOverallData = async () => {
-    if (mode !== Mode.Question) return
-    setLoadingData(true)
-    try {
-      const res = await getQuestionOverallDataApi({
-        studentId,
-        startTime: moment().startOf('day').valueOf(),
-        endTime: moment().endOf('day').valueOf()
-      })
-      setOverallData(res.data)
-    } catch (error) {
-      toast.error(getErrorMessage(t, error))
-    }
-    setLoadingData(false)
   }
 
   const handleGetPerformanceData = async () => {
-    if (mode !== Mode.Question || !selectedSubject) return
+    if (mode !== Mode.Question || selectedSubject === undefined) return
+    const reqId = ++perfReqRef.current
     setLoadingSummary(true)
     setLoadingAnalysis(true)
     setLoadingWeakness(true)
 
     try {
-      const [summaryRes, analysisRes, weaknessRes] = await Promise.all([
-        getPerformanceSummaryApi(selectedSubject, subjectDataRequest as any),
-        getPerformanceAnalysisApi(selectedSubject, subjectDataRequest as any),
-        getPerformanceWeaknessApi(selectedSubject, { ...subjectDataRequest, topLimit: TOP_WEAKNESS_LIMIT } as any)
-      ])
+      const [summaryRes, analysisRes, weaknessRes] = isAcademySpace
+        ? await Promise.all([
+            getPerformanceSummaryApi(selectedSubject, subjectDataRequest),
+            getPerformanceAnalysisApi(selectedSubject, subjectDataRequest),
+            getPerformanceWeaknessApi(selectedSubject, { ...subjectDataRequest, topLimit: TOP_WEAKNESS_LIMIT })
+          ])
+        : await Promise.all([
+            getPopQuizPerformanceSummaryApi({ ...subjectDataRequest, subjectId: selectedSubject }),
+            getPopQuizPerformanceAnalysisApi({ ...subjectDataRequest, subjectId: selectedSubject }),
+            getPopQuizPerformanceWeaknessApi({
+              ...subjectDataRequest,
+              subjectId: selectedSubject,
+              topLimit: TOP_WEAKNESS_LIMIT
+            })
+          ])
+
+      if (reqId !== perfReqRef.current) return
       setSummaryData(summaryRes.data)
       setPerformanceData(analysisRes.data)
       setWeaknessData(weaknessRes.data)
     } catch (error) {
+      if (reqId !== perfReqRef.current) return
       toast.error(getErrorMessage(t, error))
     } finally {
-      setLoadingSummary(false)
-      setLoadingAnalysis(false)
-      setLoadingWeakness(false)
+      if (reqId === perfReqRef.current) {
+        setLoadingSummary(false)
+        setLoadingAnalysis(false)
+        setLoadingWeakness(false)
+      }
     }
   }
 
@@ -306,95 +313,80 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
    */
   const handleGetDailyData = async () => {
     if (mode !== Mode.Question) return
+    const reqId = ++dailyReqRef.current
     setLoadingDaily(true)
     try {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
-      const res = await getPerformanceDailyApi({ timezone: tz, studentId })
+      const res = isAcademySpace
+        ? await getPerformanceDailyApi({ timezone: tz, studentId })
+        : await getPopQuizPerformanceDailyApi({ timezone: tz, studentId })
+      if (reqId !== dailyReqRef.current) return
       setDailyData(res.data)
     } catch (error) {
+      if (reqId !== dailyReqRef.current) return
       toast.error(getErrorMessage(t, error))
     } finally {
-      setLoadingDaily(false)
-    }
-  }
-
-  const handleGetTodayData = async () => {
-    if (mode !== Mode.Question || !selectedSubject) return
-    setLoadingToday(true)
-    const now = moment().valueOf()
-    const todayReq = {
-      studentId,
-      pTimes: getDayTimestampArray(now),
-      sTimes: getDayTimestampArray(moment(now).subtract(1, 'day').valueOf())
-    }
-    try {
-      const res = await getPerformanceSummaryApi(selectedSubject, todayReq as any)
-      setTodayData(res.data?.today)
-    } catch (error) {
-      toast.error(getErrorMessage(t, error))
-    } finally {
-      setLoadingToday(false)
-    }
-  }
-
-  useEffect(() => {
-    if (!selectedSubject && mode === Mode.Question) return
-    handleGetTodayData()
-  }, [selectedSubject, load])
-
-  useEffect(() => {
-    if (!selectedSubject && mode === Mode.Question) return
-    
-    const fetchAll = async () => {
-      setLoadingData(true)
-      setLoadingSummary(true)
-      setLoadingAnalysis(true)
-      setLoadingWeakness(true)
-      setLoadingToday(true)
-      try {
-        await Promise.all([
-          handleGetData(),
-          handleGetSubjectData(),
-          handleGetPerformanceData()
-        ])
-      } finally {
-        setLoadingData(false)
+      if (reqId === dailyReqRef.current) {
+        setLoadingDaily(false)
       }
     }
-    
-    fetchAll()
-  }, [timeType, currentTime, selectedSubject, load])
+  }
+
+  // Clear cached data immediately when switching workspace, user account, or viewed student
+  useEffect(() => {
+    subjectsReqRef.current += 1
+    perfReqRef.current += 1
+    dailyReqRef.current += 1
+    setSubjects([])
+    setSelectedSubject(undefined)
+    setSummaryData(undefined)
+    setPerformanceData(undefined)
+    setWeaknessData(undefined)
+    setDailyData(undefined)
+  }, [user?.id, isAcademySpace, studentId])
 
   useEffect(() => {
+    if (mode === Mode.Timer) {
+      handleGetData()
+      handleGetSubjectData()
+      return
+    }
+    if (selectedSubject === undefined) return
+    handleGetPerformanceData()
+  }, [timeType, currentTime, selectedSubject, isAcademySpace, user?.id, studentId, load])
+
+  useEffect(() => {
+    if (mode !== Mode.Timer) return
     handleGetSubjectCumulativeData()
-  }, [selectedSubject, load])
+  }, [selectedSubject, isAcademySpace, user?.id, studentId, load])
 
   useEffect(() => {
-    handleGetRankingData()
+    if (mode === Mode.Timer) {
+      handleGetRankingData()
+      return
+    }
     getSubjectList()
-    handleGetOverallData()
-    // Fixed daily data: fetch once on focus/load, independent of subject
     handleGetDailyData()
-  }, [load])
+  }, [isAcademySpace, user?.id, studentId, load])
 
   useEffect(() => {
-    const isAnyLoading = loadingData || loadingSubjectData || loadingSubjectCumulativeData || loadingRankingData || loadingSubjects
-    let timeout: NodeJS.Timeout
-    
+    if (mode !== Mode.Timer) return
+    const isAnyLoading = loadingData || loadingSubjectData || loadingSubjectCumulativeData || loadingRankingData
+    let timeout: ReturnType<typeof setTimeout>
+
     if (isAnyLoading) {
       timeout = setTimeout(() => {
         setLoadingData(false)
         setLoadingSubjectData(false)
         setLoadingSubjectCumulativeData(false)
         setLoadingRankingData(false)
-        setLoadingSubjects(false)
       }, 10000)
     }
 
     return () => {
       if (timeout) clearTimeout(timeout)
     }
-  }, [loadingData, loadingSubjectData, loadingSubjectCumulativeData, loadingRankingData, loadingSubjects])
+  }, [mode, loadingData, loadingSubjectData, loadingSubjectCumulativeData, loadingRankingData])
 
   useFocusEffect(
     useCallback(() => {
@@ -405,39 +397,40 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
   const studyTimeDistributionData: StudyTimeDistribution[] = useMemo(() => {
     if (!subjectData || !subjectData.pData) return []
 
-    const cloneSubjectData = _.clone(subjectData)
-    if (mode === Mode.Question) {
+    if (mode === Mode.Question && 'categories' in subjectData) {
+      const qPData = subjectData.pData as QuestionData[]
       const total =
-        cloneSubjectData?.pData?.reduce(
-          (acc: number, cur: StudyTimeDistribution) => acc + (cur?.totalAnsweredQuestions || 0),
-          0
-        ) || 1
-      return cloneSubjectData?.categories
-        ?.map((cat: Category, idx: number) => ({
+        qPData.reduce((acc, cur) => acc + (cur?.totalAnsweredQuestions || 0), 0) || 1
+      return subjectData.categories
+        .map((cat: Category, idx: number) => ({
           ...cat,
-          ...cloneSubjectData?.pData[idx],
-          correctRate: roundTo(cloneSubjectData.pData[idx]?.correctRate || 0, 2),
-          percentage: roundTo(((cloneSubjectData.pData[idx]?.totalAnsweredQuestions || 0) / (total || 1)) * 100, 4)
+          ...(qPData[idx] || {}),
+          change: 0,
+          correctRate: roundTo(qPData[idx]?.correctRate || 0, 2),
+          percentage: roundTo(((qPData[idx]?.totalAnsweredQuestions || 0) / total) * 100, 4)
         }))
-        ?.sort((a: StudyTimeDistribution, b: StudyTimeDistribution) => (b?.correctRate || 0) - (a?.correctRate || 0))
-    } else {
-      const total = cloneSubjectData.pData.reduce((acc: number, cur: number) => acc + cur, 0) || 1
-
-      return cloneSubjectData.subjects
-        .map((subject: Subject, idx: number) => {
-          const current = cloneSubjectData.pData[idx] || 0
-          const previous = cloneSubjectData.sData?.[idx] || 0
-          return {
-            ...subject,
-            hours: current / MILLISECONDS_PER_HOUR,
-            lastHours: previous / MILLISECONDS_PER_HOUR,
-            change: current / MILLISECONDS_PER_HOUR - previous / MILLISECONDS_PER_HOUR,
-            percentage: roundTo((current / (total || 1)) * 100, 4)
-          }
-        })
-        .sort((a: StudyTimeDistribution, b: StudyTimeDistribution) => (b?.hours || 0) - (a?.hours || 0))
+        .sort((a: StudyTimeDistribution, b: StudyTimeDistribution) => (b?.correctRate || 0) - (a?.correctRate || 0))
     }
-  }, [JSON.stringify(subjectData), mode])
+
+    if (!('subjects' in subjectData)) return []
+    const numericPData = subjectData.pData as number[]
+    const numericSData = subjectData.sData as number[]
+    const total = numericPData.reduce((acc, cur) => acc + cur, 0) || 1
+
+    return subjectData.subjects
+      .map((subject: Subject, idx: number) => {
+        const current = numericPData[idx] || 0
+        const previous = numericSData?.[idx] || 0
+        return {
+          ...subject,
+          hours: current / MILLISECONDS_PER_HOUR,
+          lastHours: previous / MILLISECONDS_PER_HOUR,
+          change: current / MILLISECONDS_PER_HOUR - previous / MILLISECONDS_PER_HOUR,
+          percentage: roundTo((current / total) * 100, 4)
+        }
+      })
+      .sort((a: StudyTimeDistribution, b: StudyTimeDistribution) => (b?.hours || 0) - (a?.hours || 0))
+  }, [subjectData, mode])
 
   const categoryStudyTimeCharts = useMemo(() => {
     switch (timeType) {
@@ -471,15 +464,11 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
       case 1:
         return `${t('week_of_month', {
           week: getWeekOfMonth(moment().month(currentTime).startOf('month')),
-          monthName: moment()
-            .month(currentTime)
-            .format('MMM'),
+          monthName: moment().month(currentTime).format('MMM'),
           month: currentTime + 1
         })} ~${t('week_of_month', {
-          week:getWeekOfMonth(moment().month(currentTime).endOf('month')),
-          monthName: moment()
-            .month(currentTime)
-            .format('MMM'),
+          week: getWeekOfMonth(moment().month(currentTime).endOf('month')),
+          monthName: moment().month(currentTime).format('MMM'),
           month: currentTime + 1
         })}`
       case 2:
@@ -489,11 +478,11 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
       default:
         return ''
     }
-  }, [timeType, currentTime, currentTimeOptions])
+  }, [timeType, currentTime, currentTimeOptions, t])
 
   const titleTooltipChart = useMemo(() => {
     switch (timeType) {
-      case 0:
+      case 0: {
         const month = moment().month()
         const prevTime = moment().isoWeek(currentTime - 1)
         const isSameMonth = prevTime.month() === month
@@ -505,13 +494,11 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
             month
           })
         }
-
+      }
       case 1:
         return {
           pTitle: moment().month(currentTime).format('MMM'),
-          sTitle: moment()
-            .month(currentTime - 1)
-            .format('MMM')
+          sTitle: moment().month(currentTime - 1).format('MMM')
         }
       case 2:
         return {
@@ -526,7 +513,7 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
       default:
         return {}
     }
-  }, [timeType, currentTime, t, labelStudyTimeChart, timeTypes])
+  }, [timeType, currentTime, t, labelStudyTimeChart])
 
   const labelComparisonChart = useMemo(() => {
     switch (timeType) {
@@ -543,53 +530,55 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
     }
   }, [timeType, t])
 
-  const getColorSubjects = () => {
+  const colorSubjects = useMemo(() => {
+    if (mode === Mode.Question) return getRandomColors(studyTimeDistributionData.length)
     return studyTimeDistributionData.map((i) => {
       if (i.color) return i.color
-      else {
-        const [r, g, b] = getRandomRGB()
-        return rgbToHex(r, g, b)
-      }
+      const [r, g, b] = getRandomRGB()
+      return rgbToHex(r, g, b)
     })
-  }
-
-  const colorSubjects = useMemo(
-    () => (mode === Mode.Question ? getRandomColors(studyTimeDistributionData?.length || 0) : getColorSubjects()),
-    [JSON.stringify(studyTimeDistributionData), mode]
-  )
+  }, [studyTimeDistributionData, mode])
 
   const subjectStudyTimeData = useMemo(() => {
     if (!subjectCumulativeData) return []
 
-    if (mode === Mode.Question) {
-      const data = subjectCumulativeData?.categories?.map((item: SubjectDataQuestionResponse, index: number) => ({
+    if (mode === Mode.Question && 'categories' in subjectCumulativeData) {
+      const qPData = subjectCumulativeData.pData as QuestionData[]
+      const qSData = subjectCumulativeData.sData as QuestionData[]
+      return subjectCumulativeData.categories.map((item, index) => ({
         ...item,
-        ...subjectCumulativeData?.pData?.[index],
+        ...(qPData?.[index] || {}),
         change:
-          (subjectCumulativeData?.pData?.[index]?.totalAnsweredQuestions || 0) -
-          (subjectCumulativeData?.sData?.[index]?.totalAnsweredQuestions || 0)
+          (qPData?.[index]?.totalAnsweredQuestions || 0) -
+          (qSData?.[index]?.totalAnsweredQuestions || 0)
       }))
-      return data
-    } else {
-      const data = subjectCumulativeData?.subjects?.map((item: SubjectDataNumberResponse, index: number) => ({
-        ...item,
-        hours: subjectCumulativeData.pData[index] / MILLISECONDS_PER_HOUR,
-
-        lastHours: subjectCumulativeData.sData[index] / MILLISECONDS_PER_HOUR,
-        change:
-          subjectCumulativeData.pData[index] / MILLISECONDS_PER_HOUR -
-          subjectCumulativeData.sData[index] / MILLISECONDS_PER_HOUR
-      }))
-      return data
     }
-  }, [JSON.stringify(subjectCumulativeData), mode])
+
+    if (!('subjects' in subjectCumulativeData)) return []
+    const numericPData = subjectCumulativeData.pData as number[]
+    const numericSData = subjectCumulativeData.sData as number[]
+    return subjectCumulativeData.subjects.map((item, index) => ({
+      ...item,
+      hours: (numericPData?.[index] || 0) / MILLISECONDS_PER_HOUR,
+      lastHours: (numericSData?.[index] || 0) / MILLISECONDS_PER_HOUR,
+      change: ((numericPData?.[index] || 0) - (numericSData?.[index] || 0)) / MILLISECONDS_PER_HOUR
+    }))
+  }, [subjectCumulativeData, mode])
+
+  const subjectOptions = useMemo(
+    () =>
+      subjects.map((s) => ({
+        label: s.id === 0 ? t('filter_all', s.name) : s.name,
+        value: s.id
+      })),
+    [subjects, t]
+  )
 
   const isDisableNavigation = useCallback(
     (time: number, type: 'PREVIOUS' | 'NEXT' = 'PREVIOUS') => {
       if (type === 'PREVIOUS') {
         return time === currentTimeOptions[0]?.value
       }
-
       return time === currentTimeOptions[currentTimeOptions.length - 1]?.value
     },
     [currentTimeOptions]
@@ -597,7 +586,7 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
 
   const handlePrevious = () => {
     if (isDisableNavigation(currentTime, 'PREVIOUS')) return
-    const currentIndex = currentTimeOptions.findIndex((i: any) => i.value === currentTime)
+    const currentIndex = currentTimeOptions.findIndex((i) => i.value === currentTime)
     if (currentIndex > 0) {
       handleChangeCurrentTime(currentTimeOptions[currentIndex - 1].value)
     }
@@ -605,7 +594,7 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
 
   const handleNext = () => {
     if (isDisableNavigation(currentTime, 'NEXT')) return
-    const currentIndex = currentTimeOptions.findIndex((i: any) => i.value === currentTime)
+    const currentIndex = currentTimeOptions.findIndex((i) => i.value === currentTime)
     if (currentIndex >= 0 && currentIndex < currentTimeOptions.length - 1) {
       handleChangeCurrentTime(currentTimeOptions[currentIndex + 1].value)
     }
@@ -624,7 +613,7 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
     loadingData,
     visible,
     handleToggle,
-    studyTimeDistributionData: _.clone(studyTimeDistributionData),
+    studyTimeDistributionData,
     loadingSubjectData,
     loadingRankingData,
     subjectStudyTimeData,
@@ -639,27 +628,21 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
     isDisableNavigation,
     handleChangeTimeType,
     handleChangeCurrentTime,
-    ...(mode === Mode.Question && {
-      overallData,
-      subjectOptions: subjects?.map((s) => ({
-        label: s.name,
-        value: s.id
-      })),
-      currentTimeOptions,
-      selectedSubject,
-      handleChangeSubject,
-      summaryData,
-      performanceData,
-      weaknessData,
-      todayData,
-      subjectDataRequest,
-      loadingSummary,
-      loadingAnalysis,
-      loadingWeakness,
-      loadingToday,
-      dailyData,
-      loadingDaily
-    })
+    subjectOptions,
+    currentTimeOptions,
+    selectedSubject,
+    handleChangeSubject,
+    summaryData,
+    performanceData,
+    weaknessData,
+    todayData: dailyData?.today ?? summaryData?.today ?? null,
+    subjectDataRequest,
+    loadingSummary,
+    loadingAnalysis,
+    loadingWeakness,
+    loadingToday: loadingDaily,
+    dailyData,
+    loadingDaily
   }
 }
 

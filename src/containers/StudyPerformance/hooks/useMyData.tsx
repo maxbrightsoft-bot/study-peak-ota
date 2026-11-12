@@ -23,9 +23,10 @@ const useMyData = () => {
   const setLoadingWithoutOverlay = useAuthStore(state => state.setLoadingWithoutOverlay)
   const academyDomain = user?.academyDomain
   const isSuperAdmin = useMemo(() => (user?.roles || []).includes(Role.Admin) && !academyDomain, [user?.roles, academyDomain])
-  const isLearningSpace = user?.isLearningSpace
+  const isLearningSpace = Boolean(user?.isLearningSpace)
   const isAcademy = isLearningSpace || !!academyDomain
   const isAdminOrNonAcademy = !isAcademy || isSuperAdmin
+  const isAcademySpace = useMemo(() => !!academyDomain && !isLearningSpace, [academyDomain, isLearningSpace])
   const contentRef = useRef<FlatList>(null)
   const { t } = useTranslation()
   const [selected, setSelected] = useState(TabList[0].value)
@@ -353,7 +354,9 @@ const useMyData = () => {
     handleRemoveImage,
     handleOpenCreateNote,
     handleCloseCreateNote,
-    isAdminOrNonAcademy
+    isAdminOrNonAcademy,
+    isSuperAdmin,
+    isAcademySpace
   }
 }
 

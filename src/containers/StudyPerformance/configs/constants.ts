@@ -7,6 +7,10 @@ export const StudySpaceTabList = [
     value: 0
   },
   {
+    label: 'performance_data',
+    value: 1
+  },
+  {
     label: 'review_wrong_answer_notes',
     value: 2
   }

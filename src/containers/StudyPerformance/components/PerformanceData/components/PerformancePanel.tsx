@@ -1,18 +1,23 @@
-import React, { useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { View, Text, TouchableOpacity } from 'react-native'
 import { ms } from 'react-native-size-matters'
 import { LinearGradient } from 'expo-linear-gradient'
+import { TFunction } from 'i18next'
 import { ss } from '../styles/styles'
 import { EmptyState, getCategoryLabel, getChartBarLabel, getClampedPercent, getPrefix } from '../configs/utils'
+import { PerformanceAnalysisResponse, PerformanceDailyResponse } from '../../../configs/types'
 
 type PerformancePanelProps = {
-  data: any
-  t: any
+  data: PerformanceAnalysisResponse
+  t: TFunction
   timeType: number
   periodDelta?: number | null
   /** Fixed peer comparison data (all subjects, this week). Overrides data.peer when provided. */
-  dailyPeer?: any
+  dailyPeer?: PerformanceDailyResponse['peer']
 }
+
+const PALETTE = ['#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#3B82F6']
+const TEXT_PALETTE = ['#065F46', '#92400E', '#991B1B', '#4C1D95', '#1E3A5F']
 
 const getGradeShortKey = (gradeVal: number | null | undefined): string => {
   if (!gradeVal) return ''
@@ -38,26 +43,51 @@ const PerformancePanel = ({ data, t, timeType, periodDelta, dailyPeer }: Perform
   const peer = dailyPeer ?? data?.peer
   const [selectedBarIdx, setSelectedBarIdx] = useState<number | null>(null)
   const [selectedCatIdx, setSelectedCatIdx] = useState<number | null>(null)
-  const PALETTE = ['#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#3B82F6']
-  const TEXT_PALETTE = ['#065F46', '#92400E', '#991B1B', '#4C1D95', '#1E3A5F']
-  const achievementChart = data?.achievementChart || []
-  const categoryDistribution = [...(data?.mainCategoryDistribution || [])].sort((a, b) => (b.percentage || 0) - (a.percentage || 0))
+
+  useEffect(() => {
+    setSelectedBarIdx(null)
+    setSelectedCatIdx(null)
+  }, [data])
+
+  const achievementChart = useMemo(
+    () => data?.achievementChart || [],
+    [data?.achievementChart]
+  )
   const subCategoryAccuracy = data?.subCategoryAccuracy || []
 
-  const catColors: Record<number, { bg: string; text: string }> = {}
-  if (categoryDistribution.length) {
-    categoryDistribution.forEach((cat: any, idx: number) => {
-      catColors[cat.categoryId] = {
-        bg: PALETTE[idx % PALETTE.length],
-        text: TEXT_PALETTE[idx % TEXT_PALETTE.length]
+  const maxBarValue = useMemo(
+    () => Math.max(...achievementChart.map((d) => Math.max(d.student || 0, d.classAvg || 0)), 1),
+    [achievementChart]
+  )
+
+  const categoryDistribution = useMemo(
+    () => [...(data?.mainCategoryDistribution || [])].sort((a, b) => (b.percentage || 0) - (a.percentage || 0)),
+    [data?.mainCategoryDistribution]
+  )
+
+  const catColors = useMemo(() => {
+    const map: Record<number, { bg: string; text: string }> = {}
+    categoryDistribution.forEach((cat, idx) => {
+      if (cat.categoryId !== undefined) {
+        map[cat.categoryId] = {
+          bg: PALETTE[idx % PALETTE.length],
+          text: TEXT_PALETTE[idx % TEXT_PALETTE.length]
+        }
       }
     })
-  }
+    return map
+  }, [categoryDistribution])
+
+  const selectedBar = selectedBarIdx !== null ? achievementChart[selectedBarIdx] : undefined
+  const selectedCat = selectedCatIdx !== null ? categoryDistribution[selectedCatIdx] : undefined
 
   const gradeKey = getGradeShortKey(peer?.grade)
   const gradeLabel = gradeKey
     ? t('grade_average_format', { grade: t(gradeKey), defaultValue: `${t(gradeKey)} 평균` })
     : (peer?.gradeLabel || t('perf.gradeAvg'))
+
+  const periodPrefix = getPrefix(timeType)
+  const thisPeriodKey = `perf.this${periodPrefix.charAt(0).toUpperCase()}${periodPrefix.slice(1)}`
 
   return (
     <View style={ss.panel}>
@@ -71,16 +101,13 @@ const PerformancePanel = ({ data, t, timeType, periodDelta, dailyPeer }: Perform
         <View style={[ss.card, ss.chartCard]}>
           <View style={ss.chartHead}>
             <View style={ss.chartPill}>
-              <Text style={ss.chartPillText}>{t(`perf.${getPrefix(timeType)}`, t('perf.month'))}</Text>
+              <Text style={ss.chartPillText}>{t(`perf.${periodPrefix}`, t('perf.month'))}</Text>
             </View>
             <View style={ss.chartLegend}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <View style={[ss.chartLegendIco, ss.chartLegendCurr]} />
                 <Text style={ss.chartLegendText}>
-                  {t(
-                    `perf.this${getPrefix(timeType).charAt(0).toUpperCase() + getPrefix(timeType).slice(1)}`,
-                    t('perf.thisMonth')
-                  )}
+                  {t(thisPeriodKey, t('perf.thisMonth'))}
                 </Text>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: ms(10) }}>
@@ -90,7 +117,7 @@ const PerformancePanel = ({ data, t, timeType, periodDelta, dailyPeer }: Perform
             </View>
           </View>
           <View style={[ss.bars, { overflow: 'visible', position: 'relative' }]}>
-            {selectedBarIdx !== null && (
+            {selectedBar && selectedBarIdx !== null && (
               <View
                 style={{
                   position: 'absolute',
@@ -118,7 +145,7 @@ const PerformancePanel = ({ data, t, timeType, periodDelta, dailyPeer }: Perform
                   }}
                 >
                   <Text style={{ color: '#FFFFFF', fontSize: ms(10.5), fontWeight: '700', textAlign: 'center' }}>
-                    {getChartBarLabel(timeType, achievementChart[selectedBarIdx].timestamp, selectedBarIdx, t)}  ·  {t('perf.myAcc', 'My')}: {achievementChart[selectedBarIdx].student}  ·  {t('perf.classAvg', 'Avg')}: {achievementChart[selectedBarIdx].classAvg}
+                    {getChartBarLabel(timeType, selectedBar.timestamp, selectedBarIdx, t)}  ·  {t('perf.myAcc', 'My')}: {selectedBar.student}  ·  {t('perf.classAvg', 'Avg')}: {selectedBar.classAvg}
                   </Text>
                   <View
                     style={{
@@ -139,10 +166,9 @@ const PerformancePanel = ({ data, t, timeType, periodDelta, dailyPeer }: Perform
                 </View>
               </View>
             )}
-            {achievementChart.map((item: any, idx: number) => {
-              const max = Math.max(...achievementChart.map((d: any) => Math.max(d.student, d.classAvg)), 1)
-              const ch = (item.student / max) * 100
-              const pc = (item.classAvg / max) * 100
+            {achievementChart.map((item, idx) => {
+              const ch = (item.student / maxBarValue) * 100
+              const pc = (item.classAvg / maxBarValue) * 100
               const isSelected = selectedBarIdx === idx
               return (
                 <TouchableOpacity
@@ -158,7 +184,7 @@ const PerformancePanel = ({ data, t, timeType, periodDelta, dailyPeer }: Perform
             })}
           </View>
           <View style={ss.barLabels}>
-            {achievementChart.map((item: any, idx: number) => (
+            {achievementChart.map((item, idx) => (
               <Text key={idx} style={ss.barLabel}>
                 {getChartBarLabel(timeType, item.timestamp, idx, t)}
               </Text>
@@ -182,7 +208,7 @@ const PerformancePanel = ({ data, t, timeType, periodDelta, dailyPeer }: Perform
         </View>
         <View style={[ss.card, ss.catCard]}>
           <View style={[ss.catBar, { overflow: 'visible', position: 'relative' }]}>
-            {selectedCatIdx !== null && categoryDistribution[selectedCatIdx] && (
+            {selectedCat && (
               <View
                 style={{
                   position: 'absolute',
@@ -210,7 +236,7 @@ const PerformancePanel = ({ data, t, timeType, periodDelta, dailyPeer }: Perform
                   }}
                 >
                   <Text style={{ color: '#FFFFFF', fontSize: ms(10.5), fontWeight: '700', textAlign: 'center' }}>
-                    {getCategoryLabel(categoryDistribution[selectedCatIdx])}  ·  {t('n_problems_solved', { n: categoryDistribution[selectedCatIdx].solved, defaultValue: `${categoryDistribution[selectedCatIdx].solved}문제 풀이` })}
+                    {getCategoryLabel(selectedCat)}  ·  {t('n_problems_solved', { n: selectedCat.solved, defaultValue: `${selectedCat.solved}문제 풀이` })}
                   </Text>
                   <View
                     style={{
@@ -231,8 +257,11 @@ const PerformancePanel = ({ data, t, timeType, periodDelta, dailyPeer }: Perform
                 </View>
               </View>
             )}
-            {categoryDistribution.map((cat: any, idx: number) => {
-              const colors = catColors[cat.categoryId] || { bg: '#ccc', text: '#333' }
+            {categoryDistribution.map((cat, idx) => {
+              const colors = (cat.categoryId !== undefined && catColors[cat.categoryId]) || {
+                bg: PALETTE[idx % PALETTE.length],
+                text: TEXT_PALETTE[idx % TEXT_PALETTE.length]
+              }
               const isSelected = selectedCatIdx === idx
               return (
                 <TouchableOpacity
@@ -247,8 +276,11 @@ const PerformancePanel = ({ data, t, timeType, periodDelta, dailyPeer }: Perform
             })}
           </View>
           <View style={{ flexDirection: 'row', gap: ms(2) }}>
-            {categoryDistribution.map((cat: any, idx: number) => {
-              const colors = catColors[cat.categoryId] || { bg: '#ccc', text: '#333' }
+            {categoryDistribution.map((cat, idx) => {
+              const colors = (cat.categoryId !== undefined && catColors[cat.categoryId]) || {
+                bg: PALETTE[idx % PALETTE.length],
+                text: TEXT_PALETTE[idx % TEXT_PALETTE.length]
+              }
               const isSelected = selectedCatIdx === idx
               return (
                 <TouchableOpacity
@@ -297,7 +329,7 @@ const PerformancePanel = ({ data, t, timeType, periodDelta, dailyPeer }: Perform
             </View>
           </View>
 
-          {subCategoryAccuracy.map((row: any, idx: number) => {
+          {subCategoryAccuracy.map((row, idx) => {
             let barColors: [string, string] = ['#FCA5A5', '#F87171']
             if (row.accuracy >= 70) barColors = ['#34D399', '#10B981']
             else if (row.accuracy >= 50) barColors = ['#FBBF24', '#F59E0B']
@@ -430,7 +462,6 @@ const PerformancePanel = ({ data, t, timeType, periodDelta, dailyPeer }: Perform
           </View>
         </View>
       )}
-
     </View>
   )
 }

@@ -46,7 +46,6 @@ const MyDataContent = ({
     contentRef,
     examOptions,
     courseOptions,
-    academyDomain,
     handleChangeCourse,
     questionOptions,
     handleSaveNote,
@@ -62,7 +61,8 @@ const MyDataContent = ({
     handleReadyPrint,
     handleChangeTab,
     handleRemoveImage,
-    isAdminOrNonAcademy
+    isSuperAdmin,
+    isAcademySpace
   } = useMyData()
 
   return (
@@ -124,7 +124,7 @@ const MyDataContent = ({
 
         <View style={styles.headerRight}>
           <HeaderAction />
-          {!!academyDomain && !isParentMode && <TouchableOpacity onPress={() => handleOpenCreateNote()}>
+          {isAcademySpace && !isParentMode && <TouchableOpacity onPress={() => handleOpenCreateNote()}>
             <AddChatIcon width={24} height={24} color="#222222" />
           </TouchableOpacity>}
         </View>
@@ -132,8 +132,8 @@ const MyDataContent = ({
       </View>
 
       <View style={styles.tabs}>
-        {(!!academyDomain ? TabList : StudySpaceTabList).map(({ label, value }, index) => {
-          if (value === 1 && isAdminOrNonAcademy) return null
+        {(isAcademySpace ? TabList : StudySpaceTabList).map(({ label, value }, index) => {
+          if (value === 1 && isSuperAdmin) return null
 
           const active = value === selected
 

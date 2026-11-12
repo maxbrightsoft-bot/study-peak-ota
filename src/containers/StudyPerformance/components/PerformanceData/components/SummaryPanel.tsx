@@ -1,25 +1,67 @@
 import { palette } from '@/theme'
-import React, { useState } from 'react'
-import { View, Text, TouchableOpacity } from 'react-native'
+import React, { useEffect, useMemo, useState } from 'react'
+import { View, Text, TouchableOpacity, StyleProp, ViewStyle } from 'react-native'
 import { ms } from 'react-native-size-matters'
 import { LinearGradient } from 'expo-linear-gradient'
 import moment from 'moment'
+import { TFunction } from 'i18next'
 import { ss } from '../styles/styles'
 import { EmptyState, tPeriod, getCategoryLabel, getStrengthLabel } from '../configs/utils'
+import {
+  PerformanceSummaryResponse,
+  PerformanceTodaySummary,
+  PerformanceWeekActivityItem,
+} from '../../../configs/types'
 
 type SummaryPanelProps = {
-  data: any
-  todayData: any
-  dailyWeekActivity?: any[]
-  t: any
+  data: PerformanceSummaryResponse
+  todayData?: PerformanceTodaySummary | null
+  dailyWeekActivity?: PerformanceWeekActivityItem[]
+  dailyWeekTotalProblems?: number
+  dailyWeekTotalTime?: number
+  t: TFunction
   timeType: number
   loadingSummary: boolean
 }
 
-const SummaryPanel = ({ data, todayData, dailyWeekActivity, t, timeType, loadingSummary }: SummaryPanelProps) => {
+const SummaryPanel = ({
+  data,
+  todayData,
+  dailyWeekActivity,
+  dailyWeekTotalProblems,
+  dailyWeekTotalTime,
+  t,
+  timeType,
+  loadingSummary
+}: SummaryPanelProps) => {
   const today = todayData || data?.today
   const [tappedDotIdx, setTappedDotIdx] = useState<number | null>(null)
-  const weekActivity = dailyWeekActivity ?? data?.weekActivity ?? []
+  const weekActivity = useMemo(
+    () => dailyWeekActivity ?? data?.weekActivity ?? [],
+    [dailyWeekActivity, data?.weekActivity]
+  )
+
+  useEffect(() => {
+    setTappedDotIdx(null)
+  }, [data, dailyWeekActivity])
+
+  const daysMap = useMemo(
+    () => [
+      t('sunday'),
+      t('monday'),
+      t('tuesday'),
+      t('wednesday'),
+      t('thursday'),
+      t('friday'),
+      t('saturday')
+    ],
+    [t]
+  )
+
+  const activeWeekDaysCount = useMemo(
+    () => weekActivity.filter((d) => d.level > 0).length,
+    [weekActivity]
+  )
 
   if (!today || !data?.period) {
     return (
@@ -29,6 +71,9 @@ const SummaryPanel = ({ data, todayData, dailyWeekActivity, t, timeType, loading
       />
     )
   }
+
+  const weekTotalProblems = dailyWeekTotalProblems ?? data.weekTotalProblems ?? 0
+  const weekTotalTime = dailyWeekTotalTime ?? data.weekTotalTime ?? 0
 
   return (
     <View style={ss.panel}>
@@ -142,16 +187,18 @@ const SummaryPanel = ({ data, todayData, dailyWeekActivity, t, timeType, loading
               <View>
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
                   <Text style={[ss.statCardValue, ss.statStrongValue]}>
-                    {(data.period.strongestCategory.subCategoryName || data.period.strongestCategory.categoryName)}
+                    {data.period.strongestCategory.subCategoryName || data.period.strongestCategory.categoryName}
                   </Text>
                   <Text style={[ss.pctRight, { color: '#065F46' }]}>{data.period.strongestCategory.accuracy}%</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: ms(4) }}>
-                  <View style={{ backgroundColor: '#D1D5DB', paddingHorizontal: ms(6), paddingVertical: ms(2), borderRadius: ms(4), marginRight: ms(4) }}>
-                    <Text style={{ fontSize: ms(11), fontWeight: '600', color: '#4B5563' }}>
-                        {t('n_problems_solved', { n: data.period.strongestCategory.total, defaultValue: '{{n}}문제 풀이' })}
-                    </Text>
-                  </View>
+                  {data.period.strongestCategory.total !== undefined && (
+                    <View style={{ backgroundColor: '#D1D5DB', paddingHorizontal: ms(6), paddingVertical: ms(2), borderRadius: ms(4), marginRight: ms(4) }}>
+                      <Text style={{ fontSize: ms(11), fontWeight: '600', color: '#4B5563' }}>
+                        {t('n_problems_solved', { n: data.period.strongestCategory.total, defaultValue: `${data.period.strongestCategory.total}문제 풀이` })}
+                      </Text>
+                    </View>
+                  )}
                   {data.period.strongestCategory.sampleSizeWarning && (
                     <View style={ss.sampleBadgeMini}>
                       <Text style={ss.sampleBadgeMiniText}>{tPeriod(t, timeType, 'smallSample')}</Text>
@@ -188,7 +235,7 @@ const SummaryPanel = ({ data, todayData, dailyWeekActivity, t, timeType, loading
                 )}
               </Text>
               <View style={ss.strengthPills}>
-                {(data.strengths || []).map((pill: any, idx: number) => (
+                {(data.strengths || []).map((pill, idx) => (
                   <View key={idx} style={ss.strengthPill}>
                     <Text style={ss.strengthPillText}>{getStrengthLabel(pill)}</Text>
                   </View>
@@ -206,13 +253,13 @@ const SummaryPanel = ({ data, todayData, dailyWeekActivity, t, timeType, loading
             <Text style={ss.sectionTitle}>{t('week.activity')}</Text>
           </View>
           <Text style={ss.sectionHint}>
-            {(dailyWeekActivity ?? data?.weekActivity ?? []).filter((d: any) => d.level > 0).length} / 7 {t('week.days')}
+            {activeWeekDaysCount} / 7 {t('week.days')}
           </Text>
         </View>
         <View style={[ss.card, ss.weekCard]}>
           <View style={ss.weekDots}>
-            {weekActivity.map((wd: any, idx: number) => {
-              let dotStyle: any = ss.wdDot
+            {weekActivity.map((wd, idx) => {
+              let dotStyle: StyleProp<ViewStyle> = ss.wdDot
               if (wd.level === 1) dotStyle = [ss.wdDot, { backgroundColor: '#E5DFFC' }]
               else if (wd.level === 2) dotStyle = [ss.wdDot, { backgroundColor: '#AFA9EC' }]
               else if (wd.level === 3) dotStyle = [ss.wdDot, { backgroundColor: palette.main[500] }]
@@ -238,17 +285,7 @@ const SummaryPanel = ({ data, todayData, dailyWeekActivity, t, timeType, loading
                 }
               }
 
-              const daysMap = [
-                t('sunday'),
-                t('monday'),
-                t('tuesday'),
-                t('wednesday'),
-                t('thursday'),
-                t('friday'),
-                t('saturday')
-              ]
               const dayText = daysMap[moment(wd.timestamp).day()] || ''
-
               const count = wd.count ?? 0
               return (
                 <TouchableOpacity
@@ -259,7 +296,7 @@ const SummaryPanel = ({ data, todayData, dailyWeekActivity, t, timeType, loading
                 >
                   <Text style={[ss.wdDow, wd.today && { color: palette.main[500], fontWeight: '700' }]}>{dayText}</Text>
                   <View style={wd.today && wd.level === 3 ? ss.wdDotTodayLv3Wrap : null}>
-                    <View style={dotStyle as any} />
+                    <View style={dotStyle} />
                   </View>
                   {tappedDotIdx === idx && count > 0 && (
                     <View style={{
@@ -283,13 +320,13 @@ const SummaryPanel = ({ data, todayData, dailyWeekActivity, t, timeType, loading
             <Text style={ss.weekSummaryText}>
               {t('perf.summaryPre')}{' '}
               <Text style={{ color: palette.grey[900], fontWeight: '700' }}>
-                {data.weekTotalProblems}{t('problems')}
+                {weekTotalProblems}{t('problems')}
               </Text>
               {' · '}
               <Text style={{ color: palette.grey[900], fontWeight: '700' }}>
-                {Math.floor(data.weekTotalTime / 3600000) > 0
-                  ? `${Math.floor(data.weekTotalTime / 3600000)}${t('hour_h')} ${Math.floor((data.weekTotalTime % 3600000) / 60000)}${t('minutes')}`
-                  : `${Math.floor(data.weekTotalTime / 60000)}${t('minutes')}`}
+                {Math.floor(weekTotalTime / 3600000) > 0
+                  ? `${Math.floor(weekTotalTime / 3600000)}${t('hour_h')} ${Math.floor((weekTotalTime % 3600000) / 60000)}${t('minutes')}`
+                  : `${Math.floor(weekTotalTime / 60000)}${t('minutes')}`}
               </Text>
             </Text>
           </View>
