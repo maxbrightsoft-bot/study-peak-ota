@@ -24,6 +24,7 @@ interface SearchSelectModalProps {
   title?: string
   loading?: boolean
   searchValue?: string
+  zIndex?: number
 }
 
 const SearchSelectModal: React.FC<SearchSelectModalProps> = ({
@@ -35,7 +36,8 @@ const SearchSelectModal: React.FC<SearchSelectModalProps> = ({
   placeholder,
   title,
   loading,
-  searchValue
+  searchValue,
+  zIndex = 10000
 }) => {
   const { t } = useTranslation()
   const [searchText, setSearchText] = useState('')
@@ -74,7 +76,7 @@ const SearchSelectModal: React.FC<SearchSelectModalProps> = ({
   )
 
   return (
-    <SlideDrawerRoot visible={visible} onClose={onClose} position="right">
+    <SlideDrawerRoot visible={visible} onClose={onClose} position="right" zIndex={zIndex}>
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.backBtn}>

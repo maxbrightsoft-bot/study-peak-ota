@@ -6,10 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { registerAccountApi } from '@/services'
 import useAuthStore from '@/store/useAuthStore'
 import { getErrorMessage, toast } from '@/utils/helpers'
-import { LoginEmailRequest } from '@/utils/types'
-import { Role } from '@/utils/enums'
-import useLogin from './useLogin'
-import { apiLoginEmail } from '../apiClients/accountService'
+import { LoginAccountMode } from '../configs/types'
 
 type RegisterValues = {
   email: string
@@ -26,10 +23,17 @@ type RegisterValues = {
 
 export const TOTAL_REGISTER_STEPS = 4
 
-const useRegisterEmail = ({ mode, setMode }: { mode: "login" | "register", setMode: React.Dispatch<React.SetStateAction<"login" | "register">> }) => {
+const useRegisterEmail = ({
+  mode,
+  setMode,
+  onSuccess,
+}: {
+  mode: LoginAccountMode;
+  setMode: React.Dispatch<React.SetStateAction<LoginAccountMode>>;
+  onSuccess?: (email: string) => void;
+}) => {
   const setLoading = useAuthStore(state => state.setLoading)
   const [registerStep, setRegisterStep] = useState(1)
-  const { handleLogin } = useLogin();
   const { t } = useTranslation()
 
   const validationSchema = Yup.object({
@@ -39,6 +43,8 @@ const useRegisterEmail = ({ mode, setMode }: { mode: "login" | "register", setMo
 
     password: Yup.string()
       .min(6, t('password_min_length'))
+      .matches(/[a-z]/, t('password_rule_lowercase'))
+      .matches(/[A-Z]/, t('password_rule_uppercase'))
       .matches(/[0-9]/, t('password_must_contain_number'))
       .matches(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, t('password_must_contain_special_char'))
       .required(t('new_password_required')),
@@ -80,19 +86,10 @@ const useRegisterEmail = ({ mode, setMode }: { mode: "login" | "register", setMo
 
         setLoading(true)
         await registerAccountApi(data)
-        const isKeepMeLoggedIn = true;
-        const loginData: LoginEmailRequest = {
-          email: values.email,
-          password: values.password,
-          role: Role.Student,
-          isKeepMeLoggedIn,
-        };
-        await handleLogin(async () => {
-          const response = await apiLoginEmail(loginData);
-          return response.data;
-        }, false);
         toast.success(t('account_created_successfully'))
-      } catch (error) {
+        onSuccess?.(values.email)
+        setMode(LoginAccountMode.Login)
+      } catch (error: any) {
         toast.error(getErrorMessage(t, error))
       } finally {
         setLoading(false)
@@ -101,7 +98,7 @@ const useRegisterEmail = ({ mode, setMode }: { mode: "login" | "register", setMo
   })
 
   useEffect(() => {
-    if (mode === 'login') {
+    if (mode === LoginAccountMode.Login) {
       formik.resetForm()
       setRegisterStep(1)
     }
@@ -157,6 +154,7 @@ const useRegisterEmail = ({ mode, setMode }: { mode: "login" | "register", setMo
 
   const handleNext = async () => {
     const isValid = await validateStep(registerStep)
+
     if (!isValid) return
 
     if (registerStep < TOTAL_REGISTER_STEPS) {
