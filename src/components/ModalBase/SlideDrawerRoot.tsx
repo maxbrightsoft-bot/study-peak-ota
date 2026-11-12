@@ -24,13 +24,15 @@ interface SlideDrawerProps {
   children: React.ReactNode
   position?: 'left' | 'right'
   onClose?: () => void
+  zIndex?: number
 }
 
 const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
   visible,
   children,
   position = 'right',
-  onClose
+  onClose,
+  zIndex
 }) => {
   const insets = useSafeAreaInsets()
   const statusBarHeight = Platform.OS === 'android' ? (StatusBar.currentHeight || 0) : 0
@@ -89,7 +91,13 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
 
   return (
     <Portal>
-      <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          zIndex !== undefined && { zIndex, elevation: zIndex }
+        ]}
+        pointerEvents="box-none"
+      >
         <TouchableOpacity
           style={StyleSheet.absoluteFill}
           activeOpacity={1}
@@ -108,6 +116,7 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
         <Animated.View
           style={[
             styles.drawer,
+            zIndex !== undefined && { zIndex: zIndex + 1, elevation: zIndex + 1 },
             {
               width: SCREEN_WIDTH,
               transform: [{ translateX: slideAnim }],

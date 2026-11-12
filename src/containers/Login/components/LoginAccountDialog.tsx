@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { palette, TYPO } from '@/theme'
@@ -10,7 +10,9 @@ import CustomTouchable from '@/components/Button/CustomTouchable'
 import CommonDialog from '@/components/ModalBase/CommonDialog'
 import ForgotPasswordDialog from './ForgotPasswordDialog'
 import Select from '@/components/Select/CustomSelect'
+import SchoolSearchSelect from '@/components/Select/SchoolSearchSelect'
 import { ScaledSheet } from 'react-native-size-matters'
+import { LoginAccountMode } from '../configs/types'
 
 type Props = {
   visible: boolean
@@ -22,12 +24,23 @@ type Props = {
 const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
   const { t } = useTranslation()
 
-  const { formik: loginFormik, showPassword, toggleShowPassword } = useLoginEmail()
+  const { formik: loginFormik, showPassword, toggleShowPassword, resetShowPassword } = useLoginEmail()
   
-  const [mode, setMode] = useState<'login' | 'register'>('login')
-  const { formik: registerFormik, getError, subjectOptions, gradeOptions, registerStep, handleBack, handleNext } = useRegisterEmail({ mode, setMode })
+  const [mode, setMode] = useState<LoginAccountMode>(LoginAccountMode.Login)
+  const { formik: registerFormik, getError, subjectOptions, gradeOptions, registerStep, handleBack, handleNext } = useRegisterEmail({
+    mode,
+    setMode,
+    onSuccess: (email) => {
+      loginFormik.resetForm({ values: { email, password: '' } })
+    },
+  })
   const [showForgotPassword, setShowForgotPassword] = useState(false)
   const [showRegisterPassword, setShowRegisterPassword] = useState(false)
+
+  useEffect(() => {
+    resetShowPassword()
+    setShowRegisterPassword(false)
+  }, [visible, mode])
 
   const renderLogin = () => {
     const emailError =
@@ -141,11 +154,11 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
         value={registerFormik.values.phoneNumber}
         onChangeText={(t: string) => registerFormik.setFieldValue('phoneNumber', t)}
       />
-      <TextField
+      <SchoolSearchSelect
+        value={registerFormik.values.schoolName}
+        onValueChange={(value: string) => registerFormik.setFieldValue('schoolName', value)}
         placeholder={t('school_name')}
         error={getError('schoolName')}
-        value={registerFormik.values.schoolName}
-        onChangeText={(t: string) => registerFormik.setFieldValue('schoolName', t)}
       />
     </>
   )
@@ -226,23 +239,23 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
       <CommonDialog
         isVisible={visible}
         onClose={onClose}
-        title={mode === 'login' ? t('sign_in') : t('sign_up')}
+        title={mode === LoginAccountMode.Login ? t('sign_in') : t('sign_up')}
       >
         <View style={styles.tabContainer}>
-          <TouchableOpacity onPress={() => setMode('login')}>
-            <Text style={[styles.tab, mode === 'login' && styles.activeTab]}>
+          <TouchableOpacity onPress={() => setMode(LoginAccountMode.Login)}>
+            <Text style={[styles.tab, mode === LoginAccountMode.Login && styles.activeTab]}>
               {t('sign_in')}
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => setMode('register')}>
-            <Text style={[styles.tab, mode === 'register' && styles.activeTab]}>
+          <TouchableOpacity onPress={() => setMode(LoginAccountMode.Register)}>
+            <Text style={[styles.tab, mode === LoginAccountMode.Register && styles.activeTab]}>
               {t('sign_up')}
             </Text>
           </TouchableOpacity>
         </View>
 
-        {mode === 'login' ? renderLogin() : renderRegister()}
+        {mode === LoginAccountMode.Login ? renderLogin() : renderRegister()}
       </CommonDialog>
 
       {showForgotPassword && (

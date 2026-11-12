@@ -98,17 +98,29 @@ const TextField = ({
 }: TextFieldProps) => {
   const internalRef = React.useRef<TextInput>(null)
   const resolvedRef = inputRef || internalRef
-  // // Đồng bộ giá trị khi value từ ngoài (formik, setState, reset form) thay đổi
+  const shouldUseNativeText = Platform.OS === 'android'
+  const nativeTextRef = React.useRef(value ?? '')
+  const initialDefaultValueRef = React.useRef(value ?? '')
+
   useEffect(() => {
-      resolvedRef.current?.setNativeProps({ text: value })
-  }, [value])
+    if (!shouldUseNativeText) return
+    const nextValue = value ?? ''
+    if (nextValue !== nativeTextRef.current) {
+      nativeTextRef.current = nextValue
+      resolvedRef.current?.setNativeProps({ text: nextValue })
+    }
+  }, [value, shouldUseNativeText, resolvedRef])
 
   const _onChangeText = useCallback(
     (text: string) => {
       let cleanedText = text
       if (isExamCode) {
         cleanedText = text.replace(/[^a-zA-Z0-9]/g, "")
+        if (text !== cleanedText) {
+          resolvedRef.current?.setNativeProps({ text: cleanedText })
+        }
       }
+      nativeTextRef.current = cleanedText
       onChangeText && onChangeText(cleanedText)
     },
     [onChangeText, isExamCode, resolvedRef]
@@ -176,13 +188,13 @@ const TextField = ({
           placeholder={placeholder}
           secureTextEntry={secureTextEntry}
           placeholderTextColor={placeholderTextColor || palette.grey[400]}
-          defaultValue={value ?? ''}
+          {...(shouldUseNativeText ? { defaultValue: initialDefaultValueRef.current } : { value: value ?? '' })}
           maxLength={maxLength}
           autoFocus={autoFocus}
-          autoCorrect={autoCorrect}
+          autoCorrect={autoCorrect ?? (secureTextEntry ? false : undefined)}
           autoComplete={autoComplete}
-          spellCheck={spellCheck}
-          autoCapitalize={autoCapitalize}
+          spellCheck={spellCheck ?? (secureTextEntry ? false : undefined)}
+          autoCapitalize={autoCapitalize ?? (secureTextEntry ? 'none' : undefined)}
           textContentType={textContentType}
           importantForAutofill={importantForAutofill}
           disableFullscreenUI={disableFullscreenUI}

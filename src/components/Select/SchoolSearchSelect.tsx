@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, Keyboard } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { palette, TYPO } from '@/theme'
 import { ScaledSheet, ms} from 'react-native-size-matters'
@@ -14,9 +14,10 @@ type Props = {
   onValueChange: (value: string) => void
   style?: any
   placeholder?: string
+  error?: any
 }
 
-const SchoolSearchSelect = ({ value, onValueChange, style, placeholder }: Props) => {
+const SchoolSearchSelect = ({ value, onValueChange, style, placeholder, error }: Props) => {
   const { t } = useTranslation()
   const [options, setOptions] = useState<{ label: string; value: string }[]>([])
   const [loading, setLoading] = useState(false)
@@ -54,13 +55,21 @@ const SchoolSearchSelect = ({ value, onValueChange, style, placeholder }: Props)
     <View style={style}>
       <TouchableOpacity
         style={styles.trigger}
-        onPress={() => setIsModalVisible(true)}
+        onPress={() => {
+          Keyboard.dismiss()
+          setIsModalVisible(true)
+        }}
       >
-        <Text style={[styles.triggerText, !value && styles.placeholder]}>
+        <Text
+          style={[styles.triggerText, !value && styles.placeholder]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
           {value || placeholder || t('select_placeholder')}
         </Text>
         <Ionicons name="search" size={20} color={palette.grey[400]} />
       </TouchableOpacity>
+      {!!error && <Text style={styles.errorText}>{error}</Text>}
 
       <SearchSelectModal
         visible={isModalVisible}
@@ -98,6 +107,12 @@ const styles = ScaledSheet.create({
   placeholder: {
     color: palette.grey[500],
     fontWeight: '400',
+  },
+  errorText: {
+    ...TYPO.body3,
+    color: 'red',
+    marginTop: ms(4),
+    paddingHorizontal: ms(8),
   },
 
 })

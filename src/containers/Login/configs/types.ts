@@ -47,3 +47,8 @@ export interface QRCodeConfirmationProps {
     domain?: string,
     role: Role
 }
+
+export enum LoginAccountMode {
+    Login,
+    Register
+}

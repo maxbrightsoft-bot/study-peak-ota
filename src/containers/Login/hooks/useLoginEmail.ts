@@ -16,7 +16,8 @@ const useLoginEmail = () => {
   const setWeakPassword = useAuthStore(state => state.setWeakPassword)
   const [showPassword, setShowPassword] = useState(false);
 
-  const toggleShowPassword = () => setShowPassword(!showPassword);
+  const toggleShowPassword = () => setShowPassword(prev => !prev);
+  const resetShowPassword = () => setShowPassword(false);
 
   const validationSchema = Yup.object().shape({
     email: Yup.string()
@@ -55,6 +56,7 @@ const useLoginEmail = () => {
     isLoading: false,
     showPassword,
     toggleShowPassword,
+    resetShowPassword,
   };
 };
 
