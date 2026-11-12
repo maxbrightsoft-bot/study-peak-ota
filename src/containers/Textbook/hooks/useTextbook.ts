@@ -54,13 +54,15 @@ const useTextbook = ({
   const [isOpenAudioGuide, setOpenAudioGuide] = useState<boolean>(false);
   const [isOpenTimeSelectModal, setOpenTimeSelectModal] = useState<boolean>(false)
   const [targetPage, setTargetPage] = useState<number | undefined>()
+  const [redirectTopPage, setRedirectTopPage] = useState<boolean>(false)
   const { handleStartSelectedSubjectAlarm } = useAlarm(false, [], false)
   const scrollViewRef = useRef<FlatList>(null)
   const { getServerNow } = useServerTime()
 
-  const handleOpenAudioGuide = (page?: number) => {
+  const handleOpenAudioGuide = (page?: number, redirectTop?: boolean) => {
     if (page) setTargetPage(page)
     else setTargetPage(undefined)
+    setRedirectTopPage(!!redirectTop)
     handleCloseDialog()
     setOpenAudioGuide(true)
   }
@@ -198,7 +200,8 @@ const useTextbook = ({
       toast.error(getErrorMessage(t, error));
     }
     finally {
-      navigate(Routes.Auth.DoTextbook, { textbookId: selectedTextbook?.id, restart: textbook?.isMock, page: targetPage })
+      navigate(Routes.Auth.DoTextbook, { textbookId: selectedTextbook?.id, restart: textbook?.isMock, page: targetPage, redirectTopPage })
+      setRedirectTopPage(false)
       setLoading(false)
     }
   }

@@ -52,10 +52,14 @@ export const findTargetQuestionForPageRange = (
   });
 
   groupList.forEach((g) => {
-    const pFrom = g.parentChapterPageFrom || g.chapterPageFrom || g.pageFrom;
-    const pTo = g.parentChapterPageTo || g.chapterPageTo || g.pageTo || pFrom;
-    if (pFrom) {
-      candidates.push({ pageFrom: pFrom, pageTo: pTo || pFrom });
+    if (g.chapterPageFrom) {
+      candidates.push({ pageFrom: g.chapterPageFrom, pageTo: g.chapterPageTo || g.chapterPageFrom });
+    }
+    if (g.parentChapterPageFrom) {
+      candidates.push({ pageFrom: g.parentChapterPageFrom, pageTo: g.parentChapterPageTo || g.parentChapterPageFrom });
+    }
+    if (g.pageFrom) {
+      candidates.push({ pageFrom: g.pageFrom, pageTo: g.pageTo || g.pageFrom });
     }
   });
 

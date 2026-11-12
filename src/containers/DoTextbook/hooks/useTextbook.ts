@@ -42,6 +42,7 @@ type Props = {
   page?: string;
   reqTime?: string
   restart?: boolean;
+  redirectTopPage?: boolean;
 };
 
 const useTextbook = ({
@@ -49,7 +50,8 @@ const useTextbook = ({
   textbookId,
   page,
   reqTime,
-  restart
+  restart,
+  redirectTopPage
 }: Props = {}) => {
   const { t } = useTranslation();
   const { setLoading, alarm, setLoadingWithoutOverlay, isLoadingWithoutOverlay } = useAuthStore();
@@ -380,7 +382,7 @@ const useTextbook = ({
           questions,
           data?.questionGroups || [],
           responseTextbook,
-          isRestarting
+          redirectTopPage || isRestarting
         );
         if (targetId) {
           setCurrentQuestionId(targetId);

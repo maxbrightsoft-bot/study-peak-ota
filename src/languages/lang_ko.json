@@ -2698,5 +2698,8 @@
   "confidence_cell_wrong_unsure_sub": "가장 빨리 오르는 자리",
   "confidence_cell_wrong_random_title": "미학습",
   "confidence_cell_wrong_random_sub": "개념부터 다시",
-  "confidence_total_count": "총 {{count}}문제"
+  "confidence_total_count": "총 {{count}}문제",
+  "start_from_chapter": "챕터부터 시작",
+  "chapter_to_start_with": "시작할 챕터",
+  "navigate_chapter": "챕터 이동"
 }

@@ -31,9 +31,10 @@ type Props = {
   page?: string
   reqTime?: string
   restart?: boolean
+  redirectTopPage?: boolean
 }
 
-const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
+const DoTextbook = ({ textbookId, page, reqTime, restart, redirectTopPage }: Props) => {
   const { isOpenDialog, handleCloseDialog, handleOpenDialog } = useDrawer()
 
   const handleOpenDrawer = useCallback(() => {
@@ -112,7 +113,8 @@ const DoTextbook = ({ textbookId, page, reqTime, restart }: Props) => {
     page,
     reqTime,
     handleOpenDrawer,
-    restart
+    restart,
+    redirectTopPage
   })
 
   const { isOpenAudioGuide, handleOpenAudioGuide, handleCloseAudioGuide, handleStartTextbook } = useAlarmTextbook({

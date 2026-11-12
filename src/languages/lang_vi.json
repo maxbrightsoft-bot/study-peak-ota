@@ -2714,5 +2714,8 @@
   "confidence_cell_wrong_unsure_sub": "Vị trí giúp tăng điểm nhanh nhất",
   "confidence_cell_wrong_random_title": "Chưa học",
   "confidence_cell_wrong_random_sub": "Học lại từ khái niệm căn bản",
-  "confidence_total_count": "Tổng: {{count}} câu"
+  "confidence_total_count": "Tổng: {{count}} câu",
+  "start_from_chapter": "Bắt đầu từ chương",
+  "chapter_to_start_with": "Chương để bắt đầu",
+  "navigate_chapter": "Đi đến chương"
 }

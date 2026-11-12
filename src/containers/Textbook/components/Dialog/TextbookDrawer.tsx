@@ -13,6 +13,7 @@ import Statistic from '../Statistic'
 import RestartPageDialog from './RestartPageDialog'
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
 import StartPageDialog from './StartPageDialog'
+import StartChapterDialog from './StartChapterDialog'
 import TextbookChapterResultDialog from './TextbookChapterResultDialog'
 import TextTooltip from '@/components/Tooltip/TextTooltip'
 
@@ -20,7 +21,7 @@ type Props = {
   isOpen: boolean
   onClose?: () => void
   textbookId?: number
-  onOpenAudioGuide?: () => void
+  onOpenAudioGuide?: (page?: number, redirectTopPage?: boolean) => void
 }
 
 const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props) => {
@@ -32,8 +33,10 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props
     isEnglish,
     chapterSelected,
     startPageOptions,
+    chapterOptions,
     isOpenChapterDialog,
     isOpenStartPageDialog,
+    isOpenStartChapterDialog,
     isOpenConfirmDialog,
     openRestartTextbookDialog,
     handleChangeTab,
@@ -48,7 +51,10 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props
     handleOpenChapterDialog,
     handleCloseStartPageDialog,
     handleOpenStartPageDialog,
-    handleStartFromPage
+    handleStartFromPage,
+    handleCloseStartChapterDialog,
+    handleOpenStartChapterDialog,
+    handleStartFromChapter
   } = useTextbookDrawer({ textbookId, onOpenAudioGuide, onClose })
 
   const progress = textbook?.progress ?? 0
@@ -191,29 +197,37 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props
           </View>
         </ScrollView>
         <View style={styles.bottomBar}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.bottomBarContent}>
-            {!isMockTextbook && (
-              <TouchableOpacity style={[styles.button, styles.pageBtn]} onPress={handleOpenStartPageDialog}>
-                <Text style={styles.outlineButtonText}>{t('navigate_page')}</Text>
-              </TouchableOpacity>
-            )}
-
-            {!isCompleted && (
-              <TouchableOpacity style={[styles.button, styles.continueBtn]} onPress={handleDoTextbook}>
+          <View style={styles.bottomBarContent}>
+            <View style={styles.topRow}>
+              {!isCompleted && (
+              <TouchableOpacity style={[styles.button, styles.continueBtn, { flex: 1 }]} onPress={handleDoTextbook}>
                 <Text style={styles.buttonText}>{t('do_exercises')}</Text>
               </TouchableOpacity>
-            )}
+              )}
 
-            {!!textbook && (textbook.isStudying || isCompleted) && (
-              <TouchableOpacity
-                style={[styles.button, styles.outlineButton]}
-                onPress={() => (isMockTextbook ? handleOpenConfirmDialog() : handleOpenRestartTextbookDialog())}
-              >
-                <Ionicons name="refresh" size={18} color={palette.main[500]} />
-                <Text style={styles.outlineButtonText}>{t('restart_textbook')}</Text>
-              </TouchableOpacity>
+              {!!textbook && (textbook.isStudying || isCompleted) && (
+                <TouchableOpacity
+                  style={[styles.button, styles.outlineButton]}
+                  onPress={() => (isMockTextbook ? handleOpenConfirmDialog() : handleOpenRestartTextbookDialog())}
+                >
+                  <Ionicons name="refresh" size={18} color={palette.main[500]} />
+                  <Text style={styles.outlineButtonText}>{t('restart_textbook')}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {!isMockTextbook && (
+              <View style={styles.secondRow}>
+                <TouchableOpacity style={[styles.button, styles.navBtn]} onPress={handleOpenStartPageDialog}>
+                  <Text style={styles.navButtonText}>{t('navigate_page')}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={[styles.button, styles.navBtn]} onPress={handleOpenStartChapterDialog}>
+                  <Text style={styles.navButtonText}>{t('navigate_chapter')}</Text>
+                </TouchableOpacity>
+              </View>
             )}
-          </ScrollView>
+          </View>
         </View>
       </View>
       <StartPageDialog
@@ -223,6 +237,15 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props
         open={isOpenStartPageDialog}
         onClose={handleCloseStartPageDialog}
         onSubmit={handleStartFromPage}
+      />
+
+      <StartChapterDialog
+        options={chapterOptions}
+        t={t}
+        loading={loading}
+        open={isOpenStartChapterDialog}
+        onClose={handleCloseStartChapterDialog}
+        onSubmit={handleStartFromChapter}
       />
 
       <RestartPageDialog
@@ -426,37 +449,49 @@ const styles = ScaledSheet.create({
   },
 
   bottomBarContent: {
+    paddingHorizontal: '20@ms',
+    paddingVertical: '12@ms',
+    gap: '10@ms'
+  },
+
+  topRow: {
     flexDirection: 'row',
-    gap: '12@ms',
-    paddingHorizontal: '24@ms',
-    paddingTop: '12@ms',
-    paddingBottom: '46@ms'
+    gap: '10@ms',
+    alignItems: 'center'
+  },
+
+  secondRow: {
+    flexDirection: 'row',
+    gap: '10@ms',
+    alignItems: 'center'
   },
 
   button: {
     paddingHorizontal: '16@ms',
-    paddingVertical: '14@ms',
-    borderRadius: '8@ms',
+    paddingVertical: '13@ms',
+    borderRadius: '6@ms',
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: '8@ms'
-  },
-
-  pageBtn: {
-    borderWidth: '1@ms',
-    borderColor: '#C7C7C8',
-    borderRadius: '6@ms',
-    alignItems: 'center',
-    minWidth: '120@ms',
-    justifyContent: 'center'
   },
 
   continueBtn: {
     backgroundColor: palette.main[600],
     borderRadius: '6@ms',
     alignItems: 'center',
-    minWidth: '210@ms',
     justifyContent: 'center'
+  },
+
+  navBtn: {
+    flex: 1,
+    borderWidth: '1@ms',
+    borderColor: '#C7C7C8',
+    borderRadius: '6@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: '12@ms',
+    backgroundColor: 'white'
   },
 
   outlineButton: {
@@ -473,6 +508,12 @@ const styles = ScaledSheet.create({
 
   outlineButtonText: {
     fontSize: '14@ms',
+    fontWeight: '600',
+    color: palette.main[600]
+  },
+
+  navButtonText: {
+    fontSize: '13@ms',
     fontWeight: '600',
     color: palette.main[600]
   }

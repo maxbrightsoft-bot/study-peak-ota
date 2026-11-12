@@ -2703,5 +2703,8 @@
   "confidence_cell_wrong_unsure_sub": "Quickest area to improve",
   "confidence_cell_wrong_random_title": "Unlearned",
   "confidence_cell_wrong_random_sub": "Start over from basic concepts",
-  "confidence_total_count": "Total: {{count}}"
+  "confidence_total_count": "Total: {{count}}",
+  "start_from_chapter": "Start From Chapter",
+  "chapter_to_start_with": "Chapter to start with",
+  "navigate_chapter": "Go to chapter"
 }
