@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next'
 const NotesContainer: FC<NotesContainerProps> = ({
   data,
   isLoading = false,
-  listHeight = 430,
+  listHeight,
   onLoadMore,
   onCloseTooltip,
   onOpenTooltip,
@@ -39,7 +39,7 @@ const NotesContainer: FC<NotesContainerProps> = ({
   }
 
   return (
-    <View style={[styles.container, { height: listHeight }, containerListProps]}>
+    <View style={[styles.container, listHeight ? { height: listHeight } : { flex: 1 }, containerListProps]}>
       {!data?.length ? (
         <Text style={styles.text}>{t('add_new_incorrect_note_prompt')}</Text>
       ) : (

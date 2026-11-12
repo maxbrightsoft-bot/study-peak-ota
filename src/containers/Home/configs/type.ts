@@ -168,14 +168,27 @@ export enum ExamSessionSortBy {
   StartTime = "StartDate"
 }
 
+export enum StudentExamStatus {
+  All = 0,
+  Incomplete = 1,
+  NotTaken = 2,
+  Done = 3
+}
+
 export type ExamSessionFilter = {
   currentPage: number;
   pageSize: number;
   sortColumnName: ExamSessionSortBy;
   textSearch?: string;
   sortColumnDirection: OrderBy;
-  statuses?: ExamStatus[]
-  studentId?: string
+  statuses?: ExamStatus[];
+  status?: StudentExamStatus;
+  studentId?: string;
+  courseId?: number | string;
+  subjectName?: string;
+  teacherName?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 export type CourseExamSession = {
