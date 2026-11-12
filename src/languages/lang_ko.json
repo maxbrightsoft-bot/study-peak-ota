@@ -2677,5 +2677,8 @@
   "please_select_category_or_exam": "카테고리 또는 시험을 선택해 주세요",
   "select_one_of_two": "2개 중 1개 선택",
   "select_exam": "시험 선택",
-  "select_course": "클래스 선택"
+  "select_course": "클래스 선택",
+  "start_from_chapter": "챕터부터 시작",
+  "chapter_to_start_with": "시작할 챕터",
+  "navigate_chapter": "챕터 이동"
 }

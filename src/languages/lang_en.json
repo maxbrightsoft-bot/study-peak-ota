@@ -2683,5 +2683,8 @@
   "please_select_category_or_exam": "Please select a category or an exam",
   "select_one_of_two": "Select 1 of 2",
   "select_exam": "Select exam",
-  "select_course": "Select class"
+  "select_course": "Select class",
+  "start_from_chapter": "Start From Chapter",
+  "chapter_to_start_with": "Chapter to start with",
+  "navigate_chapter": "Go to chapter"
 }

@@ -2697,5 +2697,8 @@
   "please_select_category_or_exam": "Vui lòng chọn danh mục hoặc bài thi",
   "select_one_of_two": "Chọn 1 trong 2",
   "select_exam": "Chọn bài thi",
-  "select_course": "Chọn lớp học"
+  "select_course": "Chọn lớp học",
+  "start_from_chapter": "Bắt đầu từ chương",
+  "chapter_to_start_with": "Chương để bắt đầu",
+  "navigate_chapter": "Đi đến chương"
 }

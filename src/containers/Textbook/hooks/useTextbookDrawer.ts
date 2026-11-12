@@ -19,7 +19,7 @@ import useTab from "@/hooks/useTab";
 type Props = {
   textbookId?: number;
   studentId?: number;
-  onOpenAudioGuide?: (page?: number) => void;
+  onOpenAudioGuide?: (page?: number, redirectTopPage?: boolean) => void;
   onClose?: () => void;
 };
 
@@ -36,6 +36,7 @@ const useTextbookDrawer = ({
   const [textbook, setTextbook] = useState<Textbook>();
   const [isOpenChapterDialog, setOpenChapterDialog] = useState<boolean>(false);
   const [isOpenStartPageDialog, setOpenStartPageDialog] = useState<boolean>(false);
+  const [isOpenStartChapterDialog, setOpenStartChapterDialog] = useState<boolean>(false);
   const [chapterSelected, setChapterSelected] = useState<ChapterResponse>();
   const [isOpenConfirmDialog, setOpenConfirmDialog] = useState<boolean>(false);
   const [openRestartTextbookDialog, setOpenRestartTextbookDialog] = useState(false);
@@ -76,6 +77,25 @@ const useTextbookDrawer = ({
 
   const handleOpenStartPageDialog = () => {
     setOpenStartPageDialog(true);
+  };
+
+  const handleCloseStartChapterDialog = () => {
+    setOpenStartChapterDialog(false);
+  };
+
+  const handleOpenStartChapterDialog = () => {
+    setOpenStartChapterDialog(true);
+  };
+
+  const handleStartFromChapter = async (values: { startPage: number }) => {
+    if (!textbookId || !values.startPage) return;
+    if (isDemoMode) {
+      toast.demoBlocked();
+      return;
+    }
+
+    onOpenAudioGuide?.(values.startPage, true);
+    handleCloseStartChapterDialog();
   };
 
   const handleRedirectEdit = () => {
@@ -140,6 +160,35 @@ const useTextbookDrawer = ({
       })
       .sort((a, b) => a.value - b.value);
   }, [textbook]);
+
+  const chapterOptions = useMemo(() => {
+    if (!textbook?.chapters?.length) return [];
+    const options: { label: string; value: number }[] = [];
+
+    textbook.chapters.forEach((chapter) => {
+      const page = chapter.pageFrom || (chapter.subChapters?.length ? chapter.subChapters[0].pageFrom : 0);
+      if (page) {
+        options.push({
+          label: `${chapter.name} (${t("page_number", { number: page })})`,
+          value: page
+        });
+      }
+
+      if (chapter.subChapters?.length) {
+        chapter.subChapters.forEach((subChapter) => {
+          const subPage = subChapter.pageFrom || (subChapter.questionGroups?.length ? subChapter.questionGroups[0].pageFrom : 0);
+          if (subPage) {
+            options.push({
+              label: `  ↳ ${subChapter.name} (${t("page_number", { number: subPage })})`,
+              value: subPage
+            });
+          }
+        });
+      }
+    });
+
+    return options;
+  }, [textbook, t]);
 
   const handleDoTextbook = async () => {
     if (!textbook || !textbookId) return;
@@ -252,6 +301,11 @@ const useTextbookDrawer = ({
     handleOpenChapterDialog,
     handleCloseStartPageDialog,
     handleOpenStartPageDialog,
+    handleCloseStartChapterDialog,
+    handleOpenStartChapterDialog,
+    handleStartFromChapter,
+    chapterOptions,
+    isOpenStartChapterDialog,
     handleCloseConfirmDialog,
     handleOpenConfirmDialog,
     handleCloseRestartTextbookDialog,
