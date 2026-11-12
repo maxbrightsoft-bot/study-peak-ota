@@ -117,7 +117,10 @@ interface StoreActions {
   setActiveTimerSeconds: (seconds: number | undefined) => void;
   setIsOpenTimerDialog: (isOpen: boolean) => void;
 
-  initializePusher: () => Promise<Pusher>;
+  initializePusher: (
+    academyDomain?: string,
+    isLearningSpace?: boolean
+  ) => Promise<Pusher>;
 
   subscribeChannel: (
     pusher: Pusher,
@@ -431,7 +434,7 @@ const useAuthStore = create<AuthStore>()(
         });
       },
 
-      initializePusher: async () => {
+      initializePusher: async (academyDomain?: string, isLearningSpace?: boolean) => {
         // Skip Pusher trong Demo Mode
         const { isDemoMode } = get();
         if (isDemoMode) {
@@ -441,6 +444,8 @@ const useAuthStore = create<AuthStore>()(
 
         const { pusher } = get();
         if (pusher) return pusher;
+
+        const resolvedDomain = academyDomain || (await getDataStorage(ACADEMY_DOMAIN)) || get().user?.academyDomain;
 
         const instance = Pusher.getInstance();
 
@@ -496,7 +501,7 @@ const useAuthStore = create<AuthStore>()(
 
         set((state) => {
           state.pusher = instance;
-          state.pusherAcademyDomain = academyDomain;
+          state.pusherAcademyDomain = resolvedDomain;
         });
 
         return instance;
