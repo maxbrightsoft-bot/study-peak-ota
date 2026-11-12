@@ -32,6 +32,7 @@ export const getQuestionExamMock = async (code: string) => {
                 selectedAnswers: q.selectedAnswersJson ? JSON.parse(q.selectedAnswersJson).map(Number) : [],
                 textualAnswers: q.textualAnswersJson ? JSON.parse(q.textualAnswersJson) : [],
                 isStar: q.isStar === 1,
+                confidence: q.confidence !== null && q.confidence !== undefined ? q.confidence : undefined,
                 duration: q.duration || 0,
                 score: q.score,
                 answerTime: q.answerTime || "",
@@ -56,16 +57,27 @@ export const answerQuestionExamMock = async (examCode: string, body: any) => {
     const database = await getDb();
     if (body?.questions?.length) {
         for (const q of body.questions) {
+            const hasConfidence = q.confidence !== undefined;
             if (q.selectedAnswers) {
                 await database.runAsync(
-                    `UPDATE ExamQuestions SET selectedAnswersJson = ?, duration = ?, isStar = ? WHERE id = ? AND examSessionCode = ?`,
-                    [JSON.stringify(q.selectedAnswers), q.duration || 0, q.isStar ? 1 : 0, q.questionId, examCode]
+                    `UPDATE ExamQuestions SET selectedAnswersJson = ?, duration = ?, isStar = ?${hasConfidence ? ', confidence = ?' : ''} WHERE id = ? AND examSessionCode = ?`,
+                    hasConfidence
+                        ? [JSON.stringify(q.selectedAnswers), q.duration || 0, q.isStar ? 1 : 0, q.confidence, q.questionId, examCode]
+                        : [JSON.stringify(q.selectedAnswers), q.duration || 0, q.isStar ? 1 : 0, q.questionId, examCode]
                 );
             }
             if (q.textualAnswers) {
                 await database.runAsync(
-                    `UPDATE ExamQuestions SET textualAnswersJson = ?, duration = ?, isStar = ? WHERE id = ? AND examSessionCode = ?`,
-                    [JSON.stringify(q.textualAnswers), q.duration || 0, q.isStar ? 1 : 0, q.questionId, examCode]
+                    `UPDATE ExamQuestions SET textualAnswersJson = ?, duration = ?, isStar = ?${hasConfidence ? ', confidence = ?' : ''} WHERE id = ? AND examSessionCode = ?`,
+                    hasConfidence
+                        ? [JSON.stringify(q.textualAnswers), q.duration || 0, q.isStar ? 1 : 0, q.confidence, q.questionId, examCode]
+                        : [JSON.stringify(q.textualAnswers), q.duration || 0, q.isStar ? 1 : 0, q.questionId, examCode]
+                );
+            }
+            if (!q.selectedAnswers && !q.textualAnswers && hasConfidence) {
+                await database.runAsync(
+                    `UPDATE ExamQuestions SET confidence = ? WHERE id = ? AND examSessionCode = ?`,
+                    [q.confidence, q.questionId, examCode]
                 );
             }
         }

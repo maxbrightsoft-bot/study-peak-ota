@@ -263,6 +263,18 @@ const useTextbook = ({
     onScrollToIndex(targetIndex)
   }
 
+  const scrollToFirstUnansweredQuestion = useCallback(() => {
+    if (!questionList?.length) return;
+    const firstUnanswered = questionList.find(q => !isQuestionAnswered(q));
+    if (firstUnanswered) {
+      const index = questionList.findIndex(q => q.id === firstUnanswered.id);
+      setCurrentQuestionId(firstUnanswered.id);
+      if (index !== -1) {
+        requestAnimationFrame(() => onScrollToIndex(index));
+      }
+    }
+  }, [questionList, onScrollToIndex]);
+
   const scrollToQuestion = useCallback(
     (type: ScrollType) => {
       if (!questionList?.length) return
@@ -501,7 +513,7 @@ const useTextbook = ({
     totalLocalPausedMs
   });
 
-  const { updateQuestionAnswer, updateQuestionStar, recoverAnswers, handleResetTextbookSolving, handleClearStorage } =
+  const { updateQuestionAnswer, updateQuestionStar, updateQuestionConfidence, recoverAnswers, handleResetTextbookSolving, handleClearStorage } =
     useTextbookSolving({
       startTime,
       textbook: textbook,
@@ -511,7 +523,8 @@ const useTextbook = ({
       updateQuestionList: handleUpdateQuestionList,
       handleNextQuestion,
       totalLocalPausedMs,
-      isMockTimeOut
+      isMockTimeOut,
+      isPaused: textbook?.isMock ? textbook?.status === ExamStatus.Paused : isLocalPaused
     });
 
   const questionPage = questionGroupList.length;
@@ -595,11 +608,11 @@ const useTextbook = ({
 
 
   useEffect(() => {
-    if (questionList.length > 0 && !page) {
+    if (questionList.length > 0 && !page && (!currentQuestionId || !questionList.some(q => q.id === currentQuestionId))) {
       const noAnswer = questionList.find(i => !isQuestionAnswered(i));
       setCurrentQuestionId(noAnswer?.id || questionList[0].id);
     }
-  }, [questionList.length, page]);
+  }, [questionList.length, page, currentQuestionId]);
 
   const handlePauseAndResumeTextbook = async (status: ExamStatus) => {
     if (!textbook || !textbookId || isMockTimeOut) return;
@@ -985,6 +998,7 @@ const useTextbook = ({
     setCurrentSlide,
     updateQuestionAnswer,
     updateQuestionStar,
+    updateQuestionConfidence,
     nav1,
     nav2,
     openTextbookResultDialog,
@@ -996,6 +1010,7 @@ const useTextbook = ({
     handleOpenExpiredQuestionDialog,
     remainTimeString,
     scrollToQuestion,
+    scrollToFirstUnansweredQuestion,
     totalTimeString,
     startPageOptions,
     isNotFoundTextbook,

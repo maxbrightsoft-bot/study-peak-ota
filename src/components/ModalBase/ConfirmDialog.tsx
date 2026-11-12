@@ -11,13 +11,15 @@ export interface ConfirmDialogProps {
   text: string
   cancelText?: string
   okText?: string
-  onConfirm: (e?: any) => void
+  onConfirm?: (e?: any) => void
   open: boolean
   toggle: (e?: any) => void
   onCancel?: (e?: any) => void
   isDelete?: boolean
   title?: string
   confirmText?: string
+  hideConfirmButton?: boolean
+  hideCancelButton?: boolean
 }
 
 export const ConfirmDialog: FC<ConfirmDialogProps> = ({
@@ -29,7 +31,9 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
   onCancel,
   confirmText,
   toggle,
-  onConfirm
+  onConfirm,
+  hideConfirmButton,
+  hideCancelButton
 }) => {
   const [confirmTextValue, setConfirmTextValue] = useState('')
   const { t } = useTranslation()
@@ -66,16 +70,38 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
         )}
       </View>
       <View style={[styles.footer]}>
-        <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onCancel ?? toggle}>
-          <Text style={styles.cancelButtonText}>{cancelText || t('cancel')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.confirmButton, { borderRadius: 12 }, !!confirmTextValue && !isValid && styles.disabledButton]}
-          disabled={isDisableDelete}
-          onPress={onConfirm}
-        >
-          <Text style={styles.confirmButtonText}>{okText || t('confirm')}</Text>
-        </TouchableOpacity>
+        {!hideCancelButton && (
+          <TouchableOpacity
+            style={[styles.button, styles.cancelButton, hideConfirmButton && { flex: 1 }]}
+            onPress={onCancel ?? toggle}
+          >
+            <Text style={styles.cancelButtonText} numberOfLines={1} adjustsFontSizeToFit>
+              {cancelText || t('cancel')}
+            </Text>
+          </TouchableOpacity>
+        )}
+        {!hideConfirmButton && onConfirm && (
+          <TouchableOpacity
+            style={[
+              styles.button,
+              styles.confirmButton,
+              { borderRadius: 12 },
+              !hideCancelButton && { flex: 1 },
+              !!confirmTextValue && !isValid && styles.disabledButton
+            ]}
+            disabled={isDisableDelete}
+            onPress={onConfirm}
+          >
+            <Text
+              style={styles.confirmButtonText}
+              numberOfLines={2}
+              adjustsFontSizeToFit
+              minimumFontScale={0.75}
+            >
+              {okText || t('confirm')}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </ModalBase>
   )
@@ -133,33 +159,38 @@ const styles = ScaledSheet.create({
   },
   footer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
     padding: '16@ms',
     gap: '8@ms'
   },
   button: {
-    paddingVertical: '14@ms',
-    paddingHorizontal: '16@ms',
-    minWidth: '120@ms',
-    alignItems: 'center'
+    paddingVertical: '12@ms',
+    paddingHorizontal: '12@ms',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '46@ms'
   },
   cancelButton: {
     borderWidth: 0,
-    borderRadius: '999@ms'
+    borderRadius: '999@ms',
+    minWidth: '80@ms',
+    paddingHorizontal: '16@ms'
   },
   confirmButton: {
     backgroundColor: palette.main[600],
-    borderRadius: '6@ms'
+    borderRadius: '12@ms',
+    flex: 1
   },
   cancelButtonText: {
     ...TYPO.button2,
-    lineHeight: '22@ms',
-    color: palette.main[600]
+    color: palette.main[600],
+    textAlign: 'center'
   },
   confirmButtonText: {
     ...TYPO.button2,
-    lineHeight: '22@ms',
-    color: '#FFF'
+    color: '#FFF',
+    textAlign: 'center'
   },
   disabledButton: {
     backgroundColor: palette.grey[300]
