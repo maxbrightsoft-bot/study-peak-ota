@@ -1,18 +1,36 @@
 import { useEffect } from 'react'
 import { getAccessToken, getAcademyDomain, getLearningSpace } from '@/utils/helpers'
-import { getSocket, initSocket } from '@/services'
+import { initSocket } from '@/services'
 import useAuthStore from '@/store/useAuthStore'
 
 export const useSocketInit = () => {
   const user = useAuthStore(state => state.user)
 
   useEffect(() => {
+    let socketInstance: any = null
+
+    const handleConnect = () => {
+      console.log('[SocketInit] SOCKET CONNECTED', socketInstance?.id)
+    }
+
+    const handleConnectError = (err: any) => {
+      console.log('[SocketInit] CONNECT ERROR', err?.message)
+    }
+
     const startSocket = async () => {
       const socket = await initSocket()
+      socketInstance = socket
 
       const token = await getAccessToken()
-      const academyDomain = await getAcademyDomain()
-      const isLearningSpace = await getLearningSpace()
+      if (!token) {
+        console.log('[SocketInit] No token found, skipping socket connect')
+        return
+      }
+
+      const storeUser = useAuthStore.getState().user
+      const storedAcademyDomain = await getAcademyDomain()
+      const academyDomain = storeUser?.academyDomain || storedAcademyDomain || ''
+      const isLearningSpace = storeUser?.isLearningSpace ?? (await getLearningSpace())
 
       socket.auth = {
         token,
@@ -20,29 +38,23 @@ export const useSocketInit = () => {
         super: `${!isLearningSpace && !academyDomain}`
       }
 
-      if (!socket.connected) {
-        socket.connect()
+      socket.off('connect', handleConnect)
+      socket.off('connect_error', handleConnectError)
+      socket.on('connect', handleConnect)
+      socket.on('connect_error', handleConnectError)
+
+      if (socket.connected) {
+        socket.disconnect()
       }
-
-      socket.on('connect', () => {
-        console.log('SOCKET CONNECTED', socket.id)
-      })
-
-      socket.on('connect_error', (err) => {
-        console.log('CONNECT ERROR', err.message)
-      })
+      socket.connect()
     }
 
     startSocket()
 
     return () => {
-      const socket = getSocket()
-      if (socket) {
-        socket.off('connect')
-        socket.off('connect_error')
-        // We might not want to fully disconnect here if the hook re-runs frequently,
-        // but since it's at root and depends on user.id, it should be fine.
-        socket.disconnect()
+      if (socketInstance) {
+        socketInstance.off('connect', handleConnect)
+        socketInstance.off('connect_error', handleConnectError)
       }
     }
   }, [user?.id, user?.academyDomain])

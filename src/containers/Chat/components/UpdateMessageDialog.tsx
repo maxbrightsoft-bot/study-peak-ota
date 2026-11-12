@@ -34,7 +34,7 @@ const UpdateMessageDialog: React.FC<Props> = ({
   const validate = (value?: string) => {
     let error
     if (!value?.trim()) {
-      error = 'Required'
+      error = t('required')
     }
     return error
   }

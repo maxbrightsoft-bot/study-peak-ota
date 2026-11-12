@@ -1,7 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import useAuthStore from '@/store/useAuthStore'
 import { EventsMap } from '@/utils/types'
-import { Role } from '@/utils/enums'
 import { getSocket } from '@/services'
 
 type Props = {
@@ -14,59 +13,69 @@ const useSocketConversation = ({
   conversationEvents
 }: Props) => {
   const user = useAuthStore(state => state.user)
-  const socket = getSocket()
-
-  const roles = user?.roles
   const academyDomain: string | undefined = user?.academyDomain
-  const isStudent = roles?.includes(Role.Student)
+  const eventsRef = useRef(conversationEvents)
+  eventsRef.current = conversationEvents
 
-  const registerEvents = (eventsObj: EventsMap) => {
-    Object.entries(eventsObj).forEach(([event, handler]) => {
-      socket?.on(event, handler)
-    })
-  }
-
-  const unregisterEvents = (eventsObj: EventsMap) => {
-    Object.entries(eventsObj).forEach(([event, handler]) => {
-      socket?.off(event, handler)
-    })
-  }
-
+  // Register event listeners on socket once
   useEffect(() => {
-    if (!academyDomain || !user?.id) return
+    const socket = getSocket()
+    if (!socket) return
 
-    const normalizedDomain = academyDomain.trim().toUpperCase()
-
-    let conversationChannel: string | null = null
-    let roleChannel: string | null = null
-    let userChannel: string | null = null
-
-    if (selectedConversation?.id) {
-      conversationChannel = `presence-conversation-channel-${selectedConversation.id}-${normalizedDomain}`
+    const handleEvent = (eventName: string) => (data: any) => {
+      console.log(`[Socket] Received event [${eventName}]:`, typeof data === 'string' ? data.slice(0, 100) : data)
+      eventsRef.current?.[eventName]?.(data)
     }
 
-    roleChannel = `conversations-channel-Student-${normalizedDomain}`
+    const eventNames = [
+      'new-message-event',
+      'completed-conversation-event',
+      'delete-message-event',
+      'update-message-event'
+    ]
 
-    userChannel = `conversations-channel-${user.id}-${normalizedDomain}`
-
-    conversationChannel && socket?.send('subscribe', { channel: conversationChannel })
-    roleChannel && socket?.send('subscribe', { channel: roleChannel })
-    userChannel && socket?.send('subscribe', { channel: userChannel })
-
-    registerEvents(conversationEvents)
+    const handlers: Record<string, (data: any) => void> = {}
+    eventNames.forEach(name => {
+      handlers[name] = handleEvent(name)
+      socket.on(name, handlers[name])
+    })
 
     return () => {
-      conversationChannel && socket?.send('unsubscribe', { channel: conversationChannel })
-      roleChannel && socket?.send('unsubscribe', { channel: roleChannel })
-      userChannel && socket?.send('unsubscribe', { channel: userChannel })
-      unregisterEvents(conversationEvents)
+      eventNames.forEach(name => {
+        socket.off(name, handlers[name])
+      })
     }
-  }, [
-    selectedConversation?.id,
-    academyDomain,
-    user?.id,
-    isStudent
-  ])
+  }, [])
+
+  // Subscribe to the presence channel of the active conversation
+  useEffect(() => {
+    if (!academyDomain || !selectedConversation?.id) return
+
+    const socket = getSocket()
+    const normalizedDomain = academyDomain.trim().toUpperCase()
+    const conversationChannel = `presence-conversation-channel-${selectedConversation.id}-${normalizedDomain}`
+
+    const subscribeChannel = () => {
+      console.log('[Socket] Subscribing to channel:', conversationChannel, 'socket.id:', socket?.id, 'connected:', socket?.connected)
+      socket?.emit('subscribe', conversationChannel)
+    }
+
+    if (socket?.connected) {
+      subscribeChannel()
+    } else {
+      console.log('[Socket] Socket not connected yet, waiting for connect event to subscribe:', conversationChannel)
+    }
+
+    socket?.on('connect', subscribeChannel)
+
+    return () => {
+      console.log('[Socket] Unsubscribing from channel:', conversationChannel)
+      socket?.off('connect', subscribeChannel)
+      if (socket?.connected) {
+        socket?.emit('unsubscribe', conversationChannel)
+      }
+    }
+  }, [selectedConversation?.id, academyDomain])
 
   return {}
 }
