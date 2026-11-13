@@ -1536,6 +1536,7 @@
   "import_data": "Nhập dữ liệu",
   "row_errors": "Hàng lỗi",
   "duplicate_email": "Email bị trùng",
+  "invalid_grade": "Khối lớp không hợp lệ",
   "already_enrolled": "Đã đăng ký",
   "email_not_found": "Không tìm thấy học sinh",
   "invalid_email": "Email không hợp lệ",

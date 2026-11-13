@@ -98,7 +98,8 @@ const TextField = ({
 }: TextFieldProps) => {
   const internalRef = React.useRef<TextInput>(null)
   const resolvedRef = inputRef || internalRef
-  const shouldUseNativeText = Platform.OS === 'android'
+  const isPasswordField = secureTextEntry !== undefined
+  const shouldUseNativeText = Platform.OS === 'android' && !isPasswordField
   const nativeTextRef = React.useRef(value ?? '')
   const initialDefaultValueRef = React.useRef(value ?? '')
 
@@ -167,6 +168,7 @@ const TextField = ({
       {renderLabel()}
       <View style={[styles.inputContainer, containerInputStyle, { paddingVertical: 8 }]}>
         <TextInput
+          key={isPasswordField ? `secure-${Boolean(secureTextEntry)}` : undefined}
           ref={resolvedRef}
           style={[
             styles.textInput,

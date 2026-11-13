@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { palette, TYPO } from '@/theme'
 import TextField from '@/components/Input/TextField'
@@ -20,16 +20,28 @@ type Props = {
   onClose: () => void
 }
 
-
 const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
   const { t } = useTranslation()
 
   const { formik: loginFormik, showPassword, toggleShowPassword, resetShowPassword } = useLoginEmail()
-  
+
   const [mode, setMode] = useState<LoginAccountMode>(LoginAccountMode.Login)
-  const { formik: registerFormik, getError, subjectOptions, gradeOptions, registerStep, handleBack, handleNext } = useRegisterEmail({
+  const {
+    formik: registerFormik,
+    setField: setRegisterField,
+    getError,
+    subjectOptions,
+    gradeOptions,
+    registerStep,
+    resetRegister,
+    handleBack,
+    handleNext,
+    apiError,
+    setApiError,
+  } = useRegisterEmail({
     mode,
     setMode,
+    visible,
     onSuccess: (email) => {
       loginFormik.resetForm({ values: { email, password: '' } })
     },
@@ -37,9 +49,26 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
   const [showForgotPassword, setShowForgotPassword] = useState(false)
   const [showRegisterPassword, setShowRegisterPassword] = useState(false)
 
+  const handleClose = () => {
+    resetRegister()
+    loginFormik.resetForm()
+    setMode(LoginAccountMode.Login)
+    resetShowPassword()
+    setShowRegisterPassword(false)
+    setApiError(null)
+    onClose()
+  }
+
   useEffect(() => {
     resetShowPassword()
     setShowRegisterPassword(false)
+    setApiError(null)
+
+    if (!visible) {
+      resetRegister()
+      loginFormik.resetForm()
+      setMode(LoginAccountMode.Login)
+    }
   }, [visible, mode])
 
   const renderLogin = () => {
@@ -82,7 +111,7 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
         <TouchableOpacity
           style={styles.forgotPassword}
           onPress={() => {
-            onClose()
+            handleClose()
             setShowForgotPassword(true)
           }}
         >
@@ -92,7 +121,7 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
         </TouchableOpacity>
 
         <CustomTouchable
-          style={styles.primaryButton}
+          style={[styles.primaryButton, { marginTop: 8 }]}
           onPress={() => loginFormik.handleSubmit()}
         >
           <Text style={styles.primaryButtonText}>{t('sign_in')}</Text>
@@ -104,18 +133,20 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
   const renderStep1 = () => (
     <>
       <TextField
+        key="step1-email"
         placeholder={t('email')}
         value={registerFormik.values.email}
         error={getError('email')}
-        onChangeText={(t: string) => registerFormik.setFieldValue('email', t)}
+        onChangeText={(text: string) => setRegisterField('email', text)}
       />
 
       <TextField
+        key={`step1-password-${showRegisterPassword}`}
         placeholder={t('password')}
         secureTextEntry={!showRegisterPassword}
         value={registerFormik.values.password}
         error={getError('password')}
-        onChangeText={(t: string) => registerFormik.setFieldValue('password', t)}
+        onChangeText={(text: string) => setRegisterField('password', text)}
         rightComponent={
           <TouchableOpacity onPress={() => setShowRegisterPassword(p => !p)}>
             <Ionicons
@@ -128,13 +159,12 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
       />
 
       <TextField
+        key={`step1-confirmPassword-${showRegisterPassword}`}
         placeholder={t('confirm_password')}
         secureTextEntry={!showRegisterPassword}
         error={getError('confirmPassword')}
         value={registerFormik.values.confirmPassword}
-        onChangeText={(t: string) =>
-          registerFormik.setFieldValue('confirmPassword', t)
-        }
+        onChangeText={(text: string) => setRegisterField('confirmPassword', text)}
       />
     </>
   )
@@ -142,21 +172,24 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
   const renderStep2 = () => (
     <>
       <TextField
+        key="step2-fullName"
         placeholder={t('full_name')}
         error={getError('fullName')}
         value={registerFormik.values.fullName}
-        onChangeText={(t: string) => registerFormik.setFieldValue('fullName', t)}
+        onChangeText={(text: string) => setRegisterField('fullName', text)}
       />
       <TextField
+        key="step2-phoneNumber"
         placeholder={t('phone_number')}
         keyboardType="phone-pad"
         error={getError('phoneNumber')}
         value={registerFormik.values.phoneNumber}
-        onChangeText={(t: string) => registerFormik.setFieldValue('phoneNumber', t)}
+        onChangeText={(text: string) => setRegisterField('phoneNumber', text)}
       />
       <SchoolSearchSelect
+        key="step2-schoolName"
         value={registerFormik.values.schoolName}
-        onValueChange={(value: string) => registerFormik.setFieldValue('schoolName', value)}
+        onValueChange={(value: string) => setRegisterField('schoolName', value)}
         placeholder={t('school_name')}
         error={getError('schoolName')}
       />
@@ -166,19 +199,19 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
   const renderStep3 = () => (
     <>
       <TextField
+        key="step3-parentName"
         placeholder={t('parent_name')}
         error={getError('parentName')}
         value={registerFormik.values.parentName}
-        onChangeText={(t: string) => registerFormik.setFieldValue('parentName', t)}
+        onChangeText={(text: string) => setRegisterField('parentName', text)}
       />
       <TextField
+        key="step3-parentPhoneNumber"
         placeholder={t('parent_phone_number')}
         error={getError('parentPhoneNumber')}
         keyboardType="phone-pad"
         value={registerFormik.values.parentPhoneNumber}
-        onChangeText={(t: string) =>
-          registerFormik.setFieldValue('parentPhoneNumber', t)
-        }
+        onChangeText={(text: string) => setRegisterField('parentPhoneNumber', text)}
       />
     </>
   )
@@ -186,12 +219,16 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
   const renderStep4 = () => (
     <>
       <Select
-        onValueChange={(value) => registerFormik.setFieldValue('major', value)}
+        key="step4-major"
+        placeholder={t('select_liberal_arts/science')}
+        onValueChange={(value) => setRegisterField('major', value)}
         value={registerFormik.values.major || ''}
         options={subjectOptions}
       />
       <Select
-        onValueChange={(value) => registerFormik.setFieldValue('grade', value)}
+        key="step4-grade"
+        placeholder={t('current_grade')}
+        onValueChange={(value) => setRegisterField('grade', value)}
         value={registerFormik.values.grade || ''}
         options={gradeOptions}
       />
@@ -200,11 +237,32 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
 
   const renderRegisterStep = () => {
     switch (registerStep) {
-      case 1: return renderStep1()
-      case 2: return renderStep2()
-      case 3: return renderStep3()
-      case 4: return renderStep4()
-      default: return null
+      case 1:
+        return (
+          <View key="register-step-1" style={styles.stepContainer}>
+            {renderStep1()}
+          </View>
+        )
+      case 2:
+        return (
+          <View key="register-step-2" style={styles.stepContainer}>
+            {renderStep2()}
+          </View>
+        )
+      case 3:
+        return (
+          <View key="register-step-3" style={styles.stepContainer}>
+            {renderStep3()}
+          </View>
+        )
+      case 4:
+        return (
+          <View key="register-step-4" style={styles.stepContainer}>
+            {renderStep4()}
+          </View>
+        )
+      default:
+        return null
     }
   }
 
@@ -216,9 +274,22 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
 
       {renderRegisterStep()}
 
+      {!!apiError && (
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle" size={16} color={palette.error.main} />
+          <Text style={styles.generalError}>{apiError}</Text>
+        </View>
+      )}
+
       <View style={styles.row}>
         {registerStep > 1 && (
-          <CustomTouchable style={styles.secondaryButton} onPress={handleBack}>
+          <CustomTouchable
+            style={styles.secondaryButton}
+            onPress={() => {
+              setShowRegisterPassword(false)
+              handleBack()
+            }}
+          >
             <Text>{t('back')}</Text>
           </CustomTouchable>
         )}
@@ -238,7 +309,7 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
     <>
       <CommonDialog
         isVisible={visible}
-        onClose={onClose}
+        onClose={handleClose}
         title={mode === LoginAccountMode.Login ? t('sign_in') : t('sign_up')}
       >
         <View style={styles.tabContainer}>
@@ -272,7 +343,8 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
 export default LoginAccountDialog
 
 const styles = ScaledSheet.create({
-  form: { gap: '12@ms' },
+  form: { gap: '16@ms' },
+  stepContainer: { gap: '16@ms' },
 
   label: {
     fontSize: '13@ms',
@@ -299,7 +371,6 @@ const styles = ScaledSheet.create({
   },
 
   primaryButton: {
-    marginTop: '12@ms',
     backgroundColor: palette.main[600],
     height: '50@ms',
     paddingHorizontal: '24@ms',
@@ -324,14 +395,16 @@ const styles = ScaledSheet.create({
 
   row: {
     flexDirection: 'row',
-    alignItems: "center",
+    alignItems: 'center',
     justifyContent: 'space-between',
     gap: '8@ms',
+    marginTop: '6@ms',
   },
 
   stepText: {
     textAlign: 'center',
     color: palette.grey[500],
+    marginBottom: '2@ms',
   },
 
   forgotPassword: {
@@ -342,5 +415,25 @@ const styles = ScaledSheet.create({
     ...TYPO.body3,
     color: palette.main[500],
     fontWeight: '600',
+  },
+
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: '6@ms',
+    backgroundColor: '#FEE2E2',
+    borderWidth: '1@ms',
+    borderColor: '#FCA5A5',
+    paddingHorizontal: '12@ms',
+    paddingVertical: '8@ms',
+    borderRadius: '8@ms',
+    marginTop: '4@ms',
+  },
+
+  generalError: {
+    color: palette.error.main,
+    fontSize: '12@ms',
+    fontWeight: '500',
+    flex: 1,
   },
 })
