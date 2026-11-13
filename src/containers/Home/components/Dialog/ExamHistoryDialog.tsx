@@ -422,7 +422,7 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
             })}
           </ScrollView>
         </View>
-        <View style={{ gap: 10 }}>
+        <View style={{ flex: 1, gap: 10 }}>
           {/* Action Bar with Filter and Sort */}
           <View style={styles.actionBar}>
             <TouchableOpacity
@@ -485,6 +485,7 @@ const ExamHistoryDialog = ({ t, onClose, open }: Props) => {
 
           <View style={styles.content}>
             <SectionList
+              style={{ flex: 1 }}
               sections={sections}
               ref={scrollViewRef as any}
               renderSectionHeader={({ section: { title } }) => (
@@ -584,7 +585,9 @@ const styles = ScaledSheet.create({
     fontWeight: '700',
     color: palette.grey[900]
   },
-  content: {},
+  content: {
+    flex: 1
+  },
   backButton: {
     width: '40@ms',
     height: '40@ms',
@@ -705,7 +708,7 @@ const styles = ScaledSheet.create({
     fontWeight: '500'
   },
   scrollContainer: {
-    paddingBottom: '200@ms',
+    paddingBottom: '60@ms',
     gap: '12@ms'
   },
   examCard: {
