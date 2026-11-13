@@ -1651,6 +1651,7 @@
   "import_data": "데이터 가져오기",
   "row_errors": "행 오류",
   "duplicate_email": "중복 이메일",
+  "invalid_grade": "유효하지 않은 학년",
   "already_enrolled": "이미 등록됨",
   "email_not_found": "학생을 찾을 수 없습니다",
   "invalid_email": "유효하지 않은 이메일",

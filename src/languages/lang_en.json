@@ -1551,6 +1551,8 @@
   "export_template": "Export template",
   "import_data": "Import data",
   "row_errors": "Row errors",
+  "duplicate_email": "This email is already registered",
+  "invalid_grade": "Invalid grade",
   "already_enrolled": "Already enrolled",
   "email_not_found": "Student not found",
   "invalid_email": "Invalid email",
