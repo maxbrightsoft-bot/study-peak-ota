@@ -2734,5 +2734,17 @@
   "viewing_statistics_of": "통계 보기 대상",
   "linked_students": "연결된 학생 목록",
   "change": "변경",
-  "confidence_total_count": "총 {{count}}문제"
+  "confidence_total_count": "총 {{count}}문제",
+  "invalid_academy_domain": "유효하지 않은 학원 도메인입니다",
+  "connected_academies": "연결된 학원",
+  "no_connected_academies": "연결된 학원이 없습니다",
+  "current": "현재",
+  "student_role_links": "연결된 계정 (학생 역할)",
+  "parent_role_links": "연결된 계정 (학부모 역할)",
+  "no_student_links": "학생 역할로 연결된 계정이 없습니다",
+  "no_parent_links": "연결된 학부모 계정이 없습니다",
+  "linked_accounts": "연결된 계정",
+  "view_linked_accounts": "연결된 계정 보기",
+  "my_parent": "학부모",
+  "no_child_links": "연결된 자녀 계정이 없습니다"
 }

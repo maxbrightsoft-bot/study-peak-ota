@@ -392,7 +392,7 @@ const useLayoutApp = () => {
     const setupPusher = async () => {
       const academyDomain = await getDataStorage(ACADEMY_DOMAIN) || user?.academyDomain
       const token = await getDataStorage(ACCESS_TOKEN)
-      if (!token || !academyDomain) return
+      if (!token) return
       const isLearningSpace = user?.isLearningSpace || false
       await initializePusher(academyDomain, isLearningSpace)
     };

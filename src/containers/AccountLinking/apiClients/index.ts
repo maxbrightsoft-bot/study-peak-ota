@@ -83,6 +83,12 @@ export const getAccountLinkDetailApi = (
 ): Promise<AxiosResponse<ResponseModel<AccountLinkResponse>>> =>
   api.get(`${ACCOUNT_LINKS_URL}/${linkId}`, { signal });
 
+export const getLinkedAcademiesApi = (
+  linkId: number,
+  signal?: AbortSignal
+): Promise<AxiosResponse<ResponseModel<AcademySimpleResponse[]>>> =>
+  api.get(`${ACCOUNT_LINKS_URL}/${linkId}/academies`, { signal });
+
 export const generateLinkCodeApi = (signal?: AbortSignal): Promise<AxiosResponse<ResponseModel<GenerateCodeResponse>>> =>
   api.post(`${ACCOUNT_LINKS_URL}/generate-code`, {}, { signal });
 

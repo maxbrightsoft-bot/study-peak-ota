@@ -2410,7 +2410,7 @@
   "add_question": "Thêm câu hỏi",
   "pop_quiz_created_success": "Đã tạo Pop Quiz",
   "who_will_solve": "Ai sẽ giải?",
-  "my_child": "Học sinh của tôi",
+  "my_child": "Con của tôi",
   "friend": "Bạn bè",
   "study_group": "Nhóm học tập",
   "myself": "Chính tôi",
@@ -2749,5 +2749,17 @@
   "viewing_statistics_of": "Đang xem thống kê của",
   "linked_students": "Danh sách học sinh liên kết",
   "change": "Đổi",
-  "confidence_total_count": "Tổng: {{count}} câu"
+  "confidence_total_count": "Tổng: {{count}} câu",
+  "invalid_academy_domain": "Cơ sở không hợp lệ",
+  "connected_academies": "Cơ sở liên kết",
+  "no_connected_academies": "Chưa có cơ sở nào được liên kết",
+  "current": "Hiện tại",
+  "student_role_links": "Tài khoản liên kết (Vai trò Học sinh)",
+  "parent_role_links": "Tài khoản liên kết (Vai trò Phụ huynh)",
+  "no_student_links": "Chưa có tài khoản liên kết vai trò học sinh",
+  "no_parent_links": "Chưa có tài khoản phụ huynh liên kết",
+  "linked_accounts": "Tài khoản liên kết",
+  "view_linked_accounts": "Xem danh sách tài khoản đã liên kết",
+  "my_parent": "Phụ huynh của tôi",
+  "no_child_links": "Chưa có tài khoản con liên kết"
 }

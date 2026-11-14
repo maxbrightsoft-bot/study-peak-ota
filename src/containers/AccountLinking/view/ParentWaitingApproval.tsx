@@ -140,7 +140,11 @@ const ParentWaitingApproval = () => {
   }, [t, isStudentAccepted])
 
   const handleBack = () => {
-      navigation.popTo(Routes.Auth.ParentAccountLinking)
+    if (navigation.canGoBack()) {
+      navigation.goBack()
+    } else {
+      resetToHome()
+    }
   }
 
   const handleRedirectToExamResult = () => {
@@ -237,8 +241,10 @@ const ParentWaitingApproval = () => {
               toast.success(t('unlink_success'))
               if (isShareLink) {
                 resetToHome()
+              } else if (navigation.canGoBack()) {
+                navigation.goBack()
               } else {
-                navigation.popTo(Routes.Auth.ParentAccountLinking)
+                resetToHome()
               }
             } catch (error: any) {
               toast.error(getMessageFromError(t, error))
@@ -335,7 +341,7 @@ const ParentWaitingApproval = () => {
               onPress={() => {
                 navigation.reset({
                   index: 0,
-                  routes: [{ name: Routes.Auth.ParentAccountLinking }],
+                  routes: [{ name: Routes.Auth.ParentLinkRequest }],
                 })
               }}
               activeOpacity={0.8}

@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import UserIcon from '@/assets/iconJSX/user'
 import SignOut from '@/assets/iconJSX/signOut'
-import { Role } from '@/utils/enums'
 import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 import { palette } from '@/theme'
 import { Ionicons } from '@expo/vector-icons'
-import { ScrollView, Text, TouchableOpacity, View, Image, ActivityIndicator } from 'react-native'
+import { ScrollView, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
-import { useNavigation, CommonActions } from '@react-navigation/native'
+import { useNavigation } from '@react-navigation/native'
 import { Routes, MainRoutes } from '@/navigators/RouteName'
 import Notice from '@/containers/Notice/view'
 import UpdateAccount from '../components/UpdateAccount'
@@ -20,7 +19,7 @@ import PolicyViewer from '../components/PolicyViewer'
 import { PRIVACY_POLICY_CONTENT, TERMS_OF_SERVICE_CONTENT } from '../configs/policyContent'
 import useAppStore from '@/store/useAppStore'
 import DeviceInfo from 'react-native-device-info'
-import { AccountLinkResponse, ParentLinkResponse, getLinkedAccountsApi, syncAccountLinksApi } from '@/containers/AccountLinking/apiClients'
+import { getLinkedAccountsApi, syncAccountLinksApi } from '@/containers/AccountLinking/apiClients'
 import { checkIsParent, checkIsStudent, getMessageFromError, toast } from '@/utils/helpers'
 import PremiumSwitch from '@/components/Switch/PremiumSwitch'
 import useAuthStore from '@/store/useAuthStore'
@@ -96,11 +95,7 @@ const Setting = ({ open, onClose }: Props) => {
   } = useSetting()
 
   const bundleVersion = useAppStore((state) => state.bundleVersion)
-  const setLoading = useAuthStore((state) => state.setLoading)
-  const selectedAcademy = useAuthStore((state) => state.selectedAcademy)
   const parentViewMode = useAuthStore((state) => state.parentViewMode)
-  const setParentViewMode = useAuthStore((state) => state.setParentViewMode)
-  const linkedStudents = useAuthStore((state) => state.linkedStudents)
   const syncParentLinkedStudents = useAuthStore((state) => state.syncParentLinkedStudents)
   const appVersion = DeviceInfo.getVersion();
   const navigation = useNavigation<any>();
@@ -109,8 +104,6 @@ const Setting = ({ open, onClose }: Props) => {
   const fetchWaitingApprovalRequestsApi = useAccountLinkingStore((state) => state.fetchWaitingApprovalRequestsApi);
 
   const { isBiometricEnabled, handleToggleBiometric, authenticateBiometric } = useBiometric()
-
-  const children = linkedStudents
 
   useEffect(() => {
     const controller = new AbortController()
@@ -129,41 +122,6 @@ const Setting = ({ open, onClose }: Props) => {
     }
     return () => controller.abort()
   }, [open])
-
-  const handleSelectChild = (child: ParentLinkResponse) => {
-    if (parentViewMode?.linkId === child.id) {
-      return
-    }
-
-    setParentViewMode({
-      isActive: true,
-      linkId: child.id,
-      studentSuperId: child.studentSuperId || null,
-      studentAcademyUserId: child.studentAcademyUserId || null,
-      studentName: child.studentName || null,
-      studentEmail: child.studentEmail || null,
-      studentAcademyDomain: selectedAcademy?.domain || null,
-    })
-    onClose()
-
-    try {
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [
-            {
-              name: Routes.Auth.MainTabs,
-              state: {
-                routes: [{ name: Routes.Auth.Home, params: { refreshKey: Date.now() } }],
-              },
-            },
-          ],
-        })
-      )
-    } catch (e) {
-      console.log(e)
-    }
-  }
 
   const handleOpenTutorial = () => {
     onClose()
@@ -223,51 +181,34 @@ const Setting = ({ open, onClose }: Props) => {
     if (!isAuth) {
       return
     }
-
     onClose()
-    setLoading(true)
+    const isParent = checkIsParent()
+    const isStudent = checkIsStudent()
+    let targetScreen = Routes.Auth.AccountLinkRoleSelection
+    // Refresh store in background without blocking navigation
+    let response;
     try {
-      const response = await getLinkedAccountsApi()
-      const data = response.data?.data || []
-      useAccountLinkingStore.getState().setLinkedAccounts(data)
-
-      const isParent = checkIsParent()
-      let targetScreen = Routes.Auth.AccountLinkRoleSelection
-
-      if (isParent) {
-        targetScreen = Routes.Auth.ParentAccountLinking
-      } else {
-        if (data.length > 0) {
-          targetScreen = Routes.Auth.StudentAccountLinking
-        } else {
-          targetScreen = Routes.Auth.AccountLinkRoleSelection
-        }
-      }
-
-      navigation.navigate(MainRoutes.AuthStack, {
-        screen: Routes.Auth.AccountLinkingGroup,
-        params: {
-          screen: targetScreen,
-          params: {
-            preventFirstFetch: true,
-          },
-        },
-      })
+      response = await getLinkedAccountsApi();
     } catch (error) {
-      const isParent = checkIsParent()
-      const targetScreen = isParent ? Routes.Auth.ParentAccountLinking : Routes.Auth.AccountLinkRoleSelection
-      navigation.navigate(MainRoutes.AuthStack, {
-        screen: Routes.Auth.AccountLinkingGroup,
-        params: {
-          screen: targetScreen,
-          params: {
-            preventFirstFetch: true,
-          },
-        },
-      })
-    } finally {
-      setLoading(false)
     }
+    const data = response?.data?.data || []
+    useAccountLinkingStore.getState().setLinkedAccounts(data)
+    
+    if (isParent) {
+      targetScreen = Routes.Auth.ParentLinkRequest
+    } else if (isStudent && data.length > 0) {
+      targetScreen = Routes.Auth.StudentLinkShare
+    }
+
+    navigation.navigate(MainRoutes.AuthStack, {
+      screen: Routes.Auth.AccountLinkingGroup,
+      params: {
+        screen: targetScreen,
+        params: {
+          preventFirstFetch: true,
+        },
+      },
+    })
   }
 
   const handleOpenPendingRequests = async () => {
@@ -281,6 +222,21 @@ const Setting = ({ open, onClose }: Props) => {
       screen: Routes.Auth.AccountLinkingGroup,
       params: {
         screen: Routes.Auth.PendingLinkRequests,
+      },
+    })
+  }
+
+  const handleOpenViewLinkedAccounts = async () => {
+    const isAuth = await authenticateBiometric(t('biometric_prompt_access'))
+    if (!isAuth) {
+      return
+    }
+
+    onClose()
+    navigation.navigate(MainRoutes.AuthStack, {
+      screen: Routes.Auth.AccountLinkingGroup,
+      params: {
+        screen: Routes.Auth.ViewLinkedAccounts,
       },
     })
   }
@@ -313,63 +269,12 @@ const Setting = ({ open, onClose }: Props) => {
               <View style={styles.card}>
                 <SettingItem onPress={() => handleOpenUpdateUserDialog()} icon={<UserIcon />} title={t('account_management')} />
               </View>
-              {checkIsParent() && (
-                <View style={styles.card}>
-                  <View style={styles.sectionHeader}>
-                    <View style={styles.sectionTitleContainer}>
-                      <Text style={styles.sectionTitle}>{t('linked_children')}</Text>
-                      <Text style={styles.sectionSubtitle}>{t('select_child_desc')}</Text>
-                    </View>
-                    {renderSyncButton()}
-                  </View>
-                  {children.length > 0 ? (
-                    <ScrollView style={styles.childrenListContainer} nestedScrollEnabled={true} showsVerticalScrollIndicator={true}>
-                      {children.map((child, index) => {
-                        const isSelected = parentViewMode?.isActive && parentViewMode?.linkId === child.id
-                        return (
-                          <View key={child.id}>
-                            {index > 0 && <View style={styles.divider} />}
-                            <TouchableOpacity
-                              style={styles.childItem}
-                              onPress={() => handleSelectChild(child)}
-                              activeOpacity={0.7}
-                            >
-                              {child.studentAvatar ? (
-                                <Image source={{ uri: child.studentAvatar }} style={styles.childAvatar} />
-                              ) : (
-                                <View style={styles.childAvatarPlaceholder}>
-                                  <Text style={styles.childAvatarText}>
-                                    {child.studentName ? child.studentName.charAt(0).toUpperCase() : '?'}
-                                  </Text>
-                                </View>
-                              )}
-                              <View style={styles.childInfo}>
-                                <Text style={styles.childName}>{child.studentName}</Text>
-                                <Text style={styles.childEmail} numberOfLines={1} ellipsizeMode="tail">
-                                  {child.studentEmail}
-                                </Text>
-                              </View>
-                              {isSelected && (
-                                <Ionicons name="checkmark-circle" size={20} color="#5F30AA" />
-                              )}
-                            </TouchableOpacity>
-                          </View>
-                        )
-                      })}
-                    </ScrollView>
-                  ) : (
-                    <View style={styles.noChildrenContainer}>
-                      <Text style={styles.noChildrenText}>{t('no_linked_children')}</Text>
-                    </View>
-                  )}
-                </View>
-              )}
               <View style={styles.card}>
                 <SettingItem
                   onPress={handleLinkAccount}
                   icon={<Ionicons name="link-outline" size={22} color="#222222" />}
                   title={t('link_account')}
-                  rightAction={!checkIsParent() ? renderSyncButton() : undefined}
+                  rightAction={renderSyncButton()}
                 />
                 {checkIsStudent() && (
                   <>
@@ -390,6 +295,19 @@ const Setting = ({ open, onClose }: Props) => {
                     />
                   </>
                 )}
+                <View style={styles.biometricDivider} />
+                <SettingItem
+                  onPress={handleOpenViewLinkedAccounts}
+                  icon={<Ionicons name="people-outline" size={22} color="#222222" />}
+                  title={t('view_linked_accounts', 'Xem danh sách tài khoản đã liên kết')}
+                  rightAction={
+                    <Ionicons
+                      name="chevron-forward-outline"
+                      size={20}
+                      color="#666"
+                    />
+                  }
+                />
                 <View style={styles.biometricDivider} />
                 <View style={styles.biometricRow}>
                   <View style={styles.biometricInfo}>
@@ -692,20 +610,6 @@ const styles = ScaledSheet.create({
     marginTop: '4@ms',
     lineHeight: '16@ms'
   },
-  sectionHeader: {
-    paddingHorizontal: '16@ms',
-    paddingTop: '16@ms',
-    paddingBottom: '8@ms',
-    borderBottomWidth: '1@ms',
-    borderBottomColor: '#eee',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  sectionTitleContainer: {
-    flex: 1,
-    marginRight: '8@ms',
-  },
   syncButton: {
     width: '32@ms',
     height: '32@ms',
@@ -736,70 +640,6 @@ const styles = ScaledSheet.create({
     fontWeight: '800',
     lineHeight: '11@ms',
     textAlign: 'center',
-  },
-  sectionTitle: {
-    fontSize: '14@ms',
-    fontWeight: '700',
-    color: '#5F30AA',
-    textTransform: 'uppercase'
-  },
-  sectionSubtitle: {
-    fontSize: '12@ms',
-    color: '#777777',
-    marginTop: '4@ms'
-  },
-  childrenListContainer: {
-    maxHeight: '240@ms'
-  },
-  childItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: '12@ms',
-    paddingHorizontal: '16@ms'
-  },
-  childAvatar: {
-    width: '40@ms',
-    height: '40@ms',
-    borderRadius: '20@ms',
-    marginRight: '12@ms'
-  },
-  childAvatarPlaceholder: {
-    width: '40@ms',
-    height: '40@ms',
-    borderRadius: '20@ms',
-    backgroundColor: '#F3E5F5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: '12@ms'
-  },
-  childAvatarText: {
-    fontSize: '16@ms',
-    fontWeight: '700',
-    color: '#5F30AA'
-  },
-  childInfo: {
-    flex: 1,
-    justifyContent: 'center'
-  },
-  childName: {
-    fontSize: '15@ms',
-    fontWeight: '600',
-    color: '#222'
-  },
-  childEmail: {
-    fontSize: '12@ms',
-    color: '#666',
-    marginTop: '2@ms'
-  },
-  noChildrenContainer: {
-    padding: '20@ms',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  noChildrenText: {
-    fontSize: '14@ms',
-    color: '#999',
-    textAlign: 'center'
   },
   pendingBadge: {
     backgroundColor: '#FF3B30',

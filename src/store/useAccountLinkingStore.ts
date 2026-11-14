@@ -172,6 +172,7 @@ const useAccountLinkingStore = create<AccountLinkingStore>()(
         } else {
           state.methodLink = null;
         }
+        state.subscribedChannel = null;
       });
     },
 

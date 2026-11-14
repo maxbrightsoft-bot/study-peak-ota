@@ -154,8 +154,7 @@ export const useAccountLinkingPusher = () => {
     const isParent = determinedRole === Role.Parent || checkIsParent();
 
     const channelName = buildAccountLinkingChannelName(targetEmail, method, isParent, user?.superId);
-    console.log(channelName);
-    let cancelled = false
+    let cancelled = false;
 
     const handleSubscribe = async () => {
       try {
@@ -182,24 +181,21 @@ export const useAccountLinkingPusher = () => {
           }
         );
         if (cancelled) return;
-        if (channel?.members instanceof Map && channel.members.size > 0) {
-          useAccountLinkingStore.getState().setSubscribedChannel(channelName);
-        }
       } catch (err) {
-        console.error('[Pusher] Account linking subscription failed:', err)
+        console.error('[Pusher] Account linking subscription failed:', err);
       }
-    }
+    };
 
-    handleSubscribe()
+    handleSubscribe();
 
     return () => {
-      cancelled = true
+      cancelled = true;
       if (useAccountLinkingStore.getState().subscribedChannel === channelName) {
-        useAccountLinkingStore.getState().setSubscribedChannel(null)
+        useAccountLinkingStore.getState().setSubscribedChannel(null);
       }
       pendingUnsubscribe = unsubscribeChannelSafe(pusher, channelName)
     }
-  }, [pusher, studentEmail, methodLink, user?.superId])
+  }, [pusher, studentEmail, methodLink, user?.superId, determinedRole])
 }
 
 export default useAccountLinkingPusher
