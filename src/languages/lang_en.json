@@ -2738,5 +2738,17 @@
   "viewing_statistics_of": "Viewing statistics of",
   "linked_students": "Linked Students",
   "change": "Change",
-  "confidence_total_count": "Total: {{count}}"
+  "confidence_total_count": "Total: {{count}}",
+  "invalid_academy_domain": "Invalid academy domain",
+  "connected_academies": "Connected Academies",
+  "no_connected_academies": "No connected academies",
+  "current": "Current",
+  "student_role_links": "Linked Accounts (Student Role)",
+  "parent_role_links": "Linked Accounts (Parent Role)",
+  "no_student_links": "No linked accounts with student role",
+  "no_parent_links": "No linked parent accounts",
+  "linked_accounts": "Linked Accounts",
+  "view_linked_accounts": "View linked accounts",
+  "my_parent": "My Parent",
+  "no_child_links": "No linked child accounts"
 }

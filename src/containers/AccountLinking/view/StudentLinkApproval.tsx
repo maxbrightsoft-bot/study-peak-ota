@@ -6,6 +6,7 @@ import { ScaledSheet } from 'react-native-size-matters'
 import { useNavigation } from '@react-navigation/native'
 import { palette, TYPO } from '@/theme'
 import { Routes } from '@/navigators/RouteName'
+import { resetToHome } from '@/navigators/NavigationHelpers'
 import { toast, getMessageFromError } from '@/utils/helpers'
 import Navbar from '../components/Navbar'
 import LinkedStateCard from '../components/LinkedStateCard'
@@ -128,10 +129,7 @@ const StudentLinkApproval = () => {
                 await deleteLinkApi(id)
               }
               toast.success(t('unlink_success'))
-              navigation.reset({
-                index: 0,
-                routes: [{ name: Routes.Auth.StudentAccountLinking }],
-              })
+              resetToHome()
             } catch (error: any) {
               toast.error(getMessageFromError(t, error))
             } finally {
@@ -150,10 +148,7 @@ const StudentLinkApproval = () => {
         title={t('family_link')}
         showBack={!!acceptedLinkData || isApprovedByStudent}
         onBackPress={() => {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: Routes.Auth.StudentAccountLinking }],
-          })
+          resetToHome()
         }}
       />
 
@@ -226,10 +221,7 @@ const StudentLinkApproval = () => {
                   <TouchableOpacity
                     style={[styles.btn, styles.primaryBtn, { flex: 1 }]}
                     onPress={() => {
-                      navigation.reset({
-                        index: 0,
-                        routes: [{ name: Routes.Auth.StudentAccountLinking }],
-                      })
+                      resetToHome()
                     }}
                     activeOpacity={0.8}
                   >

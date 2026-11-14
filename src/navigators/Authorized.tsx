@@ -21,8 +21,6 @@ import QuestionScreen from '@/screens/Question'
 import { Platform, StatusBar } from 'react-native'
 import StudentExamHistoryScreen from '@/screens/StudentExamHistory'
 import PopQuizScreen from '@/screens/PopQuiz'
-import ParentAccountLinkingScreen from '@/screens/AccountLinking/ParentList'
-import StudentAccountLinkingScreen from '@/screens/AccountLinking/StudentList'
 import ParentLinkRequestScreen from '@/screens/AccountLinking/ParentLinkRequest'
 import StudentLinkShareScreen from '@/screens/AccountLinking/StudentLinkShare'
 import ParentQrScanScreen from '@/screens/AccountLinking/ParentQrScan'
@@ -32,6 +30,7 @@ import RoleSelectionScreen from '@/screens/AccountLinking/AccountLinkRoleSelecti
 import PendingLinkRequestsScreen from '@/screens/AccountLinking/PendingLinkRequests'
 import ParentShareLinkConfirmScreen from '@/screens/AccountLinking/ParentShareLinkConfirm'
 import ConvertParentRoleScreen from '@/screens/AccountLinking/ConvertParentRole'
+import ViewLinkedAccountsScreen from '@/screens/AccountLinking/ViewLinkedAccounts'
 import useAccountLinkingPusher from '@/containers/AccountLinking/hooks/useAccountLinkingPusher'
 import useAccountLinkingStore from '@/store/useAccountLinkingStore'
 import ConsentScreen from '@/containers/Setting/components/ConsentScreen'
@@ -70,8 +69,6 @@ const AccountLinkingNavigator = () => {
         headerShown: false,
       }}
     >
-      <AccountLinkingStack.Screen name={Routes.Auth.ParentAccountLinking} component={ParentAccountLinkingScreen} />
-      <AccountLinkingStack.Screen name={Routes.Auth.StudentAccountLinking} component={StudentAccountLinkingScreen} />
       <AccountLinkingStack.Screen name={Routes.Auth.ParentLinkRequest} component={ParentLinkRequestScreen} />
       <AccountLinkingStack.Screen name={Routes.Auth.StudentLinkShare} component={StudentLinkShareScreen} />
       <AccountLinkingStack.Screen name={Routes.Auth.ParentQrScan} component={ParentQrScanScreen} />
@@ -81,6 +78,7 @@ const AccountLinkingNavigator = () => {
       <AccountLinkingStack.Screen name={Routes.Auth.PendingLinkRequests} component={PendingLinkRequestsScreen} />
       <AccountLinkingStack.Screen name={Routes.Auth.ParentShareLinkConfirm} component={ParentShareLinkConfirmScreen} />
       <AccountLinkingStack.Screen name={Routes.Auth.ConvertParentRole} component={ConvertParentRoleScreen} />
+      <AccountLinkingStack.Screen name={Routes.Auth.ViewLinkedAccounts} component={ViewLinkedAccountsScreen} />
     </AccountLinkingStack.Navigator>
   )
 }

@@ -345,6 +345,14 @@ export const waitForPusherSubscribed = (
       return;
     }
 
+    const pusher = useAuthStore.getState().pusher;
+    const existing = pusher?.getChannel?.(channelName);
+    if (existing) {
+      useAccountLinkingStore.getState().setSubscribedChannel(channelName);
+      resolve(true);
+      return;
+    }
+
     let isResolved = false;
     let timer: NodeJS.Timeout | null = null;
     let stopListening: () => void = () => {};
