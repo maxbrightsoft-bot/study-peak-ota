@@ -31,7 +31,11 @@
 #if DEBUG
   return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@".expo/.virtual-metro-entry"];
 #else
-  return [OtaHotUpdate getBundle];
+  NSURL *otaBundleURL = [OtaHotUpdate getBundle];
+  if (otaBundleURL != nil) {
+    return otaBundleURL;
+  }
+  return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
 #endif
 }
 

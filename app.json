@@ -2,7 +2,8 @@
   "expo": {
     "name": "Study Peak",
     "slug": "touch-study-mobile",
-    "jsEngine": "jsc",
+    "jsEngine": "hermes",
+    "newArchEnabled": false,
     "version": "1.0.9",
     "orientation": "portrait",
     "icon": "./assets/app-icon.png",
@@ -14,6 +15,7 @@
     ],
     "userInterfaceStyle": "automatic",
     "ios": {
+      "jsEngine": "hermes",
       "supportsTablet": true,
       "buildNumber": "15",
       "bundleIdentifier": "com.max.britghtsoft.touchstudymobile",
@@ -39,6 +41,7 @@
       ]
     },
     "android": {
+      "jsEngine": "hermes",
       "versionCode": 5,
       "package": "com.max.britghtsoft.touchstudymobile",
       "intentFilters": [
