@@ -40,9 +40,10 @@ type Props = {
   handleOpenDrawer?: () => void;
   textbookId?: string;
   page?: string;
-  reqTime?: string
+  reqTime?: string;
   restart?: boolean;
   redirectTopPage?: boolean;
+  questionId?: number;
 };
 
 const useTextbook = ({
@@ -51,7 +52,8 @@ const useTextbook = ({
   page,
   reqTime,
   restart,
-  redirectTopPage
+  redirectTopPage,
+  questionId
 }: Props = {}) => {
   const { t } = useTranslation();
   const { setLoading, alarm, setLoadingWithoutOverlay, isLoadingWithoutOverlay } = useAuthStore();
@@ -797,7 +799,17 @@ const useTextbook = ({
   );
 
   useEffect(() => {
-    if (!page || questionGroupList.length === 0 || isJustRestartedRef.current || !!restartTextbookData?.startPage) return;
+    if (!questionId || questionList.length === 0) return;
+    const targetQId = Number(questionId);
+    const targetIndex = questionList.findIndex(q => q.id === targetQId);
+    if (targetIndex !== -1) {
+      setCurrentQuestionId(targetQId);
+      onScrollToIndex(targetIndex);
+    }
+  }, [questionId, questionList, onScrollToIndex]);
+
+  useEffect(() => {
+    if (!page || questionGroupList.length === 0 || isJustRestartedRef.current || !!restartTextbookData?.startPage || !!questionId) return;
     if (lastHandledPageParamRef.current === page) return;
 
     const pageNumber = +page;

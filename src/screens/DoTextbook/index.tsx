@@ -10,9 +10,17 @@ const DoTextbookScreen = ({ route }: Props) => {
   const reqTime = route?.params?.reqTime
   const restart = route?.params?.restart
   const redirectTopPage = route?.params?.redirectTopPage
-  
+  const questionId = route?.params?.questionId
+
   return (
-    <DoTextbook textbookId={textbookId} page={page} reqTime={reqTime} restart={restart} redirectTopPage={redirectTopPage}/>
+    <DoTextbook
+      textbookId={textbookId}
+      page={page}
+      reqTime={reqTime}
+      restart={restart}
+      redirectTopPage={redirectTopPage}
+      questionId={questionId}
+    />
   )
 }
 

@@ -1,4 +1,5 @@
 #import "AppDelegate.h"
+#import "SceneDelegate.h"
 // @generated begin bootsplash-header - expo prebuild (DO NOT MODIFY) sync-f0de804bd8ce3b43e3fbda77f5f6262b5152aa47
 #import "RNBootSplash.h"
 // @generated end bootsplash-header
@@ -31,8 +32,30 @@
 #if DEBUG
   return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@".expo/.virtual-metro-entry"];
 #else
-  return [OtaHotUpdate getBundle];
+  // Safe OTA: fallback to main bundle if OTA URL is nil
+  NSURL *otaBundleURL = [OtaHotUpdate getBundle];
+  if (otaBundleURL != nil) {
+    return otaBundleURL;
+  }
+  return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
 #endif
+}
+
+// MARK: - UISceneSession lifecycle (iOS 27+ requirement)
+// AppDelegate tells iOS which class to use as the Scene Delegate.
+// We use a dedicated SceneDelegate class to avoid the "dual instance" problem
+// (iOS creates a new AppDelegate instance for the scene, which has no UIWindow).
+
+- (UISceneConfiguration *)application:(UIApplication *)application
+    configurationForConnectingSceneSession:(UISceneSession *)connectingSceneSession
+                                   options:(UISceneConnectionOptions *)options
+{
+  UISceneConfiguration *configuration = [[UISceneConfiguration alloc]
+      initWithName:@"Default Configuration"
+       sessionRole:connectingSceneSession.role];
+  // Delegate to SceneDelegate, NOT AppDelegate, to avoid dual-instance conflict
+  configuration.delegateClass = [SceneDelegate class];
+  return configuration;
 }
 
 // Linking API

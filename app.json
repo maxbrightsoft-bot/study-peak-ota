@@ -2,8 +2,9 @@
   "expo": {
     "name": "Study Peak",
     "slug": "touch-study-mobile",
-    "jsEngine": "jsc",
-    "version": "1.0.9",
+    "jsEngine": "hermes",
+    "newArchEnabled": false,
+    "version": "1.0.12",
     "orientation": "portrait",
     "icon": "./assets/app-icon.png",
     "scheme": "com.max.britghtsoft.touchstudymobile",
@@ -14,14 +15,27 @@
     ],
     "userInterfaceStyle": "automatic",
     "ios": {
+      "jsEngine": "hermes",
       "supportsTablet": true,
-      "buildNumber": "15",
+      "buildNumber": "2",
       "bundleIdentifier": "com.max.britghtsoft.touchstudymobile",
       "infoPlist": {
+        "UIApplicationSceneManifest": {
+          "UIApplicationSupportsMultipleScenes": false,
+          "UISceneConfigurations": {
+            "UIWindowSceneSessionRoleApplication": [
+              {
+                "UISceneConfigurationName": "Default Configuration",
+                "UISceneDelegateClassName": "SceneDelegate"
+              }
+            ]
+          }
+        },
         "ITSAppUsesNonExemptEncryption": false,
         "NSPhotoLibraryUsageDescription": "This app needs access to your photos so you can upload images.",
         "NSPhotoLibraryAddUsageDescription": "Allow StudyPeak to save photos to your library.",
         "NSCameraUsageDescription": "Study Peak needs camera access to scan a QR code to link your account with another user, such as a parent or tutor account.",
+        "NSFaceIDUsageDescription": "Allow Study Peak to use Face ID for fast and secure account authentication.",
         "CFBundleURLTypes": [
           {
             "CFBundleURLSchemes": [
@@ -38,6 +52,7 @@
       ]
     },
     "android": {
+      "jsEngine": "hermes",
       "versionCode": 5,
       "package": "com.max.britghtsoft.touchstudymobile",
       "intentFilters": [
@@ -108,13 +123,13 @@
       [
         "expo-local-authentication",
         {
-          "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID."
+          "faceIDPermission": "Allow Study Peak to use Face ID for fast and secure account authentication."
         }
       ],
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "cameraPermission": "Study Peak needs camera access to scan a QR code to link your account with another user, such as a parent or tutor account.",
           "barcodeScannerEnabled": true
         }
       ]
