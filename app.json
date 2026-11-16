@@ -4,7 +4,7 @@
     "slug": "touch-study-mobile",
     "jsEngine": "hermes",
     "newArchEnabled": false,
-    "version": "1.0.9",
+    "version": "1.0.11",
     "orientation": "portrait",
     "icon": "./assets/app-icon.png",
     "scheme": "com.max.britghtsoft.touchstudymobile",
@@ -17,7 +17,7 @@
     "ios": {
       "jsEngine": "hermes",
       "supportsTablet": true,
-      "buildNumber": "15",
+      "buildNumber": "3",
       "bundleIdentifier": "com.max.britghtsoft.touchstudymobile",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
