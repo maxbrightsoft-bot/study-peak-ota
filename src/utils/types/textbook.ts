@@ -66,6 +66,9 @@ export type Subject = {
 
 export type TextbookResult = {
     id: number
+    textbookId?: number
+    rowVersion?: string
+    isMock?: boolean
     chapterName: string
     parentChapterName: string | null
     className: string
@@ -85,6 +88,10 @@ export type TextbookResult = {
 export type StudentQuestionResult = Question & {
   categories: Category[]
   questionGroupId: number
+  pageNumber?: number
+  pageFrom?: number
+  pageTo?: number
+  questionOrder?: number
 }
 
 export type SubjectResponse = {

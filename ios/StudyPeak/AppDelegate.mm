@@ -39,6 +39,39 @@
 #endif
 }
 
+#pragma mark - UISceneSession lifecycle
+
+- (UISceneConfiguration *)application:(UIApplication *)application configurationForConnectingSceneSession:(UISceneSession *)connectingSceneSession options:(UISceneConnectionOptions *)options
+{
+  UISceneConfiguration *configuration = [[UISceneConfiguration alloc] initWithName:@"Default Configuration" sessionRole:connectingSceneSession.role];
+  configuration.delegateClass = [AppDelegate class];
+  return configuration;
+}
+
+- (void)scene:(UIScene *)scene willConnectToSession:(UISceneSession *)session options:(UISceneConnectionOptions *)connectionOptions
+{
+  if ([scene isKindOfClass:[UIWindowScene class]]) {
+    UIWindowScene *windowScene = (UIWindowScene *)scene;
+    if (self.window) {
+      self.window.windowScene = windowScene;
+      [self.window makeKeyAndVisible];
+    }
+  }
+}
+
+- (void)scene:(UIScene *)scene openURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts
+{
+  UIOpenURLContext *urlContext = URLContexts.allObjects.firstObject;
+  if (urlContext) {
+    [RCTLinkingManager application:[UIApplication sharedApplication] openURL:urlContext.URL options:@{}];
+  }
+}
+
+- (void)scene:(UIScene *)scene continueUserActivity:(NSUserActivity *)userActivity
+{
+  [RCTLinkingManager application:[UIApplication sharedApplication] continueUserActivity:userActivity restorationHandler:^(NSArray<id<UIUserActivityRestoring>> * _Nullable restorableObjects) {}];
+}
+
 // Linking API
 - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
   return [super application:application openURL:url options:options] || [RCTLinkingManager application:application openURL:url options:options];
