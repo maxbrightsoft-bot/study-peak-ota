@@ -17,9 +17,20 @@
     "ios": {
       "jsEngine": "hermes",
       "supportsTablet": true,
-      "buildNumber": "3",
+      "buildNumber": "4",
       "bundleIdentifier": "com.max.britghtsoft.touchstudymobile",
       "infoPlist": {
+        "UIApplicationSceneManifest": {
+          "UIApplicationSupportsMultipleScenes": false,
+          "UISceneConfigurations": {
+            "UIWindowSceneSessionRoleApplication": [
+              {
+                "UISceneConfigurationName": "Default Configuration",
+                "UISceneDelegateClassName": "AppDelegate"
+              }
+            ]
+          }
+        },
         "ITSAppUsesNonExemptEncryption": false,
         "NSPhotoLibraryUsageDescription": "This app needs access to your photos so you can upload images.",
         "NSPhotoLibraryAddUsageDescription": "Allow StudyPeak to save photos to your library.",
