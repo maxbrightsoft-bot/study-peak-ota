@@ -1,4 +1,5 @@
 #import "AppDelegate.h"
+#import "SceneDelegate.h"
 // @generated begin bootsplash-header - expo prebuild (DO NOT MODIFY) sync-f0de804bd8ce3b43e3fbda77f5f6262b5152aa47
 #import "RNBootSplash.h"
 // @generated end bootsplash-header
@@ -31,6 +32,7 @@
 #if DEBUG
   return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@".expo/.virtual-metro-entry"];
 #else
+  // Safe OTA: fallback to main bundle if OTA URL is nil
   NSURL *otaBundleURL = [OtaHotUpdate getBundle];
   if (otaBundleURL != nil) {
     return otaBundleURL;
@@ -39,37 +41,21 @@
 #endif
 }
 
-#pragma mark - UISceneSession lifecycle
+// MARK: - UISceneSession lifecycle (iOS 27+ requirement)
+// AppDelegate tells iOS which class to use as the Scene Delegate.
+// We use a dedicated SceneDelegate class to avoid the "dual instance" problem
+// (iOS creates a new AppDelegate instance for the scene, which has no UIWindow).
 
-- (UISceneConfiguration *)application:(UIApplication *)application configurationForConnectingSceneSession:(UISceneSession *)connectingSceneSession options:(UISceneConnectionOptions *)options
+- (UISceneConfiguration *)application:(UIApplication *)application
+    configurationForConnectingSceneSession:(UISceneSession *)connectingSceneSession
+                                   options:(UISceneConnectionOptions *)options
 {
-  UISceneConfiguration *configuration = [[UISceneConfiguration alloc] initWithName:@"Default Configuration" sessionRole:connectingSceneSession.role];
-  configuration.delegateClass = [AppDelegate class];
+  UISceneConfiguration *configuration = [[UISceneConfiguration alloc]
+      initWithName:@"Default Configuration"
+       sessionRole:connectingSceneSession.role];
+  // Delegate to SceneDelegate, NOT AppDelegate, to avoid dual-instance conflict
+  configuration.delegateClass = [SceneDelegate class];
   return configuration;
-}
-
-- (void)scene:(UIScene *)scene willConnectToSession:(UISceneSession *)session options:(UISceneConnectionOptions *)connectionOptions
-{
-  if ([scene isKindOfClass:[UIWindowScene class]]) {
-    UIWindowScene *windowScene = (UIWindowScene *)scene;
-    if (self.window) {
-      self.window.windowScene = windowScene;
-      [self.window makeKeyAndVisible];
-    }
-  }
-}
-
-- (void)scene:(UIScene *)scene openURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts
-{
-  UIOpenURLContext *urlContext = URLContexts.allObjects.firstObject;
-  if (urlContext) {
-    [RCTLinkingManager application:[UIApplication sharedApplication] openURL:urlContext.URL options:@{}];
-  }
-}
-
-- (void)scene:(UIScene *)scene continueUserActivity:(NSUserActivity *)userActivity
-{
-  [RCTLinkingManager application:[UIApplication sharedApplication] continueUserActivity:userActivity restorationHandler:^(NSArray<id<UIUserActivityRestoring>> * _Nullable restorableObjects) {}];
 }
 
 // Linking API
