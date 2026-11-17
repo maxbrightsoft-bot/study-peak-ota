@@ -20,12 +20,7 @@ import {
     getPerformanceSummaryMock,
     getPerformanceAnalysisMock,
     getPerformanceWeaknessMock,
-    getPerformanceDailyMock,
-    getPopQuizPerformanceDailyMock,
-    getPopQuizPerformanceSummaryMock,
-    getPopQuizPerformanceAnalysisMock,
-    getPopQuizPerformanceWeaknessMock,
-    getPopQuizSubjectListMock
+    getPerformanceDailyMock
 } from './containers/StudyPerformance/studyPerformanceApi';
 import { studyTextbookMock, answerQuestionTextbookMock, getQuestionsTextbookMock, getPreparedTextbookMock, pauseOrFinishedTextbookMock, pauseAndResumeTextbookMock, restartTextbookMock } from './containers/Textbooks/textbookApi';
 import { getStudentHistoryMock, deleteStudentExamSessionMock, hideStudentExamSessionMock, selectStudentExamSessionMock } from './containers/StudentExamHistory/studentHistoryApi';
@@ -472,21 +467,6 @@ const routeToMock = async (config: any, lang: string = 'ko'): Promise<any> => {
     }
     if (url.includes('/api/pop-quiz/my') && method === 'get') {
         return await getMyPopQuizzesMock(lang);
-    }
-    if (url.includes('/api/pop-quiz/performance/daily') && method === 'get') {
-        return await getPopQuizPerformanceDailyMock(params);
-    }
-    if (url.includes('/api/pop-quiz/performance/summary') && method === 'get') {
-        return await getPopQuizPerformanceSummaryMock(params);
-    }
-    if (url.includes('/api/pop-quiz/performance/analysis') && method === 'get') {
-        return await getPopQuizPerformanceAnalysisMock(params);
-    }
-    if (url.includes('/api/pop-quiz/performance/weakness') && method === 'get') {
-        return await getPopQuizPerformanceWeaknessMock(params);
-    }
-    if (url.includes('/api/pop-quiz/subjects') && method === 'get') {
-        return await getPopQuizSubjectListMock();
     }
     if (url.match(/\/api\/pop-quiz\/\d+\/status/) && method === 'put') {
         const id = extractId(/\/api\/pop-quiz\/(\d+)\/status/);

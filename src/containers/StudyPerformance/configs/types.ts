@@ -15,7 +15,6 @@ export type PerformanceRequest = {
   studentId?: number;
   timezone?: string;
   topLimit?: number;
-  subjectId?: number;
 };
 
 export type PerformanceDailyRequest = {
@@ -79,11 +78,6 @@ export type SubjectResponse = {
   totalCategories: number;
   audioUrls: string[];
   color: string | null;
-};
-
-export type PopQuizSubjectItem = {
-  id: number;
-  name: string;
 };
 
 export type StudyTimeDistribution = {

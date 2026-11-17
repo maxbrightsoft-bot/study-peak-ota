@@ -7,12 +7,7 @@ import {
   getPerformanceSummaryApi,
   getPerformanceAnalysisApi,
   getPerformanceWeaknessApi,
-  getPerformanceDailyApi,
-  getPopQuizPerformanceDailyApi,
-  getPopQuizPerformanceSummaryApi,
-  getPopQuizPerformanceAnalysisApi,
-  getPopQuizPerformanceWeaknessApi,
-  getPopQuizSubjectListApi
+  getPerformanceDailyApi
 } from '../apiClients'
 import { MILLISECONDS_PER_HOUR, Mode, timeTypeOptions, TOP_WEAKNESS_LIMIT } from '../../../configs/constants'
 import {
@@ -38,7 +33,6 @@ import {
   PerformanceRequest,
   PerformanceSummaryResponse,
   PerformanceWeaknessResponse,
-  PopQuizSubjectItem,
   QuestionData,
   RankingDataResponse,
   StudyTimeDistribution,
@@ -59,7 +53,7 @@ type Props = {
   mode?: Mode
 }
 
-type SubjectOptionItem = Pick<SubjectResponse | PopQuizSubjectItem, 'id' | 'name'>
+type SubjectOptionItem = Pick<SubjectResponse, 'id' | 'name'>
 
 const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
   const { t } = useTranslation()
@@ -72,8 +66,6 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
   // Tenant user (Academy or My Study Space) vs SuperAdmin/non-tenant for timer endpoints
   const isTenantUser = isLearningSpace || !!academyDomain
   const isAdminOrNonAcademy = !isTenantUser || isSuperAdmin
-  // Only true when actively inside an Academy workspace (My Study Space uses Pop Quiz endpoints)
-  const isAcademySpace = !!academyDomain && !isLearningSpace
 
   const [visible, setVisible] = useState(false)
   const [load, setLoad] = useState<boolean>(false)
@@ -243,9 +235,7 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
     const reqId = ++subjectsReqRef.current
     setLoadingSubjects(true)
     try {
-      const res = isAcademySpace
-        ? await getSubjectListApi(isAdminOrNonAcademy)
-        : await getPopQuizSubjectListApi()
+      const res = await getSubjectListApi(isAdminOrNonAcademy)
       if (reqId !== subjectsReqRef.current) return
 
       const items: SubjectOptionItem[] = res.data?.items || []
@@ -274,21 +264,11 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
     setLoadingWeakness(true)
 
     try {
-      const [summaryRes, analysisRes, weaknessRes] = isAcademySpace
-        ? await Promise.all([
-            getPerformanceSummaryApi(selectedSubject, subjectDataRequest),
-            getPerformanceAnalysisApi(selectedSubject, subjectDataRequest),
-            getPerformanceWeaknessApi(selectedSubject, { ...subjectDataRequest, topLimit: TOP_WEAKNESS_LIMIT })
-          ])
-        : await Promise.all([
-            getPopQuizPerformanceSummaryApi({ ...subjectDataRequest, subjectId: selectedSubject }),
-            getPopQuizPerformanceAnalysisApi({ ...subjectDataRequest, subjectId: selectedSubject }),
-            getPopQuizPerformanceWeaknessApi({
-              ...subjectDataRequest,
-              subjectId: selectedSubject,
-              topLimit: TOP_WEAKNESS_LIMIT
-            })
-          ])
+      const [summaryRes, analysisRes, weaknessRes] = await Promise.all([
+        getPerformanceSummaryApi(selectedSubject, subjectDataRequest),
+        getPerformanceAnalysisApi(selectedSubject, subjectDataRequest),
+        getPerformanceWeaknessApi(selectedSubject, { ...subjectDataRequest, topLimit: TOP_WEAKNESS_LIMIT })
+      ])
 
       if (reqId !== perfReqRef.current) return
       setSummaryData(summaryRes.data)
@@ -317,9 +297,7 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
     setLoadingDaily(true)
     try {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
-      const res = isAcademySpace
-        ? await getPerformanceDailyApi({ timezone: tz, studentId })
-        : await getPopQuizPerformanceDailyApi({ timezone: tz, studentId })
+      const res = await getPerformanceDailyApi({ timezone: tz, studentId })
       if (reqId !== dailyReqRef.current) return
       setDailyData(res.data)
     } catch (error) {
@@ -343,7 +321,7 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
     setPerformanceData(undefined)
     setWeaknessData(undefined)
     setDailyData(undefined)
-  }, [user?.id, isAcademySpace, studentId])
+  }, [user?.id, academyDomain, isLearningSpace, studentId])
 
   useEffect(() => {
     if (mode === Mode.Timer) {
@@ -353,12 +331,12 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
     }
     if (selectedSubject === undefined) return
     handleGetPerformanceData()
-  }, [timeType, currentTime, selectedSubject, isAcademySpace, user?.id, studentId, load])
+  }, [timeType, currentTime, selectedSubject, user?.id, studentId, load])
 
   useEffect(() => {
     if (mode !== Mode.Timer) return
     handleGetSubjectCumulativeData()
-  }, [selectedSubject, isAcademySpace, user?.id, studentId, load])
+  }, [selectedSubject, user?.id, studentId, load])
 
   useEffect(() => {
     if (mode === Mode.Timer) {
@@ -367,7 +345,7 @@ const useStudyPerformanceData = ({ mode = Mode.Timer, studentId }: Props) => {
     }
     getSubjectList()
     handleGetDailyData()
-  }, [isAcademySpace, user?.id, studentId, load])
+  }, [user?.id, academyDomain, isLearningSpace, studentId, load])
 
   useEffect(() => {
     if (mode !== Mode.Timer) return
