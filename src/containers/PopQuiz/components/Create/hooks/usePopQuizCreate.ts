@@ -7,7 +7,8 @@ import { getErrorMessage, toast } from '@/utils/helpers';
 import { STUDENT_URL } from '@/utils/constants';
 import { Routes } from '@/navigators/RouteName';
 import React, { useEffect, useState } from 'react';
-import { Clipboard, Share } from 'react-native';
+import { Share } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { QuestionAnswerType, ExamStatus, SubjectType, PopQuizSolveTarget, OrderBy } from '@/utils/enums';
 import { navigate } from '@/navigators/NavigationHelpers';
 import _ from 'lodash';
@@ -82,9 +83,9 @@ const usePopQuizCreate = () => {
     },
   ]);
 
-  const handleCopyCode = () => {
+  const handleCopyCode = async () => {
     const code = createdQuizCode;
-    Clipboard.setString(code);
+    await Clipboard.setStringAsync(code);
     toast.success(t('the_code_has_been_copied_to_your_clipboard'));
   };
 

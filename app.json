@@ -2,8 +2,9 @@
   "expo": {
     "name": "Study Peak",
     "slug": "touch-study-mobile",
-    "jsEngine": "jsc",
-    "version": "1.0.9",
+    "jsEngine": "hermes",
+    "newArchEnabled": false,
+    "version": "1.0.11",
     "orientation": "portrait",
     "icon": "./assets/app-icon.png",
     "scheme": "com.max.britghtsoft.touchstudymobile",
@@ -14,10 +15,22 @@
     ],
     "userInterfaceStyle": "automatic",
     "ios": {
+      "jsEngine": "hermes",
       "supportsTablet": true,
-      "buildNumber": "15",
+      "buildNumber": "5",
       "bundleIdentifier": "com.max.britghtsoft.touchstudymobile",
       "infoPlist": {
+        "UIApplicationSceneManifest": {
+          "UIApplicationSupportsMultipleScenes": false,
+          "UISceneConfigurations": {
+            "UIWindowSceneSessionRoleApplication": [
+              {
+                "UISceneConfigurationName": "Default Configuration",
+                "UISceneDelegateClassName": "SceneDelegate"
+              }
+            ]
+          }
+        },
         "ITSAppUsesNonExemptEncryption": false,
         "NSPhotoLibraryUsageDescription": "This app needs access to your photos so you can upload images.",
         "NSPhotoLibraryAddUsageDescription": "Allow StudyPeak to save photos to your library.",
@@ -39,6 +52,7 @@
       ]
     },
     "android": {
+      "jsEngine": "hermes",
       "versionCode": 5,
       "package": "com.max.britghtsoft.touchstudymobile",
       "intentFilters": [
