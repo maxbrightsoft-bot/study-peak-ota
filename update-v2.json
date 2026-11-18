@@ -1,0 +1,9 @@
+{
+  "version": "3.0.43",
+  "versionCode": 30043,
+  "minAndroidVersion": "1.0.3",
+  "minIosVersion": "1.0.11",
+  "downloadAndroidUrl": "https://github.com/maxbrightsoft-bot/study-peak-ota/releases/download/ota-v3-0-43/android.zip",
+  "downloadIosUrl": "https://github.com/maxbrightsoft-bot/study-peak-ota/releases/download/ota-v3-0-43/ios.zip",
+  "buildTime": 1795025229
+}
