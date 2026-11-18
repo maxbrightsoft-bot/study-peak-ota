@@ -146,6 +146,40 @@ export const pauseAndResumeTextbookMock = async (_textbookId: number, _body: any
     return { success: true };
 };
 
-export const restartTextbookMock = async (_textbookId: number, _data: any) => {
-    return { success: true };
+export const restartTextbookMock = async (textbookId: number, data: any) => {
+    const database = await getDb();
+    const startPage = data?.startPage;
+    const endPage = data?.endPage;
+
+    if (startPage !== undefined && endPage !== undefined) {
+        const textbook = await database.getFirstAsync('SELECT * FROM Textbooks WHERE id = ?', [textbookId]) as any;
+        const tbData = textbook?.dataJson ? JSON.parse(textbook.dataJson) : {};
+        const matchingChapterIds = (tbData.chapters || [])
+            .filter((ch: any) => {
+                const pFrom = ch.pageFrom;
+                const pTo = ch.pageTo || pFrom;
+                return (pFrom >= startPage && pFrom <= endPage) || (pTo >= startPage && pTo <= endPage) || (pFrom <= startPage && pTo >= endPage);
+            })
+            .map((ch: any) => ch.id);
+
+        if (matchingChapterIds.length > 0) {
+            const placeholders = matchingChapterIds.map(() => '?').join(',');
+            await database.runAsync(
+                `UPDATE TextbookQuestions SET selectedAnswersJson = NULL, textualAnswersJson = NULL, duration = 0, isCorrect = 0, score = 0, answerTime = NULL, isStar = 0 WHERE textbookId = ? AND chapterId IN (${placeholders})`,
+                [textbookId, ...matchingChapterIds]
+            );
+        } else {
+            await database.runAsync(
+                `UPDATE TextbookQuestions SET selectedAnswersJson = NULL, textualAnswersJson = NULL, duration = 0, isCorrect = 0, score = 0, answerTime = NULL, isStar = 0 WHERE textbookId = ?`,
+                [textbookId]
+            );
+        }
+    } else {
+        await database.runAsync(
+            `UPDATE TextbookQuestions SET selectedAnswersJson = NULL, textualAnswersJson = NULL, duration = 0, isCorrect = 0, score = 0, answerTime = NULL, isStar = 0 WHERE textbookId = ?`,
+            [textbookId]
+        );
+    }
+
+    return { status: 1, success: true };
 };

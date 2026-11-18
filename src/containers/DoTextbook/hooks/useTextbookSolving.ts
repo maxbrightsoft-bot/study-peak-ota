@@ -67,6 +67,7 @@ const useTextbookSolving = (props: Props) => {
   const pausedMsConsumedRef = useRef<number>(0);
   const isCallingApi = useRef<boolean>(false);
   const pendingApiCall = useRef<any>(null);
+  const pendingActiveQuestionIds = useRef<Set<number>>(new Set());
 
   const studentTextbookId = textbook?.studentTextbookId;
 
@@ -225,6 +226,11 @@ const useTextbookSolving = (props: Props) => {
 
     !isStar && handleNextQuestion()
 
+    if (questionId !== undefined) {
+      pendingActiveQuestionIds.current.add(questionId);
+    }
+    const currentActiveIds = new Set(pendingActiveQuestionIds.current);
+
     const body: StudentTextbookAnswerRequest = {
       lastAnswerTime: lastAnswerTimeNum,
       timezoneOffset: new Date().getTimezoneOffset(),
@@ -236,7 +242,7 @@ const useTextbookSolving = (props: Props) => {
         isStar: !!i.isStar,
         answerTime: i.answerTime,
         unit: i.unit,
-        isActivelyAnswered: questionId === undefined ? true : i.id === questionId
+        isActivelyAnswered: questionId === undefined ? true : currentActiveIds.has(i.id)
       })),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
     };
@@ -246,6 +252,7 @@ const useTextbookSolving = (props: Props) => {
       delete apiTimeouts.current[rollbackKey];
     }
     if (!!callback) {
+      pendingActiveQuestionIds.current.clear();
       if (isCallingApi.current) {
         pendingApiCall.current = { body, callback };
       } else {
@@ -254,6 +261,7 @@ const useTextbookSolving = (props: Props) => {
     } else {
       apiTimeouts.current[rollbackKey] = setTimeout(
         () => {
+          pendingActiveQuestionIds.current.clear();
           if (isCallingApi.current) {
             pendingApiCall.current = { body };
           } else {
@@ -536,12 +544,14 @@ const useTextbookSolving = (props: Props) => {
   const handleResetTextbookSolving = useCallback(() => {
     Object.values(apiTimeouts.current).forEach((timeout: any) => clearTimeout(timeout));
     apiTimeouts.current = {};
+    pendingActiveQuestionIds.current.clear();
     ltAnswerTime.current = undefined;
     totalAnsweredTimeRef.current = undefined;
     pausedMsConsumedRef.current = 0;
   }, []);
 
   useEffect(() => {
+    pendingActiveQuestionIds.current.clear();
     ltAnswerTime.current = undefined
     totalAnsweredTimeRef.current = undefined
     pausedMsConsumedRef.current = 0;

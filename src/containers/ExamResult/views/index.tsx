@@ -16,6 +16,7 @@ import CreateNewQuestionDialog from '../components/CreateNewQuestionDialog'
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
 import StartPageDialog from '@/containers/Textbook/components/Dialog/StartPageDialog'
 import { getTextbookByIdApi, restartTextbookApi, startPageApi } from '@/containers/Textbook/apiClients/textbookService'
+import { getQuestionsTextbookApi } from '@/containers/DoTextbook/apiClients'
 import useAuthStore from '@/store/useAuthStore'
 import { getErrorMessage, toast } from '@/utils/helpers'
 import { examStatusViewOptions } from '../configs/constants'
@@ -137,7 +138,11 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapter
   const [isOpenRestartConfirmDialog, setOpenRestartConfirmDialog] = useState(false)
   const [textbookDetail, setTextbookDetail] = useState<any>(null)
 
-  const effectiveTextbookId = textbookResult?.textbookId || textbookId
+  const effectiveTextbookId =
+    textbookId ||
+    textbookResult?.textbookId ||
+    (textbookResult as any)?.textbook?.id ||
+    (textbookResult as any)?.studentTextbookId
 
   useEffect(() => {
     if (!effectiveTextbookId) return
@@ -216,7 +221,10 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapter
   }
 
   const handleConfirmRestartResultPart = async () => {
-    if (!effectiveTextbookId) return
+    if (!effectiveTextbookId) {
+      console.warn('[ExamResult] effectiveTextbookId is undefined, cannot restart')
+      return
+    }
     setLoading(true)
     try {
       const questions = (textbookResult?.studentQuestionResults || []) as any[]
@@ -224,32 +232,129 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapter
       let maxPage: number | undefined
       let firstQuestion: any = null
 
-      if (questions.length > 0) {
-        firstQuestion = questions[0]
-        questions.forEach(q => {
-          const p = q.pageNumber || q.pageFrom || q.page || 0
-          if (p > 0) {
-            if (minPage === undefined || p < minPage) minPage = p
-            if (maxPage === undefined || p > maxPage) maxPage = p
+      let freshRowVersion = textbookResult?.rowVersion || textbookDetail?.rowVersion
+      const groupPageMap = new Map<number, { pageFrom: number; pageTo: number }>()
+      const questionToPageMap = new Map<number, { pageFrom: number; pageTo: number }>()
+      let allBookQuestions: any[] = []
+
+      try {
+        const [latestRes, questionsRes] = await Promise.all([
+          getTextbookByIdApi(effectiveTextbookId).catch(() => null),
+          getQuestionsTextbookApi(Number(effectiveTextbookId)).catch(() => null)
+        ])
+        const latestData = latestRes?.data?.data
+        if (latestData?.rowVersion) freshRowVersion = latestData.rowVersion
+
+        const qGroups = questionsRes?.data?.data?.questionGroups || []
+        allBookQuestions = qGroups.flatMap((g: any) =>
+          (g.questions || []).map((q: any) => ({
+            ...q,
+            questionGroupId: q.questionGroupId || g.id || g.chapterId,
+            pageFrom: g.pageFrom || g.chapterPageFrom || g.parentChapterPageFrom,
+            pageTo: g.pageTo || g.chapterPageTo || g.parentChapterPageTo
+          }))
+        )
+
+        qGroups.forEach((g: any) => {
+          const pFrom = g.pageFrom || g.chapterPageFrom || g.parentChapterPageFrom
+          const pTo = g.pageTo || g.chapterPageTo || g.parentChapterPageTo || pFrom
+          if (pFrom) {
+            groupPageMap.set(g.id, { pageFrom: pFrom, pageTo: pTo || pFrom })
+            g.questions?.forEach((q: any) => {
+              if (q.id) questionToPageMap.set(q.id, { pageFrom: pFrom, pageTo: pTo || pFrom })
+            })
           }
+        })
+      } catch {}
+
+      // Tìm firstQuestion chuẩn xác nhất từ allBookQuestions của giáo trình (theo đúng thứ tự hiển thị của DoTextbook)
+      const resultQuestionIds = new Set(questions.map((q: any) => q.questionId || q.id))
+      const bookFirstQuestion = allBookQuestions.find(
+        (q: any) => resultQuestionIds.has(q.id) || resultQuestionIds.has(q.questionId)
+      )
+
+      if (bookFirstQuestion) {
+        firstQuestion = bookFirstQuestion
+      } else if (questions.length > 0) {
+        const sortedQuestions = [...questions].sort((a: any, b: any) => {
+          const orderA = a.questionOrder ?? a.order ?? 0
+          const orderB = b.questionOrder ?? b.order ?? 0
+          if (orderA !== orderB) return orderA - orderB
+
+          if (a.parentQuestionId && b.parentQuestionId) {
+            const pA = a.parentQuestionOrder ?? 0
+            const pB = b.parentQuestionOrder ?? 0
+            if (pA !== pB) return pA - pB
+          }
+
+          return (a.id || 0) - (b.id || 0)
+        })
+        firstQuestion = sortedQuestions[0]
+      }
+
+      // 1. Duyệt qua TẤT CẢ questions có trong result này để lấy chính xác dải trang [minPage, maxPage]
+      questions.forEach((q: any) => {
+        const pageInfo = questionToPageMap.get(q.id) || groupPageMap.get(q.questionGroupId)
+        const pFrom = q.pageNumber || q.pageFrom || q.page || pageInfo?.pageFrom
+        const pTo = q.pageTo || q.pageNumber || q.pageFrom || q.page || pageInfo?.pageTo || pFrom
+
+        if (pFrom && pFrom > 0) {
+          if (minPage === undefined || pFrom < minPage) minPage = pFrom
+          if (maxPage === undefined || pFrom > maxPage) maxPage = pFrom
+        }
+        if (pTo && pTo > 0) {
+          if (minPage === undefined || pTo < minPage) minPage = pTo
+          if (maxPage === undefined || pTo > maxPage) maxPage = pTo
+        }
+      })
+
+      // 2. Kết hợp với questionGroups từ textbookResult
+      textbookResult?.questionGroups?.forEach((g: any) => {
+        const pFrom = g.pageFrom || g.chapterPageFrom || g.parentChapterPageFrom
+        const pTo = g.pageTo || g.chapterPageTo || g.parentChapterPageTo || pFrom
+        if (pFrom) {
+          if (minPage === undefined || pFrom < minPage) minPage = pFrom
+          if (maxPage === undefined || (pTo || pFrom) > maxPage) maxPage = pTo || pFrom
+        }
+      })
+
+      // 3. Kết hợp với chapter đang xem trong textbookDetail (và subChapters)
+      const targetChapterId = chapterId || textbookResult?.id
+      const findChapterRecursive = (chapters: any[] = []): any => {
+        for (const c of chapters) {
+          if (c.id === targetChapterId) return c
+          if (c.subChapters?.length) {
+            const found = findChapterRecursive(c.subChapters)
+            if (found) return found
+          }
+        }
+        return null
+      }
+
+      const currentChapter = findChapterRecursive(textbookDetail?.chapters || [])
+      if (currentChapter) {
+        if (currentChapter.pageFrom) {
+          if (minPage === undefined || currentChapter.pageFrom < minPage) minPage = currentChapter.pageFrom
+        }
+        const chMax = currentChapter.pageTo || currentChapter.pageFrom
+        if (chMax) {
+          if (maxPage === undefined || chMax > maxPage) maxPage = chMax
+        }
+        currentChapter.subChapters?.forEach((sub: any) => {
+          if (sub.pageFrom && (minPage === undefined || sub.pageFrom < minPage)) minPage = sub.pageFrom
+          const subMax = sub.pageTo || sub.pageFrom
+          if (subMax && (maxPage === undefined || subMax > maxPage)) maxPage = subMax
         })
       }
 
-      let freshRowVersion = textbookResult?.rowVersion || textbookDetail?.rowVersion
-      try {
-        const latestRes = await getTextbookByIdApi(effectiveTextbookId)
-        const latestData = latestRes?.data?.data
-        if (latestData?.rowVersion) freshRowVersion = latestData.rowVersion
-      } catch {}
+      console.log('[ExamResult] Restarting textbook with page range:', { minPage, maxPage, effectiveTextbookId })
 
-      if (!isMockTextbook) {
-        const req: RestartTextbookRequest = {
-          rowVersion: freshRowVersion,
-          startPage: minPage,
-          endPage: maxPage
-        }
-        await restartTextbookApi(effectiveTextbookId, req)
+      const req: RestartTextbookRequest = {
+        rowVersion: freshRowVersion,
+        startPage: minPage,
+        endPage: maxPage
       }
+      await restartTextbookApi(effectiveTextbookId, req)
 
       const firstPage = firstQuestion?.pageNumber || firstQuestion?.pageFrom || minPage
       setOpenRestartConfirmDialog(false)
@@ -258,6 +363,7 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapter
         textbookId: effectiveTextbookId,
         page: firstPage,
         questionId: firstQuestion?.questionId || firstQuestion?.id,
+        restart: true,
         reqTime: Date.now().toString()
       })
     } catch (error) {
@@ -707,16 +813,7 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapter
       </View>
       {!!textbookResult && (
         <View style={styles.bottomBar}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.bottomBarContent}>
-            {!isMockTextbook && (
-              <TouchableOpacity
-                style={[styles.button, styles.pageBtn]}
-                onPress={() => setOpenStartPageDialog(true)}
-              >
-                <Text style={styles.outlineButtonText}>{t('unravel_from_page')}</Text>
-              </TouchableOpacity>
-            )}
-
+          <View style={styles.bottomBarContainer}>
             <TouchableOpacity
               style={[styles.button, styles.continueBtn]}
               onPress={handleDoTextbook}
@@ -724,14 +821,25 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapter
               <Text style={styles.buttonText}>{t('continue_solving')}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.button, styles.outlineButton]}
-              onPress={() => setOpenRestartConfirmDialog(true)}
-            >
-              <Ionicons name="refresh" size={18} color={palette.main[500]} />
-              <Text style={styles.outlineButtonText}>{t('solve_again')}</Text>
-            </TouchableOpacity>
-          </ScrollView>
+            <View style={styles.secondaryButtonRow}>
+              {!isMockTextbook && (
+                <TouchableOpacity
+                  style={[styles.button, styles.pageBtn]}
+                  onPress={() => setOpenStartPageDialog(true)}
+                >
+                  <Text style={styles.outlineButtonText}>{t('unravel_from_page')}</Text>
+                </TouchableOpacity>
+              )}
+
+              <TouchableOpacity
+                style={[styles.button, styles.outlineButton]}
+                onPress={() => setOpenRestartConfirmDialog(true)}
+              >
+                <Ionicons name="refresh" size={16} color={palette.main[500]} />
+                <Text style={styles.outlineButtonText}>{t('solve_again')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       )}
       <View style={{ opacity: 0, position: 'absolute', top: -9999 }} pointerEvents="none">
@@ -952,40 +1060,44 @@ const styles = ScaledSheet.create({
     borderColor: palette.grey[100],
     backgroundColor: '#FFF'
   },
-  bottomBarContent: {
-    flexDirection: 'row',
-    gap: '12@ms',
-    paddingHorizontal: '24@ms',
+  bottomBarContainer: {
+    paddingHorizontal: '20@ms',
     paddingTop: '12@ms',
-    paddingBottom: '32@ms'
+    paddingBottom: Platform.OS === 'ios' ? '28@ms' : '16@ms',
+    gap: '8@ms'
+  },
+  secondaryButtonRow: {
+    flexDirection: 'row',
+    gap: '8@ms',
+    width: '100%'
   },
   button: {
-    paddingHorizontal: '16@ms',
-    paddingVertical: '14@ms',
+    paddingHorizontal: '12@ms',
+    paddingVertical: '12@ms',
     borderRadius: '8@ms',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: '8@ms'
+    justifyContent: 'center',
+    gap: '6@ms'
   },
   pageBtn: {
+    flex: 1,
     borderWidth: '1@ms',
     borderColor: '#C7C7C8',
-    borderRadius: '6@ms',
-    alignItems: 'center',
-    minWidth: '120@ms',
-    justifyContent: 'center'
+    borderRadius: '8@ms',
+    backgroundColor: '#FFF'
   },
   continueBtn: {
     backgroundColor: palette.main[600],
-    borderRadius: '6@ms',
-    alignItems: 'center',
-    minWidth: '160@ms',
-    justifyContent: 'center'
+    borderRadius: '8@ms',
+    width: '100%'
   },
   outlineButton: {
+    flex: 1,
     borderWidth: '1@ms',
     borderColor: palette.main[600],
-    backgroundColor: 'white'
+    borderRadius: '8@ms',
+    backgroundColor: '#FFF'
   },
   buttonText: {
     fontSize: '14@ms',
@@ -993,7 +1105,7 @@ const styles = ScaledSheet.create({
     color: 'white'
   },
   outlineButtonText: {
-    fontSize: '14@ms',
+    fontSize: '13@ms',
     fontWeight: '600',
     color: '#222222'
   }

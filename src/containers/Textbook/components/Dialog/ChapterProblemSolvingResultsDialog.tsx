@@ -10,11 +10,12 @@ type Props = {
   onClose: () => void
   t: any
   chapterId?: number
+  textbookId?: number
   onViewQA?: (studentId: number, sessionId?: number, questionId?: number, isTextbook?: boolean) => void
 }
 
-const ChapterProblemSolvingResultsDialog = ({ t, onClose, open, chapterId }: Props) => {
-  return <ExamResult chapterId={chapterId || 0} onClose={() => navigate(Routes.Auth.Textbook)} />
+const ChapterProblemSolvingResultsDialog = ({ t, onClose, open, chapterId, textbookId }: Props) => {
+  return <ExamResult chapterId={chapterId || 0} textbookId={textbookId} onClose={() => navigate(Routes.Auth.Textbook)} />
 }
 
 export default ChapterProblemSolvingResultsDialog

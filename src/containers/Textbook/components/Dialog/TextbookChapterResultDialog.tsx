@@ -6,11 +6,12 @@ type Props = {
   open: boolean
   onClose: () => void
   chapterId?: number
+  textbookId?: number
 }
 
-const TextbookChapterResultDialog = ({ open, onClose, chapterId }: Props) => {
+const TextbookChapterResultDialog = ({ open, onClose, chapterId, textbookId }: Props) => {
   return (
-    open ? <ExamResult chapterId={chapterId} onClose={onClose}/> : null
+    open ? <ExamResult chapterId={chapterId} textbookId={textbookId} onClose={onClose}/> : null
   )
 }
 

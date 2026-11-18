@@ -191,7 +191,9 @@ const useTextbook = ({
     if (tryMeasure()) return;
 
     const targetQ = questionList[index];
-    const groupIndex = questionGroupList.findIndex(g => g.id === targetQ.questionGroupId);
+    const groupIndex = questionGroupList.findIndex(
+      g => g.id === targetQ.questionGroupId || g.chapterId === targetQ.questionGroupId
+    );
 
     if (groupIndex !== -1 && scrollViewRef.current) {
       try {
@@ -206,6 +208,12 @@ const useTextbook = ({
         isJustRestartedRef.current = false;
       }
     }
+
+    // Thử lại đo toạ độ sau khi FlatList render xong layout con
+    const retryTimer = setTimeout(() => {
+      tryMeasure();
+    }, 250);
+    return () => clearTimeout(retryTimer);
   }, [questionList, questionGroupList]);
 
 
@@ -351,6 +359,7 @@ const useTextbook = ({
       const questions = (data?.questionGroups || []).flatMap((group: any) =>
         (group.questions || []).map((q: any) => ({
           ...q,
+          questionGroupId: q.questionGroupId || group.id || group.chapterId,
           pageFrom: group.pageFrom || group.chapterPageFrom || group.parentChapterPageFrom,
           pageTo: group.pageTo || group.chapterPageTo || group.parentChapterPageTo,
           chapterPageFrom: group.chapterPageFrom,
@@ -364,8 +373,8 @@ const useTextbook = ({
       setQuestionList(questions);
 
       const targetStartPage = overrideStartPage || restartTextbookData?.startPage;
-      const isRestarting = isJustRestartedRef.current || !!targetStartPage;
-      const targetPageNum = targetStartPage || (isRestarting ? 1 : (page ? Number(page) : 0));
+      const isRestarting = isJustRestartedRef.current || !!targetStartPage || !!restart;
+      const targetPageNum = targetStartPage || (page ? Number(page) : (isRestarting ? 1 : 0));
       if (targetPageNum > 0) {
         const targetId = findTargetQuestionForPageRange(
           targetPageNum,
@@ -768,6 +777,11 @@ const useTextbook = ({
       isJustRestartedRef.current = false;
       const nowTime = getServerNow();
 
+      if (restart) {
+        handleClearStorage();
+        handleResetTextbookSolving();
+      }
+
       getQuestionsTextbook();
       track({
         action: ActivityAction.Start,
@@ -791,12 +805,17 @@ const useTextbook = ({
     const targetIndex = questionList.findIndex(q => q.id === targetQId);
     if (targetIndex !== -1) {
       setCurrentQuestionId(targetQId);
-      onScrollToIndex(targetIndex);
+      if (targetIndex === 0) {
+        scrollViewRef.current?.scrollToOffset({ offset: 0, animated: true });
+      } else {
+        const timer = setTimeout(() => onScrollToIndex(targetIndex), 100);
+        return () => clearTimeout(timer);
+      }
     }
   }, [questionId, questionList, onScrollToIndex]);
 
   useEffect(() => {
-    if (!page || questionGroupList.length === 0 || isJustRestartedRef.current || !!restartTextbookData?.startPage || !!questionId) return;
+    if (!page || questionGroupList.length === 0 || isJustRestartedRef.current || !!restartTextbookData?.startPage || !!questionId || !!restart) return;
     if (lastHandledPageParamRef.current === page) return;
 
     const pageNumber = +page;
@@ -850,7 +869,13 @@ const useTextbook = ({
       }
     }
 
-    const targetQId = findTargetQuestionForPageRange(pageNumber, questionList, questionGroupList, textbook);
+    const targetQId = findTargetQuestionForPageRange(
+      pageNumber,
+      questionList,
+      questionGroupList,
+      textbook,
+      Boolean(restart || isJustRestartedRef.current)
+    );
     if (targetQId) {
       setCurrentQuestionId(targetQId);
       const targetIndex = questionList.findIndex(q => q.id === targetQId);

@@ -269,6 +269,7 @@ const TextbookDrawer = ({ isOpen, textbookId, onClose, onOpenAudioGuide }: Props
       <TextbookChapterResultDialog
         open={isOpenChapterDialog}
         chapterId={chapterSelected?.id}
+        textbookId={textbook?.id || textbookId}
         onClose={handleCloseChapterDialog}
       />
     </SlideDrawerRoot>
