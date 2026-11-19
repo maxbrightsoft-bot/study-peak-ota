@@ -50,18 +50,25 @@ function normalizeVersion(version: string | number): number[] {
   return [parts[0] || 0, parts[1] || 0, parts[2] || 0]
 }
 
+function compareVersions(v1: string | number, v2: string | number): number {
+  const s = normalizeVersion(v1)
+  const c = normalizeVersion(v2)
+
+  for (let i = 0; i < 3; i++) {
+    if (s[i] > c[i]) return 1
+    if (s[i] < c[i]) return -1
+  }
+
+  return 0
+}
+
 function isNewerVersion(server: string | number, current: string | number): boolean {
   const s = normalizeVersion(server)
   const c = normalizeVersion(current)
 
   console.log(`[OTA] compare server=${server} => ${s.join('.')}, current=${current} => ${c.join('.')}`)
 
-  for (let i = 0; i < 3; i++) {
-    if (s[i] > c[i]) return true
-    if (s[i] < c[i]) return false
-  }
-
-  return false
+  return compareVersions(server, current) > 0
 }
 
 async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number): Promise<Response> {
@@ -160,7 +167,42 @@ async function checkOtaUpdate(
       return
     }
 
-    downloadUrl = Platform.OS === 'ios' ? data.downloadIosUrl : data.downloadAndroidUrl
+    try {
+      const nativeVersion = DeviceInfo.getVersion()
+
+      if (Platform.OS === 'ios') {
+        const minIos = data.minIosVersion
+        const minIosUrl = data.minIosUrl
+
+        // Nếu có yêu cầu min version mà native chưa đạt -> BỎ QUA không tải để tránh crash
+        if (minIos && compareVersions(nativeVersion, minIos) < 0) {
+          console.warn(`[OTA] Skipped: iOS native ${nativeVersion} < required min ${minIos}`)
+          if (onFailCompletely) onFailCompletely()
+          return
+        }
+
+        // Native đạt chuẩn: ưu tiên minIosUrl nếu có, fallback sang downloadIosUrl
+        downloadUrl = (minIos && minIosUrl) ? minIosUrl : data.downloadIosUrl
+        console.log(`[OTA] iOS native ${nativeVersion} eligible (min: ${minIos || 'none'}), using:`, downloadUrl)
+      } else {
+        const minAndroid = data.minAndroidVersion
+        const minAndroidUrl = data.minAndroidUrl
+
+        // Nếu có yêu cầu min version mà native chưa đạt -> BỎ QUA không tải để tránh crash
+        if (minAndroid && compareVersions(nativeVersion, minAndroid) < 0) {
+          console.warn(`[OTA] Skipped: Android native ${nativeVersion} < required min ${minAndroid}`)
+          if (onFailCompletely) onFailCompletely()
+          return
+        }
+
+        // Native đạt chuẩn: ưu tiên minAndroidUrl nếu có, fallback sang downloadAndroidUrl
+        downloadUrl = (minAndroid && minAndroidUrl) ? minAndroidUrl : data.downloadAndroidUrl
+        console.log(`[OTA] Android native ${nativeVersion} eligible (min: ${minAndroid || 'none'}), using:`, downloadUrl)
+      }
+    } catch (verErr) {
+      console.warn('[OTA] Error resolving download URL by native version:', verErr)
+      downloadUrl = Platform.OS === 'ios' ? data.downloadIosUrl : data.downloadAndroidUrl
+    }
 
     if (!downloadUrl) {
       console.warn('[OTA] Missing download URL for platform', Platform.OS)

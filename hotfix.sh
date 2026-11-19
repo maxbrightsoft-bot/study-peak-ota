@@ -224,13 +224,24 @@ SHA=$(echo $SHA_RESPONSE | $NODE_CMD -pe "try { JSON.parse(require('fs').readFil
 # Fetch current JSON to keep URLs if platform skipped
 CURRENT_DATA_BASE64=$(echo $SHA_RESPONSE | $NODE_CMD -pe "try { JSON.parse(require('fs').readFileSync(0)).content } catch(e) { '' }")
 if [ -n "$CURRENT_DATA_BASE64" ]; then
-  CURRENT_JSON=$(echo "$CURRENT_DATA_BASE64" | base64 -d)
+  CURRENT_JSON=$(echo "$CURRENT_DATA_BASE64" | tr -d '\r\n ' | base64 -d 2>/dev/null || echo "{}")
 else
   CURRENT_JSON="{}"
 fi
 
 PREV_ANDROID_URL=$(echo "$CURRENT_JSON" | $NODE_CMD -pe "try { JSON.parse(require('fs').readFileSync(0)).downloadAndroidUrl } catch(e) { '' }")
 PREV_IOS_URL=$(echo "$CURRENT_JSON" | $NODE_CMD -pe "try { JSON.parse(require('fs').readFileSync(0)).downloadIosUrl } catch(e) { '' }")
+
+# --- Min version fields (đọc từ manifest cũ, có thể override qua biến môi trường) ---
+PREV_MIN_ANDROID=$(echo "$CURRENT_JSON" | $NODE_CMD -pe "try { JSON.parse(require('fs').readFileSync(0)).minAndroidVersion } catch(e) { '' }" 2>/dev/null || echo "")
+PREV_MIN_IOS=$(echo "$CURRENT_JSON" | $NODE_CMD -pe "try { JSON.parse(require('fs').readFileSync(0)).minIosVersion } catch(e) { '' }" 2>/dev/null || echo "")
+PREV_MIN_ANDROID_URL=$(echo "$CURRENT_JSON" | $NODE_CMD -pe "try { JSON.parse(require('fs').readFileSync(0)).minAndroidUrl } catch(e) { '' }" 2>/dev/null || echo "")
+PREV_MIN_IOS_URL=$(echo "$CURRENT_JSON" | $NODE_CMD -pe "try { JSON.parse(require('fs').readFileSync(0)).minIosUrl } catch(e) { '' }" 2>/dev/null || echo "")
+
+# MIN_ANDROID_VERSION / MIN_IOS_VERSION: biến môi trường truyền vào khi chạy script
+# Nếu không truyền thì giữ nguyên giá trị cũ trong manifest (nếu có)
+MIN_ANDROID_VAL=${MIN_ANDROID_VERSION:-$PREV_MIN_ANDROID}
+MIN_IOS_VAL=${MIN_IOS_VERSION:-$PREV_MIN_IOS}
 
 NEW_ANDROID_URL="https://github.com/$GITHUB_REPO/releases/download/ota-v$TAG_VERSION/android.zip"
 NEW_IOS_URL="https://github.com/$GITHUB_REPO/releases/download/ota-v$TAG_VERSION/ios.zip"
@@ -242,20 +253,60 @@ if [ "$PLATFORM" == "android" ]; then
   NEW_IOS_URL=$PREV_IOS_URL
 fi
 
+# --- minAndroidUrl / minIosUrl ---
+# Nếu có cấu hình min version, URL của nó sẽ luôn trỏ tới bản OTA mới của lần chạy này
+NEW_MIN_ANDROID_URL=""
+if [ -n "$MIN_ANDROID_VAL" ]; then
+  if [ "$PLATFORM" == "ios" ]; then
+    NEW_MIN_ANDROID_URL=$PREV_MIN_ANDROID_URL
+  else
+    NEW_MIN_ANDROID_URL=$NEW_ANDROID_URL
+  fi
+fi
+
+NEW_MIN_IOS_URL=""
+if [ -n "$MIN_IOS_VAL" ]; then
+  if [ "$PLATFORM" == "android" ]; then
+    NEW_MIN_IOS_URL=$PREV_MIN_IOS_URL
+  else
+    NEW_MIN_IOS_URL=$NEW_IOS_URL
+  fi
+fi
+
+# --- Tạo JSON content ---
 BUILD_TIME=$(date +%s)
 
+# Xây dựng các optional fields
+MIN_ANDROID_BLOCK=""
+MIN_IOS_BLOCK=""
+if [ -n "$MIN_ANDROID_VAL" ]; then
+  MIN_ANDROID_BLOCK="  \"minAndroidVersion\": \"$MIN_ANDROID_VAL\","
+  if [ -n "$NEW_MIN_ANDROID_URL" ]; then
+    MIN_ANDROID_BLOCK="$MIN_ANDROID_BLOCK
+  \"minAndroidUrl\": \"$NEW_MIN_ANDROID_URL\","
+  fi
+fi
+if [ -n "$MIN_IOS_VAL" ]; then
+  MIN_IOS_BLOCK="  \"minIosVersion\": \"$MIN_IOS_VAL\","
+  if [ -n "$NEW_MIN_IOS_URL" ]; then
+    MIN_IOS_BLOCK="$MIN_IOS_BLOCK
+  \"minIosUrl\": \"$NEW_MIN_IOS_URL\","
+  fi
+fi
 JSON_CONTENT="{
   \"version\": \"$VERSION\",
   \"versionCode\": $VERSION_CODE,
+$MIN_ANDROID_BLOCK
+$MIN_IOS_BLOCK
   \"downloadAndroidUrl\": \"$NEW_ANDROID_URL\",
   \"downloadIosUrl\": \"$NEW_IOS_URL\",
   \"buildTime\": $BUILD_TIME
 }"
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  CONTENT=$(echo "$JSON_CONTENT" | base64 -w 0)
+  CONTENT=$(echo "$JSON_CONTENT" | base64 -w 0 | tr -d '\r\n')
 else
-  CONTENT=$(echo "$JSON_CONTENT" | base64 | tr -d '\n')
+  CONTENT=$(echo "$JSON_CONTENT" | base64 | tr -d '\r\n')
 fi
 
 if [ -z "$SHA" ] || [ "$SHA" = "undefined" ] || [ "$SHA" = "null" ]; then
