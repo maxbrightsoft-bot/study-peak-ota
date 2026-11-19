@@ -264,7 +264,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
                     containerStyle={{ flexShrink: 1 }}
                   />
                 </View>
-                {(exam?.totalStudentAttemptNumber || 0) >= 1 && (
+                {(exam?.totalStudentAttemptNumber || 0) > 1 && (
                   <View
                     style={[
                       styles.attemptBadge,
