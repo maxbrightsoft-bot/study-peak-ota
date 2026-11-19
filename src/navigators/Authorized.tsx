@@ -14,6 +14,7 @@ import DoTextbookScreen from '@/screens/DoTextbook'
 import ExamListScreen from '@/screens/ExamList'
 import ExamResultListScreen from '@/screens/ExamResultList'
 import StudyPerformanceScreen from '@/screens/StudyPerformance'
+import StudyTimerScreen from '@/screens/StudyTimer'
 import ProfileScreen from '@/screens/Profile'
 import useLayoutApp from '@/layouts/hooks/useLayoutApp'
 import QuestionScreen from '@/screens/Question'
@@ -26,7 +27,7 @@ import { getConsentStatusApi, agreeConsentApi } from '@/containers/Setting/apiCl
 import Loading from '@/components/Loading'
 import { toast, getErrorMessage } from '@/utils/helpers'
 import { useTranslation } from 'react-i18next'
-import { CONSENT_POLICY_VERSION, FEATURE_MYWRONGNOTE } from '@/utils/constants'
+import { CONSENT_POLICY_VERSION, FEATURE_STUDYTIMER, FEATURE_MYWRONGNOTE } from '@/utils/constants'
 import { startOfflineSyncListener } from '@/services/offlineSync'
 import ChangePasswordDialog from '@/containers/Setting/components/ChangePasswordDialog'
 import ResetPasswordWarningDialog from '@/containers/Setting/components/ResetPasswordWarningDialog'
@@ -172,6 +173,7 @@ const Authorized = ({ route }: { route: any }) => {
           <Tab.Screen name={Routes.Auth.ExamResult} component={ExamResultScreen} />
           <Tab.Screen name={Routes.Auth.ExamResultList} component={ExamResultListScreen} />
           <Tab.Screen name={Routes.Auth.StudyPerformance} component={StudyPerformanceScreen} />
+          {FEATURE_STUDYTIMER && <Tab.Screen name={Routes.Auth.StudyTimer} component={StudyTimerScreen} />}
           <Tab.Screen name={Routes.Auth.Profile} component={ProfileScreen} />
           <Tab.Screen name={Routes.Auth.Question} component={QuestionScreen} />
           <Tab.Screen name={Routes.Auth.StudentExamHistory} component={StudentExamHistoryScreen} />

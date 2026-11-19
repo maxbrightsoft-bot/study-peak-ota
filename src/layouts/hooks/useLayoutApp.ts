@@ -15,6 +15,8 @@ import { currentScreen, navigate } from '@/navigators/NavigationHelpers'
 import { MainRoutes, Routes } from '@/navigators/RouteName'
 import { apiJoinExam } from '@/containers/DoExam/apiClients'
 import { PusherChannel } from '@pusher/pusher-websocket-react-native'
+import useStudyTimerBadgeRefresh from '@/containers/StudyTimer/hooks/useStudyTimerBadgeRefresh'
+import useStudyTimerGoalNotice from '@/containers/StudyTimer/hooks/useStudyTimerGoalNotice'
 
 const useLayoutApp = () => {
   const { t } = useTranslation()
@@ -40,6 +42,8 @@ const useLayoutApp = () => {
   const [openNoticeDialog, setOpenNoticeDialog] = useState<boolean>(false)
   const appState = useRef(AppState.currentState)
   const generalChannel = useRef<PusherChannel | undefined>(undefined);
+  useStudyTimerBadgeRefresh()
+  useStudyTimerGoalNotice()
 
   const handleOpenNoticeDialog = () => setOpenNoticeDialog(true)
   const handleCloseNoticeDialog = () => setOpenNoticeDialog(false)

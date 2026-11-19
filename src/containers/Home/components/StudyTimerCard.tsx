@@ -7,17 +7,22 @@ import Next from '@/assets/iconJSX/next'
 import { ScaledSheet } from 'react-native-size-matters'
 import { useTranslation } from 'react-i18next'
 import useTimers from '@/layouts/hooks/useTimer'
-import { TimerStatus } from '@/utils/enums'
+import { TimerStatus, Role } from '@/utils/enums'
 import Pause from '@/assets/iconJSX/pause'
 import useAuthStore from '@/store/useAuthStore'
 import moment from 'moment'
 import { AntDesign, Ionicons } from '@expo/vector-icons'
 import useServerTime from '@/hooks/useServerTime'
 import { parseUTC } from '@/utils/helpers'
+import StudyTimerUnreadDot from '@/containers/StudyTimer/components/StudyTimerUnreadDot'
+import { FEATURE_STUDYTIMER } from '@/utils/constants'
+import { navigate } from '@/navigators/NavigationHelpers'
+import { Routes } from '@/navigators/RouteName'
 
 
 const StudyTimerCard = () => {
   const setIsOpenTimerDialog = useAuthStore(state => state.setIsOpenTimerDialog)
+  const showMyStudyTimer = useAuthStore(state => FEATURE_STUDYTIMER && !!state.user?.roles?.includes(Role.Student))
   const { t } = useTranslation()
   const { studyTimerProps, getTimers } = useTimers(false, () => { })
   const { subjects, activeTimerId, time, onStartOrPause, loadingItem, isFetching } = studyTimerProps
@@ -100,8 +105,20 @@ const StudyTimerCard = () => {
             <Clock width={16} height={16} color={palette.main[600]} />
           </View>
           <Text style={styles.title}>{t('study_timer')}</Text>
+          <StudyTimerUnreadDot />
         </View>
-        <Text style={styles.subtitle}>{t('timer_on_and_start_study')}</Text>
+        {showMyStudyTimer ? (
+          <TouchableOpacity
+            style={styles.myLink}
+            onPress={() => navigate(Routes.Auth.StudyTimer)}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text style={styles.subtitle}>{t('studytimer_my_title')}</Text>
+            <Ionicons name="chevron-forward" size={14} color={palette.main[600]} />
+          </TouchableOpacity>
+        ) : (
+          <Text style={styles.subtitle}>{t('timer_on_and_start_study')}</Text>
+        )}
       </View>
 
       {isFetching && subjects.length === 0 ? (
@@ -195,6 +212,10 @@ const styles = ScaledSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: '6@ms',
+  },
+  myLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   iconWrapper: {
     backgroundColor: palette.main[50],

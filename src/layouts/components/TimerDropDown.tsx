@@ -7,6 +7,7 @@ import Clock from '@/assets/iconJSX/clock'
 import TimerDialog from './TimeDialog'
 import AudioGuideModal from './AudioGuideModal'
 import TimeUpdateDialog from '@/layouts/partials/Timer/TimeUpdateDialog'
+import StudyTimerUnreadDot from '@/containers/StudyTimer/components/StudyTimerUnreadDot'
 
 type Props = {
   openTimerDialog: boolean
@@ -109,6 +110,7 @@ const TimerDropdown = ({
   return (
     <View>
       <TouchableRipple onPress={handleToggle} style={styles.iconButton}>
+        <View>
         <Animated.View
           style={{
             transform: [
@@ -132,6 +134,8 @@ const TimerDropdown = ({
             }
           />
         </Animated.View>
+        <StudyTimerUnreadDot style={styles.unreadDot} />
+        </View>
       </TouchableRipple>
 
       {renderDialog && (
@@ -160,6 +164,11 @@ const styles = ScaledSheet.create({
     padding: '16@ms',
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  unreadDot: {
+    position: 'absolute',
+    top: '-2@ms',
+    right: '-2@ms'
   },
   menuContent: {
     backgroundColor: '#FFF',
