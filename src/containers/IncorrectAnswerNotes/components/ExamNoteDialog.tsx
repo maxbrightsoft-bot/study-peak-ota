@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react'
+import React, { FC, useMemo, useState } from 'react'
 import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { Text, useTheme } from 'react-native-paper'
 import { Formik } from 'formik'
@@ -14,6 +14,15 @@ import TextField from '@/components/Input/TextField'
 import ImageViewerModal from '@/components/ModalBase/ImageViewerModal'
 import { ExamNoteDialogProps } from '../configs/interfaces'
 import { getSafeUrl } from '@/utils/helpers'
+import { getNoteCreationNumbers, questionNumberLabel } from '@/utils/helpers/noteOrder'
+import { NoteResponse, NoteReviewStatus } from '@/utils/types'
+import moment from 'moment'
+
+const statusDotColor = (status?: NoteReviewStatus) => {
+  if (status === NoteReviewStatus.Approved) return palette.success.main
+  if (status === NoteReviewStatus.Rejected) return palette.warning.main
+  return palette.grey[500]
+}
 
 const schema = Yup.object().shape({
   content: Yup.string().required(),
@@ -34,14 +43,31 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
   questionOptions = [],
   onClose,
   textbookResult,
-  onSaveNote
+  onSaveNote,
+  readOnly = false,
+  rejectInfo,
+  questionNotes = [],
+  newNoteLocked = false,
+  writeLocked = false,
+  questionPickable = false,
+  onSelectNote,
+  onStartNewNote,
+  onSelectQuestionId
 }) => {
   const { t } = useTranslation()
   const theme = useTheme()
   const [showImagePicker, setShowImagePicker] = useState(false)
   const [viewerImageUrl, setViewerImageUrl] = useState<string | null>(null)
+  // H1: "Note #n" per chip, same numbering as the list (server order, else oldest first).
+  const questionNoteNumbers = useMemo(() => getNoteCreationNumbers(questionNotes), [questionNotes])
+  const isInputLocked = readOnly || writeLocked
+  const showSwitcher = !readOnly && questionNotes.length > 0
+  // RV-303: a new note opened without a question keeps the select usable.
+  const showQuestionSelect = !selectedNote && (questionPickable || !selectedQuestion)
 
   const initialQuestionId = selectedNote ? selectedNote.questionId || 0 : selectedQuestion ? selectedQuestion.id : 0
+  // The form restarts per opened note / new note only, so picking a question keeps the typed text (RV-303).
+  const formKey = `${open}-${selectedNote?.id ?? 'new'}`
 
   return (
     <SlideDrawerRoot onClose={onClose} visible={open}>
@@ -51,7 +77,9 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
         </TouchableOpacity>
         <View>
           <Text style={{ fontSize: 16, fontWeight: 600, color: '#222222' }}>
-            {selectedNote ? (t('correct_incorrect_answer_notes') || t('edit_note')) : t('write_a_note_of_incorrect_answers')}
+            {readOnly
+              ? t('mywrongnote_view_note_title')
+              : selectedNote ? (t('correct_incorrect_answer_notes') || t('edit_note')) : t('write_a_note_of_incorrect_answers')}
           </Text>
         </View>
         <View></View>
@@ -60,7 +88,7 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={80}>
 
         <Formik
-          enableReinitialize
+          key={formKey}
           initialValues={{
             content: selectedNote?.content || '',
             questionId: initialQuestionId
@@ -74,21 +102,73 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
             return (
               <>
                 <ScrollView style={styles.contentWrapper}>
+                  {rejectInfo?.reason ? (
+                    <View style={styles.rejectBox}>
+                      <Text style={styles.rejectTitle}>
+                        {t('mywrongnote_reject_title', {
+                          teacher: rejectInfo.reviewerName ?? '',
+                          at: rejectInfo.reviewedAt ? moment.utc(rejectInfo.reviewedAt).local().format('MM/DD HH:mm') : ''
+                        })}
+                      </Text>
+                      <Text style={styles.rejectReason}>{rejectInfo.reason}</Text>
+                    </View>
+                  ) : null}
+                  {showSwitcher ? (
+                    <View style={styles.switcher} testID="exam-note-dialog-switcher">
+                      {questionNotes.map((note: NoteResponse, index: number) => {
+                        const isActive = selectedNote?.id === note.id
+                        return (
+                          <TouchableOpacity
+                            key={note.id}
+                            testID={`exam-note-chip-${note.id}`}
+                            activeOpacity={0.8}
+                            onPress={() => onSelectNote?.(note)}
+                            style={[styles.noteChip, isActive && styles.noteChipActive]}
+                          >
+                            <View style={[styles.statusDot, { backgroundColor: statusDotColor(note.reviewStatus) }]} />
+                            <Text style={[styles.noteChipText, isActive && styles.noteChipTextActive]}>
+                              {t('mywrongnote_note_n', { n: questionNoteNumbers.get(note.id) ?? index + 1 })}
+                            </Text>
+                          </TouchableOpacity>
+                        )
+                      })}
+                      {onStartNewNote && !newNoteLocked ? (
+                        <TouchableOpacity
+                          testID="exam-note-chip-add"
+                          activeOpacity={0.8}
+                          onPress={onStartNewNote}
+                          style={[styles.addChip, !selectedNote && styles.addChipActive]}
+                        >
+                          <Text style={[styles.addChipText, !selectedNote && styles.addChipTextActive]}>
+                            {`+ ${t('mywrongnote_action_add_note')}`}
+                          </Text>
+                        </TouchableOpacity>
+                      ) : null}
+                    </View>
+                  ) : null}
+                  {onStartNewNote && newNoteLocked ? (
+                    <Text style={styles.lockedHint} testID="exam-note-add-locked">
+                      {t('mywrongnote_note_add_locked')}
+                    </Text>
+                  ) : null}
                   <View>
                     <Text style={styles.labelText}>{t('problem_number')}*</Text>
-                    {selectedNote || selectedQuestion ? (
+                    {!showQuestionSelect ? (
                       <Text style={{ color: theme.colors.primary, fontWeight: 'bold' }}>
                         {t('number_question', {
-                          number: selectedNote
-                            ? (selectedNote.questionOrder || 0) + 1
-                            : (selectedQuestion?.questionOrder || 0) + 1
+                          // Sub-questions read "1.1", like web (was always the child number).
+                          number: questionNumberLabel(selectedNote ?? selectedQuestion)
                         })}
                       </Text>
                     ) : (
                       <Select
-                        onValueChange={(value) => setFieldValue('questionId', value)}
+                        onValueChange={(value) => {
+                          setFieldValue('questionId', value)
+                          if (value) onSelectQuestionId?.(Number(value))
+                        }}
                         value={values.questionId}
                         options={questionOptions}
+                        disabled={isInputLocked}
                       />
                     )}
                   </View>
@@ -98,6 +178,7 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
                       multiline
                       numberOfLines={10}
                       placeholder={t('example_incorrect_answer_note')}
+                      readOnly={isInputLocked}
                       value={values.content}
                       onChangeText={handleChange('content')}
                     />
@@ -124,7 +205,7 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
                               resizeMode="cover"
                             />
                           </TouchableOpacity>
-                          {handleRemoveImage && (
+                          {handleRemoveImage && !isInputLocked && (
                             <TouchableOpacity
                               onPress={handleRemoveImage}
                               style={{
@@ -143,7 +224,7 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
                             </TouchableOpacity>
                           )}
                         </View>
-                      ) : (
+                      ) : isInputLocked ? null : (
                         <TouchableOpacity
                           onPress={() => setShowImagePicker(true)}
                           style={{
@@ -168,17 +249,17 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
                     })()}
                   </View>
                 </ScrollView>
-                <View style={styles.footer}>
+                {!readOnly && <View style={styles.footer}>
                   <TouchableOpacity
-                    style={[styles.button, styles.confirmButton, (isLoadingNotes || !values.content.trim().length) && { opacity: 0.6 }]}
+                    style={[styles.button, styles.confirmButton, (isLoadingNotes || writeLocked || !values.content.trim().length) && { opacity: 0.6 }]}
                     onPress={handleSubmit as any}
-                    disabled={isLoadingNotes || !values.content.trim().length}
+                    disabled={isLoadingNotes || writeLocked || !values.content.trim().length}
                   >
                     <Text style={styles.confirmButtonText}>
                       {selectedNote ? (t('save') || t('edit')) : t('registration')}
                     </Text>
                   </TouchableOpacity>
-                </View>
+                </View>}
               </>
             )
           }}
@@ -249,6 +330,81 @@ const ExamNoteDialog: FC<ExamNoteDialogProps> = ({
 }
 
 const styles = ScaledSheet.create({
+  lockedHint: {
+    ...TYPO.body3,
+    color: palette.grey[500],
+    marginBottom: '16@ms'
+  },
+  switcher: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: '8@ms',
+    marginBottom: '16@ms'
+  },
+  noteChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: '6@ms',
+    paddingHorizontal: '12@ms',
+    paddingVertical: '6@ms',
+    borderRadius: '999@ms',
+    borderWidth: 1,
+    borderColor: palette.grey[300],
+    backgroundColor: palette.common.white
+  },
+  noteChipActive: {
+    borderColor: palette.grey[900],
+    backgroundColor: palette.grey[900]
+  },
+  noteChipText: {
+    ...TYPO.button4,
+    color: palette.grey[700]
+  },
+  noteChipTextActive: {
+    color: palette.common.white
+  },
+  statusDot: {
+    width: '8@ms',
+    height: '8@ms',
+    borderRadius: '4@ms'
+  },
+  addChip: {
+    paddingHorizontal: '12@ms',
+    paddingVertical: '6@ms',
+    borderRadius: '999@ms',
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: palette.grey[400],
+    backgroundColor: palette.common.white
+  },
+  addChipActive: {
+    borderColor: palette.success.main,
+    backgroundColor: palette.success.lighter
+  },
+  addChipText: {
+    ...TYPO.button4,
+    color: palette.grey[700]
+  },
+  addChipTextActive: {
+    color: palette.success.dark
+  },
+  rejectBox: {
+    backgroundColor: palette.warning.lighter,
+    borderWidth: 1,
+    borderColor: palette.warning.light,
+    borderRadius: '10@ms',
+    padding: '10@ms',
+    marginBottom: '16@ms'
+  },
+  rejectTitle: {
+    ...TYPO.heading3,
+    color: palette.warning.darker
+  },
+  rejectReason: {
+    ...TYPO.body3,
+    color: palette.grey[800],
+    marginTop: '2@ms'
+  },
   container: {
     paddingVertical: '16@ms',
     paddingHorizontal: '24@ms'

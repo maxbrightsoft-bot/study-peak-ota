@@ -58,6 +58,8 @@ export const GOOGLE_RECAPTCHA_ID =
 export const STORE_VERSION_ANDROID = process.env.EXPO_PUBLIC_STORE_VERSION_ANDROID || ""
 export const STORE_VERSION_IOS = process.env.EXPO_PUBLIC_STORE_VERSION_IOS || ""
 export const CURRENT_BUNDLE_VERSION = process.env.EXPO_PUBLIC_CURRENT_BUNDLE_VERSION || "1.0.0"
+// Student wrong-note hub. Off unless EXPO_PUBLIC_FEATURE_MYWRONGNOTE is "true" (same as web VITE_FEATURE_MYWRONGNOTE).
+export const FEATURE_MYWRONGNOTE = process.env.EXPO_PUBLIC_FEATURE_MYWRONGNOTE === "true"
 export const answerTypeOptions = (t: any) => ([
   {
     label: t("singlechoice"),

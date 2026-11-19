@@ -1,4 +1,4 @@
-import { Action, ExamResult, NoteResponse, QuestionData } from "@/utils/types"
+import { Action, ExamResult, NoteResponse, QuestionData, TextbookResult } from "@/utils/types"
 import { MouseEvent, RefObject } from "react"
 
 export interface NotesContainerProps{
@@ -13,6 +13,8 @@ export interface NotesContainerProps{
     onCloseTooltip: () => void
     onOpenTooltip: (note: NoteResponse) => void
     onItemClick?: (note: NoteResponse) => void
+    /** H1: note id -> "#n" for questions with 2+ notes. */
+    noteNumbers?: Record<number, number>
 }
 
 export interface ExamNoteDialogProps {
@@ -29,7 +31,21 @@ export interface ExamNoteDialogProps {
     handleTakePhoto?: () => Promise<void>
     handlePickFromGallery?: () => Promise<void>
     examResultData?: ExamResult
+    readOnly?: boolean
+    /** Set when a rejected note is reopened for rewriting: teacher's reason shown above the input. */
+    rejectInfo?: { reason: string; reviewerName?: string | null; reviewedAt?: string | null }
     textbookResult?: TextbookResult
+    /** H2: the student's notes of the dialog's question (newest first); shown as "Note #n" chips. */
+    questionNotes?: NoteResponse[]
+    /** Wrong-note deadline passed without late allowance: no "+ Add note", no saving a new note. */
+    newNoteLocked?: boolean
+    /** After the deadline: the selected note (or a new one) cannot be written, unless it is an open send-back. */
+    writeLocked?: boolean
+    /** Opened without a question: the select stays usable while a new note is written. */
+    questionPickable?: boolean
+    onSelectNote?: (note: NoteResponse) => void
+    onStartNewNote?: () => void
+    onSelectQuestionId?: (questionId: number) => void
 }
 
 export interface ClassNoteDialogProps {

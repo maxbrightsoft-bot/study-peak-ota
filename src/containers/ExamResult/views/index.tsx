@@ -2,9 +2,9 @@ import { palette, TYPO } from '@/theme'
 import { Action, NoteResponse, Question, RestartTextbookRequest } from '@/utils/types'
 import { FontAwesome, FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { useEffect, useMemo, useState } from 'react'
-import { Platform, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Platform, Pressable, Text, TouchableOpacity, View } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
-import { ExamStatus, ExamStatusView } from '@/utils/enums'
+import { ExamStatusView } from '@/utils/enums'
 import ExamMyAnswer from '@/containers/MyAnswer/views/ExamMyAnswer'
 import TextbookMyAnswer from '@/containers/MyAnswer/views/TextbookMyAnswer'
 import ExamQuestionAnalysis from '@/containers/QuestionAnalysis/views/ExamQuestionAnalysis'
@@ -17,7 +17,6 @@ import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
 import StartPageDialog from '@/containers/Textbook/components/Dialog/StartPageDialog'
 import { getTextbookByIdApi, restartTextbookApi, startPageApi } from '@/containers/Textbook/apiClients/textbookService'
 import { getQuestionsTextbookApi } from '@/containers/DoTextbook/apiClients'
-import useAuthStore from '@/store/useAuthStore'
 import { getErrorMessage, toast } from '@/utils/helpers'
 import { examStatusViewOptions } from '../configs/constants'
 import useExamResult from '../hooks/useExamResult'
@@ -34,6 +33,8 @@ import SlideDrawerRoot from '@/components/ModalBase/SlideDrawerRoot'
 import { Menu, TouchableRipple } from 'react-native-paper'
 import { navigate } from '@/navigators/NavigationHelpers'
 import { Routes } from '@/navigators/RouteName'
+import useAuthStore from '@/store/useAuthStore'
+import { FEATURE_MYWRONGNOTE } from '@/utils/constants'
 import TextTooltip from '@/components/Tooltip/TextTooltip'
 
 type Props = {
@@ -47,12 +48,26 @@ type Props = {
   date?: string
   studentId?: number
   studentExamSessionId?: any
+  wrongNoteQuestionSuperId?: number
+  wrongNoteNoteId?: number
+  wrongNoteReadOnly?: boolean
+  wrongNoteRejectReason?: string
+  wrongNoteReviewerName?: string
+  wrongNoteReviewedAt?: string
+  /** A My Wrong Note hand-over is in progress: hide the link back to the hub. */
+  isWrongNoteHandover?: boolean
+  /** False while the hosting tab screen is blurred: the drawer is a Portal overlay and would otherwise cover the next screen. */
+  isScreenFocused?: boolean
+  /** The host screen has no content of its own: show a centered spinner until the student result has loaded. */
+  showPendingLoader?: boolean
+  onWrongNoteConsumed?: () => void
   onViewQA?: (studentId: number, sessionId?: number, questionId?: number, isTextbook?: boolean) => void
 }
 
-const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapterIdProp, textbookId, date, studentExamSessionId, onViewQA }: Props) => {
+const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapterIdProp, textbookId, date, studentExamSessionId, onViewQA, wrongNoteQuestionSuperId, wrongNoteNoteId, wrongNoteReadOnly, wrongNoteRejectReason, wrongNoteReviewerName, wrongNoteReviewedAt, isWrongNoteHandover, isScreenFocused = true, showPendingLoader = false, onWrongNoteConsumed }: Props) => {
   // Both chapter and textbook results share the same textbook UI branches
   const chapterId = chapterIdProp || textbookId
+  const isStudent = useAuthStore(state => state.user)?.roles?.includes('Student')
   const {
     t,
     contentRef,
@@ -74,6 +89,13 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapter
     date,
     examSessionId,
     studentExamSessionId,
+    wrongNoteQuestionSuperId,
+    wrongNoteNoteId,
+    wrongNoteReadOnly,
+    wrongNoteRejectReason,
+    wrongNoteReviewerName,
+    wrongNoteReviewedAt,
+    onWrongNoteConsumed,
     isPrint: false,
     onClose
   })
@@ -112,6 +134,7 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapter
 
   const {
     notes,
+    noteNumbers,
     noteDialogProps,
     noteIdContextMenu,
     isLoadingNotes,
@@ -477,7 +500,8 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapter
     onOpenTooltip: handleOpenTooltip,
     onLoadMore: handleLoadMore,
     onItemClick: handleOpenNoteDrawer,
-    isLoading: isLoadingNotes
+    isLoading: isLoadingNotes,
+    noteNumbers
   }
 
   const renderBody = () => {
@@ -532,8 +556,17 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapter
     }
   }
 
+  const isPending =
+    showPendingLoader && !chapterId && !!(examCode || code) && !resultData && !examResultData.errorMessage
+
   return (
-    <SlideDrawerRoot visible={!!resultData || !!textbookResult} onClose={onClose} backgroundColor={palette.grey[100]}>
+    <>
+    {isPending && (
+      <View style={styles.pending} testID="exam-result-pending">
+        <ActivityIndicator size="large" color={palette.main[500]} />
+      </View>
+    )}
+    <SlideDrawerRoot visible={isScreenFocused && (!!resultData || !!textbookResult)} onClose={onClose} backgroundColor={palette.grey[100]}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={onClose}>
           <Ionicons name="chevron-back-outline" size={24} color={palette.grey[300]} />
@@ -809,6 +842,22 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapter
             />
           </View>
         )}
+        {FEATURE_MYWRONGNOTE && isStudent && !chapterId && !!resultData?.examSessionId && !isWrongNoteHandover && (
+          <TouchableOpacity
+            style={styles.wrongNoteLink}
+            activeOpacity={0.8}
+            onPress={() =>
+              navigate(Routes.Auth.MyWrongNote, {
+                deepLinkKey: Date.now(),
+                examSessionId: resultData.examSessionId,
+                studentExamSessionId
+              })
+            }
+          >
+            <Ionicons name="document-text-outline" size={16} color={palette.main[600]} />
+            <Text style={styles.wrongNoteLinkText}>{t('mywrongnote_open_hub')}</Text>
+          </TouchableOpacity>
+        )}
         <View style={styles.contentContainer}>{renderBody()}</View>
       </View>
       {!!textbookResult && (
@@ -921,12 +970,35 @@ const ExamResult = ({ onClose, code, examSessionId, examCode, chapterId: chapter
       />
       <ExamNoteDialog examResultData={resultData} textbookResult={textbookResult} {...noteDialogProps} selectedQuestion={selectedQuestion} />
     </SlideDrawerRoot>
+    </>
   )
 }
 
 export default ExamResult
 
 const styles = ScaledSheet.create({
+  pending: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: palette.common.white
+  },
+  wrongNoteLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: '6@ms',
+    marginHorizontal: '20@ms',
+    marginBottom: '8@ms',
+    paddingVertical: '10@ms',
+    paddingHorizontal: '12@ms',
+    borderRadius: '10@ms',
+    backgroundColor: palette.main[50]
+  },
+  wrongNoteLinkText: {
+    fontSize: '13@ms',
+    fontWeight: '600',
+    color: palette.main[600]
+  },
   container: {
     flex: 1,
     backgroundColor: palette.grey[100]

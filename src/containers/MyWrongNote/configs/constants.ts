@@ -1,0 +1,3 @@
+export const MY_WRONG_NOTE_PAGE_SIZE = 20
+export const MY_WRONG_NOTE_GRID_COLUMNS = 7
+export const MY_WRONG_NOTE_DUE_SOON_HOURS = 24

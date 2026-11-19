@@ -17,6 +17,7 @@ import { restartExamApi } from "@/containers/DoExam/apiClients"
 import { Routes } from "@/navigators/RouteName"
 import { examStatusViewOptions } from "../configs/constants"
 import _ from "lodash"
+import { ExamResultRequest, ExamResultRequestArgs, isLatestResponse, isRequestPending, resultRequestKey } from "../configs/requestGuard"
 
 type Props = {
   chapterId?: number
@@ -26,10 +27,17 @@ type Props = {
   isPrint: boolean
   examSessionId?: string
   studentExamSessionId: string
+  wrongNoteQuestionSuperId?: number
+  wrongNoteNoteId?: number
+  wrongNoteReadOnly?: boolean
+  wrongNoteRejectReason?: string
+  wrongNoteReviewerName?: string
+  wrongNoteReviewedAt?: string
+  onWrongNoteConsumed?: () => void
   onClose?: () => void
 }
 
-const useExamResult = ({ chapterId, textbookId, date, examCode, isPrint, examSessionId, studentExamSessionId, onClose }: Props) => {
+const useExamResult = ({ chapterId, textbookId, date, examCode, isPrint, examSessionId, studentExamSessionId, onClose, wrongNoteQuestionSuperId, wrongNoteNoteId, wrongNoteReadOnly, wrongNoteRejectReason, wrongNoteReviewerName, wrongNoteReviewedAt, onWrongNoteConsumed }: Props) => {
   const { t } = useTranslation()
   const contentRef = useRef<View>(null)
   const user = useAuthStore(state => state.user)
@@ -79,9 +87,50 @@ const useExamResult = ({ chapterId, textbookId, date, examCode, isPrint, examSes
     setIsOpenConfirmRestartExamDialog(true)
   }
 
+  // The args of the result this screen should show now. A response is applied only while its args are still these
+  // (the focus refetch and the params effect can race; a late response for a previous attempt must be dropped).
+  const latestArgsRef = useRef<ExamResultRequestArgs>({ examCode, studentExamSessionId, chapterId, textbookId, date })
+  latestArgsRef.current = { examCode, studentExamSessionId, chapterId, textbookId, date }
+  // Every started request gets a sequence number; only the latest one for the current args is applied (RV-104).
+  const requestSeqRef = useRef(0)
+  const latestSeqByKeyRef = useRef<Record<string, number>>({})
+  const pendingSeqsRef = useRef<Set<number>>(new Set())
+
+  // RV-101: a new attempt / exam never shows the previous one's result or error (the pending spinner shows instead,
+  // and no note can be written against a result that is not the requested attempt). Reset during render: no stale frame.
+  const sessionKey = `${examCode}|${studentExamSessionId ?? ''}`
+  const [shownSessionKey, setShownSessionKey] = useState(sessionKey)
+  if (shownSessionKey !== sessionKey) {
+    setShownSessionKey(sessionKey)
+    setResultData(undefined)
+    setLatestSession(undefined)
+    setErrorMessage(undefined)
+  }
+
+  const startRequest = (args: ExamResultRequestArgs): ExamResultRequest => {
+    requestSeqRef.current += 1
+    const request = { seq: requestSeqRef.current, args }
+    latestSeqByKeyRef.current[resultRequestKey(args)] = request.seq
+    pendingSeqsRef.current.add(request.seq)
+    setErrorMessage(undefined) // RV-102
+    setLoading(true)
+    return request
+  }
+
+  const isCurrentResponse = (request: ExamResultRequest) =>
+    isLatestResponse(request, latestArgsRef.current, latestSeqByKeyRef.current)
+
+  const finishRequest = (request: ExamResultRequest) => {
+    pendingSeqsRef.current.delete(request.seq)
+    if (pendingSeqsRef.current.size === 0) setLoading(false)
+  }
+
+  // Focus calls the latest getData (current params), not the one of the render that created the callback.
+  const getDataRef = useRef<() => void>(() => {})
+
   useFocusEffect(
     useCallback(() => {
-      getData()
+      getDataRef.current()
       return () => {
         setExamStatusView(examStatusViewOptions(t, chapterId)[0].value);
       };
@@ -106,9 +155,10 @@ const useExamResult = ({ chapterId, textbookId, date, examCode, isPrint, examSes
     setCategoryResponses([])
   }
 
-  const getDataTextbookResult = async () => {
+  const getDataTextbookResult = async (args: ExamResultRequestArgs) => {
+    const { chapterId, textbookId, date } = args
     if (!chapterId) return
-    setLoading(true)
+    const request = startRequest(args)
     try {
       // textbookId (history mode) -> textbook-level APIs filtered by the answered date;
       // otherwise legacy chapter-level APIs.
@@ -126,22 +176,26 @@ const useExamResult = ({ chapterId, textbookId, date, examCode, isPrint, examSes
         getChapterResultsTimeOrderQuestionApi(chapterId, undefined),
         getChapterResultsCategoriesApi(chapterId, undefined)
       ])
+      if (!isCurrentResponse(request)) return
       setTextbookResult(result[0].data?.data)
       setLongTimeSpend(result[1].data?.data)
       setEffectSize(result[2].data?.data)
       setTimelyOrderQuestions(result[3].data?.data)
       setCategoryResponses(result[4].data?.data || [])
     } catch (error) {
+      if (!isCurrentResponse(request)) return
       const message = getErrorMessage(t, error)
       !isPrint && toast.error(message)
       setErrorMessage(message)
+    } finally {
+      finishRequest(request)
     }
-    setLoading(false)
   }
 
-  const getStudentData = async (examCode: string) => {
+  const getStudentData = async (args: ExamResultRequestArgs) => {
+    const { examCode, studentExamSessionId } = args
     if (!examCode) return
-    setLoading(true)
+    const request = startRequest(args)
     try {
       const result = await Promise.all(
         [
@@ -155,6 +209,7 @@ const useExamResult = ({ chapterId, textbookId, date, examCode, isPrint, examSes
           })
         ])
 
+      if (!isCurrentResponse(request)) return
       setResultData(result[0].data?.data);
       setLongTimeSpend(result[1].data?.data);
       setEffectSize(result[2].data?.data);
@@ -165,20 +220,26 @@ const useExamResult = ({ chapterId, textbookId, date, examCode, isPrint, examSes
       const sessionData = latestRes?.data !== undefined ? latestRes.data : latestRes
       setLatestSession(sessionData)
     } catch (error) {
+      if (!isCurrentResponse(request)) return
       const message = getErrorMessage(t, error)
       !isPrint && toast.error(message)
       setErrorMessage(message)
+    } finally {
+      finishRequest(request)
     }
-    setLoading(false)
   }
 
   const getData = () => {
     if (!user?.email) return
-    if (chapterId)
-      getDataTextbookResult()
+    const args = latestArgsRef.current
+    // Focus right after a params change (or a refocus): the latest fetch for these args is still running.
+    if (isRequestPending(args, latestSeqByKeyRef.current, pendingSeqsRef.current)) return
+    if (args.chapterId)
+      getDataTextbookResult(args)
     else
-      getStudentData(examCode || '')
+      getStudentData({ ...args, examCode: args.examCode || '' })
   }
+  getDataRef.current = getData
   useEffect(() => {
     getData()
   }, [studentExamSessionId, examCode, user?.email, chapterId, textbookId, date])
@@ -229,12 +290,20 @@ const useExamResult = ({ chapterId, textbookId, date, examCode, isPrint, examSes
   const examResultNotes = useExamResultNote({
     questionOptions: chapterId ? studentTextbookQuestions : questionOptions,
     handleSelectQuestion,
+    selectedQuestion,
     examSessionId,
     studentExamSessionId,
     studentTextbookSessionId: textbookResult?.studentTextbookSessionId,
     examCode,
     examResult: resultData,
-    textbookResult
+    textbookResult,
+    wrongNoteQuestionSuperId,
+    wrongNoteNoteId,
+    wrongNoteReadOnly,
+    wrongNoteRejectReason,
+    wrongNoteReviewerName,
+    wrongNoteReviewedAt,
+    onWrongNoteConsumed
   }
   )
 
@@ -243,15 +312,15 @@ const useExamResult = ({ chapterId, textbookId, date, examCode, isPrint, examSes
   const { setOpenQuestionDialog, handleCloseQuestionContextMenu } =
     QADialog
 
-  const { setOpenNoteDialog, handleCloseTooltip } =
+  const { handleOpenNoteDialogForQuestion, handleCloseTooltip } =
     examResultNotes
 
+  // My answers "Note" / question menu: opens the question's actionable note (rejected, else latest), like web.
   const handleOpenNoteDialogFromQuestion = (
     question: Question
   ) => {
-    handleSelectQuestion(question)
     handleCloseQuestionContextMenu()
-    setOpenNoteDialog(true)
+    handleOpenNoteDialogForQuestion(question)
   }
 
   const handleOpenQuestionDialogFromNote = (

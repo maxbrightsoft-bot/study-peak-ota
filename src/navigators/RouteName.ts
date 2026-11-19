@@ -20,6 +20,7 @@ export const Routes = {
         PopQuizIntro: "POP_QUIZ_INTRO",
         PopQuizTake: "POP_QUIZ_TAKE",
         PopQuizResult: "POP_QUIZ_RESULT",
+        MyWrongNote: "MY_WRONG_NOTE",
     },
     UnAuth: {
         Splash: 'SPLASH',
@@ -61,6 +62,7 @@ export const noLayoutScreens = [
     Routes.Auth.Question,
     Routes.Auth.StudyPerformance,
     Routes.Auth.StudentExamHistory,
+    Routes.Auth.MyWrongNote,
     Routes.AcademyInvitation,
     Routes.AcademyRequest,
     Routes.Auth.PopQuizCreate,

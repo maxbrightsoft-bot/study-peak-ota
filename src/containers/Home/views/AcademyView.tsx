@@ -13,6 +13,7 @@ import { palette } from '@/theme'
 import useProblemSolving from '../hooks/useProblemSolving'
 import useHomeNotice from '../hooks/useHomeNotice'
 import StudyTimerCard from '../components/StudyTimerCard'
+import MyWrongNoteCard from '../components/MyWrongNoteCard'
 import Notice from '@/containers/Notice/view'
 import { ScaledSheet } from 'react-native-size-matters'
 import moment from 'moment'
@@ -22,10 +23,12 @@ import { navigate } from '@/navigators/NavigationHelpers'
 import { Routes } from '@/navigators/RouteName'
 import { useTranslation } from 'react-i18next'
 import { TEXTBOOK_TABS } from '@/containers/Textbook/configs/constants'
+import { FEATURE_MYWRONGNOTE } from '@/utils/constants'
 
 const AcademyView = () => {
   const { t } = useTranslation()
   const selectedAcademy = useAuthStore(state => state.selectedAcademy)
+  const isStudent = useAuthStore(state => state.user)?.roles?.includes('Student')
   const {
     open,
     user,
@@ -95,6 +98,12 @@ const AcademyView = () => {
           <View style={{ marginBottom: 20 }}>
             <StudyTimerCard />
           </View>
+
+          {FEATURE_MYWRONGNOTE && isStudent && (
+            <View style={{ marginBottom: 20 }}>
+              <MyWrongNoteCard />
+            </View>
+          )}
 
           {(user?.academyDomain || selectedAcademy?.domain) && (
             <View style={{ marginBottom: 28 }}>

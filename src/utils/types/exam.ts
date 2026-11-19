@@ -152,6 +152,9 @@ export type ExamResult = {
     studentTotalAttemptTime: number
     commonComment?: string | null
     specialComment?: string | null
+    /** Wrong-note deadline of this attempt (UTC without Z) and its late allowance (2026-11-03 contract). */
+    wrongNoteDeadline?: string | null
+    wrongNoteLateAllowed?: boolean
 }
 
 export type QuestionGroupResponse = {
@@ -264,6 +267,8 @@ export type LongTimeSpendQuestion = {
 export type QuestionData = {
     id: number
     questionOrder: number
+    parentQuestionId?: number | null
+    parentQuestionOrder?: number | null
 }
 
 export interface AnswerItemBaseProps {

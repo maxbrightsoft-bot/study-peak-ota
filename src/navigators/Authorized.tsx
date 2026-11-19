@@ -19,13 +19,14 @@ import useLayoutApp from '@/layouts/hooks/useLayoutApp'
 import QuestionScreen from '@/screens/Question'
 import { Platform } from 'react-native'
 import StudentExamHistoryScreen from '@/screens/StudentExamHistory'
+import MyWrongNoteScreen from '@/screens/MyWrongNote'
 import PopQuizScreen from '@/containers/PopQuiz'
 import ConsentScreen from '@/containers/Setting/components/ConsentScreen'
 import { getConsentStatusApi, agreeConsentApi } from '@/containers/Setting/apiClients'
 import Loading from '@/components/Loading'
 import { toast, getErrorMessage } from '@/utils/helpers'
 import { useTranslation } from 'react-i18next'
-import { CONSENT_POLICY_VERSION } from '@/utils/constants'
+import { CONSENT_POLICY_VERSION, FEATURE_MYWRONGNOTE } from '@/utils/constants'
 import { startOfflineSyncListener } from '@/services/offlineSync'
 import ChangePasswordDialog from '@/containers/Setting/components/ChangePasswordDialog'
 import ResetPasswordWarningDialog from '@/containers/Setting/components/ResetPasswordWarningDialog'
@@ -174,6 +175,9 @@ const Authorized = ({ route }: { route: any }) => {
           <Tab.Screen name={Routes.Auth.Profile} component={ProfileScreen} />
           <Tab.Screen name={Routes.Auth.Question} component={QuestionScreen} />
           <Tab.Screen name={Routes.Auth.StudentExamHistory} component={StudentExamHistoryScreen} />
+          {FEATURE_MYWRONGNOTE && (
+            <Tab.Screen name={Routes.Auth.MyWrongNote} component={MyWrongNoteScreen} />
+          )}
           <Tab.Screen name={Routes.Auth.PopQuiz} component={PopQuizScreen} />
           <Tab.Screen name={Routes.Auth.PopQuizCreate} component={PopQuizCreateScreen} />
           <Tab.Screen name={Routes.Auth.PopQuizIntro} component={PopQuizIntroScreen} />

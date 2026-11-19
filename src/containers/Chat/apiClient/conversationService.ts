@@ -9,6 +9,9 @@ export const getListConversation = (query: ConversationFilter) =>
         params: query
 })
 
+export const getConversationById = (conversationId: number) =>
+    api.get(`${CONVERSATION_URL}/${conversationId}`)
+
 export const createConversation = (studentId: number) =>
     api.post(`${CONVERSATION_URL}`, {
         targetUserId: `${studentId}`

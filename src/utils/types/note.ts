@@ -1,6 +1,13 @@
 import { BaseSearchQuery } from "."
 import { NoteSortColumn, NoteType } from "../enums"
 
+/** Teacher review state of a student note (server NoteReviewStatus). */
+export enum NoteReviewStatus {
+  Pending = 0,
+  Approved = 1,
+  Rejected = 2
+}
+
 export type NoteResponse = {
   id: number
   content: string
@@ -30,6 +37,14 @@ export type NoteResponse = {
   isStudentNote: boolean
   mentionUsers: MentionUser[]
   questionTypeName?: string
+  /** 1-based order among the student's notes of this question (server, 2026-11-03 contract) */
+  questionNoteOrder?: number | null
+  reviewStatus?: NoteReviewStatus
+  rejectReason?: string | null
+  studentEditedAt?: string | null
+  reviewedAt?: string | null
+  studentExamSessionId?: number | null
+  studentTextbookSessionId?: number | null
 }
 
 export type GroupedNoteResponse = {
@@ -72,6 +87,8 @@ export type NoteRequest = {
   studentExamSessionId?: any
   studentTextbookSessionId?: number
   imageUrl?: string
+  /** Student exam note: always insert a new note (without it the server appends to the question's first note). */
+  asNewNote?: boolean
 }
 
 export interface NoteSearchQuery extends BaseSearchQuery<NoteSortColumn> {
@@ -88,4 +105,5 @@ export interface NoteSearchQuery extends BaseSearchQuery<NoteSortColumn> {
   startDate?: string
   endDate?: string
   hasIncorrectOrImage?: boolean
+  questionId?: number
 }

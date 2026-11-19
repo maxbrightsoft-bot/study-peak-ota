@@ -8,6 +8,7 @@ import { ExamResult, NoteResponse } from '@/utils/types'
 import MathRender from '@/components/MathRender'
 import TextTooltip from '@/components/Tooltip/TextTooltip'
 import { ScaledSheet } from 'react-native-size-matters'
+import { questionNumberLabel } from '@/utils/helpers/noteOrder'
 
 interface NoteItemProps extends TooltipProps<NoteResponse> {
   data: NoteResponse
@@ -17,6 +18,8 @@ interface NoteItemProps extends TooltipProps<NoteResponse> {
   examResultData?: ExamResult
   onLoad?: () => void
   onItemClick?: (data: NoteResponse) => void
+  /** H1: "#n" when the question has 2+ notes (web NoteItem). */
+  noteNumber?: number
 }
 
 const NoteItem: FC<NoteItemProps> = ({
@@ -27,7 +30,8 @@ const NoteItem: FC<NoteItemProps> = ({
   examResultData,
   onOpen,
   onLoad,
-  onItemClick
+  onItemClick,
+  noteNumber
 }) => {
   const { t } = useTranslation()
   const [tooltipVisible, setTooltipVisible] = useState(openTooltip)
@@ -64,8 +68,9 @@ const NoteItem: FC<NoteItemProps> = ({
         <TouchableOpacity activeOpacity={0.7} onPress={handleItemClick} style={styles.metaLeft}>
           <Text style={styles.number}>
             {t('number_question', {
-              number: (data?.questionOrder || 0) + 1
+              number: questionNumberLabel(data)
             })}
+            {noteNumber ? <Text style={styles.noteNumber}>{` #${noteNumber}`}</Text> : null}
           </Text>
           <Text style={styles.metaText}>{data.categoryName}</Text>
         </TouchableOpacity>
@@ -164,6 +169,10 @@ const styles = ScaledSheet.create({
     lineHeight: '25@ms',
     color: palette.grey[900],
     marginRight: '12@ms'
+  },
+  noteNumber: {
+    color: palette.main[600],
+    fontWeight: '600'
   },
   childTitlePage: {
     fontSize: '11@ms',

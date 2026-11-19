@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { palette } from '@/theme'
 import moment from 'moment'
 import { ConfirmDialog } from '@/components/ModalBase/ConfirmDialog'
+import RichCommentText from '@/components/RichCommentText'
 import { ActivityIndicator } from 'react-native-paper'
 import { NoteComment } from '../configs/types'
 import { useNoteComments } from '../hooks/useNoteComments'
@@ -118,7 +119,7 @@ export const NoteComments = ({ noteId, visible, t, headerContent }: Props) => {
         </View>
 
         {/* Comment Content */}
-        {!!item.content && <Text style={styles.commentText}>{item.content}</Text>}
+        {!!item.content && <RichCommentText content={item.content} textStyle={styles.commentText} />}
 
         {/* Comment Image */}
         {!!item.imageUrl && (

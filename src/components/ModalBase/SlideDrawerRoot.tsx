@@ -55,11 +55,13 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
   useEffect(() => {
     if (!visible) return
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      // Drawers on unfocused (still mounted) screens must not swallow back presses.
+      if (navigation && !navigation.isFocused()) return false
       onClose?.()
       return true
     })
     return () => subscription.remove()
-  }, [visible, onClose])
+  }, [visible, onClose, navigation])
 
   useEffect(() => {
     if (visible) {

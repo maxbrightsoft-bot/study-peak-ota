@@ -1,5 +1,5 @@
 import SearchInput from '@/components/Input/SearchInput'
-import React, { useMemo, useCallback } from 'react'
+import React, { useMemo, useCallback, useEffect, useRef } from 'react'
 import { View, Text, FlatList, ScrollView, TouchableOpacity, Image, Modal, Pressable, ActivityIndicator, StyleSheet } from 'react-native'
 import useConversationList from './hooks/useConversationList'
 import useChatContainer from './hooks/useChatContainer'
@@ -15,9 +15,11 @@ import moment from 'moment'
 import { ScaledSheet } from 'react-native-size-matters'
 import MathRender from '@/components/MathRender'
 import { Ionicons } from '@expo/vector-icons'
-import { useFocusEffect } from '@react-navigation/native'
+import { useFocusEffect, useIsFocused } from '@react-navigation/native'
 import TextTooltip from '@/components/Tooltip/TextTooltip'
 import { ConversationListSkeleton } from '@/components/Skeleton'
+import { getConversationById } from './apiClient/conversationService'
+import { getErrorMessage, toast } from '@/utils/helpers'
 
 const getConversationTitle = (
   conversation: ConversationsResponse,
@@ -181,7 +183,15 @@ const Card = React.memo(({
   </TouchableOpacity>
 ))
 
-export default function Question() {
+type QuestionProps = {
+  initialConversationId?: number
+  onInitialConversationConsumed?: () => void
+}
+
+export default function Question({
+  initialConversationId,
+  onInitialConversationConsumed
+}: QuestionProps = {}) {
   const {
     t,
     search,
@@ -240,6 +250,33 @@ export default function Question() {
       handleChangeTab(TabList[0].value)
     }, [handleChangeTab])
   )
+
+  // Read inside the async deep-link fetch: the tab may have lost focus by the time it resolves.
+  const isFocused = useIsFocused()
+  const isFocusedRef = useRef(isFocused)
+  isFocusedRef.current = isFocused
+
+  // Deep link (e.g. MyWrongNote "ask the teacher"): open that thread once, then clear the param.
+  useEffect(() => {
+    if (!initialConversationId) return undefined
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await getConversationById(initialConversationId)
+        if (!cancelled) {
+          if (!res?.data?.id) toast.error(t('conversation_not_found'))
+          else if (isFocusedRef.current) handleChangeSelectedConversation(res.data)
+        }
+      } catch (error) {
+        if (!cancelled) toast.error(getErrorMessage(t, error))
+      } finally {
+        if (!cancelled) onInitialConversationConsumed?.()
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [initialConversationId, handleChangeSelectedConversation, onInitialConversationConsumed, t])
 
   const handleCloseChatContainer = useCallback(() => {
     setSelectedConversation(undefined)

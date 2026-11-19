@@ -17,8 +17,9 @@ const NotesContainer: FC<NotesContainerProps> = ({
   onItemClick,
   itemActions,
   examResultData,
-  noteIdContextMenu, 
-  containerListProps
+  noteIdContextMenu,
+  containerListProps,
+  noteNumbers
 }) => {
   const { t } = useTranslation()
   const renderItem = ({ item }: any) => {
@@ -33,6 +34,7 @@ const NotesContainer: FC<NotesContainerProps> = ({
           onOpen={onOpenTooltip}
           onClose={onCloseTooltip}
           onItemClick={onItemClick}
+          noteNumber={noteNumbers?.[item.id]}
         />
       </View>
     )
@@ -47,6 +49,7 @@ const NotesContainer: FC<NotesContainerProps> = ({
           data={data}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderItem}
+          extraData={noteNumbers}
           onEndReached={onLoadMore}
           onEndReachedThreshold={0.2}
           showsVerticalScrollIndicator={false}
