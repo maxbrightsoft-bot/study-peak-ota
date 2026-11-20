@@ -10,7 +10,7 @@ import {
 } from "@/services/api/academyService"
 import { getSocket } from "@/services"
 import { Role } from "@/utils/enums"
-import { getMessageFromError, toast } from "@/utils/helpers"
+import { getErrorMessage, getMessageFromError, toast } from "@/utils/helpers"
 import { ErrorMessageCodes } from "@/utils/constants/error"
 import { LoginAccessTokenRequest } from "@/utils/types"
 import { MainRoutes, Routes } from "@/navigators/RouteName"

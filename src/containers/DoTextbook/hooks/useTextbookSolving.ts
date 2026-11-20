@@ -170,7 +170,7 @@ const useTextbookSolving = (props: Props) => {
         if (rollBackQuestions) {
           updateQuestionList?.(rollBackQuestions.questions);
           const rollBackLastAnswerTime = rollBackQuestions.lastAnswerTime;
-          const isValid = moment.invalid(rollBackLastAnswerTime);
+          const isValid = moment(rollBackLastAnswerTime).isValid();
 
           if (ltAnswerTime.current && isValid && moment(rollBackLastAnswerTime).isAfter(startTime) && moment(rollBackLastAnswerTime).isAfter(ltAnswerTime.current))
             ltAnswerTime.current = rollBackLastAnswerTime;

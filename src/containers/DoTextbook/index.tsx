@@ -36,11 +36,12 @@ type Props = {
 }
 
 const DoTextbook = ({ textbookId, page, reqTime, restart, questionId, redirectTopPage }: Props) => {
+  const handleCloseAudioGuideRef = React.useRef<(() => void) | undefined>(undefined)
   const { isOpenDialog, handleCloseDialog, handleOpenDialog } = useDrawer()
 
   const handleOpenDrawer = useCallback(() => {
     handleOpenDialog()
-    handleCloseAudioGuide()
+    handleCloseAudioGuideRef.current?.()
   }, [handleOpenDialog])
 
   const {
@@ -123,6 +124,7 @@ const DoTextbook = ({ textbookId, page, reqTime, restart, questionId, redirectTo
     onStartAudio: handleStartSelectedSubjectAlarm,
     handleCloseDialog,
   })
+  handleCloseAudioGuideRef.current = handleCloseAudioGuide
   const disabled = textbook?.status === ExamStatus.Completed || isPaused || (remainTime !== undefined && remainTime <= 0)
 
   const currentQuestion = useMemo(

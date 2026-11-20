@@ -12,6 +12,7 @@ import { palette } from '@/theme'
 import { Language, Role } from '../enums'
 import { PauseOrResumeExamRequest } from '../types'
 import { trackErrorStandalone } from '@/hooks/useActivityTracking'
+import { stripHtml } from './html'
 
 export const toast = {
   success: (message: string) =>
@@ -358,8 +359,6 @@ export const parseEventData = <T = any>(data: any): T | null => {
   }
 }
 
-export { stripHtml } from './html'
-
 export const isTextualAnswerEmpty = (text?: string): boolean => {
   if (!text) return true
   if (
@@ -384,3 +383,4 @@ export const hasAnyTextualAnswer = (answers?: string[]): boolean => {
 }
 
 export * from './times'
+export * from './html'
