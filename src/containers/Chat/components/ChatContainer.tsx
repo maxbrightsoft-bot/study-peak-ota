@@ -133,7 +133,7 @@ const ChatContainer = ({
         <View></View>
       </View>
       <KeyboardAvoidingView
-        keyboardVerticalOffset={0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
         style={{ flex: 1, position: 'relative' }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >

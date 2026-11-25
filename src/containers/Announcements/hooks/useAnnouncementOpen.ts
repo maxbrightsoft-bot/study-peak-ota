@@ -4,6 +4,7 @@ import { navigate } from '@/navigators/NavigationHelpers'
 import { Routes } from '@/navigators/RouteName'
 import useAnnouncementStore from '@/store/useAnnouncementStore'
 import useAuthStore from '@/store/useAuthStore'
+import { FEATURE_MYWRONGNOTE, FEATURE_STUDYTIMER } from '@/utils/constants'
 import { Role } from '@/utils/enums'
 import { Notification } from '@/containers/Notice/configs/types'
 import { announcementTarget } from '../configs/target'
@@ -49,18 +50,25 @@ const useAnnouncementOpen = (onClose: () => void) => {
       if (!a.isRead) void useAnnouncementStore.getState().markRead(a.id)
       const target = announcementTarget(a, {
         isStudentUser,
-        // The wrong-note and study-timer screens are not on this branch.
-        myWrongNote: false,
-        studyTimer: false
+myWrongNote: FEATURE_MYWRONGNOTE,
+        studyTimer: FEATURE_STUDYTIMER
       })
       switch (target.kind) {
         case 'note': {
           void openNote(target.noteId, a)
           return
         }
+        case 'myWrongNote':
+          onClose()
+          navigate(Routes.Auth.MyWrongNote, { ...target.params, deepLinkKey: Date.now() })
+          return
         case 'examResultList':
           onClose()
           navigate(Routes.Auth.ExamResultList)
+          return
+        case 'studyTimer':
+          onClose()
+          navigate(Routes.Auth.StudyTimer, target.params)
           return
         default:
           return

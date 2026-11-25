@@ -4,21 +4,11 @@ import type { TFunction } from 'i18next'
 import moment from 'moment'
 import { Role } from '@/utils/enums'
 import { stripHtml } from '@/utils/helpers/html'
+import { formatDuration } from '@/containers/StudyTimer/configs/helpers'
+import { REPLY_REASON_KEYS } from '@/containers/StudyTimer/configs/constants'
 import { AnnouncementType } from './enums'
 import { isStudyTimerAnnouncementType, isWrongNoteAnnouncementType, parseAnnouncementExtra } from './helpers'
 import { AnnouncementResponse, StudyTimerAnnouncementExtraData, WrongNoteAnnouncementExtraData } from './types'
-
-// Same as StudyTimer configs (REPLY_REASON_KEYS, formatDuration); the StudyTimer module is not on this branch.
-const REPLY_REASON_KEYS = ['acknowledged', 'sick', 'school_event', 'other_academy', 'family', 'forgot_timer', 'other']
-
-const formatDuration = (minutes: number, t: TFunction): string => {
-  const total = Math.max(0, Math.round(minutes))
-  const h = Math.floor(total / 60)
-  const m = total % 60
-  if (h === 0) return t('studytimer_duration_m', { m, defaultValue: '{{m}}m' })
-  if (m === 0) return t('studytimer_duration_h', { h, defaultValue: '{{h}}h' })
-  return t('studytimer_duration_hm', { h, m, defaultValue: '{{h}}h {{m}}m' })
-}
 
 export type AnnouncementView = {
   name: string

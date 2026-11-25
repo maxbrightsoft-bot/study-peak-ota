@@ -1,6 +1,7 @@
 // Pure helpers (dates are calendar days as YYYY-MM-DD). Imports only moment, i18next types and relative paths.
 import type { TFunction } from 'i18next'
 import moment from 'moment'
+import { announcementChannel } from '../../Announcements/configs/helpers'
 import {
   REPLY_REASON_KEYS,
   STUDY_TIMER_DATE_FORMAT,
@@ -180,11 +181,6 @@ export const formatStudyTimerMessageBody = (m: StudyTimerMessageResponse, t: TFu
 /** HTTP status of an axios-style error, if any. */
 export const getErrorStatus = (error: unknown): number | undefined =>
   (error as { response?: { status?: number } } | null)?.response?.status
-
-const ANNOUNCEMENT_CHANNEL = 'ANNOUNCEMENT_A{academy}_U{userId}_CHANNEL'
-
-export const announcementChannel = (academyDomain: string, userId: number | string): string =>
-  ANNOUNCEMENT_CHANNEL.replace('{academy}', academyDomain.trim().toUpperCase()).replace('{userId}', `${userId}`)
 
 /** The student's announcement channel: ANNOUNCEMENT_A{DOMAIN}_U{userId}_CHANNEL (shared with the bell). */
 export const studyTimerAnnouncementChannel = (academyDomain: string, userId: number | string) =>

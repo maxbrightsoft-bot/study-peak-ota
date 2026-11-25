@@ -79,7 +79,7 @@ const TextbookList = ({
 
   return (
     <View style={styles.container}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12, marginBottom: 9, paddingHorizontal: 20 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 37, marginBottom: 9, paddingHorizontal: 20 }}>
         <View style={{ flex: 1 }}>
           <SearchInput value={search} onChangeText={onChangeSearch} placeholder={t('search_for')} />
         </View>

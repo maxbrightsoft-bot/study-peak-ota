@@ -9,6 +9,7 @@ import useAnnouncementOpen from '../useAnnouncementOpen'
 jest.mock('@/navigators/NavigationHelpers', () => ({ navigate: jest.fn() }))
 const mockGetNote = jest.fn()
 jest.mock('@/containers/Home/apiClients', () => ({ getNoteByIdApi: (id: number) => mockGetNote(id) }))
+jest.mock('@/utils/constants', () => ({ FEATURE_MYWRONGNOTE: true, FEATURE_STUDYTIMER: true }))
 
 const mockAuthState = { user: { id: 12, roles: ['Student'] } }
 jest.mock('@/store/useAuthStore', () => ({
@@ -53,15 +54,15 @@ const setup = () => {
 beforeEach(() => jest.clearAllMocks())
 
 describe('useAnnouncementOpen', () => {
-  test('without the study-timer screen, an unread study-timer message is only marked read', () => {
+  test('an unread study-timer message is marked read, closes the bell and opens that message', () => {
     const { onClose, hook } = setup()
     act(() => hook().open(make(AnnouncementType.StudyTimerTeacherMessage, {})))
     expect(mockMarkRead).toHaveBeenCalledWith(31)
-    expect(onClose).not.toHaveBeenCalled()
-    expect(navigate).not.toHaveBeenCalled()
+    expect(onClose).toHaveBeenCalled()
+    expect(navigate).toHaveBeenCalledWith(Routes.Auth.StudyTimer, { messageId: 31 })
   })
 
-  test('without My Wrong Note, a read wrong-note item is not marked again and opens the exam result list', () => {
+  test('a read wrong-note item is not marked again and opens My Wrong Note on its exam and question', () => {
     const { hook } = setup()
     act(() =>
       hook().open(
@@ -71,7 +72,10 @@ describe('useAnnouncementOpen', () => {
       )
     )
     expect(mockMarkRead).not.toHaveBeenCalled()
-    expect(navigate).toHaveBeenCalledWith(Routes.Auth.ExamResultList)
+    expect(navigate).toHaveBeenCalledWith(
+      Routes.Auth.MyWrongNote,
+      expect.objectContaining({ examSessionId: 2407, studentExamSessionId: 2585, questionSuperId: 77, deepLinkKey: expect.any(Number) })
+    )
   })
 
   test('a note item opens the note over the bell without closing it', async () => {
