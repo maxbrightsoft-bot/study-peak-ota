@@ -17,7 +17,7 @@
     "ios": {
       "jsEngine": "hermes",
       "supportsTablet": true,
-      "buildNumber": "10",
+      "buildNumber": "11",
       "bundleIdentifier": "com.max.britghtsoft.touchstudymobile",
       "infoPlist": {
         "UIApplicationSceneManifest": {
