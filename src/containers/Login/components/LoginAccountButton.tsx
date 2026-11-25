@@ -7,7 +7,12 @@ import { ScaledSheet } from 'react-native-size-matters'
 const LoginAccountButton = ({ title, onPress }: { title: string, onPress: () => void }) => {
 
   return (
-    <TouchableOpacity style={styles.button} onPress={onPress}>
+    <TouchableOpacity
+      style={styles.button}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+    >
       <Text style={styles.buttonText}>{title}</Text>
     </TouchableOpacity>
   )
@@ -21,6 +26,7 @@ const styles = ScaledSheet.create({
     alignItems: 'center',
     borderColor: palette.grey[700],
     borderWidth: '1@ms',
+    minHeight: '48@ms',
     paddingVertical: '12@ms',
     paddingHorizontal: '16@ms',
     borderRadius: '6@ms',

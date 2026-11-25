@@ -21,14 +21,20 @@ export const Routes = {
         PopQuizIntro: "POP_QUIZ_INTRO",
         PopQuizTake: "POP_QUIZ_TAKE",
         PopQuizResult: "POP_QUIZ_RESULT",
+        CombineGuestResults: "COMBINE_GUEST_RESULTS",
+        LinkedAccounts: "LINKED_ACCOUNTS",
+
         MyWrongNote: "MY_WRONG_NOTE",
     },
     UnAuth: {
         Splash: 'SPLASH',
         Tutorial: 'TUTORIAL',
         Login: 'LOGIN',
-        LoginParentPhone: 'LOGIN_PARENT_PHONE',
         LoginQRCode: 'LOGIN_QR',
+        GuestCode: 'GUEST_CODE',
+        GuestInfo: 'GUEST_INFO',
+        GuestExam: 'GUEST_EXAM',
+        GuestResult: 'GUEST_RESULT',
     },
     AcademyRequest: "ACADEMY_REQUEST",
     AcademyInvitation: "ACADEMY_INVITATION",
@@ -52,6 +58,8 @@ export const hiddenTabBar = [
     Routes.Auth.PopQuizIntro,
     Routes.Auth.PopQuizTake,
     Routes.Auth.PopQuizResult,
+    Routes.Auth.CombineGuestResults,
+    Routes.Auth.LinkedAccounts,
 ]
 
 export const noLayoutScreens = [
@@ -70,5 +78,7 @@ export const noLayoutScreens = [
     Routes.Auth.PopQuizCreate,
     Routes.Auth.PopQuizIntro,
     Routes.Auth.PopQuizTake,
+    Routes.Auth.CombineGuestResults,
+    Routes.Auth.LinkedAccounts,
     Routes.Auth.PopQuizResult,
 ];

@@ -278,7 +278,7 @@ const styles = ScaledSheet.create({
   submitButton: {
     marginTop: '16@ms',
     backgroundColor: palette.main[600],
-    height: '54@ms',
+    height: '50@ms',
     borderRadius: '12@ms',
     justifyContent: 'center',
     alignItems: 'center',
@@ -292,7 +292,6 @@ const styles = ScaledSheet.create({
     opacity: 0.6,
   },
   submitButtonText: {
-    ...TYPO.button,
     color: '#fff',
     fontSize: '16@ms',
     fontWeight: 'bold',

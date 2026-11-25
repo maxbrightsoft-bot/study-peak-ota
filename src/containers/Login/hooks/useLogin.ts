@@ -22,6 +22,7 @@ import { Routes } from '@/navigators/RouteName';
 import appleAuth from '@invertase/react-native-apple-authentication';
 import { useState } from 'react';
 import { Platform } from 'react-native';
+import { LoginAccountMode } from '../configs/types';
 
 const useLogin = () => {
   const { t } = useTranslation();
@@ -34,7 +35,10 @@ const useLogin = () => {
   } = useAuthStore();
   const [openLoginAccountDialog, setOpenLoginAccountDialog] = useState(false)
 
-  const handleOpenLoginAccountDialog = () => {
+  const [loginAccountMode, setLoginAccountMode] = useState<LoginAccountMode>(LoginAccountMode.Login)
+
+  const handleOpenLoginAccountDialog = (mode: LoginAccountMode = LoginAccountMode.Login) => {
+    setLoginAccountMode(mode)
     setOpenLoginAccountDialog(true)
   }
   const handleCloseLoginAccountDialog = () => {
@@ -257,6 +261,7 @@ const useLogin = () => {
 
   return {
     openLoginAccountDialog,
+    loginAccountMode,
     handleOpenLoginAccountDialog,
     handleCloseLoginAccountDialog,
     onAppleButtonPress,

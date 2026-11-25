@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { View, Text, TouchableOpacity } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { palette, TYPO } from '@/theme'
@@ -16,16 +16,17 @@ import { LoginAccountMode } from '../configs/types'
 
 type Props = {
   visible: boolean
+  mode: LoginAccountMode
   onOpen: () => void
   onClose: () => void
 }
 
-const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
+const LoginAccountDialog = ({ visible, mode: initialMode, onOpen, onClose }: Props) => {
   const { t } = useTranslation()
 
   const { formik: loginFormik, showPassword, toggleShowPassword, resetShowPassword } = useLoginEmail()
 
-  const [mode, setMode] = useState<LoginAccountMode>(LoginAccountMode.Login)
+  const [mode, setMode] = useState<LoginAccountMode>(initialMode)
   const {
     formik: registerFormik,
     setField: setRegisterField,
@@ -52,7 +53,7 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
   const handleClose = () => {
     resetRegister()
     loginFormik.resetForm()
-    setMode(LoginAccountMode.Login)
+    setMode(initialMode)
     resetShowPassword()
     setShowRegisterPassword(false)
     setApiError(null)
@@ -67,9 +68,14 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
     if (!visible) {
       resetRegister()
       loginFormik.resetForm()
-      setMode(LoginAccountMode.Login)
+      setMode(initialMode)
     }
   }, [visible, mode])
+
+  // Layout effect: sync the mode before paint so opening in the other mode never flashes the previous one.
+  useLayoutEffect(() => {
+    if (visible) setMode(initialMode)
+  }, [visible, initialMode])
 
   const renderLogin = () => {
     const emailError =
@@ -84,8 +90,10 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
 
     return (
       <View style={styles.form}>
-        <Text style={styles.label}>{t('email')}</Text>
+        <Text style={styles.label}>{t('email_or_username')}</Text>
         <TextField
+          placeholder={t('enter_email_or_username')}
+          autoCapitalize="none"
           value={loginFormik.values.email}
           onChangeText={(text: string) => loginFormik.setFieldValue('email', text)}
           error={emailError}
@@ -139,6 +147,16 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
         error={getError('email')}
         onChangeText={(text: string) => setRegisterField('email', text)}
       />
+
+      <TextField
+        key="step1-username"
+        placeholder={t('username')}
+        autoCapitalize="none"
+        value={registerFormik.values.userName}
+        error={getError('userName')}
+        onChangeText={(text: string) => setRegisterField('userName', text)}
+      />
+      <Text style={styles.hintText}>{t('username_hint')}</Text>
 
       <TextField
         key={`step1-password-${showRegisterPassword}`}
@@ -290,11 +308,11 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
               handleBack()
             }}
           >
-            <Text>{t('back')}</Text>
+            <Text style={styles.secondaryButtonText}>{t('back')}</Text>
           </CustomTouchable>
         )}
 
-        <CustomTouchable style={styles.primaryButton} onPress={handleNext}>
+        <CustomTouchable style={[styles.primaryButton, registerStep > 1 && { flex: 1 }]} onPress={handleNext}>
           <Text style={styles.primaryButtonText}>
             {registerStep === TOTAL_REGISTER_STEPS
               ? t('sign_up')
@@ -312,20 +330,6 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
         onClose={handleClose}
         title={mode === LoginAccountMode.Login ? t('sign_in') : t('sign_up')}
       >
-        <View style={styles.tabContainer}>
-          <TouchableOpacity onPress={() => setMode(LoginAccountMode.Login)}>
-            <Text style={[styles.tab, mode === LoginAccountMode.Login && styles.activeTab]}>
-              {t('sign_in')}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => setMode(LoginAccountMode.Register)}>
-            <Text style={[styles.tab, mode === LoginAccountMode.Register && styles.activeTab]}>
-              {t('sign_up')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
         {mode === LoginAccountMode.Login ? renderLogin() : renderRegister()}
       </CommonDialog>
 
@@ -353,23 +357,6 @@ const styles = ScaledSheet.create({
     marginBottom: '8@ms',
   },
 
-  tabContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: '16@ms',
-  },
-
-  tab: {
-    marginHorizontal: '12@ms',
-    fontSize: '16@ms',
-    color: palette.grey[500],
-  },
-
-  activeTab: {
-    color: palette.main[600],
-    fontWeight: 'bold',
-  },
-
   primaryButton: {
     backgroundColor: palette.main[600],
     height: '50@ms',
@@ -381,16 +368,23 @@ const styles = ScaledSheet.create({
 
   primaryButtonText: {
     color: '#fff',
+    fontSize: '16@ms',
     fontWeight: 'bold',
   },
 
   secondaryButton: {
     backgroundColor: palette.grey[300],
-    paddingHorizontal: '16@ms',
+    paddingHorizontal: '20@ms',
     height: '50@ms',
     borderRadius: '10@ms',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+
+  secondaryButtonText: {
+    color: palette.grey[800],
+    fontSize: '16@ms',
+    fontWeight: '600',
   },
 
   row: {
@@ -401,8 +395,14 @@ const styles = ScaledSheet.create({
     marginTop: '6@ms',
   },
 
+  hintText: {
+    ...TYPO.caption,
+    color: palette.grey[500],
+  },
+
   stepText: {
     textAlign: 'center',
+    fontSize: '13@ms',
     color: palette.grey[500],
     marginBottom: '2@ms',
   },
