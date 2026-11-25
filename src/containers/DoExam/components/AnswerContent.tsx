@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Keyboard,
   Platform,
-  Dimensions
+  useWindowDimensions
 } from 'react-native'
 import { FieldArray, Field } from 'formik'
 import { palette } from '@/theme'
@@ -27,12 +27,18 @@ type Props = {
   onTextualAnswersChange?: (nextAnswers: string[]) => void
 }
 
-const { height: SCREEN_H } = Dimensions.get('window')
-
 let answerKeySeed = 0
 const createAnswerKey = () => `exam_ans_${Date.now()}_${++answerKeySeed}`
 
-const AnswerContent = ({ t, question, questionNumber, errors, values, onTextualAnswersChange }: Props) => {
+const AnswerContent = ({
+  t,
+  question,
+  questionNumber,
+  errors,
+  values,
+  onTextualAnswersChange
+}: Props) => {
+  const { height: screenHeight } = useWindowDimensions()
   const scrollViewRef = useRef<ScrollView>(null)
   const itemLayouts = useRef<{ [key: number]: number }>({})
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false)
@@ -84,10 +90,9 @@ const AnswerContent = ({ t, question, questionNumber, errors, values, onTextualA
       {({ push, remove }) => (
         <ScrollView
           ref={scrollViewRef}
-          style={[
-            styles.container,
-            isKeyboardVisible && styles.containerKeyboardVisible
-          ]}
+          style={{
+            maxHeight: isKeyboardVisible ? screenHeight * 0.32 : screenHeight * 0.48
+          }}
           contentContainerStyle={{ flexGrow: 1, paddingBottom: 16 }}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
@@ -175,12 +180,7 @@ const AnswerContent = ({ t, question, questionNumber, errors, values, onTextualA
 }
 
 const styles = ScaledSheet.create({
-  container: {
-    maxHeight: SCREEN_H * 0.48
-  },
-  containerKeyboardVisible: {
-    maxHeight: SCREEN_H * 0.32
-  },
+
   questionHeader: {
     marginBottom: '16@ms'
   },

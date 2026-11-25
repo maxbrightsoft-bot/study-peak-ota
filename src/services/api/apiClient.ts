@@ -17,9 +17,41 @@ import {
 } from '../../utils/constants'
 import { getDataStorage } from '@/utils/storage';
 import useAuthStore from '@/store/useAuthStore';
-import useAppStore, { waitForAppStoreHydration } from '@/store/useAppStore';
+import useAppStore from '@/store/useAppStore';
 import { applyMockAdapter } from '@/demoData/mockInterceptor';
 import { trackErrorStandalone } from '@/hooks/useActivityTracking';
+import { getGuestAcademyHeaders, getGuestSession, GuestSession, isGuestAcademyOnlyRoute, isGuestTokenRoute } from '@/containers/GuestExam/utils/guestSession';
+import { expireGuestSession } from '@/containers/GuestExam/utils/guestNavigation';
+import { shouldLogoutOn401 } from './sessionGuard';
+
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    /** Public guest route: never send Authorization; the caller sets the academy headers. */
+    guestPublic?: boolean
+    /** Guest session to use instead of the active one (a call made right before the session is cleared). */
+    guestSession?: GuestSession
+    /** A 401 on this guest call must not end the guest flow (e.g. the final `end` call). */
+    guestIgnoreUnauthorized?: boolean
+    /** Set by the interceptor when the request runs on the guest token. */
+    isGuestRequest?: boolean
+  }
+}
+
+/** The guest session for this request, if any: only with nobody signed in, and only on the guest-token routes. */
+const resolveGuestSession = (config: { guestPublic?: boolean; guestSession?: GuestSession; url?: string }) => {
+  if (config.guestPublic) return undefined
+  const session = config.guestSession ?? getGuestSession()
+  if (!session || useAuthStore.getState().user) return undefined
+  return isGuestTokenRoute(config.url, session.code) ? session : undefined
+}
+
+/** A guest (nobody signed in) calling a public route that needs only the guest's academy headers, never the token. */
+const resolveGuestAcademyOnlySession = (config: { guestPublic?: boolean; guestSession?: GuestSession; url?: string }) => {
+  if (config.guestPublic || !isGuestAcademyOnlyRoute(config.url)) return undefined
+  const session = config.guestSession ?? getGuestSession()
+  if (!session || useAuthStore.getState().user) return undefined
+  return session
+}
 
 export const api: AxiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -43,31 +75,51 @@ export const apiUpload: AxiosInstance = axios.create({
   ;[api, apiUpload].forEach((i) =>
     i.interceptors.request.use(
       async (config: any) => {
-        const token = await getDataStorage(ACCESS_TOKEN)
         const language = await getDataStorage(LANGUAGE)
+        const guestSession = resolveGuestSession(config)
+        const guestAcademyOnlySession = guestSession ? undefined : resolveGuestAcademyOnlySession(config)
 
-        if (token && !config.headers.noAuth) {
-          config.headers.Authorization = `Bearer ${token}`
+        if (config.guestPublic) {
+          // Guest public routes: no token at all (a stale guest token gets 403), only the picked academy.
+          delete config.headers.Authorization
+        } else if (guestSession) {
+          // Guest-token routes: the guest token and the guest's academy, never the student ones.
+          config.isGuestRequest = true
+          config.headers.Authorization = `Bearer ${guestSession.token}`
+          delete config.headers[AcademyHeaders]
+          delete config.headers[NoAcademyHeaders]
+          Object.assign(config.headers, getGuestAcademyHeaders(guestSession.domain, guestSession.isLearningSpace))
+        } else if (guestAcademyOnlySession) {
+          // Guest on `auth/time`: the guest's academy only (the BE answers 400 without it), no token.
+          delete config.headers.Authorization
+          delete config.headers[AcademyHeaders]
+          delete config.headers[NoAcademyHeaders]
+          Object.assign(config.headers, getGuestAcademyHeaders(guestAcademyOnlySession.domain, guestAcademyOnlySession.isLearningSpace))
+        } else {
+          const token = await getDataStorage(ACCESS_TOKEN)
+
+          if (token && !config.headers.noAuth) {
+            config.headers.Authorization = `Bearer ${token}`
+          }
+
+          const authState = useAuthStore.getState()
+          const currentUser = authState.user
+          const academyDomain = currentUser ? currentUser.academyDomain : await getDataStorage(ACADEMY_DOMAIN)
+          const isLearningSpace = currentUser ? !!currentUser.isLearningSpace : !!(await getDataStorage(LEARNING_SPACE)) === true
+
+          if ((academyDomain && !isLearningSpace) && config.headers[AcademyHeaders] == undefined) config.headers[AcademyHeaders] = `${academyDomain}`
+          if (isLearningSpace && config.headers[NoAcademyHeaders] == undefined) config.headers[NoAcademyHeaders] = `${isLearningSpace}`
         }
-
-        const authState = useAuthStore.getState()
-        const currentUser = authState.user
-        const academyDomain = currentUser ? currentUser.academyDomain : await getDataStorage(ACADEMY_DOMAIN)
-        const isLearningSpace = currentUser ? !!currentUser.isLearningSpace : !!(await getDataStorage(LEARNING_SPACE)) === true
-
-        if ((academyDomain && !isLearningSpace) && config.headers[AcademyHeaders] == undefined) config.headers[AcademyHeaders] = `${academyDomain}`
-        if (isLearningSpace && config.headers[NoAcademyHeaders] == undefined) config.headers[NoAcademyHeaders] = `${isLearningSpace}`
         if (language) config.headers[LanguageHeaders] = `${language}`
 
         config.headers['x-platform'] = Platform.OS;
         config.headers['x-app-version'] = DeviceInfo.getVersion();
-        await waitForAppStoreHydration();
         config.headers['x-bundle-version'] = useAppStore.getState().bundleVersion;
         if (__DEV__) {
           config.headers['x-dev-mode'] = 'true';
         }
 
-        if (__DEV__) console.log('[API REQ]', config.method?.toUpperCase(), config.url, config.params);
+        console.log('[API REQ]', config.method?.toUpperCase(), config.url, config.params);
         await applyMockAdapter(config);
 
         return config
@@ -85,12 +137,23 @@ export const apiUpload: AxiosInstance = axios.create({
       async (error: any) => {
         const status = error?.response?.status
 
-        if (status === 401) {
-          const logout = useAuthStore.getState().logout;
-          await logout();
+        const config = error?.config
+        const isGuestCall = !!(config?.isGuestRequest || config?.guestPublic)
+        // A guest (nobody signed in) has no student session to log out of.
+        const isGuestActive = !!getGuestSession() && !useAuthStore.getState().user
+
+        if (status === 401 && config?.isGuestRequest && !config?.guestIgnoreUnauthorized) {
+          await expireGuestSession();
+        } else if (status === 401 && !isGuestCall && !isGuestActive) {
+          // A request sent with an older (revoked) token, e.g. in flight during an account switch, keeps the new session.
+          if (shouldLogoutOn401(config?.headers?.Authorization, await getDataStorage(ACCESS_TOKEN))) {
+            const logout = useAuthStore.getState().logout;
+            await logout();
+          }
         }
         if (__DEV__) console.log('[API] Request failed:', status, error?.config?.url);
-        if (__DEV__) console.log('[API ERR]', error?.config?.method?.toUpperCase(), error?.config?.url, error?.config?.params, error?.response?.data || error?.message);
+        console.log('[API ERR]', error?.config?.method?.toUpperCase(), error?.config?.url, error?.config?.params, error?.response?.data || error?.message);
+
         if (status === 426) {
           const data = error?.response?.data;
           console.log({ data });

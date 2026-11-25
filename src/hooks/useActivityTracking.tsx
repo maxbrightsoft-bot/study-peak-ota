@@ -6,6 +6,7 @@ import { useEffect, useCallback } from "react";
 import useServerTime from "./useServerTime";
 import useAuthStore from "@/store/useAuthStore";
 import useAppStore from "@/store/useAppStore";
+import { getGuestSession } from "@/containers/GuestExam/utils/guestSession";
 
 class TrackingManager {
   private queue: CreateActivityRequest[] = [];
@@ -13,6 +14,8 @@ class TrackingManager {
   private isProcessing = false;
 
   async add(event: CreateActivityRequest) {
+    // A guest (nobody signed in) is not tracked: the guest token may only call its exam routes.
+    if (getGuestSession() && !useAuthStore.getState().user) return;
     this.queue.push(event);
     if (this.queue.length >= 10 && !this.isProcessing) {
       await this.flush();

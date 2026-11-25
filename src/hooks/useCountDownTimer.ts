@@ -44,7 +44,7 @@ const useCountDownTimer = (props: Props) => {
         onFinish,
     } = props;
 
-    const { getServerNow, synced } = useServerTime();
+    const { getServerNow, synced, syncAttempted } = useServerTime();
     const [remainTime, setRemainTime] = useState<number>();
     const countdownTimeoutRef = useRef<number | null>(null);
     const isFinishedRef = useRef(false);
@@ -81,7 +81,8 @@ const useCountDownTimer = (props: Props) => {
         if (!startTime || !duration || !isRunning) return;
         if (isTickingRef.current) return;
 
-        if (!synced) return;
+        // Wait for the first server-time sync; if it failed, run on the device clock rather than show 00:00 forever.
+        if (!synced && !syncAttempted) return;
 
         isTickingRef.current = true;
         isFinishedRef.current = false;
@@ -136,6 +137,7 @@ const useCountDownTimer = (props: Props) => {
         status,
         isRunning,
         synced,
+        syncAttempted,
         diffFromNowMs,
         lastPausedAt,
         lastPausedTime,

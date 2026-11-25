@@ -27,7 +27,7 @@ import { getConsentStatusApi, agreeConsentApi } from '@/containers/Setting/apiCl
 import Loading from '@/components/Loading'
 import { toast, getErrorMessage } from '@/utils/helpers'
 import { useTranslation } from 'react-i18next'
-import { CONSENT_POLICY_VERSION, FEATURE_STUDYTIMER, FEATURE_MYWRONGNOTE } from '@/utils/constants'
+import { CONSENT_POLICY_VERSION, FEATURE_MYWRONGNOTE, FEATURE_STUDYTIMER } from '@/utils/constants'
 import { startOfflineSyncListener } from '@/services/offlineSync'
 import ChangePasswordDialog from '@/containers/Setting/components/ChangePasswordDialog'
 import ResetPasswordWarningDialog from '@/containers/Setting/components/ResetPasswordWarningDialog'
@@ -35,6 +35,8 @@ import PopQuizCreateScreen from '@/screens/PopQuiz/Create'
 import PopQuizIntroScreen from '@/screens/PopQuiz/Intro'
 import PopQuizTakeScreen from '@/screens/PopQuiz/Take'
 import PopQuizResultScreen from '@/screens/PopQuiz/Result'
+import CombineGuestResultsScreen from '@/containers/GuestResults/views/CombineGuestResults'
+import LinkedAccountsScreen from '@/containers/AccountLinks/views/LinkedAccounts'
 
 const Tab = createBottomTabNavigator()
 
@@ -185,6 +187,8 @@ const Authorized = ({ route }: { route: any }) => {
           <Tab.Screen name={Routes.Auth.PopQuizIntro} component={PopQuizIntroScreen} />
           <Tab.Screen name={Routes.Auth.PopQuizTake} component={PopQuizTakeScreen} />
           <Tab.Screen name={Routes.Auth.PopQuizResult} component={PopQuizResultScreen} />
+          <Tab.Screen name={Routes.Auth.CombineGuestResults} component={CombineGuestResultsScreen} />
+          <Tab.Screen name={Routes.Auth.LinkedAccounts} component={LinkedAccountsScreen} />
         </Tab.Navigator>
       </LayoutApp>
       <ChangePasswordDialog

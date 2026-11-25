@@ -1,4 +1,4 @@
-import { ScaledSheet, scale, verticalScale} from 'react-native-size-matters'
+import { ScaledSheet } from 'react-native-size-matters'
 
 export const getStatusStyle = (status: string) => {
   switch (status) {
@@ -14,30 +14,30 @@ export const getStatusStyle = (status: string) => {
 
 export const styles = ScaledSheet.create({
   accordionContainer: {
-    marginVertical: verticalScale(4),
-    borderRadius: scale(12),
+    marginVertical: '4@ms',
+    borderRadius: '12@ms',
     overflow: 'hidden',
     backgroundColor: '#fff',
     elevation: '1@ms',
   },
   answerBox: {
-    marginVertical: verticalScale(8),
-    padding: scale(12),
-    borderRadius: scale(8),
+    marginVertical: '8@ms',
+    padding: '12@ms',
+    borderRadius: '8@ms',
     alignItems: 'center',
     justifyContent: 'center',
   },
   answerText: {
-    fontSize: scale(18),
+    fontSize: '18@ms',
     fontWeight: 'bold',
     color: '#fff',
   },
   flagBox: {
-    width: scale(32),
-    height: verticalScale(16),
-    borderRadius: scale(8),
+    width: '32@ms',
+    height: '16@ms',
+    borderRadius: '8@ms',
     backgroundColor: '#e0e0e0',
-    marginTop: verticalScale(4),
+    marginTop: '4@ms',
   },
   flagBoxMarked: {
     backgroundColor: '#FAD144',

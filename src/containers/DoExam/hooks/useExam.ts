@@ -37,12 +37,26 @@ import { useActivityTracking } from '@/hooks/useActivityTracking';
 import { useKeepAwake } from 'expo-keep-awake';
 import useAlarm from '@/layouts/hooks/useAlarm';
 import { triggerOfflineSync } from '@/services/offlineSync';
+import { getGuestSession, GuestSession } from '@/containers/GuestExam/utils/guestSession';
+import { readExtraDuration } from '../config/parsePusherPayload';
 
 type Props = {
   examCode: string;
   reqTime?: any;
   onExamEnded?: (examCode?: string) => void;
+  /** Runs the exam on a guest token: no signed-in user, no status/results/restart routes. */
+  guest?: GuestSession;
+  /** Guest: the attempt is over (submitted, timed out or ended by the teacher) → guest result. */
+  onGuestExamEnded?: () => void;
+  /** Guest: leaves the exam without ending it ("solve it later", exam cancelled). */
+  onGuestExit?: () => void;
 };
+
+/** Stands in for the user id/academy id of a guest in the exam hooks. */
+export const GUEST_EXAM_USER_ID = -1;
+
+/** `finish` on a guest attempt the server already closed (time ran out / exam ended). */
+const GUEST_ATTEMPT_CLOSED_STATUS = 420;
 
 export const hasQuestionAnswer = (q: Question): boolean => {
   if (!q) return false;
@@ -68,7 +82,8 @@ export const isQuestionAnswered = (q: Question): boolean => {
   return hasConfidence && hasQuestionAnswer(q);
 };
 
-const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
+const useExam = ({ examCode, reqTime, onExamEnded, guest, onGuestExamEnded, onGuestExit }: Props) => {
+  const isGuest = !!guest;
   const { t } = useTranslation();
   const navigation = useNavigation();
   const [questionList, setQuestionList] = useState<Question[]>([]);
@@ -90,8 +105,13 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
   const unsubscribeChannelSafe = useAuthStore(state => state.unsubscribeChannelSafe)
   const isLoading = useAuthStore(state => state.isLoading)
   const isLoadingWithoutOverlay = useAuthStore(state => state.isLoadingWithoutOverlay)
-  const academyDomain: string | undefined = user?.academyDomain;
-  const userId: number | undefined = user?.id;
+  // A guest has no signed-in user: its academy (empty for Study Space) comes from the guest session.
+  const academyDomain: string | undefined = guest ? guest.domain : user?.academyDomain;
+  const userId: number | undefined = guest ? GUEST_EXAM_USER_ID : user?.id;
+  // A guest whose session is gone (left, ended, expired) must not refetch: the request would go out anonymous.
+  const canLoadExam = !!examCode && (isGuest ? !!getGuestSession() : !!academyDomain && !!userId);
+  const allowLeaveRef = useRef<boolean>(false);
+  const guestEndedRef = useRef<boolean>(false);
   const [isOpenConfirmDialog, setOpenConfirmDialog] = useState(false);
   const scrollViewRef = useRef<FlatList>(null);
   const questionRefs = useRef<Array<View | null>>([]);
@@ -309,12 +329,22 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     setOpenConfirmDialog(true);
   }, []);
 
+  // Leaves the exam screen: a student goes home, a guest goes back to the code screen.
+  const exitExam = () => {
+    if (isGuest) {
+      allowLeaveRef.current = true;
+      onGuestExit?.();
+      return;
+    }
+    navigate(Routes.Auth.Home);
+  };
+
   const handleExamEnd = () => {
     setQuestionList([]);
     handleCloseLiveResultDialog();
     handleCloseResultDialog();
     handleCloseInfoExamDialog();
-    navigate(Routes.Auth.Home);
+    exitExam();
   };
 
   const handleDetailExamResult = () => {
@@ -349,7 +379,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
   }
 
   const getQuestionExams = async (showErrorMessage: boolean = false) => {
-    if (!examCode || !academyDomain || !userId) return;
+    if (!examCode || (isGuest ? !getGuestSession() : !academyDomain || !userId)) return;
 
     setEnding(false);
     setNotFoundExam(false);
@@ -446,8 +476,10 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
   }, []);
 
   const handleExamEnded = useCallback(() => {
+    // A guest never opens the student result dialogs (results/status routes are 403): see the effect below.
+    if (isGuest) return;
     currentScreen() === Routes.Auth.DoExam && isEnding && handleOpenLiveResultDialog()
-  }, [examCode, isEnding, onExamEnded]);
+  }, [examCode, isEnding, onExamEnded, isGuest]);
 
 
   const handleFinishExam = useCallback(async () => {
@@ -464,7 +496,10 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
       handleStopAlarm()
       toast.success(t("finish_exam_successful"));
       setEndExam(true);
-      exam && exam.isLate && getCheckStatus();
+      // A late attempt doesn't wait for the class. A guest in a live exam waits on the hang-on dialog like a
+      // signed-in student until the teacher ends it (TerminateExam) or time runs out; a guest with no live
+      // channel (Study Space) would never hear the teacher, so it goes to the guest result right away.
+      ((exam && exam.isLate) || (isGuest && !pusher)) && getCheckStatus();
       track({
         action: ActivityAction.Submit,
         resourceType: ActivityResource.Exam,
@@ -479,6 +514,16 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
         }
       })
     } catch (error: any) {
+      // Guest: 420 means the server already closed the attempt (time ran out / exam ended),
+      // so it is over and the guest goes to the guest result instead of staying on the exam.
+      if (isGuest && error?.response?.status === GUEST_ATTEMPT_CLOSED_STATUS) {
+        handleStopAlarm()
+        setEndExam(true);
+        getCheckStatus();
+        handleCloseFinishConfirmDialog()
+        setLoadingWithoutOverlay(false);
+        return;
+      }
       trackError(error, {
         resourceType: ActivityResource.Exam,
         triggeredAt: new Date(nowTime).toISOString(),
@@ -501,7 +546,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     }
     handleCloseFinishConfirmDialog()
     setLoadingWithoutOverlay(false);
-  }, [examCode, exam, getCheckStatus]);
+  }, [examCode, exam, getCheckStatus, isGuest, pusher]);
 
   const handlePauseAndResumeExam = async (status: ExamStatus) => {
     if (!exam) return;
@@ -644,7 +689,8 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
 
   const handleRestartExam = async () => {
     const codeToRestart = exam?.code || examCode || '';
-    if (!codeToRestart) return;
+    // Restart is student-only (the guest token gets 403).
+    if (!codeToRestart || isGuest) return;
 
     setLoading(true);
     const nowTime = getServerNow();
@@ -688,7 +734,8 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
   };
 
   const handleTeacherAddDurationExam = (data: any) => {
-    const duration = data.Duration;
+    const duration = readExtraDuration(data);
+    if (!duration) return;
     setExam((state?: ExamSessionResponse) =>
       state ? { ...state, duration } : undefined
     );
@@ -722,7 +769,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
       setEnding(true)
       toast.info(t("exam_has_been_cancelled"));
 
-      navigate(Routes.Auth.Home);
+      exitExam();
     } else {
       if (isEnding) return;
       handleStopAlarm()
@@ -795,8 +842,19 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     updateQuestionList: handleUpdateQuestionList,
     updateExamLastTimeAnswer: handleExamLastAnswerTime,
     handleExamEnded: handleExamEnded,
-    handleNextQuestion
+    handleNextQuestion,
+    isGuest
   });
+
+  // Guest: once the attempt is over, send what is pending and show the guest result (once).
+  useEffect(() => {
+    if (!isGuest || !isEnding || guestEndedRef.current) return;
+    guestEndedRef.current = true;
+    allowLeaveRef.current = true;
+    flushPendingAnswers()
+      .catch(() => { })
+      .finally(() => onGuestExamEnded?.());
+  }, [isGuest, isEnding]);
 
   const examHandlersRef = useRef<{ [event: string]: (data: any) => void }>({})
 
@@ -854,6 +912,10 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
 
   useEffect(() => {
     const unsubscribe = navigation?.addListener('beforeRemove', (e) => {
+      // A guest leaving on purpose (result, solve it later, cancelled exam) is not asked again.
+      // An ended guest session (token revoked/expired) is moved to the code screen without asking.
+      if (allowLeaveRef.current || (isGuest && !getGuestSession())) return;
+
       if (isLoadingQuestions) {
         e.preventDefault();
         return;
@@ -880,7 +942,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     });
 
     return unsubscribe;
-  }, [navigation, exam?.status, isLoadingQuestions, t, flushPendingAnswers]);
+  }, [navigation, exam?.status, isLoadingQuestions, t, isGuest, flushPendingAnswers]);
 
   useEffect(() => {
     if (!isLoadingQuestions) return;
@@ -922,7 +984,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
 
   useFocusEffect(
     useCallback(() => {
-      if (!examCode || !academyDomain || !userId) return;
+      if (!examCode || (isGuest ? !getGuestSession() : !academyDomain || !userId)) return;
       getQuestionExams();
       handleGetInfoExam();
       firstLoadRef.current = false;
@@ -935,7 +997,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
       return () => {
         handleClear()
       };
-    }, [examCode, academyDomain, userId, reqTime])
+    }, [examCode, academyDomain, userId, reqTime, canLoadExam])
   );
 
 
@@ -950,6 +1012,8 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
     startTime: exam?.isLate ? exam.startTimeSession : exam?.startTime,
     status: exam?.isLate ? exam.lateStatus : exam?.status,
     duration: convertHHMMSStoSeconds(exam?.duration),
+    // A guest can't call the status route (403): it ends on its own clock and the guest result waits for the result.
+    isCheckStatus: !isGuest,
     onFinish: getCheckStatus
   });
 
@@ -983,8 +1047,8 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
         // ignore
       }
     }
-    navigate(Routes.Auth.Home)
-  }, [exam, examCode, flushPendingAnswers])
+    exitExam()
+  }, [exam, examCode, flushPendingAnswers, isGuest, onGuestExit])
 
   const handleConfirmLeave = useCallback(async () => {
     setOpenLeaveDialog(false);
@@ -1013,6 +1077,7 @@ const useExam = ({ examCode, reqTime, onExamEnded }: Props) => {
   return {
     t,
     page,
+    isGuest,
     exam,
     isEnding,
     examCode,

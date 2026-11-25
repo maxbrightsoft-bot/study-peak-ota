@@ -32,5 +32,14 @@ export const TabList: NoticeTab[] = [
 
 export const isPersonalNoticeTab = (value: number): boolean => value === PERSONAL_NOTICE_TAB
 
-export const noticeTab = (value: number): NoticeTab =>
-    TabList.find(tab => tab.value === value) ?? (TabList.find(tab => tab.value === DEFAULT_NOTICE_TAB) as NoticeTab)
+/** The personal tab is hidden for now: students have no api/announcements notices yet (the API answers 403 for them). */
+export const SHOW_PERSONAL_NOTICE_TAB = false
+
+export const getVisibleNoticeTabs = (showPersonal: boolean = SHOW_PERSONAL_NOTICE_TAB): NoticeTab[] =>
+    TabList.filter(tab => showPersonal || !isPersonalNoticeTab(tab.value))
+
+/** A visible tab by value; a hidden or unknown value falls back to the default tab (so the header bell opens the institute notice). */
+export const noticeTab = (value: number, showPersonal: boolean = SHOW_PERSONAL_NOTICE_TAB): NoticeTab => {
+    const tabs = getVisibleNoticeTabs(showPersonal)
+    return tabs.find(tab => tab.value === value) ?? (tabs.find(tab => tab.value === DEFAULT_NOTICE_TAB) as NoticeTab)
+}

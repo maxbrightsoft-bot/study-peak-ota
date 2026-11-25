@@ -19,6 +19,7 @@ import { getDataStorage, removeDataStorage, setDataStorage } from "@/utils/stora
 import useServerTime from "@/hooks/useServerTime";
 import { logError } from "@/utils/helpers/crashlyticsLogger";
 import { useActivityTracking } from "@/hooks/useActivityTracking";
+import { GUEST_RECOVER_PREFIX, GUEST_ROLLBACK_PREFIX } from "@/containers/GuestExam/configs/constants";
 const DATE_TIME_FORMAT = "YYYY-MM-DDTHH:mm:ss.SSSZ"
 const rollBackQuestionList = "rb";
 const recoverQuestionList = "rc";
@@ -43,6 +44,8 @@ interface Props {
   handleExamEnded?: () => void;
   handleUpdateSlider?: (questionId: number) => void;
   handleNextQuestion: (isError?: boolean) => void
+  /** Guest exam: no signed-in user/academy; its recovery keys are scoped by the exam code only. */
+  isGuest?: boolean
 }
 const useExamSolving = (props: Props) => {
   const {
@@ -57,7 +60,8 @@ const useExamSolving = (props: Props) => {
     updateQuestionList,
     handleExamEnded,
     handleUpdateSlider,
-    handleNextQuestion
+    handleNextQuestion,
+    isGuest = false
   } = props;
   const isAutoNextQuestion = useAppStore(state => state.isAutoNextQuestion);
   const { getServerNow } = useServerTime();
@@ -91,15 +95,19 @@ const useExamSolving = (props: Props) => {
     examRef.current = exam;
   }, [exam]);
 
+  // Guest keys use their own prefixes: the offline sync replays `rc.` keys with whatever token is
+  // signed in later, and a guest's answers must never be sent on a student's token.
   const recoverKey = useMemo(() => {
+    if (isGuest) return examCode ? `${GUEST_RECOVER_PREFIX}.${examCode}` : undefined;
     if (!academyDomain || !userId || !examCode || !academyId) return undefined;
     return `${recoverQuestionList}.${academyId}.${examCode}.${userId}`;
-  }, [academyDomain, academyId, examCode, userId]);
+  }, [academyDomain, academyId, examCode, userId, isGuest]);
 
   const rollbackKey = useMemo(() => {
+    if (isGuest) return examCode ? `${GUEST_ROLLBACK_PREFIX}.${examCode}` : undefined;
     if (!academyDomain || !userId || !examCode || !academyId) return undefined;
     return `${rollBackQuestionList}.${academyId}.${examCode}.${userId}`;
-  }, [academyDomain, academyId, examCode, userId]);
+  }, [academyDomain, academyId, examCode, userId, isGuest]);
 
   const latestScheduledCall = useRef<ScheduledAnswerCall | null>(null);
 

@@ -4,6 +4,8 @@ import { AppState } from 'react-native';
 
 let globalOffset = 0;
 let globalSynced = false;
+// True once a sync finished (with or without success): timers then run on the device clock (offset 0) instead of waiting forever.
+let globalSyncAttempted = false;
 let syncInProgress = false;
 let pendingSync: Promise<void> | null = null;
 
@@ -18,6 +20,7 @@ export async function doSync(attempt = 0): Promise<void> {
       const latency = Math.floor((Date.now() - t1) / 2);
       globalOffset = Math.floor(serverTime - (Date.now() - latency));
       globalSynced = true;
+      globalSyncAttempted = true;
     } catch {
       if (attempt < 4) {
         const delay = [1000, 2000, 4000, 8000][attempt];
@@ -25,7 +28,8 @@ export async function doSync(attempt = 0): Promise<void> {
         pendingSync = null;
         return doSync(attempt + 1);
       }
-      globalSynced = false;
+      // Keep globalSynced as is: once a sync succeeded, the last offset stays valid after a failed re-sync.
+      globalSyncAttempted = true;
     } finally {
       pendingSync = null;
     }
@@ -36,6 +40,7 @@ export async function doSync(attempt = 0): Promise<void> {
 
 const useServerTime = () => {
   const [synced, setSynced] = useState(globalSynced);
+  const [syncAttempted, setSyncAttempted] = useState(globalSyncAttempted);
   const [offset, setOffset] = useState(globalOffset);
   const appStateRef = useRef(AppState.currentState);
   const periodicRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -43,6 +48,7 @@ const useServerTime = () => {
   const sync = async () => {
     await doSync();
     setSynced(globalSynced);
+    setSyncAttempted(globalSyncAttempted);
     setOffset(globalOffset);
   };
 
@@ -68,7 +74,7 @@ const useServerTime = () => {
     return Math.floor(Date.now() + globalOffset);
   }, []);
 
-  return { getServerNow, synced, offset };
+  return { getServerNow, synced, syncAttempted, offset };
 };
 
 export default useServerTime;
