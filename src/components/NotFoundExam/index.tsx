@@ -11,12 +11,15 @@ import { ScaledSheet } from 'react-native-size-matters'
 interface NotFoundProps {
   title: string
   pathRedirect?: string
+  /** Replaces the default `navigate(pathRedirect)` (a guest resets its stack instead of pushing). */
+  onGoBack?: () => void
 }
 
-const NotFoundExam: React.FC<NotFoundProps> = ({ title, pathRedirect = Routes.Auth.Home }) => {
+const NotFoundExam: React.FC<NotFoundProps> = ({ title, pathRedirect = Routes.Auth.Home, onGoBack }) => {
   const { t } = useTranslation()
 
   const handleGoBack = () => {
+    if (onGoBack) return onGoBack()
     navigate(pathRedirect)
   }
 

@@ -6,7 +6,7 @@ import { palette } from '@/theme'
 import { ScaledSheet } from 'react-native-size-matters'
 import moment from 'moment'
 import NoticeDetailDialog from '../components/NoticeDetailDialog'
-import { DEFAULT_NOTICE_TAB, noticeTab, PERSONAL_NOTICE_TAB, TabList } from '../configs/constants'
+import { DEFAULT_NOTICE_TAB, getVisibleNoticeTabs, noticeTab, PERSONAL_NOTICE_TAB } from '../configs/constants'
 import AnnouncementList from '@/containers/Announcements/views/AnnouncementList'
 import { useState } from 'react'
 import { stripHtml } from '@/utils/helpers'
@@ -87,7 +87,7 @@ const Notice = ({ open, onClose, initialTab = DEFAULT_NOTICE_TAB }: Props) => {
       <View style={styles.container}>
         <View style={styles.tabsWrapper}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsContainer}>
-            {TabList.map(({ label, value, type }, index) => {
+            {getVisibleNoticeTabs().map(({ label, value, type }, index) => {
               const active = selected === value
               return (
                 <TouchableOpacity

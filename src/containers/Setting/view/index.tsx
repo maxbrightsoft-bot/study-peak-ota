@@ -5,8 +5,8 @@ import { palette } from '@/theme'
 import { Ionicons } from '@expo/vector-icons'
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
-import { useNavigation } from '@react-navigation/native'
 import { Routes } from '@/navigators/RouteName'
+import { openSettingRoute } from '../configs/openSettingRoute'
 import Notice from '@/containers/Notice/view'
 import UpdateAccount from '../components/UpdateAccount'
 import useSetting from '../hooks/useSetting'
@@ -17,6 +17,7 @@ import PolicyViewer from '../components/PolicyViewer'
 import { PRIVACY_POLICY_CONTENT, TERMS_OF_SERVICE_CONTENT } from '../configs/policyContent'
 import useAppStore from '@/store/useAppStore'
 import DeviceInfo from 'react-native-device-info'
+import { Role } from '@/utils/enums'
 
 type Props = {
   open: boolean
@@ -67,12 +68,13 @@ const Setting = ({ open, onClose }: Props) => {
 
   const bundleVersion = useAppStore((state) => state.bundleVersion)
   const appVersion = DeviceInfo.getVersion();
-  const navigation = useNavigation<any>()
+  const canCombineGuestResults = !!user?.roles?.includes(Role.Student)
 
-  const handleOpenTutorial = () => {
-    onClose()
-    navigation.navigate(Routes.Auth.Tutorial)
-  }
+  const handleOpenCombineGuestResults = () => openSettingRoute(Routes.Auth.CombineGuestResults, onClose)
+
+  const handleOpenLinkedAccounts = () => openSettingRoute(Routes.Auth.LinkedAccounts, onClose)
+
+  const handleOpenTutorial = () => openSettingRoute(Routes.Auth.Tutorial, onClose)
 
   return (
     <SlideDrawerRoot visible={open} onClose={onClose}>
@@ -129,6 +131,26 @@ const Setting = ({ open, onClose }: Props) => {
               title={t('terms_of_service')}
             />
           </View>
+
+          {canCombineGuestResults && !isDemoActive && (
+            <View style={styles.card}>
+              <SettingItem
+                onPress={handleOpenCombineGuestResults}
+                icon={<Ionicons name="git-merge-outline" size={22} color={'#222222'} />}
+                title={t('combine_guest_results')}
+              />
+            </View>
+          )}
+
+          {canCombineGuestResults && !isDemoActive && (
+            <View style={styles.card}>
+              <SettingItem
+                onPress={handleOpenLinkedAccounts}
+                icon={<Ionicons name="link-outline" size={22} color={'#222222'} />}
+                title={t('linked_accounts')}
+              />
+            </View>
+          )}
 
           <View style={styles.card}>
             <SettingItem

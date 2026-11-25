@@ -2,7 +2,7 @@ import React, { useMemo, useCallback } from 'react'
 import { View, Text, Platform, KeyboardAvoidingView, TouchableOpacity, FlatList, ActivityIndicator, Pressable } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { palette } from '@/theme'
-import { ScaledSheet } from 'react-native-size-matters'
+import { ScaledSheet, ms } from 'react-native-size-matters'
 import useExam from './hooks/useExam'
 import NotFoundExam from '@/components/NotFoundExam'
 import Loading from '@/components/Loading'
@@ -23,15 +23,24 @@ import ArrowRight from '@/assets/iconJSX/arrowRight'
 import SelectAnswerSheet from './components/SelectAnswerSheet'
 import InfoExamCode from './components/InfoExamCode'
 import TextTooltip from '@/components/Tooltip/TextTooltip'
+import { shouldShowAttemptNumber } from './config/attempt'
+import { GuestSession } from '@/containers/GuestExam/utils/guestSession'
+import useResponsive from '@/hooks/useResponsive'
 
 type Props = {
   examCode: string
   reqTime?: any
+  /** Runs the exam on a guest token (see useExam). */
+  guest?: GuestSession
+  onGuestExamEnded?: () => void
+  onGuestExit?: () => void
 }
 
-const DoExam = ({ examCode, reqTime }: Props) => {
+const DoExam = ({ examCode, reqTime, guest, onGuestExamEnded, onGuestExit }: Props) => {
+  const { contentMaxWidth } = useResponsive()
   const {
     t,
+    isGuest,
     exam,
     isEnding,
     endExam,
@@ -87,7 +96,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
     handleInteractionWhilePaused,
     handleConfirmResume,
     handleCancelResume
-  } = useExam({ examCode, reqTime })
+  } = useExam({ examCode, reqTime, guest, onGuestExamEnded, onGuestExit })
 
   const currentQuestion = useMemo(
     () => questionList.find((q) => q.id === currentQuestionId),
@@ -130,7 +139,18 @@ const DoExam = ({ examCode, reqTime }: Props) => {
 
   const insets = useSafeAreaInsets()
 
-  if (isNotFoundExam) return <NotFoundExam title={t('the_exam_code_you_are_looking_for_was_not_found')} />
+  if (isNotFoundExam)
+    return (
+      <NotFoundExam
+        title={t('the_exam_code_you_are_looking_for_was_not_found')}
+        onGoBack={isGuest ? onGuestExit : undefined}
+      />
+    )
+
+  // Guests keep pause/resume and "solve it later" on their own late attempt; restart is student-only.
+  const showFloatingActions = isGuest
+    ? !!exam?.isLate
+    : !!(exam?.isLate || (!exam?.isLate && exam?.lateStatus === ExamStatus.Completed))
 
   return (
     <View style={styles.container}>
@@ -174,22 +194,24 @@ const DoExam = ({ examCode, reqTime }: Props) => {
             )}
           </View>
           <View style={styles.headerSideRight}>
-            <FloatingActionButton
-              t={t}
-              status={exam?.isLate ? exam?.lateStatus : exam?.status}
-              onTogglePauseResume={exam?.isLate ? handlePauseAndResumeExam : undefined}
-              onOpenConfirmDialog={exam?.isLate ? handleOpenConfirmDialog : undefined}
-              onSolveItLater={exam?.isLate && !isLoadingQuestions && !isAllQuestionsAnswered(questionList) ? handleOpenUnsolvedLeaveDialog : undefined}
-              onEndExam={!isLoadingQuestions && isAllQuestionsAnswered(questionList) ? handleOpenFinishConfirmDialog : undefined}
-              keys={{
-                pause: 'pause_exam',
-                resume: 'resume_exam',
-                restart: 'restart_exam',
-                solveItLater: 'solve_it_later',
-                endExam: 'exam_end'
-              }}
-              ariaLabel="exam-actions"
-            />
+            {showFloatingActions && (
+              <FloatingActionButton
+                t={t}
+                status={exam?.isLate ? exam?.lateStatus : exam?.status}
+                onTogglePauseResume={exam?.isLate ? handlePauseAndResumeExam : undefined}
+                onOpenConfirmDialog={(!isGuest && exam?.isLate) ? handleOpenConfirmDialog : undefined}
+                onSolveItLater={exam?.isLate && !isLoadingQuestions && !isAllQuestionsAnswered(questionList) ? handleOpenUnsolvedLeaveDialog : undefined}
+                onEndExam={!isLoadingQuestions && isAllQuestionsAnswered(questionList) ? handleOpenFinishConfirmDialog : undefined}
+                keys={{
+                  pause: 'pause_exam',
+                  resume: 'resume_exam',
+                  restart: 'restart_exam',
+                  solveItLater: 'solve_it_later',
+                  endExam: 'exam_end'
+                }}
+                ariaLabel="exam-actions"
+              />
+            )}
           </View>
         </View>
         {questionStarList.length > 0 && (
@@ -264,7 +286,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
                     containerStyle={{ flexShrink: 1 }}
                   />
                 </View>
-                {(exam?.totalStudentAttemptNumber || 0) > 1 && (
+{shouldShowAttemptNumber(exam?.totalStudentAttemptNumber) && (
                   <View
                     style={[
                       styles.attemptBadge,
@@ -293,6 +315,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
           }
           contentContainerStyle={[
             styles.scrollContainer,
+            contentMaxWidth ? { maxWidth: contentMaxWidth, width: '100%', alignSelf: 'center' } : undefined,
             { paddingBottom: exam?.isLate === false ? Math.max(insets.bottom + 250, 300) : Math.max(insets.bottom + 180, 220) }
           ]}
           renderItem={renderQuestionGroup}
@@ -353,7 +376,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
                 opacity: isLoadingQuestions ? 0.3 : 1
               }}
             >
-              <Text style={{ color: isLoadingQuestions ? palette.grey[400] : 'red', fontWeight: '500', fontSize: 14 }}>{t('end_exam')}</Text>
+              <Text style={{ color: isLoadingQuestions ? palette.grey[400] : 'red', fontWeight: '500', fontSize: ms(14) }}>{t('end_exam')}</Text>
             </TouchableOpacity>
           </View>
           {exam?.isLate === false && (
@@ -544,7 +567,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
             disabled={disabled}
           />
         )}
-        {liveResultDialog && (
+        {!isGuest && liveResultDialog && (
           <LiveResultDialog
             open={liveResultDialog}
             examCode={examCode}
@@ -557,7 +580,7 @@ const DoExam = ({ examCode, reqTime }: Props) => {
             handleDetailExamResult={handleDetailExamResult}
           />
         )}
-        {openResultDialog && (
+        {!isGuest && openResultDialog && (
           <ExamResult
             onClose={handleExamEnd}
             examCode={examCode}

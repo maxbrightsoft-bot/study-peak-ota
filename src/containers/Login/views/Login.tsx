@@ -1,10 +1,16 @@
-import React from 'react'
-import { View, Text, Platform } from 'react-native'
+import React, { useCallback } from 'react'
+import { View, Text, Platform, TouchableOpacity } from 'react-native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Ionicons } from '@expo/vector-icons'
+import { Routes } from '@/navigators/RouteName'
+import { dropGuestState } from '@/containers/GuestExam/utils/guestNavigation'
 import { palette, TYPO } from '@/theme'
 import GoogleLoginButton from '../components/GoogleLoginButton'
 import LogoEN from '@/assets/icons/with-slogan_full-logo_eng.svg'
 import LogoKO from '@/assets/icons/with-slogan_full-logo_kor.svg'
 import useAuthStore from '@/store/useAuthStore'
+import useResponsive from '@/hooks/useResponsive'
 import { Language } from '@/utils/enums'
 import { AppleButton } from '@invertase/react-native-apple-authentication';
 import useLogin from '../hooks/useLogin'
@@ -17,12 +23,31 @@ import { ScaledSheet } from 'react-native-size-matters'
 const Login = () => {
   const { t } = useTranslation()
   const { language } = useAuthStore()
+  const { isTablet, formMaxWidth } = useResponsive()
   const { loginWithGoogle, onAppleButtonPress, openLoginAccountDialog, handleOpenLoginAccountDialog, handleCloseLoginAccountDialog } = useLogin()
+
+  const navigation = useNavigation<any>()
+  const insets = useSafeAreaInsets()
+
+  // Back on the login screen: no guest token, answer backup or guest Pusher connection may survive.
+  useFocusEffect(
+    useCallback(() => {
+      dropGuestState()
+    }, [])
+  )
 
   const isEnglish = language?.code === Language.en;
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
+      <TouchableOpacity
+        style={[styles.takeExam, { top: insets.top + 12 }]}
+        onPress={() => navigation.navigate(Routes.UnAuth.GuestCode)}
+        accessibilityRole="button"
+      >
+        <Ionicons name="create-outline" size={18} color={palette.main[600]} />
+        <Text style={styles.takeExamText}>{t('take_exam')}</Text>
+      </TouchableOpacity>
+      <View style={[styles.content, formMaxWidth ? { maxWidth: formMaxWidth, width: '100%', alignSelf: 'center' } : undefined]}>
         {isEnglish ? <LogoEN style={styles.logo} /> : <LogoKO style={styles.logo} />}
         <View style={styles.text1}>
           <Text style={[TYPO.body3, styles.title ]}>
@@ -32,7 +57,7 @@ const Login = () => {
           </Text>
         </View>
 
-        <Text style={styles.description}>{t('study_face_maker')}</Text>
+        <Text style={[styles.description, isTablet && { marginBottom: 48 }]}>{t('study_face_maker')}</Text>
         <View style={{ gap: 8, width: '100%' }}>
           {Platform.OS === 'ios' && <AppleButton
             buttonStyle={AppleButton.Style.BLACK}
@@ -89,6 +114,25 @@ const styles = ScaledSheet.create({
     lineHeight: '23@ms',
     marginBottom: '100@ms',
     paddingHorizontal: '45@ms'
+  },
+  takeExam: {
+    position: 'absolute',
+    left: '16@ms',
+    zIndex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: '6@ms',
+    paddingHorizontal: '14@ms',
+    paddingVertical: '8@ms',
+    borderRadius: '20@ms',
+    borderWidth: 1,
+    borderColor: palette.main[300],
+    backgroundColor: palette.main[50]
+  },
+  takeExamText: {
+    fontSize: '14@ms',
+    fontWeight: '600',
+    color: palette.main[600]
   },
   highlight: {
     color: palette.main[500],

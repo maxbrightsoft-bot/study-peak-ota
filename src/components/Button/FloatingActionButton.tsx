@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react'
-import { View, StyleSheet, Animated, TouchableOpacity, Text, Dimensions, Pressable } from 'react-native'
+import { View, Animated, TouchableOpacity, Text, Pressable, useWindowDimensions } from 'react-native'
 import { ExamStatus } from '@/utils/enums'
 import { Ionicons } from '@expo/vector-icons'
 import { useFocusEffect } from '@react-navigation/native'
@@ -12,7 +12,8 @@ type Props = {
   status?: ExamStatus | null
   isOnlyRestart?: boolean
   onTogglePauseResume: (status: ExamStatus) => void
-  onOpenConfirmDialog: () => void
+  /** Restart; the restart item is hidden when it is not given (guests). */
+  onOpenConfirmDialog?: () => void
   onSolveItLater?: () => void
   onEndExam?: () => void
   keys?: {
@@ -24,7 +25,6 @@ type Props = {
   }
   ariaLabel?: string
 }
-const screenWidth = Dimensions.get('window').width
 
 const FloatingActionButton: React.FC<Props> = ({
   t,
@@ -37,6 +37,7 @@ const FloatingActionButton: React.FC<Props> = ({
   keys,
   ariaLabel = 'more-actions'
 }) => {
+  const { width: screenWidth } = useWindowDimensions()
   const [menuOpen, setMenuOpen] = useState(false)
   const scaleAnim = React.useRef(new Animated.Value(0.9)).current
   const opacityAnim = React.useRef(new Animated.Value(0)).current
@@ -93,7 +94,7 @@ const FloatingActionButton: React.FC<Props> = ({
   }
 
   const handleRestart = () => {
-    onOpenConfirmDialog()
+    onOpenConfirmDialog?.()
     toggleMenu()
   }
 
@@ -137,6 +138,7 @@ const FloatingActionButton: React.FC<Props> = ({
           style={[
             styles.menuContainer,
             {
+              minWidth: screenWidth,
               opacity: opacityAnim,
               transform: [{ scale: scaleAnim }]
             }
@@ -195,6 +197,7 @@ const FloatingActionButton: React.FC<Props> = ({
             </View>
           )}
 
+
           <View style={styles.buttonWrapper}>
             <TouchableOpacity
               onPress={handleToggleAutoNext}
@@ -215,6 +218,7 @@ const FloatingActionButton: React.FC<Props> = ({
               </View>
             </TouchableOpacity>
           </View>
+
 
           {!!onOpenConfirmDialog && (
             <View style={styles.buttonWrapper}>
@@ -258,7 +262,6 @@ const styles = ScaledSheet.create({
     right: 0,
     alignItems: 'flex-end',
     gap: '12@ms',
-    minWidth: screenWidth,
     zIndex: 9999
   },
   buttonWrapper: {

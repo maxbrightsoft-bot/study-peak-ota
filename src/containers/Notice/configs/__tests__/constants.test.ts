@@ -1,5 +1,13 @@
 import { TypeNotificationEnum } from '@/containers/Home/configs/constants'
-import { DEFAULT_NOTICE_TAB, isPersonalNoticeTab, noticeTab, PERSONAL_NOTICE_TAB, TabList } from '../constants'
+import {
+  DEFAULT_NOTICE_TAB,
+  getVisibleNoticeTabs,
+  isPersonalNoticeTab,
+  noticeTab,
+  PERSONAL_NOTICE_TAB,
+  SHOW_PERSONAL_NOTICE_TAB,
+  TabList
+} from '../constants'
 
 jest.mock('@/containers/Home/configs/constants', () => ({
   TypeNotificationEnum: { Academy: 1, Class: 2, Student: 3 }
@@ -14,8 +22,15 @@ describe('Notice tabs (I1)', () => {
   })
 
   test('noticeTab finds a tab by value and falls back to the default for an unknown value', () => {
-    expect(noticeTab(PERSONAL_NOTICE_TAB).label).toBe('wrong_note_bell_tab_notifications')
+    expect(noticeTab(PERSONAL_NOTICE_TAB, true).label).toBe('wrong_note_bell_tab_notifications')
     expect(noticeTab(99).value).toBe(DEFAULT_NOTICE_TAB)
+  })
+
+  test('the personal tab is hidden for now: not listed, and asking for it opens the default tab', () => {
+    expect(SHOW_PERSONAL_NOTICE_TAB).toBe(false)
+    expect(getVisibleNoticeTabs().map((tab) => tab.value)).toEqual([0, 1, 2])
+    expect(noticeTab(PERSONAL_NOTICE_TAB).value).toBe(DEFAULT_NOTICE_TAB)
+    expect(getVisibleNoticeTabs(true)[0].value).toBe(PERSONAL_NOTICE_TAB)
   })
 
   test('only the personal tab is personal (it must not mark academy notices read)', () => {
