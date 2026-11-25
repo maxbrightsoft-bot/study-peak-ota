@@ -15,6 +15,9 @@ import useAuthStore from '@/store/useAuthStore'
 import CustomSelect from '@/components/Select/CustomSelect'
 import SchoolSearchSelect from '@/components/Select/SchoolSearchSelect'
 import ChangePasswordDialog from './ChangePasswordDialog'
+import { setUsernameApi } from '@/containers/Login/apiClients/authService'
+import { getErrorMessage, toast } from '@/utils/helpers'
+import { isValidUsername, normalizeUsername } from '@/utils/helpers/usernameRules'
 
 type Props = {
   open: boolean
@@ -126,6 +129,30 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
   const hasPassword = user?.hasPassword !== false
   const [editingField, setEditingField] = useState<string | null>(null)
   const [openChangePassword, setOpenChangePassword] = useState(false)
+  const setUser = useAuthStore(state => state.setUser)
+  const [userNameInput, setUserNameInput] = useState('')
+  const [userNameError, setUserNameError] = useState('')
+  const [savingUserName, setSavingUserName] = useState(false)
+  const canSetUserName = user?.canSetUserName === true
+
+  const handleSaveUserName = async () => {
+    if (!isValidUsername(userNameInput)) {
+      setUserNameError(t('username_invalid'))
+      return
+    }
+    setUserNameError('')
+    setSavingUserName(true)
+    try {
+      const userName = normalizeUsername(userNameInput)
+      await setUsernameApi(userName)
+      if (user) setUser({ ...user, userName, canSetUserName: false })
+      toast.success(t('set_username_success'))
+    } catch (error) {
+      toast.error(getErrorMessage(t, error))
+    } finally {
+      setSavingUserName(false)
+    }
+  }
 
   const initialValues = {
     fullName: user?.fullName || '',
@@ -254,6 +281,31 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
                     />
                   </View>
 
+                  {(canSetUserName || (user?.userName && user.userName !== user.email)) && (
+                    <View style={styles.card}>
+                      <View style={styles.item}>
+                        <Text style={styles.label}>{t('username')}</Text>
+                        {canSetUserName ? (
+                          <View style={styles.right}>
+                            <TextField
+                              value={userNameInput}
+                              onChangeText={setUserNameInput}
+                              error={userNameError}
+                              autoCapitalize="none"
+                              style={styles.input}
+                            />
+                            <TouchableOpacity disabled={savingUserName} onPress={handleSaveUserName}>
+                              <Ionicons name="checkmark" size={22} color={palette.main[600]} />
+                            </TouchableOpacity>
+                          </View>
+                        ) : (
+                          <Text style={styles.valueText}>{user?.userName}</Text>
+                        )}
+                      </View>
+                      {canSetUserName && <Text style={styles.usernameHint}>{t('username_hint')}</Text>}
+                    </View>
+                  )}
+
                   <View style={styles.card}>
                     <TouchableOpacity
                       style={styles.changePasswordItem}
@@ -295,6 +347,12 @@ const UpdateAccount = ({ open, onClose, handleUpdateInfo, gradeOptions, subjectO
 export default UpdateAccount
 
 const styles = ScaledSheet.create({
+  usernameHint: {
+    fontSize: '11@ms',
+    color: palette.grey[500],
+    paddingBottom: '12@ms',
+  },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',

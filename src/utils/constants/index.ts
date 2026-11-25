@@ -31,7 +31,7 @@ export const STORE_UPDATE_REQUIRED = "STORE_UPDATE_REQUIRED"
 export const OTA_UPDATE_REQUIRED = "OTA_UPDATE_REQUIRED"
 export const UPDATE_REQUIRED = "UPDATE_REQUIRED"
 
-export const PASSWORD_POLICY = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
+export const PASSWORD_POLICY = /^[\s\S]{8,}$/
 
 
 export const PUSHER_CONFIG = {

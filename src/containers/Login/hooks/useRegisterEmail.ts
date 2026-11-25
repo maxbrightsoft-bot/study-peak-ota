@@ -7,11 +7,13 @@ import { registerAccountApi } from '@/services/api/authService'
 import useAuthStore from '@/store/useAuthStore'
 import { getErrorMessage, toast } from '@/utils/helpers'
 import { LoginAccountMode } from '../configs/types'
+import { isValidUsername, normalizeUsername } from '@/utils/helpers/usernameRules'
 
 type RegisterValues = {
   email: string
   password: string
   confirmPassword: string
+  userName: string
   fullName: string
   phoneNumber: string
   parentName: string
@@ -29,6 +31,7 @@ export const formatRegisterPayload = (values: any) => {
   return {
     ...data,
     email: data.email?.trim(),
+    userName: normalizeUsername(data.userName),
     fullName: data.fullName?.trim(),
     phoneNumber: data.phoneNumber?.trim()?.replace(/\D/g, ''),
     parentName: data.parentName?.trim() || null,
@@ -107,11 +110,7 @@ const useRegisterEmail = ({
       .required(t('email_required')),
 
     password: Yup.string()
-      .min(6, t('password_min_length'))
-      .matches(/[a-z]/, t('password_rule_lowercase'))
-      .matches(/[A-Z]/, t('password_rule_uppercase'))
-      .matches(/[0-9]/, t('password_must_contain_number'))
-      .matches(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, t('password_must_contain_special_char'))
+      .min(8, t('password_min_length'))
       .required(t('new_password_required')),
 
     confirmPassword: Yup.string()
@@ -123,6 +122,12 @@ const useRegisterEmail = ({
     phoneNumber: Yup.string()
       .matches(/^[0-9]{9,11}$/, t('phone_number_is_not_valid'))
       .required(t('phone_number_is_required')),
+
+    userName: Yup.string()
+      .trim()
+      .required(t('username_required'))
+      .test('username-format', t('username_invalid'), (value) => !!value && isValidUsername(value)),
+
   })
 
   const formik = useFormik<RegisterValues>({
@@ -130,6 +135,7 @@ const useRegisterEmail = ({
       email: '',
       password: '',
       confirmPassword: '',
+      userName: '',
       fullName: '',
       phoneNumber: '',
       parentName: '',
@@ -197,7 +203,7 @@ const useRegisterEmail = ({
   }
 
   const stepFields: Record<number, (keyof RegisterValues)[]> = {
-    1: ['email', 'password', 'confirmPassword'],
+    1: ['email', 'userName', 'password', 'confirmPassword'],
     2: ['fullName', 'phoneNumber', 'schoolName'],
     3: ['parentName', 'parentPhoneNumber'],
     4: ['grade', 'major'],

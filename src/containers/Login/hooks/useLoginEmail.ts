@@ -21,8 +21,13 @@ const useLoginEmail = () => {
 
   const validationSchema = Yup.object().shape({
     email: Yup.string()
-      .email(t('invalid_email_address'))
-      .required(t('email_required')),
+      .trim()
+      .required(t('email_required'))
+      .test(
+        'email-or-username',
+        t('invalid_email_address'),
+        (value) => !value || !value.includes('@') || Yup.string().email().isValidSync(value.trim())
+      ),
     password: Yup.string()
       .required(t('password_required')),
   });
@@ -36,7 +41,7 @@ const useLoginEmail = () => {
     onSubmit: async (values) => {
       const isKeepMeLoggedIn = true;
       const loginData: LoginEmailRequest = {
-        email: values.email,
+        email: values.email.trim(),
         password: values.password,
         role: Role.Student,
         isKeepMeLoggedIn,

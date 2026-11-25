@@ -18,6 +18,8 @@ export type UserResponse = {
   superId: number
   loginMethod: string
   hasPassword?: boolean,
+  userName?: string | null,
+  canSetUserName?: boolean,
   mustChangePassword?: boolean,
 }
 

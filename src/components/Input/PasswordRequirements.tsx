@@ -17,21 +17,6 @@ const PasswordRequirements: React.FC<PasswordRequirementsProps> = ({
 
   const rules = [
     {
-      key: 'uppercase',
-      label: t('password_rule_uppercase'),
-      valid: /[A-Z]/.test(password)
-    },
-    {
-      key: 'lowercase',
-      label: t('password_rule_lowercase'),
-      valid: /[a-z]/.test(password)
-    },
-    {
-      key: 'number',
-      label: t('password_rule_number'),
-      valid: /\d/.test(password)
-    },
-    {
       key: 'length',
       label: t('password_rule_length'),
       valid: password.length >= 8
