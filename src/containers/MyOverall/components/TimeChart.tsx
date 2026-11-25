@@ -1,9 +1,10 @@
 import { palette } from '@/theme'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { Dimensions, Text, View } from 'react-native'
+import { Text, View } from 'react-native'
 import { LineChart } from 'react-native-gifted-charts'
 import { ScaledSheet } from 'react-native-size-matters'
+import useResponsive from '@/hooks/useResponsive'
 
 interface Props {
   myTimes: number[]
@@ -15,7 +16,8 @@ interface Props {
 }
 
 const TimeChartGifted: React.FC<Props> = ({ myTimes, avgTimes, categories }) => {
-  const screenWidth = Dimensions.get('window').width
+  const { width: screenWidth, contentMaxWidth } = useResponsive()
+  const chartWidth = Math.max((contentMaxWidth ? Math.min(screenWidth, contentMaxWidth) : screenWidth) - 80, 200)
   const maxTime = Math.max(...myTimes, ...avgTimes, 300)
   const { t } = useTranslation()
 
@@ -46,7 +48,7 @@ const TimeChartGifted: React.FC<Props> = ({ myTimes, avgTimes, categories }) => 
         stepValue={50}
         thickness={1}
         textShiftY={-5}
-        width={screenWidth - 80}
+        width={chartWidth}
         dataPointsHeight={10}
         dataPointsWidth={10}
         endFillColor2={palette.grey[300]}

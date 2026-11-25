@@ -28,5 +28,7 @@ export default TabPanel;
 
 const styles = ScaledSheet.create({
   container: {
+    flexShrink: 1,
+    width: '100%'
   },
 });

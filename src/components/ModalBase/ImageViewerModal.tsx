@@ -1,10 +1,8 @@
 import React from 'react';
-import { Modal, View, Image, TouchableOpacity, Dimensions, Platform, StatusBar, StyleSheet } from 'react-native';
+import { Modal, View, Image, TouchableOpacity, Platform, StatusBar, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ScaledSheet } from 'react-native-size-matters';
 import { getSafeUrl } from '@/utils/helpers';
-
-const { width, height } = Dimensions.get('window');
 
 interface Props {
   visible: boolean;
@@ -13,6 +11,7 @@ interface Props {
 }
 
 const ImageViewerModal: React.FC<Props> = ({ visible, imageUrl, onClose }) => {
+  const { width, height } = useWindowDimensions();
   if (!imageUrl) return null;
 
   return (
@@ -32,7 +31,7 @@ const ImageViewerModal: React.FC<Props> = ({ visible, imageUrl, onClose }) => {
         >
           <Image
             source={{ uri: getSafeUrl(imageUrl) }}
-            style={styles.image}
+            style={{ width, height }}
             resizeMode="contain"
           />
         </TouchableOpacity>
@@ -63,10 +62,6 @@ const styles = ScaledSheet.create({
     padding: '8@ms',
     backgroundColor: 'rgba(0,0,0,0.5)',
     borderRadius: '25@ms',
-  },
-  image: {
-    width: width,
-    height: height,
   },
 });
 

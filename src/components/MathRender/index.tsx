@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, ViewStyle, Dimensions } from 'react-native'
+import { View, Text, ViewStyle, useWindowDimensions } from 'react-native'
 import { WebView } from 'react-native-webview'
 import { ScaledSheet } from 'react-native-size-matters'
 
@@ -12,8 +12,6 @@ interface Props {
   maxLines?: number
   onClamp?: (v: boolean) => void
 }
-
-const { width: SCREEN_W } = Dimensions.get('window')
 
 const containsMathOrHtml = (str?: string): boolean => {
   if (!str) return false;
@@ -31,6 +29,7 @@ const buildHTML = (
   content: string,
   fontSize: number,
   textColor: string,
+  screenWidth: number,
   isChat?: boolean,
   maxLines?: number
 ) => `
@@ -68,12 +67,12 @@ ${isChat ? `
 #content {
   display: inline-block;
   width: auto;
-  max-width: ${Math.floor(SCREEN_W * 0.65)}px;
+  max-width: ${Math.floor(screenWidth * 0.65)}px;
   white-space: pre;
 }
 #content.wrap {
   display: block;
-  width: ${Math.floor(SCREEN_W * 0.65)}px;
+  width: ${Math.floor(screenWidth * 0.65)}px;
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -99,7 +98,7 @@ ${isChat ? `
 <script>
 const IS_CHAT = ${isChat ? 'true' : 'false'};
 const MAX_LINES = ${maxLines ?? 'null'};
-const CHAT_MAX_W = ${isChat ? Math.floor(SCREEN_W * 0.65) : 0};
+const CHAT_MAX_W = ${isChat ? Math.floor(screenWidth * 0.65) : 0};
 
 function renderMath() {
   try {
@@ -186,6 +185,7 @@ const MathRender = ({
   maxLines,
   onClamp,
 }: Props) => {
+  const { width: screenWidth } = useWindowDimensions()
   const [size, setSize] = useState({ width: 40, height: 20 })
 
   if (!containsMathOrHtml(content)) {
@@ -234,7 +234,7 @@ const MathRender = ({
       <WebView
         originWhitelist={['*']}
         source={{
-          html: buildHTML(content, fontSize, textColor, isChat, maxLines)
+          html: buildHTML(content, fontSize, textColor, screenWidth, isChat, maxLines)
         }}
         onMessage={handleMessage}
         scrollEnabled={false}

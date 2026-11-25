@@ -1,11 +1,12 @@
 import React, { FC, useEffect, useState } from 'react'
-import { Text, View, TouchableOpacity } from 'react-native'
+import { Text, View, TouchableOpacity, ScrollView } from 'react-native'
 import ModalBase from './ModalBase'
 import { Ionicons } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { ScaledSheet } from 'react-native-size-matters'
 import { palette, TYPO } from '@/theme'
 import TextField from '../Input/TextField'
+import useResponsive from '@/hooks/useResponsive'
 
 export interface ConfirmDialogProps {
   text: string
@@ -37,6 +38,7 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
 }) => {
   const [confirmTextValue, setConfirmTextValue] = useState('')
   const { t } = useTranslation()
+  const { isLandscape } = useResponsive()
 
   const isValid = !!confirmText && confirmTextValue.trim() === confirmText.trim()
   const isDisableDelete = !!confirmText && confirmTextValue.trim() !== confirmText.trim()
@@ -55,7 +57,13 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
         </TouchableOpacity>
       </View>
 
-      <View style={styles.content}>
+      <ScrollView
+        style={styles.scrollContent}
+        contentContainerStyle={[styles.content, isLandscape && styles.contentLandscape]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={true}
+        bounces={false}
+      >
         <Text style={[styles.text, { textAlign: confirmText ? 'left' : 'center' }]}>{text}</Text>
         {!!confirmText && (
           <>
@@ -68,7 +76,7 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
             />
           </>
         )}
-      </View>
+      </ScrollView>
       <View style={[styles.footer]}>
         {!hideCancelButton && (
           <TouchableOpacity
@@ -117,15 +125,23 @@ const styles = ScaledSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: '24@ms',
-    paddingVertical: '14@ms'
+    paddingVertical: '14@ms',
+    flexShrink: 0
   },
   title: {
     fontSize: '16@ms',
     fontWeight: 600,
     color: '#222222'
   },
+  scrollContent: {
+    flexShrink: 1
+  },
   content: {
     padding: '24@ms'
+  },
+  contentLandscape: {
+    paddingVertical: '16@ms',
+    paddingHorizontal: '24@ms'
   },
   closeButton: {
     padding: '4@ms'
@@ -162,7 +178,8 @@ const styles = ScaledSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
     padding: '16@ms',
-    gap: '8@ms'
+    gap: '8@ms',
+    flexShrink: 0
   },
   button: {
     paddingVertical: '12@ms',

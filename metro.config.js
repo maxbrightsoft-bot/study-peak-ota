@@ -2,6 +2,7 @@ const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
 
 const config = getDefaultConfig(__dirname);
+const sizeMattersPath = path.resolve(__dirname, 'src/utils/sizeMatters.ts');
 
 config.transformer = {
   ...config.transformer,
@@ -19,6 +20,15 @@ config.resolver = {
   ...config.resolver,
   extraNodeModules: {
     '@': path.resolve(__dirname, 'src'),
+  },
+  resolveRequest: (context, moduleName, platform) => {
+    if (moduleName === 'react-native-size-matters') {
+      return {
+        filePath: sizeMattersPath,
+        type: 'sourceFile',
+      };
+    }
+    return context.resolveRequest(context, moduleName, platform);
   },
   assetExts: config.resolver.assetExts.filter((ext) => ext !== 'svg'),
   sourceExts: [...config.resolver.sourceExts, 'svg', 'd.ts'],

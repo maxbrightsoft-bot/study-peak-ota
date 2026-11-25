@@ -7,6 +7,7 @@ import { Calendar } from 'react-native-calendars'
 import ArrowRightIcon from '@/assets/iconJSX/arrowRight'
 import { ScaledSheet } from 'react-native-size-matters'
 import BottomSheet from '@/components/ModalBase/BottomSheet'
+import useResponsive from '@/hooks/useResponsive'
 
 interface FilterBottomSheetProps {
   isVisible: boolean
@@ -35,6 +36,7 @@ const PERIOD_KEYS = [
 
 export default function FilterBottomSheet({ isVisible, onClose, onApply, initialFilter, subjectOptions, categoryOptions }: FilterBottomSheetProps) {
   const { t } = useTranslation()
+  const { height, isLandscape } = useResponsive()
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedExamTypes, setSelectedExamTypes] = useState<number[]>([])
@@ -184,7 +186,11 @@ export default function FilterBottomSheet({ isVisible, onClose, onApply, initial
       closeChildren={closeChildren}
     >
       {/* Body */}
-      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        style={[styles.scroll, { maxHeight: isLandscape ? height * 0.45 : height * 0.55 }]}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* 1. Subject */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>

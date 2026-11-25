@@ -11,6 +11,7 @@ import StudyTimerSheetSummary from '@/containers/StudyTimer/components/StudyTime
 import useStudyTimerStore from '@/store/useStudyTimerStore'
 import { navigate } from '@/navigators/NavigationHelpers'
 import { Routes } from '@/navigators/RouteName'
+import useResponsive from '@/hooks/useResponsive'
 
 interface Props {
   studyTimerProps: StudyTimerTabProps
@@ -29,6 +30,7 @@ const TimerDialog: FC<Props> = ({
   alarmClockProps,
 }) => {
   const { t } = useTranslation()
+  const { height, isLandscape } = useResponsive()
   const [value, setValue] = useState(0)
 
   useEffect(() => {
@@ -42,12 +44,12 @@ const TimerDialog: FC<Props> = ({
 
   return (
     <BottomSheet isVisible={open} onClose={onToggle} titleChildren={<TimerTabs value={value} onChange={setValue} />}>
-      <View style={styles.container}>
-        <TabPanel value={value} index={0}>
+      <View style={[styles.container, { maxHeight: isLandscape ? height * 0.82 : height * 0.85 }]}>
+        <TabPanel value={value} index={0} style={{ flexShrink: 1 }}>
           <StudyTimerSheetSummary onOpenMy={handleOpenMyStudyTimer} />
           <StudyTimerTab {...studyTimerProps} />
         </TabPanel>
-        <TabPanel value={value} index={1}>
+        <TabPanel value={value} index={1} style={{ flexShrink: 1 }}>
           <AlarmClockTab {...alarmClockProps} />
         </TabPanel>
       </View>

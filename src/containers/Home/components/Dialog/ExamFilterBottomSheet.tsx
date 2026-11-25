@@ -14,6 +14,7 @@ import { Calendar } from 'react-native-calendars'
 import moment from 'moment'
 import { utcToLocalTime } from '@/utils/helpers'
 import useExamFilterBottomSheet from '../../hooks/useExamFilterBottomSheet'
+import useResponsive from '@/hooks/useResponsive'
 
 export interface ExamFilterCriteria {
   courseId: number | string
@@ -122,6 +123,7 @@ const ExamFilterBottomSheet = ({
     onClose,
     t
   })
+  const { height, isLandscape } = useResponsive()
 
   const titleChildren = (
     <View style={styles.titleRow}>
@@ -157,7 +159,7 @@ const ExamFilterBottomSheet = ({
         closeChildren={closeChildren}
       >
         <ScrollView
-          style={styles.scroll}
+          style={[styles.scroll, { maxHeight: isLandscape ? height * 0.45 : height * 0.55 }]}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { ReactNode } from 'react'
 import { ScaledSheet } from 'react-native-size-matters'
 import { Ionicons } from '@expo/vector-icons'
@@ -13,10 +13,11 @@ interface PropsBottomSheet {
   children: ReactNode
   titleChildren?: ReactNode
   closeChildren?: ReactNode
+  scrollable?: boolean
 }
 
 function BottomSheet(props: PropsBottomSheet) {
-  const { isVisible, onClose, children, title, titleChildren, closeChildren } = props
+  const { isVisible, onClose, children, title, titleChildren, closeChildren, scrollable = false } = props
   const { isLoading } = useAuthStore()
 
   return (
@@ -35,7 +36,18 @@ function BottomSheet(props: PropsBottomSheet) {
         )}
       </View>
 
-      {children}
+      {scrollable ? (
+        <ScrollView
+          style={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={true}
+          bounces={false}
+        >
+          {children}
+        </ScrollView>
+      ) : (
+        children
+      )}
 
       <View pointerEvents="none" style={StyleSheet.absoluteFillObject}>
         {isLoading ? <Loading fullScreen={false} /> : null}
@@ -56,7 +68,11 @@ const styles = ScaledSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: '20@ms',
-    paddingVertical: '14@ms'
+    paddingVertical: '14@ms',
+    flexShrink: 0
+  },
+  scrollContent: {
+    flexShrink: 1
   },
   title: {
     fontSize: '16@ms',

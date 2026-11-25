@@ -1,7 +1,7 @@
 import { palette } from '@/theme/colors'
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Animated, Dimensions, Modal, Text, TouchableOpacity, View } from 'react-native'
+import { Animated, Modal, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native'
 import { ScaledSheet } from 'react-native-size-matters'
 
 type Props = {
@@ -10,18 +10,17 @@ type Props = {
   onClose?: () => void
 }
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window')
-
 const WaitingExamStart = ({ visible, position = 'right', onClose }: Props) => {
   const { t } = useTranslation()
-  const slideAnim = useRef(new Animated.Value(position === 'right' ? SCREEN_WIDTH : -SCREEN_WIDTH)).current
+  const { width: screenWidth } = useWindowDimensions()
+  const slideAnim = useRef(new Animated.Value(position === 'right' ? screenWidth : -screenWidth)).current
 
   const backdropOpacity = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
     Animated.parallel([
       Animated.timing(slideAnim, {
-        toValue: visible ? 0 : position === 'right' ? SCREEN_WIDTH : -SCREEN_WIDTH,
+        toValue: visible ? 0 : position === 'right' ? screenWidth : -screenWidth,
         duration: 300,
         useNativeDriver: true
       }),
@@ -31,7 +30,7 @@ const WaitingExamStart = ({ visible, position = 'right', onClose }: Props) => {
         useNativeDriver: true
       })
     ]).start()
-  }, [visible, position])
+  }, [visible, position, screenWidth, slideAnim, backdropOpacity])
 
   return (
     <Modal visible={visible} transparent animationType="none">

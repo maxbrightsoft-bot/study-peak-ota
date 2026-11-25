@@ -1,10 +1,11 @@
 import React, { FC, useEffect } from 'react'
-import { View, StyleSheet, ScrollView } from 'react-native'
+import { View, ScrollView } from 'react-native'
 
 import AlarmClockPanel, { AlarmClockPanelProps } from './AlarmClockPanel'
 import AlarmClock, { AlarmClockProps } from './AlarmClock'
 import Loading from '@/components/Loading'
 import { ScaledSheet } from 'react-native-size-matters'
+import useResponsive from '@/hooks/useResponsive'
 
 export interface AlarmClockTabProps {
   isLoading: boolean
@@ -19,9 +20,17 @@ const AlarmClockTab: FC<AlarmClockTabProps> = ({ isLoading, isPlaying, panelProp
     getAlarm()
   }, [])
 
+  const { height, isLandscape } = useResponsive()
+
   return (
     <View style={styles.container}>
-      <ScrollView>
+      <ScrollView
+        style={[styles.scroll, { maxHeight: isLandscape ? height * 0.7 : height * 0.78 }]}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={true}
+        keyboardShouldPersistTaps="handled"
+        bounces={false}
+      >
         {isLoading && (
           <Loading isOverlay={false} fullScreen={false} />
         )}
@@ -38,7 +47,15 @@ export default AlarmClockTab
 
 const styles = ScaledSheet.create({
   container: {
-    gap: '16@ms',
+    flexShrink: 1,
+    width: '100%'
+  },
+  scroll: {
+    flexShrink: 1,
+    width: '100%'
+  },
+  scrollContent: {
+    paddingBottom: '40@ms'
   },
   loading: {
     width: '100%',

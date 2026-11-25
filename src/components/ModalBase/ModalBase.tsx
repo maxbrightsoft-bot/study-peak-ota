@@ -6,7 +6,6 @@ import {
   StatusBar,
   StyleProp,
   TouchableWithoutFeedback,
-  useWindowDimensions,
   View,
   ViewStyle
 } from 'react-native'
@@ -15,6 +14,7 @@ import { NavigationContext } from '@react-navigation/native'
 import { ScaledSheet } from 'react-native-size-matters'
 import { Portal } from 'react-native-paper'
 import useAuthStore from '@/store/useAuthStore'
+import useResponsive from '@/hooks/useResponsive'
 import Loading from '../Loading'
 
 interface PropsModalClose {
@@ -30,7 +30,7 @@ interface PropsModalClose {
 
 function ModalBase(props: PropsModalClose) {
   const { isVisible, onClose, children, styleContainer, disableInnerTouchable, disableBackdropPress, position = 'center' } = props
-  const { height } = useWindowDimensions()
+  const { height, isTablet, isLandscape, modalMaxWidth, sheetMaxWidth } = useResponsive()
   const { isLoading, isLoadingWithoutOverlay } = useAuthStore()
   const navigation = useContext(NavigationContext)
 
@@ -56,15 +56,17 @@ function ModalBase(props: PropsModalClose) {
 
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? (position === 'bottom' ? 'padding' : 'padding') : undefined}
-          style={position === 'bottom' ? styles.bottomView : styles.centeredView}
+          style={position === 'bottom' ? [styles.bottomView, isTablet && { alignItems: 'center' }] : styles.centeredView}
           pointerEvents="box-none"
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         >
           <View
             style={[
-              position === 'bottom' ? styles.bottomContainer : styles.viewContainer,
-              { maxHeight: height * 0.9 },
-              styleContainer
+              position === 'bottom'
+                ? [styles.bottomContainer, sheetMaxWidth ? { maxWidth: sheetMaxWidth } : undefined]
+                : [styles.viewContainer, modalMaxWidth ? { maxWidth: modalMaxWidth } : undefined],
+              styleContainer,
+              { maxHeight: isLandscape ? height * 0.94 : height * 0.9 }
             ]}
           >
             {navigation ? (
@@ -107,7 +109,8 @@ const styles = ScaledSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: '15@ms'
+    paddingHorizontal: '15@ms',
+    paddingVertical: '10@ms'
   },
   bottomView: {
     flex: 1,

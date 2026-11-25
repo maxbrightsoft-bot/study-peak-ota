@@ -35,6 +35,7 @@ const LanguageDialog = ({ open, onClose, onSelect }: Props) => {
       isVisible={open}
       onClose={onClose}
       title={t('language')}
+      scrollable
     >
       <View style={styles.list}>
         {LANGUAGES.map((lang) => {

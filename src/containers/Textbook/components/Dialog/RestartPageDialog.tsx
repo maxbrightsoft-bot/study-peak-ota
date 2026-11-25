@@ -39,7 +39,7 @@ const RestartPageDialog = ({ t, loading, onClose, title, open, options, onSubmit
   }
 
   return (
-    <CommonDialog isVisible={open} onClose={onClose} title={title}>
+    <CommonDialog isVisible={open} onClose={onClose} title={title} scrollable={false}>
       {loading && <Loading isOverlay={false}/>}
       <Formik initialValues={initialValues} onSubmit={handleSubmit}>
         {({ handleSubmit, values, setFieldValue, isSubmitting }) => (

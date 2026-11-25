@@ -11,6 +11,7 @@ import { TimerStatus } from '@/utils/enums/subject'
 import TimerClock from './TimerClock'
 import CustomSelect from '@/components/Select/CustomSelect'
 import { getSubjectListApi } from '@/services/api/subjectService'
+import useResponsive from '@/hooks/useResponsive'
 
 export interface StudyTimerTabProps {
   getTimers: () => Promise<void>
@@ -40,6 +41,7 @@ const StudyTimerTab: FC<StudyTimerTabProps> = ({
   loadMoreTimers
 }) => {
   const { t } = useTranslation()
+  const { height, isLandscape } = useResponsive()
 
   const [isAdding, setIsAdding] = useState(false)
   const [addingOptions, setAddingOptions] = useState<{label: string, value: number}[]>([])
@@ -133,7 +135,7 @@ const StudyTimerTab: FC<StudyTimerTabProps> = ({
           <FlatList
             data={subjects}
             keyExtractor={(item) => `${item.id}_${item.timerId}`}
-            style={{ maxHeight: Dimensions.get('window').height * 0.7, width: '100%' }}
+            style={{ maxHeight: isLandscape ? height * 0.65 : height * 0.7, width: '100%' }}
             renderItem={({ item }) => (
               <TimerItem
                 data={item}

@@ -18,6 +18,7 @@ import CupIcon from '@/assets/iconJSX/cup'
 import ChatIcon from '@/assets/iconJSX/chat'
 import BookIcon from '@/assets/iconJSX/book'
 import useAuthStore from '@/store/useAuthStore'
+import useResponsive from '@/hooks/useResponsive'
 import { useTranslation } from 'react-i18next'
 import { ScaledSheet, ms } from 'react-native-size-matters'
 import { Language } from '@/utils/enums'
@@ -261,10 +262,11 @@ const Footer = ({ state, navigation }: BottomTabBarProps) => {
   }, [navigation])
 
   const bottomPadding = Platform.OS === 'ios' ? Math.max(insets.bottom, ms(8)) : ms(8)
+  const { tabBarMaxWidth } = useResponsive()
 
   return (
-    <View style={[styles.tabBar, { paddingBottom: bottomPadding }]}>
-      <View style={styles.tabBarInner}>
+    <View style={[styles.tabBar, { paddingBottom: bottomPadding, alignItems: 'center' }]}>
+      <View style={[styles.tabBarInner, tabBarMaxWidth ? { maxWidth: tabBarMaxWidth } : undefined]}>
         {displayItems.map((item) => {
           const isFocused = currentTabName === item.name
 

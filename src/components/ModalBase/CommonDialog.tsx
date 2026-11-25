@@ -1,11 +1,12 @@
 import React, { ReactNode } from 'react'
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, ScrollView, StyleProp, ViewStyle } from 'react-native'
 import { palette, TYPO } from '@/theme'
 import ModalBase from './ModalBase'
 import { Ionicons } from '@expo/vector-icons'
 import { ScaledSheet } from 'react-native-size-matters'
 import { PositionFlex } from '@/utils/enums'
 import { useTranslation } from 'react-i18next'
+import useResponsive from '@/hooks/useResponsive'
 
 interface CommonDialogProps {
   isVisible: boolean
@@ -19,6 +20,8 @@ interface CommonDialogProps {
   isVisibleHeader?: boolean
   disableInnerTouchable?: boolean
   disableBackdropPress?: boolean
+  scrollable?: boolean
+  contentContainerStyle?: StyleProp<ViewStyle>
 }
 
 const CommonDialog: React.FC<CommonDialogProps> = ({
@@ -32,9 +35,12 @@ const CommonDialog: React.FC<CommonDialogProps> = ({
   positionTitle = PositionFlex.Center,
   isVisibleHeader = true,
   disableInnerTouchable,
-  disableBackdropPress
+  disableBackdropPress,
+  scrollable = true,
+  contentContainerStyle
 }) => {
   const { t } = useTranslation()
+  const { isLandscape } = useResponsive()
   return (
     <ModalBase
       isVisible={isVisible}
@@ -53,7 +59,19 @@ const CommonDialog: React.FC<CommonDialogProps> = ({
         </View>
       )}
 
-      <View style={styles.content}>{children}</View>
+      {scrollable ? (
+        <ScrollView
+          style={styles.scrollContent}
+          contentContainerStyle={[styles.content, isLandscape && styles.contentLandscape, contentContainerStyle]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={true}
+          bounces={false}
+        >
+          {children}
+        </ScrollView>
+      ) : (
+        <View style={[styles.content, isLandscape && styles.contentLandscape, contentContainerStyle]}>{children}</View>
+      )}
       {onSubmit && <View style={[styles.footer]}>
         <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>
           <Text style={styles.cancelButtonText}>{cancelText || t('cancel')}</Text>
@@ -76,7 +94,8 @@ const styles = ScaledSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: '24@ms',
-    paddingVertical: '14@ms'
+    paddingVertical: '14@ms',
+    flexShrink: 0
   },
   title: {
     fontSize: '16@ms',
@@ -86,9 +105,15 @@ const styles = ScaledSheet.create({
   closeButton: {
     padding: '4@ms'
   },
-  content: {
-    padding: '24@ms',
+  scrollContent: {
     flexShrink: 1
+  },
+  content: {
+    padding: '24@ms'
+  },
+  contentLandscape: {
+    paddingVertical: '16@ms',
+    paddingHorizontal: '24@ms'
   },
   input: {
     borderWidth: '1@ms',
@@ -102,7 +127,8 @@ const styles = ScaledSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: '16@ms',
-    gap: '8@ms'
+    gap: '8@ms',
+    flexShrink: 0
   },
   centerFooter: {
     justifyContent: 'center'

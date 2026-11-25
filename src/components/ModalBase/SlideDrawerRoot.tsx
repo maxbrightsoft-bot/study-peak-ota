@@ -7,17 +7,15 @@ import {
   Animated,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
   BackHandler,
   StatusBar,
-  Platform
+  Platform,
+  useWindowDimensions
 } from 'react-native'
 import { Portal } from 'react-native-paper'
 import Loading from '../Loading'
 import { ScaledSheet } from 'react-native-size-matters'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
 interface SlideDrawerProps {
   visible: boolean
@@ -36,6 +34,7 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
   zIndex,
   backgroundColor
 }) => {
+  const { width: screenWidth } = useWindowDimensions()
   const insets = useSafeAreaInsets()
   const statusBarHeight = Platform.OS === 'android' ? (StatusBar.currentHeight || 0) : 0
   const topInset = Math.max(insets?.top || 0, statusBarHeight)
@@ -44,13 +43,23 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
   const isLoadingWithoutOverlay = useAuthStore(state => state.isLoadingWithoutOverlay)
   const navigation = useContext(NavigationContext)
 
+  const offscreenX = position === 'right' ? screenWidth : -screenWidth
+  const offscreenXRef = useRef(offscreenX)
+  offscreenXRef.current = offscreenX
+
   const slideAnim = useRef(
-    new Animated.Value(position === 'right' ? SCREEN_WIDTH : -SCREEN_WIDTH)
+    new Animated.Value(visible ? 0 : offscreenX)
   ).current
 
   const backdropOpacity = useRef(new Animated.Value(0)).current
 
   const [mounted, setMounted] = useState(visible)
+
+  useEffect(() => {
+    if (!visible && !mounted) {
+      slideAnim.setValue(offscreenX)
+    }
+  }, [offscreenX, visible, mounted, slideAnim])
 
   useEffect(() => {
     if (!visible) return
@@ -70,8 +79,7 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
 
     Animated.parallel([
       Animated.timing(slideAnim, {
-        toValue:
-          visible ? 0 : position === 'right' ? SCREEN_WIDTH : -SCREEN_WIDTH,
+        toValue: visible ? 0 : offscreenXRef.current,
         duration: 300,
         useNativeDriver: true
       }),
@@ -122,7 +130,7 @@ const SlideDrawerRoot: React.FC<SlideDrawerProps> = ({
             styles.drawer,
             zIndex !== undefined && { zIndex: zIndex + 1, elevation: zIndex + 1 },
             {
-              width: SCREEN_WIDTH,
+              width: screenWidth,
               transform: [{ translateX: slideAnim }],
               top: 0,
               bottom: 0,

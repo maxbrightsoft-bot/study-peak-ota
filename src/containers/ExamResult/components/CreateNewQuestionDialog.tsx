@@ -41,7 +41,7 @@ const CreateNewQuestionDialog: React.FC<Props> = ({
   }
 
   return (
-    <CommonDialog isVisible={openCreateQuestionDialog} onClose={onCloseCreateQuestion} title={t('ask_a_question')}>
+    <CommonDialog isVisible={openCreateQuestionDialog} onClose={onCloseCreateQuestion} title={t('ask_a_question')} scrollable={false}>
       <Formik
         initialValues={initialValues}
         enableReinitialize

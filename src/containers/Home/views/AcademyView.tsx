@@ -24,9 +24,11 @@ import { Routes } from '@/navigators/RouteName'
 import { useTranslation } from 'react-i18next'
 import { TEXTBOOK_TABS } from '@/containers/Textbook/configs/constants'
 import { FEATURE_MYWRONGNOTE } from '@/utils/constants'
+import useResponsive from '@/hooks/useResponsive'
 
 const AcademyView = () => {
   const { t } = useTranslation()
+  const { contentMaxWidth } = useResponsive()
   const selectedAcademy = useAuthStore(state => state.selectedAcademy)
   const isStudent = useAuthStore(state => state.user)?.roles?.includes('Student')
   const {
@@ -95,6 +97,7 @@ const AcademyView = () => {
       >
         <View style={{ position: 'absolute', top: -1000, left: 0, right: 0, height: 1200, backgroundColor: palette.main[600] }} />
         <View style={styles.container}>
+          <View style={contentMaxWidth ? { maxWidth: contentMaxWidth, width: '100%', alignSelf: 'center' } : undefined}>
           <View style={{ marginBottom: 20 }}>
             <StudyTimerCard />
           </View>
@@ -323,6 +326,7 @@ const AcademyView = () => {
 
           <View style={{ marginBottom: 28 }}>
             <RecentTextbook />
+          </View>
           </View>
         </View>
         {openSchedule && <CalendarSchedule isVisible={openSchedule} onClose={handleToggleSchedule} />}

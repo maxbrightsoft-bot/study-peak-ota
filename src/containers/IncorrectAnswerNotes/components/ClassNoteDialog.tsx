@@ -49,6 +49,7 @@ const ClassNoteDialog: FC<ClassNoteDialogProps> = ({
       isVisible={visible}
       onClose={onClose}
       title={`${t(selectedNote ? 'edit_student_note' : 'student_note_taking')} ${tip}`}
+      scrollable={false}
     >
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={{ paddingHorizontal: 24 }}>

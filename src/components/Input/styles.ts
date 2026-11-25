@@ -13,7 +13,7 @@ const styles = ScaledSheet.create({
     ...TYPO.caption
   },
   requiredText: {
-    fontSize: '14@ms',
+    fontSize: '12@ms',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -21,6 +21,7 @@ const styles = ScaledSheet.create({
     overflow: 'hidden',
   },
   textInput: {
+    fontSize: '14@ms',
     borderColor: palette.grey[300],
     color: palette.grey[900]
   },

@@ -1,9 +1,10 @@
 import useAuthStore from '@/store/useAuthStore'
 import { palette, TYPO } from '@/theme'
 import { useTranslation } from 'react-i18next'
-import { View, Text, TouchableOpacity, Platform, useWindowDimensions, ActivityIndicator } from 'react-native'
+import { View, Text, TouchableOpacity, Platform, ActivityIndicator } from 'react-native'
+import useResponsive from '@/hooks/useResponsive'
 import { Menu, Avatar, TouchableRipple } from 'react-native-paper'
-import { ScaledSheet } from 'react-native-size-matters'
+import { ScaledSheet, ms } from 'react-native-size-matters'
 import ArrowDown from '@/assets/iconJSX/arrowDown'
 import Alarm from '@/assets/iconJSX/alarm'
 import Notice from '@/containers/Notice/view'
@@ -23,7 +24,7 @@ type Props = {
 
 const Header = ({ headerProps }: Props) => {
   const { t } = useTranslation()
-  const { width } = useWindowDimensions()
+  const { width, isTablet } = useResponsive()
   const [loading, setLoading] = useState(false)
   const user = useAuthStore(state => state.user)
   const academies = useAuthStore(state => state.academies)
@@ -69,17 +70,20 @@ const Header = ({ headerProps }: Props) => {
             onDismiss={closeAcademyMenu}
             anchorPosition="bottom"
             anchor={
-              <TouchableOpacity onPress={openAcademyMenu} style={{ padding: 0, margin: 0, width: width * 0.5 }}>
+              <TouchableOpacity
+                onPress={openAcademyMenu}
+                style={{ padding: 0, margin: 0, width: isTablet ? Math.min(width * 0.45, 360) : width * 0.5 }}
+              >
                 <View style={{ alignItems: 'center', flexDirection: 'row', gap: 6, width: '100%' }}>
                   <View style={{ flex: 1 }}>
-                    <Text numberOfLines={1} style={{ fontSize: 20, fontWeight: 700, color: '#FFF' }}>
+                    <Text numberOfLines={1} style={{ fontSize: ms(18), fontWeight: '700', color: '#FFF' }}>
                       {selectedAcademy ? selectedAcademy?.name || t('my_study_space') : t('my_study_space')}
                     </Text>
                     <View style={{ flexDirection: 'row', gap: 3, flexWrap: 'wrap' }}>
-                      <Text style={{ fontSize: 12, fontWeight: 500, color: '#FFFFFFCC' }}>
+                      <Text style={{ fontSize: ms(12), fontWeight: '500', color: '#FFFFFFCC' }}>
                         {t('number_grade', { number: user?.grade })}
                       </Text>
-                      <Text numberOfLines={1} style={{ fontSize: 12, fontWeight: 500, color: '#FFF', flexShrink: 1 }}>{user?.classes?.join(',')}</Text>
+                      <Text numberOfLines={1} style={{ fontSize: ms(12), fontWeight: '500', color: '#FFF', flexShrink: 1 }}>{user?.classes?.join(',')}</Text>
                     </View>
                   </View>
                   <View style={{ alignItems: 'center', justifyContent: 'center' }}>

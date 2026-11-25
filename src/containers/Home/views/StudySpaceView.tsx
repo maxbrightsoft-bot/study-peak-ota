@@ -17,8 +17,10 @@ import { Ionicons } from '@expo/vector-icons'
 import { navigate } from '@/navigators/NavigationHelpers'
 import { Routes } from '@/navigators/RouteName'
 import { TEXTBOOK_TABS } from '@/containers/Textbook/configs/constants'
+import useResponsive from '@/hooks/useResponsive'
 
 const StudySpaceView = () => {
+  const { contentMaxWidth } = useResponsive()
   const {
     t,
     user,
@@ -64,6 +66,7 @@ const StudySpaceView = () => {
       >
         <View style={{ position: 'absolute', top: -1000, left: 0, right: 0, height: 1200, backgroundColor: palette.main[600] }} />
         <View style={styles.container}>
+          <View style={contentMaxWidth ? { maxWidth: contentMaxWidth, width: '100%', alignSelf: 'center' } : undefined}>
             <View style={{ marginBottom: 28 }}>
               <StudyTimerCard />
             </View>
@@ -219,6 +222,7 @@ const StudySpaceView = () => {
 
           <View style={{ marginBottom: 28 }}>
             <RecentTextbook />
+          </View>
           </View>
         </View>
       </ScrollView>

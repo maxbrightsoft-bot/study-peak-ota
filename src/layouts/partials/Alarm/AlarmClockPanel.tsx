@@ -11,6 +11,7 @@ import { AlarmType } from '@/utils/enums'
 import PlusIcon from '@/assets/iconJSX/plus'
 import ReduceIcon from '@/assets/iconJSX/reduce'
 import { ScaledSheet } from 'react-native-size-matters'
+import useResponsive from '@/hooks/useResponsive'
 
 export interface AlarmClockPanelProps {
   subjects: SubjectTimerResponse[]
@@ -33,6 +34,7 @@ const AlarmClockPanel: FC<AlarmClockPanelProps> = ({
   onStart
 }) => {
   const { t } = useTranslation()
+  const { isLandscape } = useResponsive()
 
   const handleIncrease = () => onIncrease(1)
   const handleDecrease = () => onIncrease(-1)
@@ -55,7 +57,7 @@ const AlarmClockPanel: FC<AlarmClockPanelProps> = ({
   return (
     <View>
       <View style={styles.container}>
-        <View style={styles.topRow}>
+        <View style={[styles.topRow, isLandscape && styles.topRowLandscape]}>
           <Text style={styles.setTimeLabel}>{t('set_time')}</Text>
 
           <View style={styles.counterRow}>
@@ -82,6 +84,7 @@ const AlarmClockPanel: FC<AlarmClockPanelProps> = ({
           columnWrapperStyle={{ gap: 8, rowGap: 8 }}
           keyExtractor={(item, i) => `${item.value.id}_${i}`}
           contentContainerStyle={styles.subjectList}
+          scrollEnabled={false}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.subjectRow}
@@ -102,6 +105,7 @@ const AlarmClockPanel: FC<AlarmClockPanelProps> = ({
           columnWrapperStyle={{ gap: 8, rowGap: 8 }}
           data={QUICK_START_OPTIONS}
           contentContainerStyle={styles.subjectList}
+          scrollEnabled={false}
           keyExtractor={(item, i) => `${item}_${i}`}
           renderItem={({ item }) => (
             <TouchableOpacity
@@ -139,7 +143,10 @@ const styles = ScaledSheet.create({
 
   topRow: {
     gap: '12@ms',
-    marginBottom: '40@ms'
+    marginBottom: '28@ms'
+  },
+  topRowLandscape: {
+    marginBottom: '14@ms'
   },
 
   setTime: {
@@ -191,7 +198,8 @@ const styles = ScaledSheet.create({
   },
 
   startBtn: {
-    marginTop: '20@ms',
+    marginTop: '16@ms',
+    marginBottom: '20@ms',
     paddingVertical: '14@ms',
     paddingHorizontal: '16@ms',
     justifyContent: 'center',
