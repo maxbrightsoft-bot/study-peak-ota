@@ -1114,7 +1114,6 @@
   "today_schedule": "Today's schedule",
   "schedule_achieved": "Schedule achieved",
   "i_dont_have_my_phone_number_yet": "I don't have my phone number yet",
-  "duplicate_passcode_for_siblings_please_contact_admin_for_assistance": "Duplicate passcode for siblings. Please contact admin for assistance",
   "textual_answer": "Textual answer",
   "question_answer_type": "Question Answer Type",
   "choiceoption": "Choice Option",
@@ -1882,7 +1881,6 @@
   "study_face_maker_description_2": "It helps you study more efficiently by visualizing your study patterns.",
   "login_with_google": "Continue with Google",
   "login_with_apple": "Continue with Apple",
-  "login_with_email": "Continue with Email",
   "forgot_password": "Forgot Password?",
   "forgot_password_description": "Enter your email address and we'll send you a verification code to reset your password.",
   "send_verification_code": "Send Verification Code",
@@ -3007,5 +3005,8 @@
   "link_conflict_expired": "This request has expired or was already used. Link your {{provider}} account again to start over.",
   "start_again": "Start again",
   "cannot_unlink_last_method": "This is your only way to sign in, so it cannot be unlinked.",
-  "apple_sign_in_failed": "Could not sign in with Apple. Please try again."
+  "apple_sign_in_failed": "Could not sign in with Apple. Please try again.",
+  "no_account_yet": "Don't have an account?",
+  "sign_up_now": "Sign up now",
+  "sign_in_with_password": "Sign in with password"
 }

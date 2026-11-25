@@ -35,13 +35,6 @@ export type UserAgentInfo = {
     scannedAt: string
 }
 
-export type PhoneLoginRequest = {
-    phoneNumber: string;
-    password: string;
-    role?: string;
-    isMobile: boolean
-}
-
 export interface QRCodeConfirmationProps {
     deviceId: string
     domain?: string,

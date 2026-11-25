@@ -16,15 +16,16 @@ import { AppleButton } from '@invertase/react-native-apple-authentication';
 import useLogin from '../hooks/useLogin'
 import LoginAccountButton from '../components/LoginAccountButton'
 import LoginAccountDialog from '../components/LoginAccountDialog'
+import LoginTextButton from '../components/LoginTextButton'
+import { LoginAccountMode } from '../configs/types'
 import { useTranslation } from 'react-i18next'
 import { ScaledSheet } from 'react-native-size-matters'
-// import PhoneNumberLoginButton from '../components/PhoneNumberLoginButton'
 
 const Login = () => {
   const { t } = useTranslation()
   const { language } = useAuthStore()
   const { isTablet, formMaxWidth } = useResponsive()
-  const { loginWithGoogle, onAppleButtonPress, openLoginAccountDialog, handleOpenLoginAccountDialog, handleCloseLoginAccountDialog } = useLogin()
+  const { loginWithGoogle, onAppleButtonPress, openLoginAccountDialog, loginAccountMode, handleOpenLoginAccountDialog, handleCloseLoginAccountDialog } = useLogin()
 
   const navigation = useNavigation<any>()
   const insets = useSafeAreaInsets()
@@ -66,11 +67,22 @@ const Login = () => {
             onPress={onAppleButtonPress}
           />}
           <GoogleLoginButton loginWithGoogle={loginWithGoogle} />
-          <LoginAccountButton title={t('login_with_email')} onPress={handleOpenLoginAccountDialog} />
-          {/* <PhoneNumberLoginButton /> */}
+          <LoginAccountButton
+            title={t('sign_in_with_password')}
+            onPress={() => handleOpenLoginAccountDialog(LoginAccountMode.Login)}
+          />
         </View>
+        <LoginTextButton
+          prefix={t('no_account_yet')}
+          title={t('sign_up_now')}
+          onPress={() => handleOpenLoginAccountDialog(LoginAccountMode.Register)}
+        />
       </View>
-      <LoginAccountDialog visible={openLoginAccountDialog} onOpen={handleOpenLoginAccountDialog} onClose={handleCloseLoginAccountDialog} />
+      <LoginAccountDialog
+        visible={openLoginAccountDialog}
+        mode={loginAccountMode}
+        onOpen={() => handleOpenLoginAccountDialog(LoginAccountMode.Login)}
+        onClose={handleCloseLoginAccountDialog} />
     </View>
   )
 }

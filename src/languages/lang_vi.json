@@ -1128,7 +1128,6 @@
   "today_schedule": "Lịch hôm nay",
   "schedule_achieved": "Lịch đã đạt",
   "i_dont_have_my_phone_number_yet": "Tôi chưa có số điện thoại",
-  "duplicate_passcode_for_siblings_please_contact_admin_for_assistance": "Mã trùng lặp cho anh chị em. Vui lòng liên hệ quản trị viên để được hỗ trợ",
   "textual_answer": "Câu trả lời văn bản",
   "question_answer_type": "Loại câu trả lời câu hỏi",
   "choiceoption": "Tùy chọn lựa chọn",
@@ -1898,7 +1897,6 @@
   "study_face_maker_description_2": "Nó giúp bạn học tập hiệu quả hơn bằng cách trực quan hóa các mẫu học tập của bạn.",
   "login_with_google": "Tiếp tục với Google",
   "login_with_apple": "Tiếp tục với Apple",
-  "login_with_email": "Đăng nhập với Email",
   "forgot_password": "Quên mật khẩu?",
   "forgot_password_description": "Nhập địa chỉ email của bạn và chúng tôi sẽ gửi mã xác minh để đặt lại mật khẩu.",
   "send_verification_code": "Gửi mã xác minh",
@@ -3017,5 +3015,8 @@
   "link_conflict_expired": "Yêu cầu này đã hết hạn hoặc đã được sử dụng. Hãy liên kết lại tài khoản {{provider}} để bắt đầu lại.",
   "start_again": "Bắt đầu lại",
   "cannot_unlink_last_method": "Đây là cách đăng nhập duy nhất của bạn nên không thể hủy liên kết.",
-  "apple_sign_in_failed": "Không thể đăng nhập bằng Apple. Vui lòng thử lại."
+  "apple_sign_in_failed": "Không thể đăng nhập bằng Apple. Vui lòng thử lại.",
+  "no_account_yet": "Bạn chưa có tài khoản?",
+  "sign_up_now": "Đăng ký ngay",
+  "sign_in_with_password": "Đăng nhập bằng mật khẩu"
 }

@@ -3,7 +3,6 @@ import { createStackNavigator } from '@react-navigation/stack'
 import { useNavigation } from '@react-navigation/native'
 import useAuthStore from '@/store/useAuthStore'
 import Login from '@/screens/Auth/Login'
-import LoginParentPhoneScreen from '@/screens/Auth/LoginParentPhone'
 import TutorialContainer from '@/containers/Tutorial'
 import GuestCode from '@/containers/GuestExam/views/GuestCode'
 import GuestInfo from '@/containers/GuestExam/views/GuestInfo'
@@ -40,7 +39,6 @@ const UnAuthorized = () => {
     >
       <Stack.Screen name={Routes.UnAuth.Tutorial} component={TutorialScreen} />
       <Stack.Screen name={Routes.UnAuth.Login} component={Login} />
-      <Stack.Screen name={Routes.UnAuth.LoginParentPhone} component={LoginParentPhoneScreen} />
       <Stack.Screen name={Routes.UnAuth.GuestCode} component={GuestCode} />
       <Stack.Screen name={Routes.UnAuth.GuestInfo} component={GuestInfo} />
       {/* The exam and the result handle Back themselves (confirm / "next student"): no swipe-back. */}

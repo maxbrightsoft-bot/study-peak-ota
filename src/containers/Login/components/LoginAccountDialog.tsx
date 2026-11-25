@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { View, Text, TouchableOpacity } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { palette, TYPO } from '@/theme'
@@ -16,16 +16,17 @@ import { LoginAccountMode } from '../configs/types'
 
 type Props = {
   visible: boolean
+  mode: LoginAccountMode
   onOpen: () => void
   onClose: () => void
 }
 
-const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
+const LoginAccountDialog = ({ visible, mode: initialMode, onOpen, onClose }: Props) => {
   const { t } = useTranslation()
 
   const { formik: loginFormik, showPassword, toggleShowPassword, resetShowPassword } = useLoginEmail()
 
-  const [mode, setMode] = useState<LoginAccountMode>(LoginAccountMode.Login)
+  const [mode, setMode] = useState<LoginAccountMode>(initialMode)
   const {
     formik: registerFormik,
     setField: setRegisterField,
@@ -52,7 +53,7 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
   const handleClose = () => {
     resetRegister()
     loginFormik.resetForm()
-    setMode(LoginAccountMode.Login)
+    setMode(initialMode)
     resetShowPassword()
     setShowRegisterPassword(false)
     setApiError(null)
@@ -67,9 +68,14 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
     if (!visible) {
       resetRegister()
       loginFormik.resetForm()
-      setMode(LoginAccountMode.Login)
+      setMode(initialMode)
     }
   }, [visible, mode])
+
+  // Layout effect: sync the mode before paint so opening in the other mode never flashes the previous one.
+  useLayoutEffect(() => {
+    if (visible) setMode(initialMode)
+  }, [visible, initialMode])
 
   const renderLogin = () => {
     const emailError =
@@ -312,20 +318,6 @@ const LoginAccountDialog = ({ visible, onOpen, onClose }: Props) => {
         onClose={handleClose}
         title={mode === LoginAccountMode.Login ? t('sign_in') : t('sign_up')}
       >
-        <View style={styles.tabContainer}>
-          <TouchableOpacity onPress={() => setMode(LoginAccountMode.Login)}>
-            <Text style={[styles.tab, mode === LoginAccountMode.Login && styles.activeTab]}>
-              {t('sign_in')}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => setMode(LoginAccountMode.Register)}>
-            <Text style={[styles.tab, mode === LoginAccountMode.Register && styles.activeTab]}>
-              {t('sign_up')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
         {mode === LoginAccountMode.Login ? renderLogin() : renderRegister()}
       </CommonDialog>
 
@@ -351,23 +343,6 @@ const styles = ScaledSheet.create({
     fontWeight: '500',
     color: palette.grey[700],
     marginBottom: '8@ms',
-  },
-
-  tabContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: '16@ms',
-  },
-
-  tab: {
-    marginHorizontal: '12@ms',
-    fontSize: '16@ms',
-    color: palette.grey[500],
-  },
-
-  activeTab: {
-    color: palette.main[600],
-    fontWeight: 'bold',
   },
 
   primaryButton: {
