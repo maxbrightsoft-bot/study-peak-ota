@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Share } from 'react-native';
-import * as Clipboard from 'expo-clipboard';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Modal, ActivityIndicator, Alert, Share, Clipboard } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { palette } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { ScaledSheet } from 'react-native-size-matters';
@@ -33,12 +33,6 @@ const PopQuiz = () => {
     setIsOpenConfirmEnd,
     proceedOpenModalAndCompleteLive
   } = usePopQuiz()
-
-  const handleCopyCode = async () => {
-    if (!selectedQuiz?.code) return;
-    await Clipboard.setStringAsync(selectedQuiz.code);
-    toast.success(t('the_code_has_been_copied_to_your_clipboard') || 'Mã đã được sao chép vào bộ nhớ tạm');
-  };
 
   return (
     <View style={styles.container}>
@@ -298,7 +292,10 @@ const PopQuiz = () => {
                 <>
                   <TouchableOpacity
                     style={styles.sheetAction}
-                    onPress={handleCopyCode}
+                    onPress={() => {
+                      Clipboard.setString(selectedQuiz.code);
+                      toast.success(t('the_code_has_been_copied_to_your_clipboard') || 'Mã đã được sao chép vào bộ nhớ tạm');
+                    }}
                   >
                     <View style={[styles.sheetActionIcon, { backgroundColor: '#ECFDF5' }]}>
                       <Ionicons name="copy-outline" size={20} color="#10B981" />
