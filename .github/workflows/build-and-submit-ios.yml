@@ -65,7 +65,7 @@ jobs:
 
       # ── 5. JS dependencies ──────────────────────────────────────────────────
       - name: Install Node dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install
 
       # ── 6. Build ─────────────────────────────────────────────────────────────
       - name: Build iOS App (local EAS build)

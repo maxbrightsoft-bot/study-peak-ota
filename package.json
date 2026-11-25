@@ -13,7 +13,10 @@
     "generate-splash": "react-native generate-bootsplash assets/splash_logo.svg --background=5F30AA --logo-width=180 --assets-output=assets/bootsplash"
   },
   "jest": {
-    "preset": "jest-expo"
+    "preset": "jest-expo",
+    "moduleNameMapper": {
+      "^react-native-size-matters$": "<rootDir>/src/utils/sizeMatters.ts"
+    }
   },
   "dependencies": {
     "@expo/vector-icons": "~14.0.4",
@@ -30,6 +33,7 @@
     "@react-native-google-signin/google-signin": "14.0.0",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",
+    "@react-navigation/native-stack": "^7.2.0",
     "@react-navigation/stack": "^7.1.2",
     "@salmonco/react-native-radar-chart": "^0.0.26",
     "axios": "^1.8.3",
@@ -40,7 +44,6 @@
     "expo-blur": "~14.0.3",
     "expo-build-properties": "~0.13.3",
     "expo-camera": "~16.1.11",
-    "expo-clipboard": "~7.0.1",
     "expo-constants": "~17.0.7",
     "expo-crypto": "~14.0.2",
     "expo-dev-client": "~5.0.20",
@@ -49,7 +52,6 @@
     "expo-keep-awake": "~14.0.3",
     "expo-linear-gradient": "~14.0.2",
     "expo-linking": "~7.0.5",
-    "expo-router": "~4.0.17",
     "expo-local-authentication": "~16.0.5",
     "expo-sqlite": "~15.1.4",
     "expo-web-browser": "~14.0.2",

@@ -44,7 +44,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>7</string>
+	<string>10</string>
 	<key>FirebaseCrashlyticsCollectionEnabled</key>
 	<true/>
 	<key>ITSAppUsesNonExemptEncryption</key>
@@ -61,7 +61,7 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>Study Peak needs camera access to scan a QR code to link your account with another user, such as a parent or tutor account.</string>
+	<string>Study Peak uses the camera to take photos in chat and to scan QR codes for exams and for linking your account with a parent or tutor account.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Allow Study Peak to use Face ID for fast and secure account authentication.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

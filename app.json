@@ -17,7 +17,7 @@
     "ios": {
       "jsEngine": "hermes",
       "supportsTablet": true,
-      "buildNumber": "7",
+      "buildNumber": "10",
       "bundleIdentifier": "com.max.britghtsoft.touchstudymobile",
       "infoPlist": {
         "UIApplicationSceneManifest": {
@@ -34,7 +34,7 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSPhotoLibraryUsageDescription": "This app needs access to your photos so you can upload images.",
         "NSPhotoLibraryAddUsageDescription": "Allow StudyPeak to save photos to your library.",
-        "NSCameraUsageDescription": "Study Peak needs camera access to scan a QR code to link your account with another user, such as a parent or tutor account.",
+        "NSCameraUsageDescription": "Study Peak uses the camera to take photos in chat and to scan QR codes for exams and for linking your account with a parent or tutor account.",
         "NSFaceIDUsageDescription": "Allow Study Peak to use Face ID for fast and secure account authentication.",
         "CFBundleURLTypes": [
           {
@@ -129,8 +129,10 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Study Peak needs camera access to scan a QR code to link your account with another user, such as a parent or tutor account.",
-          "barcodeScannerEnabled": true
+          "cameraPermission": "Study Peak uses the camera to take photos in chat and to scan QR codes for exams and for linking your account with a parent or tutor account.",
+          "barcodeScannerEnabled": true,
+          "microphonePermission": false,
+          "recordAudioAndroid": false
         }
       ]
     ],
