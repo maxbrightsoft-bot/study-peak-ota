@@ -115,8 +115,12 @@ const useOverallChartContainer = (
                     avgValue = formatTimeSecond((overallData?.data[1]?.problemSolvingTime ?? 0) / 1000, t)
                     break
                 case 4:
-                    myValue = `${(overallData?.data[0]?.confidenceRate ?? overallData?.data[0]?.totalAsteriskQuestions ?? 0).toFixed(2)}%`
-                    avgValue = `${(overallData?.data[1]?.confidenceRate ?? overallData?.data[1]?.totalAsteriskQuestions ?? 0).toFixed(2)}%`
+                    myValue = overallData?.data[0]?.confidenceRate !== undefined
+                        ? `${overallData.data[0].confidenceRate.toFixed(1)}%`
+                        : `${t("n_questions", { total: `${overallData?.data[0]?.totalAsteriskQuestions ?? 0}/${overallData?.maxData.totalAsteriskQuestions ?? 0}` })}`
+                    avgValue = overallData?.data[1]?.confidenceRate !== undefined
+                        ? `${overallData.data[1].confidenceRate.toFixed(1)}%`
+                        : `${t("n_questions", { total: `${Math.round(overallData?.data[1]?.totalAsteriskQuestions ?? 0)}/${overallData?.maxData.totalAsteriskQuestions ?? 0}` })}`
                     break
                 case 5:
                     myValue = `${t("n_questions", { total: `${overallData?.data[0]?.lowLevelQuestions ?? 0}/${overallData?.maxData.lowLevelQuestions ?? 0}` })}`
